@@ -1,0 +1,20 @@
+# Exclude from archive
+/.git       export-ignore
+assets/     export-ignore
+config/     export-ignore
+tests/      export-ignore
+postcss.config.js export-ignore
+phpunit.xml export-ignore
+package.json export-ignore
+package-lock.json export-ignore
+composer.phar export-ignore
+composer.lock export-ignore
+composer.json export-ignore
+babel.config.js export-ignore
+.stylelintrc export-ignore
+.npmrc export-ignore
+.gitignore export-ignore
+.eslintrc export-ignore
+.eslintignore export-ignore
+.editorconfig export-ignore
+.browserslistrc export-ignore

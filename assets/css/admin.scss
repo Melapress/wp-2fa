@@ -1,0 +1,135 @@
+/* stylelint-disable */
+
+/**************************\
+  Admin Settings.
+\**************************/
+
+#excluded_users_buttons, #excluded_roles_buttons, #enforced_roles_buttons, #enforced_users_buttons, #excluded_sites_buttons {
+  display: inline;
+}
+
+.wp2fa-setup-content {
+  #excluded_users_buttons, #excluded_roles_buttons {
+	display: block;
+	margin-top: 20px;
+  }
+}
+
+.user-btn {
+  position: relative;
+  margin-left: 10px !important;
+
+  .remove-item {
+	background: red;
+	height: 14px;
+	width: 14px;
+	position: absolute;
+	color: #fff;
+	border-radius: 7px;
+	line-height: 11px;
+	text-align: center;
+	font-size: 10px;
+	display: block;
+	right: -7px;
+	top: -5px;
+  }
+}
+
+.mt-5px {
+  margin-top: 7px;
+  display: inline-block;
+}
+
+label.radio-inline {
+  padding-left: 8px;
+}
+
+.danger-zone-wrapper {
+  padding: 15px;
+  border: 1px solid red;
+  border-radius: 3px;
+  margin-top: 15px;
+}
+
+.learn_more_link {
+  display: inline-block;
+  margin-left: 10px;
+  margin-top: 6px;
+}
+
+.wp-2fa-settings-wrapper .disabled {
+  opacity: 0.5;
+
+  * {
+	pointer-events: none;
+  }
+}
+
+label.disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.button.has-spinner {
+  padding-right: 0 !important;
+}
+
+.notice-after-button {
+  padding: 5px 10px !important;
+  margin-left: 10px !important;
+}
+
+input.error {
+  border-color: #dc3232;
+  background: #ffebee;
+}
+
+.wp-2fa-user-profile-form .button {
+  margin-right: 5px;
+}
+
+.wp-submenu a[href="wp-2fa-setup"] {
+  display: none !important;
+}
+
+.select2-selection--multiple {
+  height: 33px;
+  overflow-y: auto;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: #e4e4e4;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  cursor: default;
+  float: left;
+  margin-right: 5px;
+  margin-top: 2px;
+  margin-bottom: 0px;
+  padding: 0 5px;
+}
+
+.select2-container .select2-search--inline {
+  float: left;
+  height: 15px;
+}
+
+.select2-container--default {
+  .select2-search--inline .select2-search__field {
+	height: 13px;
+	margin-top: 0px;
+  }
+
+  .select2-selection--multiple {
+	padding-top: 3px;
+  }
+}
+
+#exclusion_settings_wrapper.disabled {
+  height: 0;
+  overflow: hidden;
+}
+
+#notify-admin-settings-page {
+  text-align: justify;
+}

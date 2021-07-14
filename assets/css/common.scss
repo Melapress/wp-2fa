@@ -1,0 +1,557 @@
+/* stylelint-disable */
+
+/**************************\
+  Modals - Used both in admin and front end.
+\**************************/
+
+.mt-5px {
+  margin-top: 7px;
+  display: inline-block;
+}
+
+label.radio-inline {
+  padding-left: 8px;
+}
+
+.wp2fa-modal {
+  font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif;
+}
+
+.modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal__container {
+  background-color: #fff;
+  padding: 30px;
+  max-width: 600px;
+  max-height: 100vh;
+  border-radius: 4px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  z-index: 1500;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal__title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  color: #222;
+  box-sizing: border-box;
+}
+
+.modal__close {
+  border: 0;
+  outline: none;
+}
+
+.modal__header .modal__close:before, .wp2fa-modal .modal__close:before {
+  content: "\2715";
+}
+
+.modal__content {
+  font-size: 14px;
+  line-height: 28px;
+  color: #222;
+  margin-top: 0;
+  word-break: keep-all;
+  width: 100%;
+
+  p {
+	font-size: 14px;
+	line-height: 28px;
+	color: #222;
+	margin-top: 0;
+	word-break: keep-all;
+	width: 100%;
+  }
+
+  label {
+	font-size: 14px;
+	line-height: 28px;
+	color: #222;
+	margin-top: 0;
+	word-break: keep-all;
+	width: 100%;
+	display: block;
+  }
+
+  p.description {
+	font-size: 12px;
+	line-height: 24px;
+	opacity: 0.9;
+  }
+
+  .apps-wrapper {
+	position: relative;
+	overflow: hidden;
+	display: flex;
+
+	.app-logo {
+	  display: flex;
+	  align-self: center;
+	  flex: 1;
+	  padding: 0 13px;
+
+	  img {
+		margin: 0 auto;
+		width: auto;
+		max-width: 100%;
+	  }
+	}
+  }
+
+  .wp2fa-setup-actions {
+	clear: both;
+  }
+}
+
+.modal__btn-primary {
+  background-color: #00449e;
+  color: #fff;
+}
+
+.modal__content input {
+  &[type="radio"] {
+	margin-left: 0;
+  }
+
+  &:not([type="radio"]) {
+	min-width: 15pc;
+	margin-bottom: 10px;
+	min-height: 32px;
+	line-height: 1;
+	padding: 5px;
+  }
+}
+
+@keyframes mmfadeIn {
+  from {
+	opacity: 0;
+  }
+
+  to {
+	opacity: 1;
+  }
+}
+
+@keyframes mmfadeOut {
+  from {
+	opacity: 1;
+  }
+
+  to {
+	opacity: 0;
+  }
+}
+
+@keyframes mmslideIn {
+  from {
+	transform: translateY(15%);
+  }
+
+  to {
+	transform: translateY(0);
+  }
+}
+
+@keyframes mmslideOut {
+  from {
+	transform: translateY(0);
+  }
+
+  to {
+	transform: translateY(-10%);
+  }
+}
+
+.micromodal-slide {
+  display: none;
+
+  &.is-open {
+	display: block;
+  }
+
+  &[aria-hidden="false"] {
+	.modal__overlay {
+	  animation: mmfadeIn 0.3s cubic-bezier(0, 0, 0.2, 1);
+	}
+
+	.modal__container {
+	  animation: mmslideIn 0.3s cubic-bezier(0, 0, 0.2, 1);
+	}
+  }
+
+  &[aria-hidden="true"] {
+	.modal__overlay {
+	  animation: mmfadeOut 0.3s cubic-bezier(0, 0, 0.2, 1);
+	}
+
+	.modal__container {
+	  animation: mmslideOut 0.3s cubic-bezier(0, 0, 0.2, 1);
+	}
+  }
+
+  .modal__container, .modal__overlay {
+	will-change: transform;
+  }
+}
+
+.danger-zone-wrapper {
+  padding: 15px;
+  border: 1px solid red;
+  border-radius: 3px;
+  margin-top: 15px;
+}
+
+.learn_more_link {
+  display: inline-block;
+  margin-left: 10px;
+  margin-top: 6px;
+}
+
+.wp-2fa-settings-wrapper .disabled {
+  opacity: 0.5;
+
+  * {
+	pointer-events: none;
+  }
+}
+
+.wp2fa-modal {
+  .modal__container {
+	max-width: 41vw;
+	max-height: 70vh;
+	min-width: 47vw;
+  position: relative;
+  }
+
+  .modal__close {
+	position: absolute;
+	right: 20px;
+	top: 20px;
+	text-decoration: none;
+  }
+}
+
+.wizard-step:not(.active), .step-setting-wrapper:not(.active) {
+  display: none;
+}
+
+.wizard-step.active, .step-setting-wrapper.active {
+  -webkit-animation: fadein 0.5s;
+
+  /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 0.5s;
+
+  /* Firefox < 16 */
+  -ms-animation: fadein 0.5s;
+
+  /* Internet Explorer */
+  -o-animation: fadein 0.5s;
+
+  /* Opera < 12.1 */
+  animation: fadein 0.5s;
+}
+
+#configure-2fa .wp2fa-setup-actions, #configure-2fa-backup-codes .wp2fa-setup-actions {
+  margin-top: 25px;
+}
+
+.modal__btn + .modal__btn {
+  margin-left: 10px;
+}
+
+.wp-2fa-configuration-form th {
+  display: none;
+}
+
+.wp2fa-modal {
+  h4, h3 {
+	margin-top: 0;
+	font-size: 22px;
+	margin-bottom: 15px;
+	font-weight: 700;
+	word-wrap: break-word;
+  }
+
+  fieldset {
+	padding: 0;
+	border: 0;
+  }
+
+  ol {
+	margin: 0 0 15px;
+	padding-left: 17px;
+  }
+
+  .modal__content code.app-key {
+	font-size: 16px;
+	padding: 7px 12px;
+	word-break: break-all;
+	background: #efefef;
+	color: #222;
+  }
+}
+
+.verification-response:not(:empty) {
+  margin-bottom: 15px;
+  font-size: 12px;
+  border: 1px solid red;
+  padding: 0 5px;
+}
+
+.wp-2fa-configuration-form .button {
+  margin-bottom: 10px;
+  text-align: center;
+  background-color: #00449e;
+  color: #fff;
+  padding: 13px 13pt;
+  border-radius: 5px;
+  border: none;
+  line-height: 1;
+  outline: none;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.wp2fa-modal {
+  .modal__content {
+	.wp2fa-setup-actions .button, .modal__btn {
+	  margin-bottom: 10px;
+	  text-align: center;
+	  background-color: #00449e;
+	  color: #fff;
+	  padding: 13px 13pt;
+	  border-radius: 5px;
+	  border: none;
+	  line-height: 1;
+	  outline: none;
+	  font-size: 14px;
+	  text-decoration: none;
+	}
+  }
+
+  .button {
+	margin-right: 10px;
+  }
+}
+
+.wp-2fa-configuration-form .button {
+  margin-right: 10px;
+}
+
+.qr-code-wrapper {
+  position: relative;
+  overflow: hidden;
+  float: right;
+}
+
+#notify-users .modal__container {
+  * {
+	opacity: 1;
+	transition: all 0.3s ease-in-out;
+  }
+
+  &.saving * {
+	opacity: 0;
+	transition: all 0.3s ease-in-out;
+  }
+}
+
+.qr-code-wrapper.regenerating img {
+  visibility: hidden;
+}
+
+#backup-codes-wrapper {
+  display: inline-block;
+}
+
+.qr-code-wrapper.regenerating:before, #notify-users .modal__container.saving:before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  border-top-color: #000;
+  animation: spinner .6s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+	transform: rotate(360deg);
+  }
+}
+
+@media screen and (max-width: 1300px) {
+  .wp2fa-modal .modal__container {
+	max-width: 35vw;
+  }
+
+  #wp-2fa-totp-qrcode {
+	max-width: 100%;
+	text-align: center;
+	margin: 15px auto;
+	display: block;
+  }
+
+  .qr-code-wrapper {
+    float: none;
+  }
+
+  .step-setting-wrapper br {
+	display: none;
+  }
+
+  .wp2fa-modal .modal__content {
+	code {
+	  br {
+		display: block !important;
+	  }
+
+	  &.app-key {
+		width: 100%;
+		display: block;
+		text-align: center;
+		font-size: 16px;
+		margin-bottom: 30px;
+		background: #efefef;
+		padding: 5px;
+		word-break: break-all;
+	  }
+	}
+
+	.apps-wrapper {
+	  margin: 10px 0;
+	}
+
+	a.app-logo {
+	  padding: 0 5px;
+	}
+  }
+
+  .wp-2fa-configuration-form .button {
+	width: 100%;
+	display: block;
+	margin-bottom: 10px;
+	margin-left: 0px;
+	margin-right: 0px;
+	text-align: center;
+  }
+
+  .wp2fa-modal .modal__content {
+	.wp2fa-setup-actions .button, .modal__btn {
+	  width: 100%;
+	  display: block;
+	  margin-bottom: 10px;
+	  margin-left: 0px;
+	  margin-right: 0px;
+	  text-align: center;
+	}
+  }
+
+  .modal__content input:not([type="radio"]) {
+	width: 100%;
+	margin-bottom: 10px;
+  }
+
+  .hide-on-mobile {
+	display: none;
+  }
+
+  .wp2fa-modal {
+	h4, h3 {
+	  font-size: 20px;
+	}
+  h4 {
+    clear: both;
+  }
+  }
+}
+
+@media screen and (min-width: 1300px) {
+  .wp2fa-modal {
+	.clear-both {
+	  clear: both;
+	  display: block;
+	  overflow: hidden;
+	}
+
+	.modal-50 {
+	  width: 50%;
+	  display: inline-block;
+	  float: left;
+	}
+
+	.option-pill {
+	  margin-bottom: 15px;
+	}
+
+	.qr-code {
+	  float: right;
+	  width: auto;
+	}
+
+	.mb-30 {
+	  margin-bottom: 30px;
+	}
+  }
+
+  .show-on-mobile {
+	display: none;
+  }
+}
+
+@media all and (max-width: 500px) {
+  .modal__container {
+	padding: 17px;
+  }
+
+  .wp2fa-modal {
+	.modal__content {
+	  .apps-wrapper {
+		display: block;
+	  }
+
+	  a.app-logo {
+		width: calc(100% / 3 - 5px);
+		display: inline-block;
+		margin-bottom: 5px;
+	  }
+	}
+
+	h4, h3 {
+	  font-size: 18px;
+	}
+  }
+}
+
+@media screen and (max-width: 800px) {
+
+  .wp2fa-modal .modal__container {
+	max-width: 90vw;
+  }
+}
