@@ -198,11 +198,11 @@ msgstr ""
 msgid "Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:196, includes/classes/Admin/SettingsPage.php:241
+#: includes/classes/Admin/SettingsPage.php:196, includes/classes/Admin/SettingsPage.php:240
 msgid "support@wpwhitesecurity.com"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:240
+#: includes/classes/Admin/SettingsPage.php:239
 msgid "Use the settings below to configure the emails which are sent to users as part of the 2FA plugin. If you have any questions send us an email at"
 msgstr ""
 
@@ -210,347 +210,339 @@ msgstr ""
 msgid "These settings have been disabled by your site administrator, please contact them for further assistance."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:266
+#: includes/classes/Admin/SettingsPage.php:265
 msgid "Change the default text used in the 2FA code page?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:268
+#: includes/classes/Admin/SettingsPage.php:267
 msgid "This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:273
+#: includes/classes/Admin/SettingsPage.php:272
 msgid "2FA code page text"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:278
+#: includes/classes/Admin/SettingsPage.php:277
 msgid "Note:"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:278
+#: includes/classes/Admin/SettingsPage.php:277
 msgid "Only plain text is allowed."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:308
+#: includes/classes/Admin/SettingsPage.php:307
 msgid "Can users access the WordPress dashboard or you have custom profile pages? "
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:310
+#: includes/classes/Admin/SettingsPage.php:309
 msgid "If your users do not have access to the WordPress dashboard (because you use custom user profile pages) enable this option. Once enabled, the plugin creates a page which ONLY authenticated users can access to configure their user 2FA settings. A link to this page is sent in the 2FA welcome email."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:315
+#: includes/classes/Admin/SettingsPage.php:314
 msgid "Frontend 2FA settings page"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:322, includes/classes/Admin/UserProfile.php:285, includes/classes/Admin/UserProfile.php:375
+#: includes/classes/Admin/SettingsPage.php:321, includes/classes/Admin/UserProfile.php:285, includes/classes/Admin/UserProfile.php:375
 msgid "Yes"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:329, includes/classes/Admin/UserProfile.php:286, includes/classes/Admin/UserProfile.php:376
+#: includes/classes/Admin/SettingsPage.php:328, includes/classes/Admin/UserProfile.php:286, includes/classes/Admin/UserProfile.php:376
 msgid "No"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:335
+#: includes/classes/Admin/SettingsPage.php:334
 msgid "Frontend 2FA settings page URL"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:366
+#: includes/classes/Admin/SettingsPage.php:365
 msgid "Edit Page"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:366
+#: includes/classes/Admin/SettingsPage.php:365
 msgid "View Page"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:373
+#: includes/classes/Admin/SettingsPage.php:372
 msgid "Specify the page where you want to redirect your users to after they complete the 2FA setup. This will override the global redirect setting."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:376
+#: includes/classes/Admin/SettingsPage.php:375
 msgid "Redirect users after 2FA setup"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:397
+#: includes/classes/Admin/SettingsPage.php:396
 msgid "Do you want to redirect the user to a specific page after completing the 2FA setup wizard?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:399
+#: includes/classes/Admin/SettingsPage.php:398
 msgid "Specify a URL of a page where you want to redirect the users once they complete the 2FA setup wizard. Leave empty for default behaviour, in which users are redirected back to the page from where they launched the wizard."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:404
+#: includes/classes/Admin/SettingsPage.php:403
 msgid "Redirect users after 2FA setup to"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:443
+#: includes/classes/Admin/SettingsPage.php:442
 msgid "Should users be asked to setup 2FA instantly or should they have a grace period?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:445
+#: includes/classes/Admin/SettingsPage.php:444
 msgid "When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:445, includes/classes/Admin/UserProfile.php:138, includes/classes/Admin/UserProfile.php:153, includes/classes/Admin/Views/FirstTimeWizardSteps.php:131
+#: includes/classes/Admin/SettingsPage.php:444, includes/classes/Admin/UserProfile.php:138, includes/classes/Admin/UserProfile.php:153, includes/classes/Admin/Views/FirstTimeWizardSteps.php:131
 msgid "Learn more."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:451, includes/classes/Admin/SetupWizard.php:443
+#: includes/classes/Admin/SettingsPage.php:450, includes/classes/Admin/SetupWizard.php:443
 msgid "Grace period"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:466
+#: includes/classes/Admin/SettingsPage.php:465
 msgid "How often should the plugin check if a user's grace period is over?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:468
+#: includes/classes/Admin/SettingsPage.php:467
 msgid "By default the plugin checks if a users grace periods to setup 2FA has passed when the user tries to login. If you would like the plugin to advise the user within an hour, enable the below option to add a cron job that runs every hour."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:473
+#: includes/classes/Admin/SettingsPage.php:472
 msgid "Enable cron"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:479
+#: includes/classes/Admin/SettingsPage.php:478
 msgid "Use cron job to check grace periods"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:484
+#: includes/classes/Admin/SettingsPage.php:483
 msgid "Destroy session"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:490
+#: includes/classes/Admin/SettingsPage.php:489
 msgid "Destroy user session when grace period expires?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:506
+#: includes/classes/Admin/SettingsPage.php:505
 msgid "Should users be able to disable 2FA on their user profile?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:508
+#: includes/classes/Admin/SettingsPage.php:507
 msgid "Users can configure and also disable 2FA on their profile by clicking the \"Remove 2FA\" button. Enable this setting to disable the Remove 2FA button so users cannot disable 2FA from their user profile."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:513
+#: includes/classes/Admin/SettingsPage.php:512
 msgid "Hide the Remove 2FA button"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:519
+#: includes/classes/Admin/SettingsPage.php:518
 msgid "Hide the Remove 2FA button on user profile pages"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:534
+#: includes/classes/Admin/SettingsPage.php:533
 msgid "Limit 2FA settings access?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:536
+#: includes/classes/Admin/SettingsPage.php:535
 msgid "Use this setting to hide this plugin configuration area from all other admins."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:541
+#: includes/classes/Admin/SettingsPage.php:540
 msgid "Limit access to 2FA settings"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:547
+#: includes/classes/Admin/SettingsPage.php:546
 msgid "Hide settings from other administrators"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:562
-msgid "Do you want to remove the plugin logo from the 2FA user wizard?"
-msgstr ""
-
-#: includes/classes/Admin/SettingsPage.php:564
-msgid "Enable this setting to remove the WP 2FA plugin logo from the 2FA user wizard"
-msgstr ""
-
-#: includes/classes/Admin/SettingsPage.php:576
+#: includes/classes/Admin/SettingsPage.php:561
 msgid "Do you want to delete the plugin data from the database upon uninstall?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:578
+#: includes/classes/Admin/SettingsPage.php:563
 msgid "The plugin saves its settings in the WordPress database. By default the plugin settings are kept in the database so if it is installed again, you do not have to reconfigure the plugin. Enable this setting to delete the plugin settings from the database upon uninstall."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:583
+#: includes/classes/Admin/SettingsPage.php:568
 msgid "Delete data"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:589
+#: includes/classes/Admin/SettingsPage.php:574
 msgid "Delete data upon uninstall"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:612, includes/classes/Admin/SettingsPage.php:651, includes/classes/Admin/SettingsPage.php:695, includes/classes/Admin/SettingsPage.php:731, includes/classes/Admin/SettingsPage.php:1449
+#: includes/classes/Admin/SettingsPage.php:597, includes/classes/Admin/SettingsPage.php:636, includes/classes/Admin/SettingsPage.php:680, includes/classes/Admin/SettingsPage.php:716, includes/classes/Admin/SettingsPage.php:1434
 msgid "Nonce verification failed."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:822
+#: includes/classes/Admin/SettingsPage.php:807
 msgid "At least one 2FA method should be enabled."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:911
+#: includes/classes/Admin/SettingsPage.php:896
 msgid "The following setting are being saved: "
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:919
+#: includes/classes/Admin/SettingsPage.php:904
 msgid "Grace period must be at least 1 day/hour"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:970
+#: includes/classes/Admin/SettingsPage.php:955
 msgid "You must provide a new page slug."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1001
+#: includes/classes/Admin/SettingsPage.php:986
 msgid "You must specify at least one role or user"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1045
+#: includes/classes/Admin/SettingsPage.php:1030
 msgid "Settings saving processes complete"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1089
+#: includes/classes/Admin/SettingsPage.php:1074
 msgid "Configure 2FA Settings"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1104
+#: includes/classes/Admin/SettingsPage.php:1089
 msgid "User account successfully unlocked. User can login again."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1106, includes/classes/Admin/SettingsPage.php:1120, includes/classes/Admin/SettingsPage.php:1134, includes/classes/Admin/SettingsPage.php:1225, includes/classes/Admin/SettingsPage.php:1235, includes/classes/Admin/SettingsPage.php:1245
+#: includes/classes/Admin/SettingsPage.php:1091, includes/classes/Admin/SettingsPage.php:1105, includes/classes/Admin/SettingsPage.php:1119, includes/classes/Admin/SettingsPage.php:1210, includes/classes/Admin/SettingsPage.php:1220, includes/classes/Admin/SettingsPage.php:1230
 msgid "Dismiss this notice."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1118
+#: includes/classes/Admin/SettingsPage.php:1103
 msgid "Your 2FA settings have been removed."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1132
+#: includes/classes/Admin/SettingsPage.php:1117
 msgid "User 2FA settings have been removed."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1223
+#: includes/classes/Admin/SettingsPage.php:1208
 msgid "2FA Settings Updated"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1233
+#: includes/classes/Admin/SettingsPage.php:1218
 msgid "Please ensure both custom email address and display name are provided."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1257
+#: includes/classes/Admin/SettingsPage.php:1242
 msgid "Which email address should the plugin use as a from address?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1259
+#: includes/classes/Admin/SettingsPage.php:1244
 msgid "Use these settings to customize the \"from\" name and email address for all correspondence sent from our plugin."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1264
+#: includes/classes/Admin/SettingsPage.php:1249
 msgid "From email & name"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1272
+#: includes/classes/Admin/SettingsPage.php:1257
 msgid "Use the email address from the WordPress general settings."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1280
+#: includes/classes/Admin/SettingsPage.php:1265
 msgid "Use another email address"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1284
+#: includes/classes/Admin/SettingsPage.php:1269
 msgid "Email Address:"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1285
+#: includes/classes/Admin/SettingsPage.php:1270
 msgid "Display Name:"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1297
+#: includes/classes/Admin/SettingsPage.php:1282
 msgid "Email delivery test"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1299
+#: includes/classes/Admin/SettingsPage.php:1284
 msgid "The plugin sends emails with one-time codes, blocked account notifications and more. Use the button below to confirm the plugin can successfully send emails."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1306
+#: includes/classes/Admin/SettingsPage.php:1291
 msgid "Test email delivery"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1325
+#: includes/classes/Admin/SettingsPage.php:1310
 msgid "Login code email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1326
+#: includes/classes/Admin/SettingsPage.php:1311
 msgid "This is the email sent to a user when a login code is required."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1330
+#: includes/classes/Admin/SettingsPage.php:1315
 msgid "User account locked email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1331
+#: includes/classes/Admin/SettingsPage.php:1316
 msgid "This is the email sent to a user upon grace period expiry."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1335
+#: includes/classes/Admin/SettingsPage.php:1320
 msgid "User account unlocked email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1336
+#: includes/classes/Admin/SettingsPage.php:1321
 msgid "This is the email sent to a user when the user's account has been unlocked."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1352
+#: includes/classes/Admin/SettingsPage.php:1337
 msgid "Email Templates"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1361
+#: includes/classes/Admin/SettingsPage.php:1346
 msgid "Send this email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1367
+#: includes/classes/Admin/SettingsPage.php:1352
 msgid "Uncheck to disable this message."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1374
+#: includes/classes/Admin/SettingsPage.php:1359
 msgid "Email subject"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1383
+#: includes/classes/Admin/SettingsPage.php:1368
 msgid "Email body"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1385
+#: includes/classes/Admin/SettingsPage.php:1370
 msgid "Available template tags:"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1422
+#: includes/classes/Admin/SettingsPage.php:1407
 msgid "Send test email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1460
+#: includes/classes/Admin/SettingsPage.php:1445
 msgid "Please provide an email address"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1470
+#: includes/classes/Admin/SettingsPage.php:1455
 msgid "Please provide a display name."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1481
+#: includes/classes/Admin/SettingsPage.php:1466
 msgid "Please provide a valid email address. Your email address has not been updated."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1495
+#: includes/classes/Admin/SettingsPage.php:1480
 msgid "Please only use alphanumeric text. Your display name has not been updated."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1566
+#: includes/classes/Admin/SettingsPage.php:1551
 msgid "Page generated by"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1567
+#: includes/classes/Admin/SettingsPage.php:1552
 msgid "WP 2FA Plugin"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:1614
+#: includes/classes/Admin/SettingsPage.php:1599
 msgid "WP 2FA User Page"
 msgstr ""
 
@@ -638,7 +630,7 @@ msgstr ""
 msgid "The 2FA method you were using is no longer allowed on this website. Please reconfigure 2FA using one of the supported methods within"
 msgstr ""
 
-#: includes/classes/Admin/UserNotices.php:93, includes/classes/Admin/UserNotices.php:115, includes/classes/Admin/Views/WizardSteps.php:557
+#: includes/classes/Admin/UserNotices.php:93, includes/classes/Admin/UserNotices.php:115, includes/classes/Admin/Views/WizardSteps.php:569
 msgid "Configure 2FA now"
 msgstr ""
 
@@ -1206,7 +1198,7 @@ msgstr ""
 msgid "You can exit this wizard now or continue to create backup codes."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:418, includes/classes/Admin/Views/WizardSteps.php:412, includes/classes/Admin/Views/WizardSteps.php:532
+#: includes/classes/Admin/Views/WizardSteps.php:418, includes/classes/Admin/Views/WizardSteps.php:412, includes/classes/Admin/Views/WizardSteps.php:532, includes/classes/Admin/Views/WizardSteps.php:560
 msgid "Close wizard"
 msgstr ""
 
@@ -1262,10 +1254,10 @@ msgstr ""
 msgid "Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:554
+#: includes/classes/Admin/Views/WizardSteps.php:566
 msgid "Now you need to configure 2FA for your own user account. You can do this now (recommended) or later."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:560
+#: includes/classes/Admin/Views/WizardSteps.php:572
 msgid "Close wizard & configure 2FA later"
 msgstr ""

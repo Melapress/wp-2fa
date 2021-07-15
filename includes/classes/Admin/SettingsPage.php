@@ -218,7 +218,6 @@ class SettingsPage {
 							$this->changeDefaultTextArea();
 							$this->gracePeriodFrequency();
 							$this->limit_settings_access();
-							$this->remove2FALogo();
 							$this->remove_data_upon_uninstall();
 							submit_button();
 						?>
@@ -552,20 +551,6 @@ class SettingsPage {
 		</table>
 		<?php
 	}
-
-	/**
-	 * Remove logo from wizard
-	 */
-	private function remove2FALogo() {
-		?>
-		<br>
-		<h3><?php esc_html_e( 'Do you want to remove the plugin logo from the 2FA user wizard?', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php esc_html_e( 'Enable this setting to remove the WP 2FA plugin logo from the 2FA user wizard', 'wp-2fa' ); ?>
-		</p>
-		<?php
-	}
-
 
 	/**
 	 * Limit settings setting
