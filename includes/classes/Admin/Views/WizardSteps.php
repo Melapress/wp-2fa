@@ -551,6 +551,18 @@ class WizardSteps {
         ?>
         <h3><?php esc_html_e( 'Congratulations, you\'re almost there...', 'wp-2fa' ); ?></h3>
         <p><?php esc_html_e( 'Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu.', 'wp-2fa' ); ?></p>
+       
+            <?php
+            if ( WP2FA::is_user_excluded( self::getUser()->getUser()->ID ) ) {
+                ?>
+        <div class="wp2fa-setup-actions">
+            <a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary close-first-time-wizard">
+                    <?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
+            </a>
+        </div>
+                <?php
+            } else {
+                ?>
         <p><?php esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
         <div class="wp2fa-setup-actions">
             <a href="<?php echo esc_url( Settings::getSetupPageLink() ); ?>" class="button button-secondary">
@@ -560,6 +572,7 @@ class WizardSteps {
                     <?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
             </a>
         </div>
+            <?php } ?>
         <?php
     }
 
