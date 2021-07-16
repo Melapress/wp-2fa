@@ -154,7 +154,7 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
             $email_settings = self::getSettings( self::$pluginEmailSettingsName );
             $items_to_remove = [ 'send_enforced_email', 'enforced_email_subject', 'enforced_email_body' ];
 
-            if ( is_array( $email_settings ) && UserUtils::in_array_all( $items_to_remove, $user_type ) ) {
+            if ( is_array( $email_settings ) && UserUtils::in_array_all( $items_to_remove, $email_settings ) ) {
                 foreach ( $items_to_remove as $item ) {
                     if ( isset( $email_settings[ $item ] ) ) {
                         unset( $email_settings[ $item ] );
