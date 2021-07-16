@@ -45,7 +45,7 @@ class CronTasks {
 			return;
 		}
 
-		foreach ( $users as $user_id ) {
+		foreach ( $users as $index => $user_id ) {
 			//	creating the user object will update their meta fields to reflect latest plugin settings
 			$wp2faUser = new User( $user_id );
 
