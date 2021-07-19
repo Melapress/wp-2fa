@@ -200,9 +200,7 @@ jQuery(document).ready((function() {
     jQuery(document).on("click touchend", ".button-confirm", (function(e) {
         e.preventDefault(),
         MicroModal.close("configure-2fa"),
-        MicroModal.close("notify-users");
-        var t = `#${jQuery(this).closest(".wp2fa-modal").attr("id")}`;
-        jQuery(t).removeClass("is-open").attr("aria-hidden", "true")
+        MicroModal.close("notify-users")
     }
     )),
     jQuery(document).on("click touchend", ".button-decline", (function(e) {
