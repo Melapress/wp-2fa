@@ -1,0 +1,33 @@
+{
+    "name": "wp-white-security\/wp-2fa",
+    "description": "Two Factor Auth plugin",
+    "authors": [
+        {
+            "name": "WPWhiteSecurity",
+            "email": "support@wpwhitesecurity.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6",
+        "freemius\/wordpress-sdk": "^2.4.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WP2FA_Vendor\\WP2FA\\": "includes\/classes\/"
+        }
+    },
+    "require-dev": {
+        "phpunit\/phpunit": "^8.2",
+        "10up\/wp_mock": "dev-master",
+        "10up\/phpcs-composer": "dev-master"
+    },
+    "scripts": {
+        "lint": "phpcs .",
+        "lint-fix": "phpcbf .",
+        "autoload-third-party": [
+            "echo '{ \"autoload\": { \"classmap\": [\"\"] } }' > third-party\/composer.json",
+            "@composer --working-dir=third-party dump-autoload --classmap-authoritative --no-interaction",
+            "rm third-party\/composer.json"
+        ]
+    }
+}
