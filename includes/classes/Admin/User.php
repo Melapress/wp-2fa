@@ -400,6 +400,11 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @return void
 		 */
 		private function setUserPoliciesAndGrace() {
+
+			if ( ! isset( $this->user->ID ) ) {
+				return;
+			}
+
 			$is_needed = WP2FA::isUserEnforced( $this->user->ID );
 			$excluded  = WP2FA::is_user_excluded( $this->user->ID );
 			if ( $is_needed && ! $excluded ) {

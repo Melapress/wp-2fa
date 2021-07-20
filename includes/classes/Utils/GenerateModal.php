@@ -21,7 +21,7 @@ class GenerateModal {
    * @param  string $should_modal_autoopen (Optional) if anything is passed we will open the modal automatically.
    * @param  string $should_modal_autoopen (Optional) Max possible width of modal.
    */
-  public static function generate_modal( $modal_id, $modal_title = '', $modal_content, $modal_footer_buttons = [], $should_modal_autoopen = '', $max_width = '' ) {
+  public static function generate_modal( $modal_id, $modal_title, $modal_content, $modal_footer_buttons = [], $should_modal_autoopen = '', $max_width = '' ) {
 
     $buttons = '';
     $modal   = '';

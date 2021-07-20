@@ -1,0 +1,943 @@
+/* stylelint-disable */
+
+/* TO DO - grab install.css properly */
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  color: #0073aa;
+
+  &:hover, &:active {
+	color: #00a0d2;
+  }
+
+  &:focus {
+	color: #124964;
+	box-shadow: 0 0 0 1px #5b9dd9, 0 0 2px 1px rgba(30, 140, 190, 0.8);
+  }
+}
+
+.ie8 a:focus {
+  outline: #5b9dd9 solid 1px;
+}
+
+h1, h2 {
+  border-bottom: 1px solid #ddd;
+  clear: both;
+  color: #666;
+  font-size: 24px;
+  padding: 0;
+  padding-bottom: 7px;
+  font-weight: 400;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+p, li, dd, dt {
+  padding-bottom: 2px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+code, .code {
+  font-family: Consolas, Monaco, monospace;
+}
+
+ul, ol, dl {
+  padding: 5px 5px 5px 22px;
+}
+
+a img {
+  border: 0;
+}
+
+abbr {
+  border: 0;
+  font-variant: normal;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+label {
+  cursor: pointer;
+}
+
+#logo {
+  margin: 6px 0 14px 0;
+  padding: 0 0 7px 0;
+  border-bottom: none;
+  text-align: center;
+
+  a {
+	background-image: url(../images/w-logo-blue.png?ver=20131202);
+	background-image: none, url(../images/wordpress-logo.svg?ver=20131107);
+	background-size: 84px;
+	background-position: center top;
+	background-repeat: no-repeat;
+	color: #444;
+
+	/* same as login.css */
+	height: 84px;
+	font-size: 20px;
+	font-weight: 400;
+	line-height: 1.3;
+	margin: -130px auto 25px;
+	padding: 0;
+	text-decoration: none;
+	width: 84px;
+	text-indent: -9999px;
+	outline: none;
+	overflow: hidden;
+	display: block;
+  }
+}
+
+.step {
+  margin: 20px 0 15px;
+  text-align: left;
+  padding: 0;
+}
+
+th {
+  text-align: left;
+  padding: 0;
+}
+
+.language-chooser.wp-core-ui .step .button.button-large {
+  height: 36px;
+  font-size: 14px;
+  line-height: 2.35714285;
+  vertical-align: middle;
+}
+
+textarea {
+  border: 1px solid #ddd;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-table {
+  border-collapse: collapse;
+  margin-top: 1em;
+  width: 100%;
+
+  td {
+	margin-bottom: 9px;
+	padding: 10px 20px 10px 0;
+	font-size: 14px;
+	vertical-align: top;
+  }
+
+  th {
+	font-size: 14px;
+	text-align: left;
+	padding: 10px 20px 10px 0;
+	width: 140px;
+	vertical-align: top;
+  }
+
+  code {
+	line-height: 1.28571428;
+	font-size: 14px;
+  }
+
+  p {
+	margin: 4px 0 0 0;
+	font-size: 11px;
+  }
+
+  input {
+	line-height: 1.33333333;
+	font-size: 15px;
+	padding: 3px 5px;
+	border: 1px solid #ddd;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.07);
+  }
+}
+
+input, submit {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.form-table input {
+  &[type=text], &[type=email], &[type=url], &[type=password] {
+	width: 218px;
+  }
+}
+
+#pass-strength-result {
+  width: 218px;
+}
+
+.form-table {
+  th p {
+	font-weight: 400;
+  }
+
+  &.install-success {
+	th {
+	  vertical-align: middle;
+	  padding: 16px 20px 16px 0;
+	}
+
+	td {
+	  vertical-align: middle;
+	  padding: 16px 20px 16px 0;
+
+	  p {
+		margin: 0;
+		font-size: 14px;
+	  }
+
+	  code {
+		margin: 0;
+		font-size: 18px;
+	  }
+	}
+  }
+}
+
+#error-page {
+  margin-top: 50px;
+
+  p {
+	font-size: 14px;
+	line-height: 1.28571428;
+	margin: 25px 0 20px;
+  }
+
+  code {
+	font-family: Consolas, Monaco, monospace;
+  }
+}
+
+.code {
+  font-family: Consolas, Monaco, monospace;
+}
+
+.message {
+  border-left: 4px solid #dc3232;
+  padding: .7em .6em;
+  background-color: #fbeaea;
+}
+
+/* rtl:ignore */
+
+#dbname, #uname, #pwd, #dbhost, #prefix, #user_login, #admin_email, #pass1, #pass2 {
+  direction: ltr;
+}
+
+/* localization */
+
+body.rtl {
+  font-family: Tahoma, sans-serif;
+}
+
+.rtl {
+  textarea, input, submit {
+	font-family: Tahoma, sans-serif;
+  }
+}
+
+:lang(he-il) {
+  body.rtl {
+	font-family: Arial, sans-serif;
+  }
+
+  .rtl {
+	textarea, input, submit {
+	  font-family: Arial, sans-serif;
+	}
+  }
+}
+
+@media only screen and (max-width: 799px) {
+  body {
+	margin-top: 115px;
+  }
+
+  #logo a {
+	margin: -125px auto 30px;
+  }
+}
+
+@media screen and (max-width: 782px) {
+  .form-table {
+	margin-top: 0;
+
+	th, td {
+	  display: block;
+	  width: auto;
+	  vertical-align: middle;
+	}
+
+	th {
+	  padding: 20px 0 0;
+	}
+
+	td {
+	  padding: 5px 0;
+	  border: 0;
+	  margin: 0;
+	}
+  }
+
+  textarea, input {
+	font-size: 16px;
+  }
+
+  .form-table {
+	td {
+	  input {
+		&[type="text"], &[type="email"], &[type="url"], &[type="password"] {
+		  width: 100%;
+		  font-size: 16px;
+		  line-height: 1.5;
+		  padding: 7px 10px;
+		  display: block;
+		  max-width: none;
+		  box-sizing: border-box;
+		}
+	  }
+
+	  select, textarea {
+		width: 100%;
+		font-size: 16px;
+		line-height: 1.5;
+		padding: 7px 10px;
+		display: block;
+		max-width: none;
+		box-sizing: border-box;
+	  }
+	}
+
+	span.description {
+	  width: 100%;
+	  font-size: 16px;
+	  line-height: 1.5;
+	  padding: 7px 10px;
+	  display: block;
+	  max-width: none;
+	  box-sizing: border-box;
+	}
+  }
+
+  .wp-pwd {
+	#pass1 {
+	  padding-right: 50px;
+	}
+
+	.button.wp-hide-pw {
+	  right: 0;
+	}
+  }
+
+  #pass-strength-result {
+	width: 100%;
+  }
+}
+
+body.language-chooser {
+  max-width: 300px;
+}
+
+.language-chooser {
+  select {
+	padding: 8px;
+	width: 100%;
+	display: block;
+	border: 1px solid #ddd;
+	background: #fff;
+	color: #32373c;
+	font-size: 16px;
+	font-family: Arial, sans-serif;
+	font-weight: 400;
+
+	&:focus {
+	  color: #32373c;
+	}
+
+	option {
+	  &:hover, &:focus {
+		color: #016087;
+	  }
+	}
+  }
+
+  p {
+	text-align: right;
+  }
+}
+
+.screen-reader-input, .screen-reader-text {
+  border: 0;
+  clip: rect(1px, 1px, 1px, 1px);
+  -webkit-clip-path: inset(50%);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  word-wrap: normal !important;
+}
+
+.spinner {
+  background: url(../images/spinner.gif) no-repeat;
+  background-size: 20px 20px;
+  visibility: hidden;
+  opacity: 0.7;
+  filter: alpha(opacity=70);
+  width: 20px;
+  height: 20px;
+  margin: 2px 5px 0;
+}
+
+.step .spinner {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 15px;
+}
+
+.button.hide-if-no-js, .hide-if-no-js {
+  display: none;
+}
+
+/**
+ * HiDPI Displays
+ */
+
+@media print, (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 120dpi) {
+  .spinner {
+	background-image: url(../images/spinner-2x.gif);
+  }
+}
+
+body {
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  background: #F8F9FB;
+  padding: 0;
+}
+
+#wp2fa-logo {
+  border: 0;
+  margin: 0 0 24px;
+  padding: 0;
+  text-align: center;
+
+  a {
+	color: #5085A5;
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 28px;
+	margin-bottom: 35px;
+	display: block;
+  }
+
+  img {
+	width: auto;
+  }
+}
+
+.steps {
+  display: -ms-flexbox;
+  display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0 0 25px;
+  text-align: center;
+
+  li {
+	-ms-flex: 1 0 auto;
+	flex: 1 0 auto;
+	font-weight: 700;
+	margin: 0 0 5px;
+	color: #b4b9be;
+	padding-bottom: 15px;
+	position: relative;
+
+	&.is-active {
+	  color: #5085A5;
+
+	  &::before {
+		border: 4px solid #5085A5;
+		background: #5085A5;
+	  }
+	}
+
+	&::before {
+	  content: '';
+	  border: 4px solid #b4b9be;
+	  border-radius: 100%;
+	  width: 4px;
+	  height: 4px;
+	  position: absolute;
+	  bottom: 0;
+	  left: 50%;
+	  margin-left: -6px;
+	  margin-bottom: -8px;
+	  background: #b4b9be;
+	}
+  }
+}
+
+.wp2fa-setup-content {
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+  padding: 30px 40px;
+  margin: 0 0 20px;
+  background: #fff;
+  overflow: hidden;
+  zoom: 1;
+  border-radius: 10px;
+
+  h3 {
+	font-size: 24px;
+	text-align: center;
+	margin-bottom: 30px;
+	margin-top: 5px;
+	line-height: 36px;
+  }
+
+  h4, fieldset {
+	line-height: 1.5;
+  }
+}
+
+.wp2fa-setup-actions {
+  text-align: center;
+  margin: 40px auto 10px;
+
+  .button {
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	font-size: 14px;
+	height: auto;
+	padding: 8px 20px;
+	min-width: 12em;
+	min-width: auto;
+	-webkit-transition: 0.1s all linear;
+	-o-transition: 0.1s all linear;
+	transition: 0.1s all linear;
+	border-radius: 5px;
+	line-height: 1;
+	min-height: 0;
+  }
+
+  .button-primary {
+	font-weight: 700;
+  }
+
+  .button-secondary {
+	font-weight: 700;
+	background-color: #fff;
+	border: 2px solid #5085A5;
+	color: #5085A5;
+  }
+
+  .button-primary {
+	&:hover, &:focus {
+	  background: #13729a;
+	  border-color: #13729a;
+	  -webkit-box-shadow: none;
+	  box-shadow: none;
+	  color: #fff;
+	}
+  }
+}
+
+.wp2fa-setup-footer {
+  text-align: center;
+
+  a {
+	color: #5085A5;
+	font-size: 14px;
+	text-decoration: none;
+  }
+}
+
+.wp2fa-setup-form label {
+  &[for="editor-users-box"], &[for="editor-roles-box"], &[for="exuser-query-box"], &[for="exrole-query-box"], &[for="ipaddr-query-box"] {
+	display: inline-block;
+	margin: 5px 0;
+  }
+
+  &[for="editor-users-box"] span, &[for="editor-roles-box"] span, &[for="exuser-query-box"] span, &[for="exrole-query-box"] span, &[for="ipaddr-query-box"] span {
+	display: inline-block;
+	min-width: 100px;
+  }
+}
+
+.sectoken-user, .sectoken-role, .sectoken-ip, .sectoken-other {
+  display: inline-block;
+  border-width: 1px;
+  border-style: solid;
+  padding: 2px 4px;
+  margin: 2px 0 0 2px;
+  border-radius: 3px;
+  cursor: default;
+  line-height: 1.3;
+  font-size: 14px;
+}
+
+.sectoken-user a, .sectoken-role a, .sectoken-ip a, .sectoken-other a {
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: bold;
+  color: #FFF;
+  margin-left: 2px;
+  background: #BBB;
+  border-radius: 25px;
+  height: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  width: 14px;
+  text-align: center;
+  line-height: 12px;
+}
+
+.sectoken-user a:hover, .sectoken-role a:hover, .sectoken-ip a:hover {
+  background: #FB9;
+}
+
+.sectoken-other {
+  a:hover {
+	background: #FB9;
+  }
+
+  display: table;
+  border-collapse: separate;
+}
+
+.sectoken-role {
+  background: #EFE;
+  border-color: #5B5;
+}
+
+.sectoken-user {
+  background: #EFF;
+  border-color: #5BE;
+}
+
+.sectoken-ip, .sectoken-other {
+  background: #FFE;
+  border-color: #ED5;
+}
+
+p.description {
+  font-size: 13px;
+  font-style: italic;
+}
+
+.setup-wizard-wrapper {
+  color: #444;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  margin: 0 auto;
+  padding: 20px 20px 10px 20px;
+  -webkit-font-smoothing: subpixel-antialiased;
+  max-width: 780px;
+  min-width: 780px;
+  top: 50%;
+  -ms-transform: translateY(-50%) translateX(-50%);
+  transform: translateY(-50%) translateX(-50%);
+  position: absolute;
+  left: 50%;
+  -webkit-animation: fadein 0.5s;
+
+  /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 0.5s;
+
+  /* Firefox < 16 */
+  -ms-animation: fadein 0.5s;
+
+  /* Internet Explorer */
+  -o-animation: fadein 0.5s;
+
+  /* Opera < 12.1 */
+  animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+  from {
+	opacity: 0;
+  }
+
+  to {
+	opacity: 1;
+  }
+}
+
+/* Firefox < 16 */
+
+@-moz-keyframes fadein {
+  from {
+	opacity: 0;
+  }
+
+  to {
+	opacity: 1;
+  }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+
+@-webkit-keyframes fadein {
+  from {
+	opacity: 0;
+  }
+
+  to {
+	opacity: 1;
+  }
+}
+
+/* Internet Explorer */
+
+@-ms-keyframes fadein {
+  from {
+	opacity: 0;
+  }
+
+  to {
+	opacity: 1;
+  }
+}
+
+/* Opera < 12.1 */
+
+@-o-keyframes fadein {
+  from {
+	opacity: 0;
+  }
+
+  to {
+	opacity: 1;
+  }
+}
+
+.wp2fa-setup-content .step-setting-wrapper {
+  &:not(.active) {
+	display: none;
+  }
+
+  &.active {
+	-webkit-animation: fadein 0.5s;
+
+	/* Safari, Chrome and Opera > 12.1 */
+	-moz-animation: fadein 0.5s;
+
+	/* Firefox < 16 */
+	-ms-animation: fadein 0.5s;
+
+	/* Internet Explorer */
+	-o-animation: fadein 0.5s;
+
+	/* Opera < 12.1 */
+	animation: fadein 0.5s;
+  }
+}
+
+.option-pill {
+  text-align: left;
+  padding: 0;
+  margin: 5px 0px 15px;
+  overflow: visible;
+
+  &:last-of-type {
+	margin-bottom: 0;
+  }
+
+  label {
+	display: block;
+	clear: both;
+  }
+}
+
+#wp-2fa-totp-qrcode {
+  float: right;
+}
+
+.input.wide {
+  margin-top: 20px;
+  min-width: 50%;
+}
+
+.description.error {
+  color: red;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.wp2fa-setup-content .radio-inline {
+  margin-left: 10px;
+}
+
+.option-pill ol {
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+
+.resend-email-code {
+  min-width: 195px !important;
+}
+
+.step-title-wrapper {
+  text-align: center;
+}
+
+.step-title {
+  display: inline-block;
+  font-weight: 700;
+  margin: 0 10px 5px;
+  color: #b4b9be;
+  padding-bottom: 15px;
+  position: relative;
+
+  &:hover {
+	cursor: pointer;
+  }
+
+  &.active-step-title {
+	color: #5085a5;
+  }
+
+  span {
+	border: 1px solid;
+	width: 15px;
+	height: 15px;
+	display: inline-block;
+	line-height: 15px;
+	font-size: 9px;
+	border-radius: 50%;
+	position: relative;
+	top: -1px;
+  }
+}
+
+.app-logo:focus {
+  box-shadow: none !important;
+}
+
+.hide-overflow {
+  overflow: hidden;
+}
+
+/* RESPONSIVE */
+
+@media all and (min-width: 601px) {
+  .apps-wrapper {
+	position: relative;
+	overflow: hidden;
+	display: flex;
+
+	.app-logo {
+	  display: flex;
+	  align-self: center;
+	  flex: 1;
+	  padding: 0 13px;
+
+	  img {
+		margin: 0 auto;
+		width: auto;
+		max-width: 100%;
+	  }
+	}
+  }
+}
+
+@media all and (max-width: 991px) {
+  .setup-wizard-wrapper {
+	min-width: 0;
+	position: relative;
+	transform: none;
+	left: 0;
+	top: 0;
+	padding: 15px;
+  }
+
+  #wp2fa-logo img {
+	max-width: 240px;
+	width: 70%;
+	height: auto;
+  }
+
+  .wp2fa-setup-content {
+	padding: 20px 15px;
+
+	h3 {
+	  font-size: 18px;
+	  margin-bottom: 20px;
+	  margin-top: 5px;
+	  line-height: 1.5;
+	}
+  }
+
+  body.wp2fa-setup {
+	margin-top: 25px;
+	min-width: 0;
+  }
+
+  .wp2fa-setup-content *, p.description {
+	font-size: 12px;
+  }
+
+  .steps li {
+	padding-bottom: 7px;
+	position: relative;
+	font-size: 12px;
+  }
+}
+
+@media all and (max-width: 600px) {
+  #wp-2fa-totp-qrcode {
+	float: none;
+	width: 100%;
+	margin: 0 auto 10px;
+  }
+
+  .apps-wrapper {
+	display: block;
+
+	a.app-logo {
+	  width: calc(100% / 3 - 5px);
+	  display: inline-block;
+	  margin-bottom: 5px;
+
+	  img {
+		margin: 0 auto;
+	  }
+	}
+  }
+}
+
+@media all and (max-width: 480px) {
+  .steps li:not(.is-active) {
+	display: none;
+  }
+
+  .wp2fa-setup-content br {
+	clear: both;
+	margin-bottom: 15px;
+  }
+
+  input[type="email"] {
+	margin-top: 10px;
+  }
+}
+
+.wp2fa-setup-content .select2-selection__choice {
+  color: #3c434a !important;
+}
