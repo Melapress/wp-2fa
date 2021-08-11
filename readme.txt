@@ -5,8 +5,8 @@ License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 4.5
-Tested up to: 5.7.2
-Stable tag: 1.7.0
+Tested up to: 5.8
+Stable tag: 1.7.1
 Requires PHP: 7.0.0
 
 Harden your website login page; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -85,26 +85,13 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 
 == Changelog ==
 
-= 1.7.0 (2021-07-15) =
-
-Release notes: [WP 2FA 1.7: Refactored plugin for better performance, design, and reliability[(https://www.wpwhitesecurity.com/wp-2fa-1-7-0/]
-
-* **Improvements**
-	* Refactored the plugin (major improvements in terms of product design, performance, & reliability).
-	* Refactored the way the plugin saves and retrieves user 2FA properties.
-	* Moved plugin and 2FA settings in separate menu (no longer under the Settings section).
-	* Added a number of new tags that can be used in the plugin's email templates.
-	* Improved the way and logic of how the plugin works on a multisite network.
-	* Improved the handling of users with super admin privileges in the 2FA policies.
-	* Implemented a new check, so administrators cannot deselect all of the available 2FA methods.
-	* Excluded users/roles setting now only available when 2FA policies are set to "All users" (simplified model)
-	* Improved the first-time install wizard (both UX and UI)
-	* Improved the user 2FA wizard (both UX and UI)
-	* When a user completes the first-time install wizard, the user is redirected to plugin settings.
-	* Added the new plugin logo in the wizards etc (refer to [this FAQ](https://www.wpwhitesecurity.com/support/kb/complete-features-list-wp-2fa/) for more information on how to replace or remove the plugin logo from the wizards).
+= 1.7.1 (2021-08-11) =
 	
 * **Bug fixes**	
-	* User roles that contain a space can now be excluded.
-	* Custom redirection is now honored even after the backup codes setup.
+	* FIXED: In some scenario accounts were locked out even if the user had 2FA configured.
+	* FIXED: Error during cron job execution caused by an empty variable.
+	* FIXED: Small PHP8 error within generate_modal function.
+	* FIXED: Rendering issue with select box in plugin wizard.
+	* FIXED: Users unable to close configuration dialog on mobile screens.
 
 Refer to the complete [plugin changelog](https://www.wpwhitesecurity.com/support/kb/wp-2fa-changelog/) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.

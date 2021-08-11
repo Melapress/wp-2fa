@@ -97,6 +97,12 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				return false;
 			}
 
+			// Do not lock if user has 2FA configured.
+			$has_enabled_method = get_user_meta( $user_id, WP_2FA_PREFIX . '2fa_status', true );
+			if ( $has_enabled_method == 'has_enabled_methods' ) {				
+				return false;
+			}
+
 			$grace_period_expiry_time = get_user_meta( $user_id, WP_2FA_PREFIX . 'grace_period_expiry', true );
 			if ( ! empty( $grace_period_expiry_time ) && $grace_period_expiry_time < time() ) {
 				//  set "grace period expired" flag
@@ -400,6 +406,11 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @return void
 		 */
 		private function setUserPoliciesAndGrace() {
+
+			if ( ! isset( $this->user->ID ) ) {
+				return;
+			}
+
 			$is_needed = WP2FA::isUserEnforced( $this->user->ID );
 			$excluded  = WP2FA::is_user_excluded( $this->user->ID );
 			if ( $is_needed && ! $excluded ) {
