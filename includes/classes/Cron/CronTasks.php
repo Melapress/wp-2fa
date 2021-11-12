@@ -47,7 +47,7 @@ class CronTasks {
 
 		foreach ( $users as $index => $user_id ) {
 			//	creating the user object will update their meta fields to reflect latest plugin settings
-			$wp2faUser = new User( $user_id );
+			$wp2faUser = User::get_instance( $user_id );
 
 			//	run a check to see if user account needs to be locked (this happens only here and during the login)
 			$wp2faUser->lock_user_account_if_needed();

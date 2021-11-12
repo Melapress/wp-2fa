@@ -11,6 +11,10 @@ use \WP2FA\Authenticator\Authentication as Authentication;
  * UserNotices - Class for displaying notices to our users.
  */
 class UserNotices {
+	/**
+	 * @var User
+	 */
+	private User $wp2faUser;
 
 	/**
 	 * Lets set things up
@@ -62,13 +66,13 @@ class UserNotices {
 		}
 
 		$is_nag_dismissed   = $this->wp2faUser->getDismissedNag();
-		$is_nag_needed      = WP2FA::isUserEnforced( $this->wp2faUser->getUser()->ID );
-		$is_user_excluded   = WP2FA::is_user_excluded( $this->wp2faUser->getUser()->ID );
+		$is_nag_needed      = User::is_enforced( $this->wp2faUser->getUser()->ID );
+		$is_user_excluded   = User::is_excluded( $this->wp2faUser->getUser()->ID );
 		$enabled_methods    = $this->wp2faUser->getEnabledMethods();
 		$new_page_id        = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
 		$new_page_permalink = get_permalink( $new_page_id );
 
-		$setup_url = Settings::getSetupPageLink();
+		$setup_url = Settings::get_setup_page_link();
 
 		// Allow setup URL to be customized if outputting via shortcode.
 		if ( isset( $is_shortcode ) && 'output_shortcode' === $is_shortcode && ! empty( $configure_2fa_url ) ) {
@@ -81,7 +85,7 @@ class UserNotices {
 		}
 
 		// If we have a custom page generated, lets use it.
-		if ( ! empty( $new_page_id ) && $new_page_permalink ) { 
+		if ( ! empty( $new_page_id ) && $new_page_permalink ) {
 			$setup_url = $new_page_permalink;
 		}
 
@@ -112,7 +116,7 @@ class UserNotices {
 			$message = esc_html__( 'The 2FA method you were using is no longer allowed on this website. Please reconfigure 2FA using one of the supported methods.', 'wp-2fa' );
 
 			echo '<div class="'.esc_attr( $class ).'"><p>'.esc_html( $message );
-			echo ' <a href="'.esc_url( Settings::getSetupPageLink() ).'" class="button button-primary">'.esc_html__( 'Configure 2FA now', 'wp-2fa' ).'</a>';
+			echo ' <a href="'.esc_url( Settings::get_setup_page_link() ).'" class="button button-primary">'.esc_html__( 'Configure 2FA now', 'wp-2fa' ).'</a>';
 			echo '  <a href="#" class="button button-secondary dismiss-user-reconfigure-nag">'.esc_html__( 'I\'ll do it later', 'wp-2fa' ).'</a></p>';
 			echo '</div>';
 		}
@@ -130,8 +134,8 @@ class UserNotices {
 	 * Reset the nag when the user logs out, so they get it again next time.
 	 */
 	public function reset_nag( $user_id ) {
-		$this->wp2faUser = new User( $user_id );
-		$this->wp2faUser->deleteUserMeta('wp_2fa_update_nag_dismissed');
+		$this->wp2faUser = User::get_instance( $user_id );
+		$this->wp2faUser->deleteUserMeta( 'wp_2fa_update_nag_dismissed' );
 	}
 
 	/**
@@ -141,7 +145,7 @@ class UserNotices {
 	 */
 	public function ensureUser() {
 		if ( ! isset( $this->wp2faUser ) ) {
-			$this->wp2faUser = new User();
+			$this->wp2faUser = User::get_instance();
 		}
 	}
 }

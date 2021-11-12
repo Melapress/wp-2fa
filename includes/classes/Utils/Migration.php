@@ -41,6 +41,20 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
         private static $pluginSettingsName = WP_2FA_SETTINGS_NAME;
 
         /**
+         * The name of the plugin policy settings
+         *
+         * @var string
+         */
+        private static $pluginPolicyName = WP_2FA_POLICY_SETTINGS_NAME;
+
+        /**
+         * The name of the plugin white label settings
+         *
+         * @var string
+         */
+        private static $pluginWhiteLabelName = WP_2FA_WHITE_LABEL_SETTINGS_NAME;
+
+        /**
          * The name of the plugin email settings
          *
          * @var string
@@ -166,9 +180,60 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
         }
 
         /**
-         * Returns the current plugin settings
+         * Migration for version upto 2.0.0
+         * Separates the current settings into 3 different types of settings:
+         *  - Policy
+         *  - General
+         *  - White label
          *
          * @return void
+         */
+        protected static function migrateUpTo_200() {
+            $settings = self::getSettings( self::$pluginSettingsName );
+
+            if ( is_array( $settings ) ) {
+
+                $new_settings_array = array_flip(
+                    array(
+                        'enable_grace_cron',
+                        'limit_access',
+                        'delete_data_upon_uninstall',
+                        'enable_destroy_session',
+                    )
+                );
+
+                $new_white_label_array = array_flip(
+                    array(
+                        'default-text-code-page',
+                    )
+                );
+
+                $settings_array = array_intersect_key(
+                    $settings,
+                    $new_settings_array
+                );
+
+                $settings = array_diff_key( $settings, $new_settings_array );
+
+                self::setSettings( self::$pluginSettingsName, $settings_array );
+
+                $white_label_settings = array_intersect_key(
+                    $settings,
+                    $new_white_label_array
+                );
+
+                $settings = array_diff_key( $settings, $new_white_label_array );
+
+                self::setSettings( self::$pluginWhiteLabelName, $white_label_settings );
+
+                self::setSettings( self::$pluginPolicyName, $settings );
+            }
+        }
+
+        /**
+         * Returns the plugin settings by a given setting type
+         *
+         * @return mixed
          */
         private static function getSettings( $setting_name ) {
             return SettingsUtils::get_option( $setting_name );

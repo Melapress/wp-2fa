@@ -5,7 +5,9 @@ namespace WP2FA;
 use WP2FA\Admin\User;
 use WP2FA\Admin\UserListing;
 use WP2FA\Admin\SettingsPage;
+use WP2FA\Utils\RequestUtils;
 use WP2FA\Utils\DateTimeUtils;
+use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Utils\SettingsUtils as SettingsUtils;
 
@@ -22,11 +24,28 @@ class WP2FA {
 	public $version = WP_2FA_VERSION;
 
 	/**
-	 * Options variables.
+	 * Holds the global plugin secret key for storing the TOTP
+	 *
+	 * @var string
+	 *
+	 * @since latest
+	 */
+	private static $secret_key = null;
+
+	/**
+	 * Local static cache for plugins settings.
+	 *
+	 * @var array
+	 *
+	 * @since latest
+	 */
+	private static $plugin_settings = array();
+
+	/**
+	 * Local static cache for email template settings.
 	 *
 	 * @var array
 	 */
-	protected static $wp_2fa_options;
 	protected static $wp_2fa_email_templates;
 
 	/**
@@ -34,12 +53,12 @@ class WP2FA {
 	 *
 	 * @var integer
 	 */
-	public static $methodsCount = 2;
+	public static $methodsCount = 3;
 
 	/**
 	 * Instance wrapper.
 	 *
-	 * @var object
+	 * @var WP2FA
 	 */
 	private static $instance = null;
 
@@ -54,7 +73,6 @@ class WP2FA {
 	 * Return plugin instance.
 	 */
 	public static function get_instance() {
-
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
@@ -63,17 +81,20 @@ class WP2FA {
 	}
 
 	/**
-	 * Contructor.
+	 * Constructor.
 	 */
 	private function __construct() {
-		self::$wp_2fa_options         = SettingsUtils::get_option( WP_2FA_SETTINGS_NAME );
-		self::$wp_2fa_email_templates = SettingsUtils::get_option( WP_2FA_EMAIL_SETTINGS_NAME );
+		self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] = SettingsUtils::get_option( WP_2FA_POLICY_SETTINGS_NAME );
+		self::$plugin_settings[ WP_2FA_SETTINGS_NAME ] = SettingsUtils::get_option( WP_2FA_SETTINGS_NAME );
+		self::$plugin_settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] = SettingsUtils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
+
+		self::$wp_2fa_email_templates     = SettingsUtils::get_option( WP_2FA_EMAIL_SETTINGS_NAME );
 
 		/** We need to exclude all the possible ways, that logic to be executed by some WP request which could come from cron job or AJAX call, which will break the wizard (by storing the settings for the plugin) before it is completed by the user. We also have to check if the user is still processing first time wizard ($_GET parameter), and if the wizard has been finished already (wp_2fa_wizard_not_finished)  */
 		if ( SettingsUtils::get_option( 'wizard_not_finished' ) && ! isset( $_GET['is_initial_setup'] ) && ! wp_doing_ajax() && ! defined( 'DOING_CRON' ) ) {
 
 			if ( ! SettingsUtils::get_option( WP_2FA_SETTINGS_NAME ) ) {
-				SettingsUtils::update_option( WP_2FA_SETTINGS_NAME, self::getDefaultSettings() );
+				self::updatePluginSettings( self::getDefaultSettings() );
 			}
 
 			// Set a flag so we know we have default values present, not custom.
@@ -120,7 +141,11 @@ class WP2FA {
 			'superadmins-role-add'                => 'no',
 			'superadmins-role-exclude'            => 'no',
 			'default-text-code-page'              => __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ),
+			'email-code-period'                   => 5,
+			'specify-email_hotp'            => '',
 		);
+
+		$default_settings = apply_filters( 'wp_2fa_default_settings', $default_settings );
 
 		return $default_settings;
 	}
@@ -132,7 +157,9 @@ class WP2FA {
 		// Bootstrap.
 		Core\setup();
 
+
 		$this->settings        = new Admin\SettingsPage();
+		$this->settings_email  = new Admin\SettingsPages\Settings_Page_Email();
 		$this->wizard          = new Admin\SetupWizard();
 		$this->authentication  = new Authenticator\Authentication();
 		$this->backupcodes     = new Authenticator\BackupCodes();
@@ -149,9 +176,11 @@ class WP2FA {
 
 		if ( is_admin() ) {
 			UserListing::init();
+
 		}
 
 		$this->add_actions();
+
 	}
 
 	/**
@@ -159,7 +188,7 @@ class WP2FA {
 	 */
 	public function add_actions() {
 		// Plugin redirect on activation, only if we have no settings currently saved.
-		if ( empty( self::$wp_2fa_options ) || ! isset( self::$wp_2fa_options ) ) {
+		if ( ! isset( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) {
 			add_action( 'admin_init', array( $this, 'setup_redirect' ), 10 );
 		}
 
@@ -171,6 +200,7 @@ class WP2FA {
 			add_action( 'network_admin_notices', array( $this->settings, 'settings_saved_network_admin_notice' ) );
 		} else {
 			add_action( 'admin_menu', array( $this->settings, 'create_settings_admin_menu' ) );
+			add_action( 'admin_notices', array( $this->settings, 'settings_saved_admin_notice' ) );
 		}
 		add_action( 'wp_ajax_get_all_users', array( $this->settings, 'get_all_users' ) );
 		add_action( 'wp_ajax_get_all_network_sites', array( $this->settings, 'get_all_network_sites' ) );
@@ -181,7 +211,6 @@ class WP2FA {
 		add_action( 'admin_menu', array( $this->settings, 'hide_settings' ), 999 );
 		add_action( 'plugin_action_links_' . WP_2FA_BASE, array( $this->settings, 'add_plugin_action_links' ) );
 		add_filter( 'display_post_states',  array( $this->settings, 'add_display_post_states' ), 10, 2 );
-		add_action( 'wp_ajax_wp_2fa_cancel_bg_processes', array( $this->settings, 'cancel_bg_processes' ) );
 
 		// SetupWizard.
 		if ( self::is_this_multisite() ) {
@@ -295,315 +324,7 @@ class WP2FA {
 	 */
 	public static function wp_2fa_get_roles() {
 		global $wp_roles;
-		$roles = $wp_roles->role_names;
-		return $roles;
-	}
-
-	/**
-	 * Check to see if the user or user role is excluded.
-	 *
-	 * @param  int $user_id User id.
-	 * @return boolean Is user excluded or not.
-	 */
-	public static function is_user_excluded( $user_id, $excluded_users = '', $excluded_roles = '', $excluded_sites = '', $included_sites = [] ) {
-		$user       = false;
-		$user_roles = false;
-
-		// If we have been passed an object, handle accordingly.
-		if ( is_a( $user_id, '\WP_User' ) ) {
-			$user       = $user_id;
-			$user_roles = $user->roles;
-		}
-
-		// If we have an int instead, lets get the user data for that ID.
-		if ( is_numeric( $user_id ) || isset( $_GET['user_id'] ) && is_numeric( $user_id ) ) {
-			$user       = get_user_by( 'id', $user_id );
-			$user_roles = $user->roles;
-		}
-
-		// Finally, we could have an array consisting of ID or user_login.
-		if ( is_array( $user_id ) && isset( $user_id['ID'] ) ) {
-			$user       = get_user_by( 'id', $user_id['ID'] );
-			$user_roles = $user->roles;
-		}
-
-		// Finally, if we reach this point with no $user or $user_roles lets get the current user.
-		if ( ! $user || ! $user_roles ) {
-			$user       = wp_get_current_user();
-			$user_roles = $user->roles;
-		}
-
-		$user_excluded = false;
-
-		if ( isset( $excluded_users ) && ! empty( $excluded_users ) ) {
-			$excluded_users = $excluded_users;
-		} else {
-			$excluded_users = WP2FA::get_wp2fa_setting( 'excluded_users' );
-		}
-
-		if ( ! empty( $excluded_users ) ) {
-			// Turn it into an array.
-			$excluded_users_array = $excluded_users;
-			// Compare our roles with the users and see if we get a match.
-			$result = in_array( $user->user_login, $excluded_users_array, true );
-			if ( $result ) {
-				$user_excluded = true;
-				return true;
-			}
-		}
-
-		if ( isset( $excluded_roles ) && ! empty( $excluded_roles )  ) {
-			$excluded_roles = $excluded_roles;
-		} else {
-			$excluded_roles = WP2FA::get_wp2fa_setting( 'excluded_roles' );
-		}
-
-		if ( ! empty( $excluded_roles ) ) {
-			// Turn it into an array.
-			$excluded_roles_array = array_map('strtolower', $excluded_roles  );
-			// Compare our roles with the users and see if we get a match.
-			$result = array_intersect( $excluded_roles_array, $user->roles );
-			if ( $result ) {
-				$user_excluded = true;
-				return true;
-			}
-		}
-
-		if ( self::is_this_multisite() ) {
-			if ( isset( $excluded_sites )  && ! empty( $excluded_sites ) ) {
-				$excluded_sites = $excluded_sites;
-			} else {
-				$excluded_sites = WP2FA::get_wp2fa_setting( 'excluded_sites' );
-			}
-
-			if ( ! empty( $excluded_sites ) && is_array( $excluded_sites  ) ) {
-				
-				foreach ( $excluded_sites as $site_id ) {
-					if ( is_user_member_of_blog( $user->ID, $site_id ) ) {
-						// User is a member of the a blog we are excluding from 2FA.
-						$user_excluded = true;
-						return true;
-					} else {
-						// User is NOT a member of the a blog we are excluding.
-						$user_excluded = false;
-					}
-				}
-			}
-
-			if ( ! isset( $included_sites ) || empty( $included_sites ) ) {
-				$included_sites = WP2FA::get_wp2fa_setting( 'included_sites' );
-			}
-
-			foreach ( $included_sites as $siteId ) {
-				if ( is_user_member_of_blog( $user->ID, $siteId ) ) {
-					$user_excluded = false;
-				}
-			}
-		}
-
-		if ( true === $user_excluded ) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Checks if user is enforced
-	 *
-	 * @since 1.6
-	 *
-	 * @param [type] $user_id
-	 * @param string $current_policy
-	 * @param string $excluded_users
-	 * @param string $excluded_roles
-	 * @param string $enforced_users
-	 * @param string $enforced_roles
-	 *
-	 * @return boolean
-	 */
-	public static function isUserEnforced( $user_id, $current_policy = '', $excluded_users = '', $excluded_roles = '', $enforced_users = '', $enforced_roles = '' ) {
-		if ( isset( $_GET['user_id'] ) ) {
-			$user_id    = (int) $_GET['user_id'];
-			$user       = get_user_by( 'id', $user_id );
-			$user_roles = $user->roles;
-		} elseif ( isset( $user_id ) ) {
-			$user       = get_user_by( 'id', $user_id );
-			$user_roles = $user->roles;
-		} else {
-			$user       = wp_get_current_user();
-			$user_roles = $user->roles;
-		}
-
-		if ( $current_policy ) {
-			$current_policy = $current_policy;
-		} else {
-			$current_policy = self::get_wp2fa_setting( 'enforcement-policy' );
-		}
-
-		$enabled_method = get_user_meta( $user->ID, WP_2FA_PREFIX . 'enabled_methods', true );
-		$user_eligable  = false;
-
-		// Lets check the policy settings and if the user has setup totp/email by checking for the usermeta.
-		if ( empty( $enabled_method ) && self::is_this_multisite() && 'superadmins-only' === $current_policy ) {
-			return is_super_admin( $user->ID );
-		} elseif ( empty( $enabled_method ) && self::is_this_multisite() && 'superadmins-siteadmins-only' === $current_policy ) {
-			return is_super_admin( $user->ID ) || User::isAdminUser( $user->ID );
-		} else if ( 'all-users' === $current_policy && empty( $enabled_method ) ) {
-
-			if ( 'yes' === WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ) && is_super_admin( $user->ID ) ) {
-				return false;
-			}
-
-			if ( isset( $excluded_users ) ) {
-				$excluded_users = $excluded_users;
-			} else {
-				$excluded_users = self::get_wp2fa_setting( 'excluded_users' );
-			}
-
-			if ( ! empty( $excluded_users ) ) {
-				// Turn it into an array.
-				$excluded_users_array = explode( ',', $excluded_users );
-				// Compare our roles with the users and see if we get a match.
-				$result = in_array( $user->user_login, $excluded_users_array, true );
-				if ( ! $result ) {
-					$user_eligable = true;
-				}
-			}
-
-			if ( isset( $excluded_roles ) ) {
-				$excluded_roles = $excluded_roles;
-			} else {
-				$excluded_roles = self::get_wp2fa_setting( 'excluded_roles' );
-			}
-
-			if ( ! empty( $excluded_roles ) ) {
-				// Turn it into an array.
-				$excluded_roles_array = explode( ',', strtolower( $excluded_roles ) );
-				// Compare our roles with the users and see if we get a match.
-				$result = array_intersect( $excluded_roles_array, $user->roles );
-
-				if ( ! empty( $result ) ) {
-					$user_eligable = true;
-				}
-
-				if ( self::is_this_multisite() ) {
-					$users_caps = array();
-					$subsites   = get_sites();
-					// Check each site and add to our array so we know each users actual roles.
-					foreach ( $subsites as $subsite ) {
-						$subsite_id   = get_object_vars( $subsite )['blog_id'];
-						$users_caps[] = get_user_meta( $user->ID, 'wp_' .$subsite_id .'_capabilities', true  );
-					}
-					// Strip the top layer ready.
-					$users_caps = $users_caps;
-					foreach ( $users_caps as $key => $value ) {
-						if ( ! empty( $value ) ) {
-							foreach ( $value as $key => $value ) {
-								$result = in_array( $key, $excluded_roles_array, true );
-							}
-						}
-					}
-					if ( ! empty( $result ) ) {
-						return false;
-					}
-				}
-			}
-
-			if ( true === $user_eligable || empty( $enabled_method ) ) {
-				return true;
-			}
-		} elseif ( 'certain-roles-only' === $current_policy && empty( $enabled_method ) ) {
-
-			if ( isset( $enforced_users ) && ! empty( $enforced_users ) ) {
-				$enforced_users = $enforced_users;
-			} else {
-				$enforced_users = self::get_wp2fa_setting( 'enforced_users' );
-			}
-
-			if ( ! empty( $enforced_users )) {
-				// Turn it into an array.
-				$enforced_users_array = $enforced_users;
-				// Compare our roles with the users and see if we get a match.
-				$result = in_array( $user->user_login, $enforced_users_array, true );
-				// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
-				if ( ! empty( $result ) ) {
-					return true;
-				}
-			}
-
-			if ( isset( $enforced_roles ) && ! empty( $enforced_roles ) ) {
-				$enforced_roles = $enforced_roles;
-			} else {
-				$enforced_roles = self::get_wp2fa_setting( 'enforced_roles' );
-			}
-
-			if ( ! empty( $enforced_roles ) ) {
-				// Turn it into an array.
-				$enforced_roles_array = SettingsPage::extract_roles_from_input( $enforced_roles );
-				// Compare our roles with the users and see if we get a match.
-				$result = array_intersect( $enforced_roles_array, $user->roles );
-				// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
-				if ( ! empty( $result ) ) {
-					return true;
-				}
-
-				if ( self::is_this_multisite() ) {
-					$users_caps = array();
-					$subsites   = get_sites();
-					// Check each site and add to our array so we know each users actual roles.
-					foreach ( $subsites as $subsite ) {
-						$subsite_id   = get_object_vars( $subsite )['blog_id'];
-						$users_caps[] = get_user_meta( $user->ID, 'wp_' .$subsite_id .'_capabilities', true  );
-					}
-					// Strip the top layer ready.
-					$users_caps = $users_caps;
-					foreach ( $users_caps as $key => $value ) {
-						if ( ! empty( $value ) ) {
-							foreach ( $value as $key => $value ) {
-								$result = in_array( $key, $enforced_roles_array, true );
-							}
-						}
-					}
-					if ( ! empty( $result ) ) {
-						return true;
-					}
-				}
-			}
-
-			if ( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ) ) {
-				return is_super_admin( $user->ID );
-			}
-
-		} elseif ( 'certain-users-only' === $current_policy && empty( $enabled_method ) ) {
-
-			if ( isset( $enforced_users ) && ! empty( $enforced_users ) ) {
-				$enforced_users = $enforced_users;
-			} else {
-				$enforced_users = self::get_wp2fa_setting( 'enforced_users' );
-			}
-
-			if ( ! empty( $enforced_users ) ) {
-				// Turn it into an array.
-				$enforced_users_array = explode( ',', $enforced_users );
-				// Compare our roles with the users and see if we get a match.
-				$result = in_array( $user->user_login, $enforced_users_array, true );
-				// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
-				if ( ! empty( $result ) ) {
-					return true;
-				}
-			}
-		} elseif ( 'enforce-on-multisite' === $current_policy ) {
-			$includedSites = self::get_wp2fa_setting( 'included_sites' );
-
-			foreach ( $includedSites as $site_id ) {
-				if ( is_user_member_of_blog( $user_id, $site_id ) ) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return $wp_roles->role_names;
 	}
 
 	/**
@@ -612,12 +333,43 @@ class WP2FA {
 	 * @param  string $setting_name Settings to grab value of.
  	 * @param boolean $getDefaultOnEmpty return default setting value if current one is empty
 	 * @param boolean $getDefaultValue return default value setting (ignore the stored ones)
+	 * @return mixed               Settings value or default value.
+	 */
+	public static function get_wp2fa_setting( $setting_name = '', $getDefaultOnEmpty = false, $getDefaultValue = false, string $role = 'global'  ) {
+
+		return self::get_wp2fa_setting_generic( WP_2FA_POLICY_SETTINGS_NAME, $setting_name, $getDefaultOnEmpty, $getDefaultValue, $role );
+	}
+
+	/**
+	 * Util function to grab settings or apply defaults if no settings are saved into the db.
+	 *
+	 * @param  string $setting_name Settings to grab value of.
+ 	 * @param boolean $getDefaultOnEmpty return default setting value if current one is empty
+	 * @param boolean $getDefaultValue return default value setting (ignore the stored ones)
+	 * @return mixed               Settings value or default value.
+	 */
+	public static function get_wp2fa_general_setting( $setting_name = '', $getDefaultOnEmpty = false, $getDefaultValue = false ) {
+
+		return self::get_wp2fa_setting_generic( WP_2FA_SETTINGS_NAME, $setting_name, $getDefaultOnEmpty, $getDefaultValue );
+	}
+
+	/**
+	 * Util function to grab white label settings or apply defaults if no settings are saved into the db.
+	 *
+	 * @param  string $setting_name Settings to grab value of.
+ 	 * @param boolean $getDefaultOnEmpty return default setting value if current one is empty
+	 * @param boolean $getDefaultValue return default value setting (ignore the stored ones)
 	 * @return string               Settings value or default value.
 	 */
-	public static function get_wp2fa_setting( $setting_name = '', $getDefaultOnEmpty = false, $getDefaultValue = false ) {
+	public static function get_wp2fa_white_label_setting( $setting_name = '', $getDefaultOnEmpty = false, $getDefaultValue = false ) {
+
+		return self::get_wp2fa_setting_generic( WP_2FA_WHITE_LABEL_SETTINGS_NAME, $setting_name, $getDefaultOnEmpty, $getDefaultValue );
+	}
+
+	private static function get_wp2fa_setting_generic( $wp_2fa_setting = WP_2FA_POLICY_SETTINGS_NAME, $setting_name = '', $get_default_on_empty = false, $get_default_value = false, string $role = 'global' ) {
 		$default_settings = self::getDefaultSettings();
 
-		if ( true === $getDefaultValue ) {
+		if ( true === $get_default_value ) {
 			if ( isset( $default_settings[ $setting_name ] ) ) {
 				return $default_settings[ $setting_name ];
 			}
@@ -627,27 +379,43 @@ class WP2FA {
 
 		$apply_defaults = false;
 
+		$wp2fa_setting = self::$plugin_settings[ $wp_2fa_setting ];
+
 		// If we have no setting name, return them all.
 		if ( empty( $setting_name ) ) {
-			return self::$wp_2fa_options;
+			return $wp2fa_setting;
 		}
 
 		// First lets check if any options have been saved.
-		if ( empty( self::$wp_2fa_options ) || ! isset( self::$wp_2fa_options ) ) {
+		if ( empty( $wp2fa_setting ) || ! isset( $wp2fa_setting ) ) {
 			$apply_defaults = true;
 		}
 
 		if ( $apply_defaults ) {
 			return $default_settings[ $setting_name ];
-		} elseif ( ! isset( self::$wp_2fa_options[ $setting_name ] ) ) {
-			if ( true === $getDefaultOnEmpty ) {
+		} elseif ( ! isset( $wp2fa_setting[ $setting_name ] ) ) {
+			if ( true === $get_default_on_empty ) {
 				if ( isset( $default_settings[ $setting_name ] ) ) {
 					return $default_settings[ $setting_name ];
 				}
 			}
 			return false;
 		} else {
-			return self::$wp_2fa_options[ $setting_name ];
+
+			if ( WP_2FA_POLICY_SETTINGS_NAME === $wp_2fa_setting ) {
+				/**
+				 * Extensions could change the extracted value, based on custom / different / specific for role settings.
+				 *
+				 * @param mixed - Value of the setting.
+				 * @param string - The name of the setting.
+				 * @param string - The role name.
+				 *
+				 * @since latest
+				 */
+				return apply_filters( 'wp_2fa_setting_generic', $wp2fa_setting[ $setting_name ], $setting_name, $role );
+			} else {
+				return $wp2fa_setting[ $setting_name ];
+			}
 		}
 	}
 
@@ -655,16 +423,8 @@ class WP2FA {
 	 * Util function to grab EMAIL settings or apply defaults if no settings are saved into the db.
 	 *
 	 * @param  string $setting_name Settings to grab value of.
-	 * @return string               Settings value or default value.
 	 */
-	public static function get_wp2fa_email_templates( $setting_name = '', $grab_default = '' ) {
-
-		$apply_defaults = false;
-
-		// First lets check if any options have been saved.
-		if ( empty( self::$wp_2fa_email_templates ) || ! isset( self::$wp_2fa_email_templates ) ) {
-			$apply_defaults = true;
-		}
+	public static function get_wp2fa_email_templates( $setting_name = '' ) {
 
 		// If we have no setting name, return what ever is saved.
 		if ( empty( $setting_name ) ) {
@@ -733,9 +493,16 @@ class WP2FA {
 			'send_account_unlocked_email'         => 'enable_account_unlocked_email',
 		);
 
-		if ( $apply_defaults || ! empty( $grab_default ) ) {
-			return $default_settings[ $setting_name ];
-		}
+		/**
+		 * Allows 3rd party providers to their own settings for the mail templates.
+		 *
+		 * @param array $default_settings - Array with the default settings.
+		 *
+		 * @since latest
+		 */
+		$default_settings = apply_filters( 'wp_2fa_mail_default_settings', $default_settings );
+
+		return $default_settings[ $setting_name ];
 	}
 
 	/**
@@ -771,7 +538,7 @@ class WP2FA {
 			$login_code = '';
 		}
 
-		$new_page_id = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
+		$new_page_id = Settings::get_role_or_default_setting( 'custom-user-page-id', $user );
 		if ( ! empty( $new_page_id ) ) {
 			$new_page_permalink = get_permalink( $new_page_id );
 		} else {
@@ -787,8 +554,9 @@ class WP2FA {
 			'{user_first_name}'       => sanitize_text_field( $user->firstname ),
 			'{user_last_name}'        => sanitize_text_field( $user->lastname ),
 			'{user_display_name}'     => sanitize_text_field( $user->display_name ),
-			'{login_code}'            => sanitize_text_field( $login_code ),
+			'{login_code}'            => $login_code,
 			'{2fa_settings_page_url}' => esc_url( $new_page_permalink ),
+			'{user_ip_address}'       => RequestUtils::get_ip(),
 		);
 
 		$replacements = apply_filters(
@@ -806,48 +574,46 @@ class WP2FA {
 	public function block_unconfigured_users_from_admin() {
 		global $pagenow;
 
-		if ( 'use-grace-period' !== WP2FA::get_wp2fa_setting( 'grace-policy' ) ) {
-			$user                       = wp_get_current_user();
-			$is_user_instantly_enforced = get_user_meta( $user->ID, WP_2FA_PREFIX . 'user_enforced_instantly', true );
-			$grace_period_expiry_time   = get_user_meta( $user->ID, WP_2FA_PREFIX . 'grace_period_expiry', true );
-			$time_now                   = time();
-			if ( $is_user_instantly_enforced && ! empty( $grace_period_expiry_time ) && $grace_period_expiry_time < $time_now && ! WP2FA::is_user_excluded( $user->ID ) ) {
+		$user = User::get_instance();
+		$is_user_instantly_enforced = $user->getEnforcedInstantly();
+		$grace_period_expiry_time   = $user->getGracePeriodExpiration();
+		$time_now                   = time();
+		if ( $is_user_instantly_enforced && ! empty( $grace_period_expiry_time ) && $grace_period_expiry_time < $time_now && ! User::is_excluded( $user->getUser()->ID ) ) {
 
-				/*
-				 * We should only allow:
-				 * - 2FA setup wizard in the administration
-				 * - custom 2FA page if enabled and created
-				 * - AJAX requests originating from these 2FA setup UIs
-				 */
-				if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && in_array( $_REQUEST['action'], [ 'send_authentication_setup_email', 'validate_authcode_via_ajax', 'heartbeat' ] )) {
+			/**
+			 * We should only allow:
+			 * - 2FA setup wizard in the administration
+			 * - custom 2FA page if enabled and created
+			 * - AJAX requests originating from these 2FA setup UIs
+			 */
+			if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && self::action_check() ) {
+				return;
+			}
+
+			if ( is_admin() || is_network_admin() ) {
+				$allowed_admin_page = 'profile.php';
+				if ( $pagenow === $allowed_admin_page && ( isset( $_GET['show'] ) && $_GET['show'] === 'wp-2fa-setup' ) ) {
 					return;
 				}
+			}
 
-				if ( is_admin() || is_network_admin() ) {
-					$allowed_admin_page = 'profile.php';
-					if ( $pagenow === $allowed_admin_page && ( isset( $_GET['show'] ) && $_GET['show'] === 'wp-2fa-setup' ) ) {
-						return;
-					}
+			if ( is_page() ) {
+				$custom_user_page_id = Settings::get_role_or_default_setting( 'custom-user-page-id', $user->getUser() );
+				if ( ! empty( $custom_user_page_id ) && get_the_ID() == (int) $custom_user_page_id ) {
+					return;
 				}
+			}
 
-				if ( is_page() ) {
-					$custom_user_page_id = \WP2FA\WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
-					if ( !empty( $custom_user_page_id ) && get_the_ID() == (int) $custom_user_page_id ) {
-						return;
-					}
-				}
-
-				//  force a redirect to the 2FA set-up page if it exists
-				$custom_user_page_id = \WP2FA\WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
-				if ( !empty( $custom_user_page_id ) ) {
-					wp_redirect( Settings::getCustomPageLink() );
-					exit;
-				}
-
-				//  custom 2FA page is not set-up, force redirect to the wizard in administration
-				wp_redirect( Settings::getSetupPageLink() );
+			// force a redirect to the 2FA set-up page if it exists.
+			$custom_user_page_id = Settings::get_role_or_default_setting( 'custom-user-page-id', $user->getUser() );
+			if ( ! empty( $custom_user_page_id ) ) {
+				wp_redirect( Settings::get_custom_page_link( $user->getUser() ) );
 				exit;
 			}
+
+			// custom 2FA page is not set-up, force redirect to the wizard in administration.
+			wp_redirect( Settings::get_setup_page_link() );
+			exit;
 		}
 	}
 
@@ -858,18 +624,12 @@ class WP2FA {
 	 * @since 1.7.0
 	 */
 	public function update_usermeta_if_required() {
-
 		if ( wp_doing_ajax() || ! is_user_logged_in()) {
 			return;
 		}
 
-		$user                  = wp_get_current_user();
-		$users_settings_hash   = get_user_meta( $user->ID, WP_2FA_PREFIX . 'global_settings_hash', true );
-		$current_settings_hash = SettingsUtils::get_option( 'settings_hash' );
-		if ( $users_settings_hash !== $current_settings_hash ) {
-			// Doing this envokes setUserPoliciesAndGrace and setGlobalSettingsHash in the User class.
-			new \WP2FA\Admin\User();
-		}
+		//  doing this invokes update of necessary user metadata in the User class.
+		User::get_instance();
 	}
 
 	/**
@@ -914,7 +674,7 @@ class WP2FA {
 		}
 
 		/** @var EmailTemplate[] $email_templates */
-		$email_templates = $this->settings->get_email_notification_definitions();
+		$email_templates = $this->settings_email->get_email_notification_definitions();
 		foreach ($email_templates as $email_template) {
 			if ($email_id === $email_template->getEmailContentId()) {
 				//  send the test email
@@ -985,7 +745,96 @@ class WP2FA {
 	 *
 	 * @return void
 	 */
-	public static function getAllSettings() {
-		return self::$wp_2fa_options;
+	public static function getPolicySettings() {
+		/**
+		 * Extensions could change the stored settings value, based on custom / different / specific for role settings.
+		 *
+		 * @param array - Value of the settings.
+		 *
+		 * @since latest
+		 */
+		$settings = apply_filters( 'wp_2fa_policy_settings', self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] );
+
+		return $settings;
+	}
+	/**
+	 * Checks the action parameter against given list of actions
+	 *
+	 * @return bool
+	 *
+	 * @since latest
+	 */
+	private static function action_check() {
+		$actions_array = array(
+			'send_authentication_setup_email',
+			'validate_authcode_via_ajax',
+			'heartbeat',
+		);
+
+		/**
+		 * Allows 3rd party providers to their own settings for the mail templates.
+		 *
+		 * @param array $actions_array - Array with the default settings.
+		 *
+		 * @since latest
+		 */
+		$actions_array = apply_filters( 'wp_2fa_actions_check', $actions_array );
+
+		return in_array( $_REQUEST['action'], $actions_array );
+	}
+
+	/**
+	 * Updates the plugin settings, the settings hash in the database as well as a local (cached) copy of the settings.
+	 *
+	 * @param array $settings
+	 * @param bool $skip_option_save If true, the settings themselves are not saved. This is needed when saving settings from settings page as WordPress options API takes care of that.
+	 *
+	 * @since latest
+	 */
+	public static function updatePluginSettings( $settings, $skip_option_save = false, $settings_name=WP_2FA_POLICY_SETTINGS_NAME ) {
+		// update local copy of settings.
+		self::$plugin_settings[ $settings_name ] = $settings;
+
+		if ( ! $skip_option_save ) {
+			// update the database option itself.
+			SettingsUtils::update_option( $settings_name, $settings );
+		}
+
+		if ( WP_2FA_POLICY_SETTINGS_NAME === $settings_name ) {
+			// Create a hash for comparison when we interact with a use.
+			$settings_hash = SettingsUtils::create_settings_hash( self::getPolicySettings() );
+			SettingsUtils::update_option( WP_2FA_PREFIX . 'settings_hash', $settings_hash );
+		}
+	}
+
+	/**
+	 * Getter for the TOTP secret key of the plugin for the current instance
+	 *
+	 * @return string
+	 *
+	 * @since latest
+	 */
+	public static function get_secret_key() {
+		if ( null === self::$secret_key ) {
+			self::$secret_key = SettingsUtils::get_option('secret_key');
+			if ( empty( self::$secret_key ) ) {
+				self::$secret_key = base64_encode( Open_SSL::secure_random() );
+				SettingsUtils::update_option( 'secret_key', self::$secret_key );
+			}
+		}
+
+		return self::$secret_key;
+	}
+
+	/**
+	 * Returns message for the WP Mail SMTP plugin usage suggestion
+	 *
+	 * @return string
+	 *
+	 * @since latest
+	 */
+	public static function print_email_deliverability_message() {
+
+		return sprintf( '%1$s <a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank">%2$s</a>.', esc_html__( 'To ensure emails are delivered so users do not have problems logging in, we recommend using the free plugin', 'wp-2fa' ), esc_html__( 'WP Mail SMTP', 'wp-2fa' ) );
 	}
 }
