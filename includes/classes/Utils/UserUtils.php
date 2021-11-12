@@ -3,6 +3,7 @@ namespace WP2FA\Utils;
 
 use WP2FA\Admin\User;
 use WP2FA\WP2FA as WP2FA;
+use WP2FA\Admin\Controllers\Settings;
 use \WP2FA\Authenticator\BackupCodes as BackupCodes;
 
 /**
@@ -34,8 +35,8 @@ class UserUtils {
 
 		// Grab grace period UNIX time.
 		$grace_period_expired = get_user_meta( $user->ID, WP_2FA_PREFIX . 'user_grace_period_expired', true );
-		$is_user_excluded     = WP2FA::is_user_excluded( $user->ID );
-		$isUserEnforced       = WP2FA::isUserEnforced( $user->ID );
+		$is_user_excluded     = User::is_excluded( $user->ID );
+		$isUserEnforced       = User::is_enforced( $user->ID );
 		$isUserLocked         = User::isUserLocked( $user->ID );
 
 		// First lets see if the user already has a token.
@@ -131,18 +132,30 @@ class UserUtils {
 		return false;
 	}
 
-	public static function get_2fa_methods_available_to_user( $user ) {
-
+	/**
+	 * Works our a list of available 2FA methods. It doesn't include the disabled ones.
+	 *
+	 * @return string[]
+	 * @since latest
+	 */
+	public static function get_available_2fa_methods(): array {
 		$available_methods = array();
 
-		if ( ! empty( WP2FA::get_wp2fa_setting( 'enable_email' ) ) ) {
+		if ( ! empty( WP2FA::get_wp2fa_setting( 'enable_email', false, false, User::get_instance()->getUser()->roles[0] ) ) ) {
 			$available_methods[] = 'email';
 		}
 
-		if ( ! empty( WP2FA::get_wp2fa_setting( 'enable_totp' ) ) ) {
+		if ( ! empty( Settings::get_role_or_default_setting( 'enable_totp', 'current' ) ) ) {
 			$available_methods[] = 'totp';
 		}
 
+		/**
+		 * Add an option for external providers to implement their own 2fa methods and set them as available.
+		 *
+		 * @param array $available_methods - The array with all the available methods.
+		 *
+		 * @since latest
+		 */
 		return apply_filters( 'wp_2fa_available_2fa_methods', $available_methods );
 	}
 

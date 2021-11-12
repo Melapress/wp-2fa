@@ -2,15 +2,14 @@
 
 namespace WP2FA\Shortcodes;
 
-use \WP2FA\WP2FA as WP2FA;
-use \WP2FA\Admin\UserNotices as UserNotices;
-use \WP2FA\Authenticator\Authentication as Authentication;
 use \WP2FA\Core as Core;
-use \WP2FA\Authenticator\BackupCodes as BackupCodes;
+use \WP2FA\WP2FA as WP2FA;
+use WP2FA\Admin\Controllers\Settings;
+use \WP2FA\Admin\UserNotices as UserNotices;
 use \WP2FA\Admin\UserProfile as UserProfile;
 
 /**
- * Class for handling our crons.
+ * Class for rendering shortcodes.
  */
 class Shortcodes {
 
@@ -73,20 +72,32 @@ class Shortcodes {
 				'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
 				'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
 			);
-			if ( '' !== trim( WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' ) ) ) {
-				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ).WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' );
-			}
-			// Check and override if custom redirect page is selected and custom redirect is set
-			if ( 'yes' === WP2FA::get_wp2fa_setting( 'create-custom-user-page' ) ) {
-				if ( '' !== trim( WP2FA::get_wp2fa_setting( 'redirect-user-custom-page' ) ) ) {
-					$data_array['redirectToUrl'] = trailingslashit( get_site_url() ).WP2FA::get_wp2fa_setting( 'redirect-user-custom-page' );
+
+			$role = array_key_first( WP2FA::wp_2fa_get_roles() );
+			$redirect_page = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', 'current', $role );
+			$data_array['redirectToUrl'] = ( '' !== trim( $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
+			// Check and override if custom redirect page is selected and custom redirect is set.
+			if (
+				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ||
+				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
+				if (
+					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role ) ) ||
+					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
+					if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ) {
+						$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role );
+					} else {
+						$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
+					}
 				}
 			}
 
-			// Check for shortcode parameter - if one is present use it to redirect the user - highest priority
+			// Check for shortcode parameter - if one is present use it to redirect the user - highest priority.
 			if ( isset( $redirect_after ) && ! empty( $redirect_after ) ) {
 
 				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ).\urlencode( $redirect_after );
+			} elseif ( isset( $_GET['return'] ) && ! empty( $_GET['return'] ) ) {
+
+				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . strip_tags( \urlencode( $_GET['return'] ) );
 			}
 			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faWizardData', $data_array );
 

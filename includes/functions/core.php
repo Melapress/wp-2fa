@@ -90,7 +90,7 @@ function deactivate() {
  * @return void
  */
 function uninstall() {
-	if ( ! empty( \WP2FA\WP2FA::get_wp2fa_setting( 'delete_data_upon_uninstall' ) ) ) {
+	if ( ! empty( \WP2FA\WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
 		// Delete settings from wp_options.
 		if ( \WP2FA\WP2FA::is_this_multisite() ) {
 			$network_id = get_current_network_id();
@@ -205,6 +205,14 @@ function style_url( $stylesheet, $context ) {
  * @return void
  */
 function admin_scripts() {
+
+	global $pagenow;
+
+	// Get page argument from $_GET array.
+	$page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING );
+	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && "profile.php" !== $pagenow ) {
+		return;
+	}
 
 	wp_enqueue_script(
 		'wp_2fa_admin',

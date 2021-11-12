@@ -27,8 +27,8 @@ class UserRegistered {
 		// Get user object.
 		$user = get_user_by( 'id', $user_id );
 		// Check if this user is actually eligible.
-		$is_needed        = WP2FA::isUserEnforced( $user->ID );
-		$is_user_excluded = WP2FA::is_user_excluded( $user->ID );
+		$is_needed        = User::is_enforced( $user->ID );
+		$is_user_excluded = User::is_excluded( $user->ID );
 		// If they are, add grace_period.
 		if ( $is_needed && ! $is_user_excluded ) {
 			$grace_policy     = WP2FA::get_wp2fa_setting( 'grace-policy' );
