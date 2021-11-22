@@ -442,7 +442,7 @@ class SetupWizard {
 
 			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
 				<h3><?php esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
-				<p><?php esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
+				<p class="description"><?php esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
 				<?php FirstTimeWizardSteps::gracePeriod( true ); ?>
 				<div class="wp2fa-setup-actions">
 					<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php esc_html_e( 'All done', 'wp-2fa' ); ?></button>
@@ -515,7 +515,10 @@ class SetupWizard {
 			update_user_meta( $user->ID, WP_2FA_PREFIX . 'nominated_email_address', $email );
 		}
 
-		$enabled_email_address = get_user_meta( $user->ID, WP_2FA_PREFIX . $nominated_email_address, true );
+		$enabled_email_address = '';
+		if ( ! empty( $nominated_email_address ) ) {
+			$enabled_email_address = get_user_meta( $user->ID, WP_2FA_PREFIX . $nominated_email_address, true );
+		}
 
 		// Generate a token and setup email.
 		$token   = Authentication::generate_token( $user->ID );

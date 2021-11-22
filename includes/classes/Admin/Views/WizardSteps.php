@@ -310,7 +310,7 @@ class WizardSteps {
                 </label>
                 <div class="verification-response"></div>
             </fieldset>
-            <input type="hidden" name="wp-2fa-totp-key" value="<?php echo esc_attr( self::getUser()->getTotpKey() ); ?>" />
+            <input type="hidden" name="wp-2fa-totp-key" value="<?php echo esc_attr( self::getUser()->get_totp_decrypted() ); ?>" />
             <br>
             <a href="#" class="modal__btn button button-primary" data-validate-authcode-ajax data-nonce="<?php echo esc_attr( $validateNonce ); ?>"><?php esc_html_e( 'Validate & Save Configuration', 'wp-2fa' ); ?></a>
             <button class="modal__btn button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
@@ -379,7 +379,6 @@ class WizardSteps {
                 <div class="verification-response"></div>
             </fieldset>
             <br />
-            <input type="hidden" name="wp-2fa-totp-key" value="<?php echo esc_attr( self::getUser()->getTotpKey() ); ?>" />
             <a href="#" class="modal__btn modal__btn-primary button button-primary" data-validate-authcode-ajax data-nonce="<?php echo esc_attr( $validateNonce ); ?>"><?php esc_html_e( 'Validate & Save Configuration', 'wp-2fa' ); ?></a>
             <a href="#" class="modal__btn button button-secondary resend-email-code" data-trigger-setup-email data-user-id="<?php echo esc_attr( self::getUser()->getUser()->ID ); ?>" data-nonce="<?php echo esc_attr( $setupnonce ); ?>">
                 <span class="resend-inner"><?php esc_html_e( 'Send me another code', 'wp-2fa' ); ?></span>
@@ -558,10 +557,10 @@ class WizardSteps {
      * @return void
      */
     public static function congratulations_step_plugin_wizard() {
-        $redirect = ( '' !== self::determine_redirect_url() ) ? self::determine_redirect_url() : get_edit_profile_url( self::getUser()->getUser()->ID );
-
+        $redirect    = ( '' !== self::determine_redirect_url() ) ? self::determine_redirect_url() : get_edit_profile_url( self::getUser()->getUser()->ID );
+        $slide_title = ( User::is_excluded( self::getUser()->getUser()->ID ) ) ? esc_html__( 'Congratulations.', 'wp-2fa' ) : esc_html__( 'Congratulations, you\'re almost there...', 'wp-2fa' );
         ?>
-        <h3><?php esc_html_e( 'Congratulations, you\'re almost there...', 'wp-2fa' ); ?></h3>
+        <h3><?php echo $slide_title; ?></h3>
         <p><?php esc_html_e( 'Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu.', 'wp-2fa' ); ?></p>
 
             <?php

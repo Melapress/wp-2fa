@@ -917,7 +917,11 @@ class Login {
 
 		$has_token = Authentication::user_has_token( $user->ID );
 		if ( empty( $has_token ) || ! $has_token ) {
-			SetupWizard::send_authentication_setup_email( $user->ID );
+			if ( Settings::get_role_or_default_setting( 'specify-email_hotp', $user, null, true ) ) {
+				SetupWizard::send_authentication_setup_email( $user->ID );
+			} else {
+				SetupWizard::send_authentication_setup_email( $user->ID, '' );
+			}
 		}
 
 		require_once ABSPATH . '/wp-admin/includes/template.php';
