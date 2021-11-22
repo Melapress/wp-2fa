@@ -193,6 +193,8 @@ class Settings_Page_Policies {
 	 */
 	public function validate_and_sanitize( $input ) {
 
+		\do_action( 'wp_2fa_change_referer' );
+
 		// Bail if user doesn't have permissions to be here.
 		if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['action'] ) && ! check_admin_referer( 'wp2fa-step-choose-method' ) ) {
 			return;

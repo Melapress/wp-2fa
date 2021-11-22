@@ -71,11 +71,12 @@ class Authentication {
 			$target_url .= ( '&issuer=' . rawurlencode( $title ) );
 		}
 
-		$qr     = QrCode::create( $target_url );
+		$qr     = new QrCode( $target_url );
+		$qr->setWriterOptions(['exclude_xml_declaration'=>true]);
 		$writer = new SvgWriter();
-		$result = $writer->write( $qr, null, null, array( SvgWriter::WRITER_OPTION_EXCLUDE_XML_DECLARATION => true ) );
+		$result = $writer->writeString( $qr );
 
-		return $result->getDataUri();
+		return 'data:image/svg+xml;base64,'.base64_encode($result);
 	}
 
 	/**
