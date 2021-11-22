@@ -141,7 +141,7 @@ class UserUtils {
 	public static function get_available_2fa_methods(): array {
 		$available_methods = array();
 
-		if ( ! empty( WP2FA::get_wp2fa_setting( 'enable_email', false, false, User::get_instance()->getUser()->roles[0] ) ) ) {
+		if ( ! empty( Settings::get_role_or_default_setting( 'enable_email', 'current' ) ) ) {
 			$available_methods[] = 'email';
 		}
 

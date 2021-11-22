@@ -45,7 +45,7 @@ class FirstTimeWizardSteps {
                     <td>
         <?php } ?>
                         <fieldset id="2fa-method-select" class="2fa-method-select">
-                            <div><em><?php esc_html_e( 'Primary 2FA methods:', 'wp-2fa' ); ?></em></div>
+                            <div class="method-title"><em><?php esc_html_e( 'Primary 2FA methods:', 'wp-2fa' ); ?></em></div>
                             <br>
                             <label for="totp">
                                 <input type="checkbox" id="totp" name="wp_2fa_policy[enable_totp]" value="enable_totp"
@@ -89,9 +89,9 @@ class FirstTimeWizardSteps {
                             <?php
                             ?>
                             </label>
-							<div class="use-different-hotp-mail<?php echo \esc_attr( ( false === WP2FA::get_wp2fa_setting( 'enable_email' ) ? ' disabled' : '' ) ); ?>" style="padding-left:20px;">
-								<p class="description">
-									<?php esc_html_e( 'Require user to specify email address before sending one-time code', 'wp-2fa' ); ?>
+							<div class="use-different-hotp-mail<?php echo \esc_attr( ( false === WP2FA::get_wp2fa_setting( 'enable_email' ) ? ' disabled' : '' ) ); ?>">
+								<p class="description" style="margin-bottom: 5px; font-style: normal;">
+									<?php esc_html_e( 'Allow user to specify the email address of choice', 'wp-2fa' ); ?>
 								</p>
 								<fieldset class="email-hotp-options">
 								<?php
@@ -115,14 +115,11 @@ class FirstTimeWizardSteps {
 										>
 										<span><?php echo $option_settings['label']; // @codingStandardsIgnoreLine - already escaped ?></span>
 									</label>
-
-									<br>
 										<?php
 								}
 								?>
 								</fieldset>
 							</div>
-                            <br />
                             <br />
                             <?php
                             $class = '';
@@ -131,7 +128,7 @@ class FirstTimeWizardSteps {
                                 $class = ' class="disabled"';
                             }
                             ?>
-                            <div><em><?php esc_html_e( 'Secondary 2FA methods:', 'wp-2fa' ); ?></em></div>
+                            <div class="method-title"><em><?php esc_html_e( 'Secondary 2FA methods:', 'wp-2fa' ); ?></em></div>
                             <br>
                             <label for="backup-codes" <?php echo $class; // @codingStandardsIgnoreLine - escaped in our code ?>>
                                 <input <?php echo $class; // @codingStandardsIgnoreLine - escaped in our code ?> type="checkbox" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]" 
@@ -205,22 +202,21 @@ class FirstTimeWizardSteps {
                     <td>
             <?php } ?>
                         <fieldset class="contains-hidden-inputs">
-                            <label for="all-users">
+                            <label for="all-users" style="margin-bottom: 10px !important; display: block;">
                                 <input type="radio" name="wp_2fa_policy[enforcement-policy]" id="all-users" value="all-users"
                                 <?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'all-users' ); ?>
                                 >
                             <span><?php esc_html_e( 'All users', 'wp-2fa' ); ?></span>
                             </label>
-                            <br/>
 
                             <?php if ( WP2FA::is_this_multisite() ) : ?>
-                                <label for="superadmins-only">
+                                <label for="superadmins-only" style="margin-bottom: 10px; display: block;">
                                     <input type="radio" name="wp_2fa_policy[enforcement-policy]" id="superadmins-only" value="superadmins-only"
                                             <?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'superadmins-only' ); ?> />
                                     <span><?php esc_html_e( 'Only super admins', 'wp-2fa' ); ?></span>
                                 </label>
                                 <br/>
-                                <label for="superadmins-siteadmins-only">
+                                <label for="superadmins-siteadmins-only" style="margin-bottom: 10px; display: block;">
                                     <input type="radio" name="wp_2fa_policy[enforcement-policy]" id="superadmins-siteadmins-only" value="superadmins-siteadmins-only"
                                             <?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'superadmins-siteadmins-only' ); ?> />
                                     <span><?php esc_html_e( 'Only super admins and site admins', 'wp-2fa' ); ?></span>
@@ -228,7 +224,7 @@ class FirstTimeWizardSteps {
                                 <br/>
                             <?php endif; ?>
 
-                            <label for="certain-roles-only">
+                            <label for="certain-roles-only" style="margin-bottom: 10px; display: block;">
                                 <?php $checked = in_array( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), [ 'certain-roles-only', 'certain-users-only' ] ); ?>
                                 <input type="radio" name="wp_2fa_policy[enforcement-policy]" id="certain-roles-only" value="certain-roles-only"
                                 <?php ( $setup_wizard ) ? checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'certain-roles-only' ) : checked( $checked ); ?>
@@ -250,7 +246,6 @@ class FirstTimeWizardSteps {
                                         </select>
                                     </p>
                                 </div>
-                                <br/>
                             </fieldset>
                             <fieldset class="hidden certain-roles-only-inputs">
                                 <div>
@@ -281,10 +276,9 @@ class FirstTimeWizardSteps {
                                 </div>
                                 <?php } ?>
                             </fieldset>
-                            <br/>
                     <?php if ( WP2FA::is_this_multisite() ) { ?>
                             <div>
-                                <label for="enforce-on-multisite">
+                                <label for="enforce-on-multisite" style="margin-bottom: 10px; display: block;">
                                     <input type="radio" name="wp_2fa_policy[enforcement-policy]" id="enforce-on-multisite" value="enforce-on-multisite"
                                         <?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'enforce-on-multisite' ); ?>
                                     data-unhide-when-checked=".all-sites">
@@ -406,7 +400,7 @@ class FirstTimeWizardSteps {
                                     </select>
                             <br>
                             <?php if ( WP2FA::is_this_multisite() ) { ?>
-                            <div style="margin-left: 20px; margin-top:5px;">
+                            <div style="margin-top:10px;">
                                 <input type="checkbox" name="wp_2fa_policy[superadmins-role-exclude]" id="superadmins-role-exclude" value="yes"
                                     <?php checked( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ), 'yes' ); ?> />
                                 <label for="superadmins-role-exclude"><?php esc_html_e( 'Also exclude users with super admin privilege', 'wp-2fa' ); ?></label>
@@ -506,14 +500,13 @@ class FirstTimeWizardSteps {
         }
         ?>
         <fieldset class="contains-hidden-inputs">
-            <label for="no-grace-period">
+            <label for="no-grace-period" style="margin-bottom: 10px; display: block;">
                 <input type="radio" name="wp_2fa_policy[grace-policy]" id="no-grace-period" value="no-grace-period"
                 <?php checked( WP2FA::get_wp2fa_setting( 'grace-policy' ), 'no-grace-period' ); ?>
                 >
             <span><?php esc_html_e( 'Users have to configure 2FA straight away.', 'wp-2fa' ); ?></span>
             </label>
 
-            <br/>
             <label for="use-grace-period">
                 <input type="radio" name="wp_2fa_policy[grace-policy]" id="use-grace-period" value="use-grace-period"
                 <?php checked( WP2FA::get_wp2fa_setting( 'grace-policy' ), 'use-grace-period' ); ?>

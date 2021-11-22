@@ -14,7 +14,7 @@ use \WP2FA\WP2FA;
 use WP2FA\Admin\SettingsPages\{
 	Settings_Page_General,
 	Settings_Page_White_Label,
-	Settings_Page_Email,
+	Settings_Page_Email
 };
 
 /**
