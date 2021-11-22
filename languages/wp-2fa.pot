@@ -130,15 +130,19 @@ msgstr ""
 msgid "Email delivery failed"
 msgstr ""
 
-#: includes/functions/core.php:256, includes/classes/Admin/SetupWizard.php:230, includes/classes/Shortcodes/Shortcodes.php:59, includes/classes/Shortcodes/Shortcodes.php:71, includes/classes/Shortcodes/Shortcodes.php:146
+#: includes/functions/core.php:250
+msgid "Validating your license, please wait..."
+msgstr ""
+
+#: includes/functions/core.php:257, includes/classes/Admin/SetupWizard.php:230, includes/classes/Shortcodes/Shortcodes.php:59, includes/classes/Shortcodes/Shortcodes.php:71, includes/classes/Shortcodes/Shortcodes.php:146
 msgid "These are the 2FA backup codes for the user"
 msgstr ""
 
-#: includes/functions/core.php:257, includes/classes/Admin/SetupWizard.php:231, includes/classes/Shortcodes/Shortcodes.php:60, includes/classes/Shortcodes/Shortcodes.php:72, includes/classes/Shortcodes/Shortcodes.php:147
+#: includes/functions/core.php:258, includes/classes/Admin/SetupWizard.php:231, includes/classes/Shortcodes/Shortcodes.php:60, includes/classes/Shortcodes/Shortcodes.php:72, includes/classes/Shortcodes/Shortcodes.php:147
 msgid "I'm ready"
 msgstr ""
 
-#: includes/functions/core.php:258, includes/classes/Admin/SetupWizard.php:232, includes/classes/Shortcodes/Shortcodes.php:61, includes/classes/Shortcodes/Shortcodes.php:73, includes/classes/Shortcodes/Shortcodes.php:148
+#: includes/functions/core.php:259, includes/classes/Admin/SetupWizard.php:232, includes/classes/Shortcodes/Shortcodes.php:61, includes/classes/Shortcodes/Shortcodes.php:73, includes/classes/Shortcodes/Shortcodes.php:148
 msgid "New code sent"
 msgstr ""
 
