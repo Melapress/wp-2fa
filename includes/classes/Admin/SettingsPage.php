@@ -373,19 +373,18 @@ class SettingsPage {
 	 * @throws \Freemius_Exception
 	 */
 	public function add_plugin_action_links( $links ) {
-		//	add link to the external free trial page in free version and also in premium version if license is not active
+		// add link to the external free trial page in free version and also in premium version if license is not active.
 		if ( ! function_exists( 'wp2fa_freemius' ) || ! wp2fa_freemius()->has_active_valid_license() ) {
-			//  @todo replace WSAL trial link
-			$trial_link = 'https://wpactivitylog.com/trial-premium-edition-plugin/?utm_source=plugin&utm_medium=referral&utm_campaign=WSAL';
+			$trial_link = 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA';
 			$links      = array_merge(
-					array(
-							'<a style="font-weight:bold" href="' . $trial_link . '" target="_blank">' . __( 'Free Premium Trial', 'wp-2fa' ) . '</a>'
-					),
-					$links
+				array(
+					'<a style="font-weight:bold" href="' . $trial_link . '" target="_blank">' . __( 'Free 14-day Premium Trial', 'wp-2fa' ) . '</a>',
+				),
+				$links
 			);
 		}
 
-		//	add link to the plugin settings page
+		// add link to the plugin settings page.
 		$url = Settings::get_settings_page_link();
 		$links = array_merge(
 			array(

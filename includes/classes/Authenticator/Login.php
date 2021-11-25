@@ -902,7 +902,6 @@ class Login {
 		return false;
 	}
 
-
 	/**
 	 * Prints the form that prompts the user to authenticate.
 	 *
@@ -975,7 +974,7 @@ class Login {
 	public static function backup_codes_authentication_page( $user ) {
 		require_once ABSPATH . '/wp-admin/includes/template.php';
 		?>
-		<p><?php esc_html_e( 'Enter a backup verification code.', 'wp-2fa' ); ?></p><br/>
+		<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ); // @codingStandardsIgnoreLine ?></p><br/>
 		<p>
 			<label for="authcode"><?php esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>
 			<input type="tel" name="wp-2fa-backup-code" id="authcode" class="input" value="" size="20" pattern="[0-9]*" />

@@ -128,28 +128,29 @@ class UserProfile {
 				$form_content .= '<br /><br />';
 
 				if ( SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) {
-					$form_content .= '<a href="' . esc_url( $backup_codes_url ) . '" class="button button-primary">' . __( 'Generate backup codes', 'wp-2fa' ) . '</a>';
+					$form_content .= '<a href="' . esc_url( $backup_codes_url ) . '" class="button button-primary">' . __( 'Generate list of Backup Codes', 'wp-2fa' ) . '</a>';
 
 					$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
 					if ( $codes_remaining > 0 ) {
 						$form_content .= '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . __( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 					} elseif ( 0 === $codes_remaining ) {
-						$form_content .= '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . __( 'Learn more.', 'wp-2fa' ) . '</a>';
+						$form_content .= '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . __( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 					}
 				}
 
 				if ( isset( $additional_args['is_shortcode'] ) && $additional_args['is_shortcode'] ) {
-					$form_content = '<a href="#" class="button button-primary remove-2fa" data-open-configure-2fa-wizard>' . __( 'Change 2FA Settings', 'wp-2fa' ) . '</a>';
+					$form_content = '<a href="#" class="button button-primary remove-2fa" data-open-configure-2fa-wizard>' . __( 'Change 2FA settings', 'wp-2fa' ) . '</a>';
 
 					if ( self::can_user_remove_2fa( $user->ID ) ) {
 						$form_content .= '<a href="#" class="button button-primary remove-2fa" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . __( 'Remove 2FA', 'wp-2fa' ) . '</a>';
 					}
 					if ( SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) {
+					$form_content .= '</td><tr><td class="backup-methods-label">';
 						$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
 						if ( $codes_remaining > 0 ) {
 							$backup_codes_desc = '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . __( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 						} elseif ( 0 === $codes_remaining ) {
-							$backup_codes_desc = '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . __( 'Learn more.', 'wp-2fa' ) . '</a>';
+							$backup_codes_desc = '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . __( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 						}
 
 						$form_content .= WizardSteps::getGenerateCodesLink() . $backup_codes_desc;
@@ -160,6 +161,8 @@ class UserProfile {
 						 * @since latest
 						 */
 						$form_content = apply_filters( 'wp_2fa_additional_form_buttons', $form_content );
+
+						$form_content .= '</td></tr>';
 					}
 				}
 			}
@@ -219,7 +222,7 @@ class UserProfile {
 		}
 
 		if ( $show_preamble ) {
-			$form_output .= '<h2>' . __( 'WP 2FA Settings', 'wp-2fa' ) . '</h2>';
+			$form_output .= '<h2>' . __( 'Two-factor authentication settings', 'wp-2fa' ) . '</h2>';
 
 			if ( $description ) {
 					$form_output .= '<p class="description">' . $description . '</p>';
@@ -233,7 +236,7 @@ class UserProfile {
 		  <table class="form-table wp-2fa-user-profile-form" role="presentation">
 		    <tbody>
 		      <tr>
-		        <th><label>' . __( '2-Factor authentication', 'wp-2fa' ) . '</label></th>
+		        <th><label>' . __( '2FA Setup:', 'wp-2fa' ) . '</label></th>
 		        <td>
 		          ' . $form_content . '
 		        </td>

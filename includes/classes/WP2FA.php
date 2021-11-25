@@ -84,6 +84,7 @@ class WP2FA {
 	 * Constructor.
 	 */
 	private function __construct() {
+
 		self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] = SettingsUtils::get_option( WP_2FA_POLICY_SETTINGS_NAME );
 		self::$plugin_settings[ WP_2FA_SETTINGS_NAME ] = SettingsUtils::get_option( WP_2FA_SETTINGS_NAME );
 		self::$plugin_settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] = SettingsUtils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
@@ -115,10 +116,10 @@ class WP2FA {
 			'enable_email'                        => 'enable_email',
 			'backup_codes_enabled'                => 'yes',
 			'enforcement-policy'                  => 'do-not-enforce',
-			'excluded_users'                      => [],
-			'excluded_roles'                      => [],
-			'enforced_users'                      => [],
-			'enforced_roles'                      => [],
+			'excluded_users'                      => array(),
+			'excluded_roles'                      => array(),
+			'enforced_users'                      => array(),
+			'enforced_roles'                      => array(),
 			'grace-period'                        => 3,
 			'grace-period-denominator'            => 'days',
 			'enable_grace_cron'                   => '',
@@ -130,7 +131,7 @@ class WP2FA {
 			'plugin_version'                      => WP_2FA_VERSION,
 			'delete_data_upon_uninstall'          => '',
 			'excluded_sites'                      => '',
-			'included_sites'                      => [],
+			'included_sites'                      => array(),
 			'create-custom-user-page'             => 'no',
 			'redirect-user-custom-page'           => '',
 			'redirect-user-custom-page-global'    => '',
@@ -142,7 +143,8 @@ class WP2FA {
 			'superadmins-role-exclude'            => 'no',
 			'default-text-code-page'              => __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ),
 			'email-code-period'                   => 5,
-			'specify-email_hotp'            => '',
+			'specify-email_hotp'                  => '',
+			'default-backup-code-page'            => __( 'Enter a backup verification code.', 'wp-2fa' ),
 		);
 
 		$default_settings = apply_filters( 'wp_2fa_default_settings', $default_settings );
@@ -156,7 +158,6 @@ class WP2FA {
 	public function init() {
 		// Bootstrap.
 		Core\setup();
-
 
 		$this->settings        = new Admin\SettingsPage();
 		$this->settings_email  = new Admin\SettingsPages\Settings_Page_Email();
@@ -290,13 +291,17 @@ class WP2FA {
 			return;
 		}
 
-		if ( SettingsUtils::get_option( 'redirect_on_activate', false ) ) {
+		$registered_and_active = 'yes';
+		if ( function_exists( 'wp2fa_freemius' ) ) {
+			$registered_and_active = wp2fa_freemius()->is_registered() && wp2fa_freemius()->has_active_valid_license() ? 'yes' : 'no';
+		}
+
+		if ( SettingsUtils::get_option( 'redirect_on_activate', false ) && 'yes' === $registered_and_active ) {
 			// Delete redirect option.
 			SettingsUtils::delete_option( 'redirect_on_activate' );
 
 			SettingsUtils::update_option( 'wizard_not_finished', true );
 
-			$page = ( self::is_this_multisite() && is_super_admin() ) ?  network_admin_url( 'index.php' ) : admin_url( 'options-general.php' );
 			$redirect = add_query_arg(
 				array(
 					'page'             => 'wp-2fa-setup',

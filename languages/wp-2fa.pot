@@ -16,93 +16,97 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: includes/classes/WP2FA.php:143
+#: includes/classes/WP2FA.php:144
 msgid "Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email."
 msgstr ""
 
-#: includes/classes/WP2FA.php:440
+#: includes/classes/WP2FA.php:147
+msgid "Enter a backup verification code."
+msgstr ""
+
+#: includes/classes/WP2FA.php:445
 msgid "Your login confirmation code for {site_name}"
 msgstr ""
 
-#: includes/classes/WP2FA.php:444
+#: includes/classes/WP2FA.php:449
 msgid "Enter %1$s to log in."
 msgstr ""
 
-#: includes/classes/WP2FA.php:448, includes/classes/WP2FA.php:464, includes/classes/WP2FA.php:479
+#: includes/classes/WP2FA.php:453, includes/classes/WP2FA.php:469, includes/classes/WP2FA.php:484
 msgid "Thank you."
 msgstr ""
 
-#: includes/classes/WP2FA.php:449, includes/classes/WP2FA.php:465, includes/classes/WP2FA.php:479
+#: includes/classes/WP2FA.php:454, includes/classes/WP2FA.php:470, includes/classes/WP2FA.php:484
 msgid "Email sent by"
 msgstr ""
 
-#: includes/classes/WP2FA.php:450, includes/classes/WP2FA.php:466
+#: includes/classes/WP2FA.php:455, includes/classes/WP2FA.php:471
 msgid "WP 2FA plugin."
 msgstr ""
 
-#: includes/classes/WP2FA.php:454
+#: includes/classes/WP2FA.php:459
 msgid "Your user on {site_name} has been locked"
 msgstr ""
 
-#: includes/classes/WP2FA.php:456
+#: includes/classes/WP2FA.php:461
 msgid "Hello."
 msgstr ""
 
-#: includes/classes/WP2FA.php:458
+#: includes/classes/WP2FA.php:463
 msgid "Since you have not enabled two-factor authentication for the user %1$s on the website %2$s within the grace period, your account has been locked."
 msgstr ""
 
-#: includes/classes/WP2FA.php:463
+#: includes/classes/WP2FA.php:468
 msgid "Contact your website administrator to unlock your account."
 msgstr ""
 
-#: includes/classes/WP2FA.php:470
+#: includes/classes/WP2FA.php:475
 msgid "Your user on {site_name} has been unlocked"
 msgstr ""
 
-#: includes/classes/WP2FA.php:473
+#: includes/classes/WP2FA.php:478
 msgid "Hello,"
 msgstr ""
 
-#: includes/classes/WP2FA.php:473
+#: includes/classes/WP2FA.php:478
 msgid "Your user"
 msgstr ""
 
-#: includes/classes/WP2FA.php:473
+#: includes/classes/WP2FA.php:478
 msgid "on the website"
 msgstr ""
 
-#: includes/classes/WP2FA.php:473
+#: includes/classes/WP2FA.php:478
 msgid "has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again."
 msgstr ""
 
-#: includes/classes/WP2FA.php:476
+#: includes/classes/WP2FA.php:481
 msgid "You can configure 2FA from this page:"
 msgstr ""
 
-#: includes/classes/WP2FA.php:479
+#: includes/classes/WP2FA.php:484
 msgid "WP 2FA plugin"
 msgstr ""
 
-#: includes/classes/WP2FA.php:666
+#: includes/classes/WP2FA.php:671
 msgid "Test email from WP 2FA"
 msgstr ""
 
-#: includes/classes/WP2FA.php:667
+#: includes/classes/WP2FA.php:672
 msgid "This email was sent by the WP 2FA plugin to test the email delivery."
 msgstr ""
 
-#: includes/classes/WP2FA.php:733
+#: includes/classes/WP2FA.php:738
 msgid "There is %s method available from which you can choose for 2FA:"
 msgid_plural "There are %s methods available from which you can choose for 2FA:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/classes/WP2FA.php:838
+#: includes/classes/WP2FA.php:843
 msgid "To ensure emails are delivered so users do not have problems logging in, we recommend using the free plugin"
 msgstr ""
 
-#: includes/classes/WP2FA.php:838
+#: includes/classes/WP2FA.php:843
 msgid "WP Mail SMTP"
 msgstr ""
 
@@ -154,7 +158,7 @@ msgstr ""
 msgid "2FA Policies"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:64, includes/classes/Admin/SettingsPage.php:108, includes/classes/Admin/SettingsPage.php:131, includes/classes/Admin/UserProfile.php:222, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:95, includes/classes/Admin/Views/class-settings-page-render.php:44
+#: includes/classes/Admin/SettingsPage.php:64, includes/classes/Admin/SettingsPage.php:108, includes/classes/Admin/SettingsPage.php:131, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:95, includes/classes/Admin/Views/class-settings-page-render.php:44
 msgid "WP 2FA Settings"
 msgstr ""
 
@@ -166,39 +170,39 @@ msgstr ""
 msgid "Nonce verification failed."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:382
-msgid "Free Premium Trial"
+#: includes/classes/Admin/SettingsPage.php:381
+msgid "Free 14-day Premium Trial"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:392
+#: includes/classes/Admin/SettingsPage.php:391
 msgid "Configure 2FA Settings"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:406
+#: includes/classes/Admin/SettingsPage.php:405
 msgid "User account successfully unlocked. User can login again."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:408, includes/classes/Admin/SettingsPage.php:422, includes/classes/Admin/SettingsPage.php:436, includes/classes/Admin/SettingsPage.php:475, includes/classes/Admin/SettingsPage.php:485, includes/classes/Admin/SettingsPage.php:495, includes/classes/Admin/SettingsPage.php:529, includes/classes/Admin/SettingsPage.php:519, includes/classes/Admin/SettingsPage.php:540, includes/classes/Admin/SettingsPage.php:550
+#: includes/classes/Admin/SettingsPage.php:407, includes/classes/Admin/SettingsPage.php:421, includes/classes/Admin/SettingsPage.php:435, includes/classes/Admin/SettingsPage.php:474, includes/classes/Admin/SettingsPage.php:484, includes/classes/Admin/SettingsPage.php:494, includes/classes/Admin/SettingsPage.php:528, includes/classes/Admin/SettingsPage.php:518, includes/classes/Admin/SettingsPage.php:539, includes/classes/Admin/SettingsPage.php:549
 msgid "Dismiss this notice."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:420
+#: includes/classes/Admin/SettingsPage.php:419
 msgid "Your 2FA settings have been removed."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:434
+#: includes/classes/Admin/SettingsPage.php:433
 msgid "User 2FA settings have been removed."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:473, includes/classes/Admin/SettingsPage.php:527
+#: includes/classes/Admin/SettingsPage.php:472, includes/classes/Admin/SettingsPage.php:526
 msgid "2FA Settings Updated"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:483, includes/classes/Admin/SettingsPage.php:538
+#: includes/classes/Admin/SettingsPage.php:482, includes/classes/Admin/SettingsPage.php:537
 msgid "Please ensure both custom email address and display name are provided."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPage.php:563
+#: includes/classes/Admin/SettingsPage.php:562
 msgid "WP 2FA User Page"
 msgstr ""
 
@@ -290,7 +294,7 @@ msgstr ""
 msgid "The 2FA method you were using is no longer allowed on this website. Please reconfigure 2FA using one of the supported methods within"
 msgstr ""
 
-#: includes/classes/Admin/UserNotices.php:96, includes/classes/Admin/UserNotices.php:118, includes/classes/Admin/Views/WizardSteps.php:580
+#: includes/classes/Admin/UserNotices.php:96, includes/classes/Admin/UserNotices.php:118, includes/classes/Admin/Views/WizardSteps.php:582
 msgid "Configure 2FA now"
 msgstr ""
 
@@ -318,7 +322,7 @@ msgstr ""
 msgid "This user is excluded from configuring 2FA."
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:122, includes/classes/Admin/UserProfile.php:142
+#: includes/classes/Admin/UserProfile.php:122
 msgid "Change 2FA Settings"
 msgstr ""
 
@@ -326,103 +330,111 @@ msgstr ""
 msgid "Remove 2FA"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:131, includes/classes/Admin/Views/WizardSteps.php:416, includes/classes/Admin/Views/WizardSteps.php:417, includes/classes/Admin/Views/WizardSteps.php:454, includes/classes/Admin/Views/WizardSteps.php:457, includes/classes/Admin/Views/WizardSteps.php:458
-msgid "Generate backup codes"
+#: includes/classes/Admin/UserProfile.php:131
+msgid "Generate list of Backup Codes"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:137, includes/classes/Admin/UserProfile.php:152, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:805, includes/classes/Admin/Views/FirstTimeWizardSteps.php:193
-msgid "Learn more."
+#: includes/classes/Admin/UserProfile.php:137, includes/classes/Admin/UserProfile.php:153
+msgid "Learn more about backup codes"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:135, includes/classes/Admin/UserProfile.php:150
+#: includes/classes/Admin/UserProfile.php:135, includes/classes/Admin/UserProfile.php:151
 msgid "unused backup codes remaining."
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:181
+#: includes/classes/Admin/UserProfile.php:142
+msgid "Change 2FA settings"
+msgstr ""
+
+#: includes/classes/Admin/UserProfile.php:184
 msgid "Configure 2FA"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:182
+#: includes/classes/Admin/UserProfile.php:185
 msgid "Once you configure 2FA you will also be able to generate backup codes, which can be used to log in when it is not possible to get the one-time code from the primary 2FA method."
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:186
+#: includes/classes/Admin/UserProfile.php:189
 msgid "Configure Two-factor authentication (2FA)"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:193
+#: includes/classes/Admin/UserProfile.php:196
 msgid "The user has already configured 2FA. When you reset the user's current 2FA configuration, the user can log back in with just the username and password."
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:205
+#: includes/classes/Admin/UserProfile.php:208
 msgid "Reset 2FA configuration"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:218
+#: includes/classes/Admin/UserProfile.php:221
 msgid "Unlock user and reset the grace period"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:236
-msgid "2-Factor authentication"
+#: includes/classes/Admin/UserProfile.php:225
+msgid "Two-factor authentication settings"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:274
+#: includes/classes/Admin/UserProfile.php:239
+msgid "2FA Setup:"
+msgstr ""
+
+#: includes/classes/Admin/UserProfile.php:277
 msgid "Are you sure?"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:275
+#: includes/classes/Admin/UserProfile.php:278
 msgid "Any unsaved changes will be lost!"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:277, includes/classes/Admin/UserProfile.php:409, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:639, includes/classes/Admin/Views/FirstTimeWizardSteps.php:100
+#: includes/classes/Admin/UserProfile.php:280, includes/classes/Admin/UserProfile.php:412, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:639, includes/classes/Admin/Views/FirstTimeWizardSteps.php:101
 msgid "Yes"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:278, includes/classes/Admin/UserProfile.php:410, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:646, includes/classes/Admin/Views/FirstTimeWizardSteps.php:104
+#: includes/classes/Admin/UserProfile.php:281, includes/classes/Admin/UserProfile.php:413, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:646, includes/classes/Admin/Views/FirstTimeWizardSteps.php:105
 msgid "No"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:296
+#: includes/classes/Admin/UserProfile.php:299
 msgid "Choose the 2FA authentication method"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:300
+#: includes/classes/Admin/UserProfile.php:303
 msgid "Only the below 2FA method is allowed on this website:"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:321
+#: includes/classes/Admin/UserProfile.php:324
 msgid "Next Step"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:322, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:87, includes/classes/Admin/Views/WizardSteps.php:316, includes/classes/Admin/Views/WizardSteps.php:386
+#: includes/classes/Admin/UserProfile.php:325, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:87, includes/classes/Admin/Views/WizardSteps.php:316, includes/classes/Admin/Views/WizardSteps.php:386
 msgid "Cancel"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:406
+#: includes/classes/Admin/UserProfile.php:409
 msgid "Remove 2FA?"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:407
+#: includes/classes/Admin/UserProfile.php:410
 msgid "Are you sure you want to remove two-factor authentication and lower the security of your user account?"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:469
+#: includes/classes/Admin/UserProfile.php:472
 msgid "Unlock user"
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:614
+#: includes/classes/Admin/UserProfile.php:617
 msgid "Please enter the code to finalize the 2FA setup."
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:611
+#: includes/classes/Admin/UserProfile.php:614
 msgid "Invalid Email Authentication code."
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:605
+#: includes/classes/Admin/UserProfile.php:608
 msgid "Invalid Two Factor Authentication secret key."
 msgstr ""
 
-#: includes/classes/Admin/UserProfile.php:602
+#: includes/classes/Admin/UserProfile.php:605
 msgid "Invalid Two Factor Authentication code."
 msgstr ""
 
@@ -504,12 +516,8 @@ msgstr ""
 msgid "Authentication Code:"
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:932, includes/classes/Authenticator/Login.php:980
+#: includes/classes/Authenticator/Login.php:931, includes/classes/Authenticator/Login.php:979
 msgid "Verification Code:"
-msgstr ""
-
-#: includes/classes/Authenticator/Login.php:978
-msgid "Enter a backup verification code."
 msgstr ""
 
 #: includes/classes/Shortcodes/Shortcodes.php:116
@@ -717,7 +725,7 @@ msgstr ""
 msgid "Hide settings from other administrators"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:160, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:444, includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:65
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:160, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:444, includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:71
 msgid "Settings saving processes complete"
 msgstr ""
 
@@ -870,6 +878,10 @@ msgstr ""
 msgid "When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days."
 msgstr ""
 
+#: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:805, includes/classes/Admin/Views/FirstTimeWizardSteps.php:207
+msgid "Learn more."
+msgstr ""
+
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:844
 msgid "Should users be able to disable 2FA on their user profile?"
 msgstr ""
@@ -886,24 +898,28 @@ msgstr ""
 msgid "Hide the Remove 2FA button on user profile pages"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:138
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:144
 msgid "Change the default text used in the 2FA code page?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:140
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:146
 msgid "This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:145
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:151
 msgid "2FA code page text"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:150
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:156, includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:167
 msgid "Note:"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:150
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:156, includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:167
 msgid "Only plain text is allowed."
+msgstr ""
+
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:162
+msgid "Backup code page text"
 msgstr ""
 
 #: includes/classes/Admin/Views/class-settings-page-render.php:64
@@ -911,7 +927,7 @@ msgid "Email Settings & Templates"
 msgstr ""
 
 #: includes/classes/Admin/Views/class-settings-page-render.php:77
-msgid "Generic plugin settings"
+msgid "General plugin settings"
 msgstr ""
 
 #: includes/classes/Admin/Views/class-settings-page-render.php:90
@@ -964,127 +980,135 @@ msgstr ""
 msgid "One-time code via email (HOTP)"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:94
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:95
 msgid "Allow user to specify the email address of choice"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:131
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:162
+msgid "Secondary 2FA methods and other settings"
+msgstr ""
+
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:164
+msgid "You can configure other 2FA method settings and the 2FA backup methods from the plugin settings later on."
+msgstr ""
+
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:134
 msgid "Secondary 2FA methods:"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:140
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:143
 msgid "Backup codes"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:146
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:149
 msgid "Backup codes are a secondary method which you can use to log in to the website in case the primary 2FA method is unavailable. Therefore they can't be enabled and used as a primary method."
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:191
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:205
 msgid "Do you want to enforce 2FA for some, or all the users? "
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:193
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:207
 msgid "When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. "
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:201
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:215
 msgid "Enforce 2FA on"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:209
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:223
 msgid "All users"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:216
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:230
 msgid "Only super admins"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:222
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:236
 msgid "Only super admins and site admins"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:232
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:246
 msgid "Only for specific users and roles"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:237
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:251
 msgid "Users :"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:253
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:267
 msgid "Roles :"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:275
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:289
 msgid "Also enforce 2FA on network users with super admin privileges"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:285
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:299
 msgid "These sub-sites"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:289
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:303
 msgid "Sites :"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:317
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:331
 msgid "Do not enforce on any users"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:344
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:358
 msgid "Do you want to exclude any users or roles from 2FA? "
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:346
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:360
 msgid "If you are enforcing 2FA on all users but for some reason you would like to exclude individual user(s) or users with a specific role, you can exclude them below"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:357, includes/classes/Admin/Views/FirstTimeWizardSteps.php:354
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:371, includes/classes/Admin/Views/FirstTimeWizardSteps.php:368
 msgid "Exclude the following users"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:384, includes/classes/Admin/Views/FirstTimeWizardSteps.php:379
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:398, includes/classes/Admin/Views/FirstTimeWizardSteps.php:393
 msgid "Exclude the following roles"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:406
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:420
 msgid "Also exclude users with super admin privilege"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:432
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:446
 msgid "Do you want to exclude all the users of a site from 2FA? "
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:434
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:448
 msgid "If you are enforcing 2FA on all users but for some reason you do not want to enforce it on a specific sub site, specify the sub site name below:"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:442, includes/classes/Admin/Views/FirstTimeWizardSteps.php:451
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:456, includes/classes/Admin/Views/FirstTimeWizardSteps.php:465
 msgid "Exclude the following sites"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:507
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:521
 msgid "Users have to configure 2FA straight away."
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:514
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:528
 msgid "Give users a grace period to configure 2FA"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:523
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:537
 msgid "hours"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:529
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:543
 msgid "days"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:543
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:557
 msgid "Seconds"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:555
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:569
 msgid "Note: If users do not configure it within the configured stipulated time, their account will be locked and have to be unlocked manually."
 msgstr ""
 
@@ -1228,7 +1252,7 @@ msgstr ""
 msgid "Send me another code"
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:407, includes/classes/Admin/Views/WizardSteps.php:651
+#: includes/classes/Admin/Views/WizardSteps.php:407, includes/classes/Admin/Views/WizardSteps.php:653
 msgid "Your login just got more secure"
 msgstr ""
 
@@ -1240,8 +1264,16 @@ msgstr ""
 msgid "You can exit this wizard now or continue to create backup codes."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:433, includes/classes/Admin/Views/WizardSteps.php:427, includes/classes/Admin/Views/WizardSteps.php:546, includes/classes/Admin/Views/WizardSteps.php:571
+#: includes/classes/Admin/Views/WizardSteps.php:433, includes/classes/Admin/Views/WizardSteps.php:427, includes/classes/Admin/Views/WizardSteps.php:548, includes/classes/Admin/Views/WizardSteps.php:573
 msgid "Close wizard"
+msgstr ""
+
+#: includes/classes/Admin/Views/WizardSteps.php:416, includes/classes/Admin/Views/WizardSteps.php:454, includes/classes/Admin/Views/WizardSteps.php:457
+msgid "Generate backup codes"
+msgstr ""
+
+#: includes/classes/Admin/Views/WizardSteps.php:417, includes/classes/Admin/Views/WizardSteps.php:458, includes/classes/Admin/Views/WizardSteps.php:481
+msgid "Generate list of backup codes"
 msgstr ""
 
 #: includes/classes/Admin/Views/WizardSteps.php:419, includes/classes/Admin/Views/WizardSteps.php:420, includes/classes/Admin/Views/WizardSteps.php:460, includes/classes/Admin/Views/WizardSteps.php:461
@@ -1257,61 +1289,61 @@ msgid "It is recommended to generate and print some backup codes in case you los
 msgstr ""
 
 #: includes/classes/Admin/Views/WizardSteps.php:479
-msgid "Generate Backup Codes"
-msgstr ""
-
-#: includes/classes/Admin/Views/WizardSteps.php:497
-msgid "Your backup codes"
-msgstr ""
-
-#: includes/classes/Admin/Views/WizardSteps.php:498
-msgid "Backup codes generated"
+msgid "Backup 2FA:"
 msgstr ""
 
 #: includes/classes/Admin/Views/WizardSteps.php:499
+msgid "Your backup codes"
+msgstr ""
+
+#: includes/classes/Admin/Views/WizardSteps.php:500
+msgid "Backup codes generated"
+msgstr ""
+
+#: includes/classes/Admin/Views/WizardSteps.php:501
 msgid "Here are your backup codes:"
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:502, includes/classes/Admin/Views/WizardSteps.php:503
+#: includes/classes/Admin/Views/WizardSteps.php:504, includes/classes/Admin/Views/WizardSteps.php:505
 msgid "Download"
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:505, includes/classes/Admin/Views/WizardSteps.php:506
+#: includes/classes/Admin/Views/WizardSteps.php:507, includes/classes/Admin/Views/WizardSteps.php:508
 msgid "Print"
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:518, includes/classes/Admin/Views/WizardSteps.php:512
+#: includes/classes/Admin/Views/WizardSteps.php:520, includes/classes/Admin/Views/WizardSteps.php:514
 msgid "I'm ready, close the wizard"
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:544
+#: includes/classes/Admin/Views/WizardSteps.php:546
 msgid "Congratulations! You are all set."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:561
+#: includes/classes/Admin/Views/WizardSteps.php:563
 msgid "Congratulations."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:561
+#: includes/classes/Admin/Views/WizardSteps.php:563
 msgid "Congratulations, you're almost there..."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:564
+#: includes/classes/Admin/Views/WizardSteps.php:566
 msgid "Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:577
+#: includes/classes/Admin/Views/WizardSteps.php:579
 msgid "Now you need to configure 2FA for your own user account. You can do this now (recommended) or later."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:583, includes/classes/Admin/Views/WizardSteps.php:674
+#: includes/classes/Admin/Views/WizardSteps.php:585, includes/classes/Admin/Views/WizardSteps.php:676
 msgid "Close wizard & configure 2FA later"
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:652
+#: includes/classes/Admin/Views/WizardSteps.php:654
 msgid "It is recommended to have a backup 2FA method in case you cannot generate a code from your 2FA app and you need to log in. You can configure any of the below. You can always configure any or both from your user profile page later."
 msgstr ""
 
-#: includes/classes/Admin/Views/WizardSteps.php:671
+#: includes/classes/Admin/Views/WizardSteps.php:673
 msgid "Configure backup 2FA method"
 msgstr ""

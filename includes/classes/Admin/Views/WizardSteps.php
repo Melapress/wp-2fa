@@ -414,7 +414,7 @@ class WizardSteps {
             <div class="wp2fa-setup-actions">
             <?php if ( in_array( 'user_needs_to_setup_backup_codes', $user_type, true ) ) { ?>
                 <button class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Generate backup codes', 'wp-2fa' ); ?>" data-trigger-generate-backup-codes data-nonce="<?php echo esc_attr( $nonce ); ?>">
-                    <?php esc_html_e( 'Generate backup codes', 'wp-2fa' ); ?>
+                    <?php esc_html_e( 'Generate list of backup codes', 'wp-2fa' ); ?>
                 </button>
                 <a href="#" class="button button-secondary" data-close-2fa-modal value="<?php esc_attr_e( 'I’ll generate them later', 'wp-2fa' ); ?>">
                     <?php esc_html_e( 'I’ll generate them later', 'wp-2fa' ); ?>
@@ -455,7 +455,7 @@ class WizardSteps {
             <p><?php esc_html_e( 'It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method. ', 'wp-2fa' ); ?></p>
             <div class="wp2fa-setup-actions">
                 <button class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Generate backup codes', 'wp-2fa' ); ?>" data-trigger-generate-backup-codes data-nonce="<?php echo esc_attr( $nonce ); ?>">
-                    <?php esc_html_e( 'Generate backup codes', 'wp-2fa' ); ?>
+                    <?php esc_html_e( 'Generate list of backup codes', 'wp-2fa' ); ?>
                 </button>
                 <a href="#" class="button button-secondary" value="<?php esc_attr_e( 'I’ll generate them later', 'wp-2fa' ); ?>" data-close-2fa-modal="">
                     <?php esc_html_e( 'I’ll generate them later', 'wp-2fa' ); ?>
@@ -476,7 +476,9 @@ class WizardSteps {
     public static function getGenerateCodesLink() {
         $nonce = self::jsonNonce();
 
-        return '<a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes  data-nonce="' . esc_attr( $nonce ) . '" onclick="MicroModal.show( \'configure-2fa-backup-codes\' );">' . __( 'Generate Backup Codes', 'wp-2fa' ) . '</a>';
+        $label = __( 'Backup 2FA:', 'wp-2fa' );
+
+        return $label . '</td><td><a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes  data-nonce="' . esc_attr( $nonce ) . '" onclick="MicroModal.show( \'configure-2fa-backup-codes\' );">' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</a>';
     }
 
     /**

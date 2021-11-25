@@ -55,6 +55,12 @@ class Settings_Page_White_Label {
 			$output['default-text-code-page'] = \wp_strip_all_tags( $input['default-text-code-page'] );
 		}
 
+		$output['default-backup-code-page'] = WP2FA::get_wp2fa_setting( 'default-backup-code-page', false, true );
+
+		if ( isset( $input['default-backup-code-page'] ) && '' !== trim( $input['default-backup-code-page'] ) ) {
+			$output['default-backup-code-page'] = \wp_strip_all_tags( $input['default-backup-code-page'] );
+		}
+
 		// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
 		global $wp_settings_errors;
 		if ( isset( $wp_settings_errors ) ) {
@@ -152,6 +158,23 @@ class Settings_Page_White_Label {
 						</fieldset>
 					</td>
 				</tr>
+				<tr>
+					<th><label for="backup-method"><?php esc_html_e( 'Backup code page text', 'wp-2fa' ); ?></label></th>
+					<td>
+						<fieldset>
+						<label for="default-backup-code-page">
+							<textarea cols="70" rows="10" name="wp_2fa_white_label[default-backup-code-page]" id="default-backup-code-page"><?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ) ); ?></textarea>
+							<div><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+						</label>
+						</fieldset>
+					</td>
+				</tr>
+				<?php
+				/**
+				 * Gives the ability for the 3rd party extensions to add additional white label settings
+				 */
+				do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_after_code_page' );
+				?>
 			</tbody>
 		</table>
 		<?php
