@@ -9,6 +9,7 @@
  * Text Domain: wp-2fa
  * Domain Path: /languages
  * Network:     true
+ *
  * @package WP2FA
  */
 
@@ -17,21 +18,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Useful global constants.
-define( 'WP_2FA_VERSION', '2.0.0' );
-define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
-define( 'WP_2FA_PATH', plugin_dir_path( __FILE__ ) );
-define( 'WP_2FA_INC', WP_2FA_PATH . 'includes/' );
-define( 'WP_2FA_FILE', __FILE__ );
-define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
-define( 'WP_2FA_LOGS_DIR', 'wp-2fa-logs' );
+if ( ! defined( 'WP_2FA_VERSION' ) ) {
+	define( 'WP_2FA_VERSION', '2.0.0' );
+	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
+	define( 'WP_2FA_PATH', plugin_dir_path( __FILE__ ) );
+	define( 'WP_2FA_INC', WP_2FA_PATH . 'includes/' );
+	define( 'WP_2FA_FILE', __FILE__ );
+	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
+	define( 'WP_2FA_LOGS_DIR', 'wp-2fa-logs' );
 
-// Prefix used in usermetas, settings and transients
-define( 'WP_2FA_PREFIX', 'wp_2fa_' );
-define( 'WP_2FA_POLICY_SETTINGS_NAME', WP_2FA_PREFIX . 'policy' );
-define( 'WP_2FA_SETTINGS_NAME', WP_2FA_PREFIX . 'settings' );
-define( 'WP_2FA_WHITE_LABEL_SETTINGS_NAME', WP_2FA_PREFIX . 'white_label' );
-define( 'WP_2FA_EMAIL_SETTINGS_NAME', WP_2FA_PREFIX . 'email_settings' );
-
+	// Prefix used in usermetas, settings and transients.
+	define( 'WP_2FA_PREFIX', 'wp_2fa_' );
+	define( 'WP_2FA_POLICY_SETTINGS_NAME', WP_2FA_PREFIX . 'policy' );
+	define( 'WP_2FA_SETTINGS_NAME', WP_2FA_PREFIX . 'settings' );
+	define( 'WP_2FA_WHITE_LABEL_SETTINGS_NAME', WP_2FA_PREFIX . 'white_label' );
+	define( 'WP_2FA_EMAIL_SETTINGS_NAME', WP_2FA_PREFIX . 'email_settings' );
+}
 		// Include files.
 		require_once WP_2FA_INC . 'functions/core.php';
 
@@ -44,7 +46,7 @@ define( 'WP_2FA_EMAIL_SETTINGS_NAME', WP_2FA_PREFIX . 'email_settings' );
 			require_once WP_2FA_PATH . 'third-party/vendor/autoload.php';
 		}
 
-		// run any required update routines
+		// run any required update routines.
 		\WP2FA\Utils\Migration::migrate();
 
 		$wp2fa = \WP2FA\WP2FA::get_instance();
