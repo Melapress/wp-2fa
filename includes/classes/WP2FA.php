@@ -5,6 +5,7 @@ namespace WP2FA;
 use WP2FA\Admin\User;
 use WP2FA\Admin\UserListing;
 use WP2FA\Admin\SettingsPage;
+use WP2FA\Admin\HelpContactUs;
 use WP2FA\Utils\RequestUtils;
 use WP2FA\Utils\DateTimeUtils;
 use WP2FA\Authenticator\Open_SSL;
@@ -169,6 +170,8 @@ class WP2FA {
 		$this->crontasks       = new Cron\CronTasks();
 		$this->user_registered = new Admin\UserRegistered();
 		$this->shortcodes      = new Shortcodes\Shortcodes();
+		$this->helpcontactus   = new Admin\HelpContactUs();
+		$this->premiumfeatures = new Admin\PremiumFeatures();
 
 		global $pagenow;
 		if ( 'profile.php' !== $pagenow || 'user-edit.php' !== $pagenow ) {
@@ -270,6 +273,11 @@ class WP2FA {
 		add_action( $user_block_hook, array( $this,  'block_unconfigured_users_from_admin' ), 10 );
 		// Check if usermeta is out of sync with settings.
 		add_action( $user_block_hook, array( $this,  'update_usermeta_if_required' ), 5 );
+
+		// Help & Contact Us.
+		add_action( 'wp_2fa_after_admin_menu_created', array( $this->helpcontactus, 'add_extra_menu_item' ) );
+		// Premium Features.
+		add_action( 'wp_2fa_after_admin_menu_created', array( $this->premiumfeatures, 'add_extra_menu_item' ) );
 	}
 
 	/**

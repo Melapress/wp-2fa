@@ -150,6 +150,16 @@ class Settings_Page_General {
 			}
 		}
 
+		if ( isset( $input['2fa_settings_last_updated_by'] ) && ! empty( $input['2fa_settings_last_updated_by'] ) ) {
+			$policies = WP2FA::get_wp2fa_setting();
+			if ( false === $policies ) {
+				$policies = WP2FA::getDefaultSettings();
+			}
+			$policies['2fa_settings_last_updated_by'] = $input['2fa_settings_last_updated_by'];
+
+			WP2FA::updatePluginSettings( $policies );
+		}
+
 		// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
 		global $wp_settings_errors;
 		if ( isset( $wp_settings_errors ) ) {
@@ -251,6 +261,11 @@ class Settings_Page_General {
 				</tbody>
 			</table>
 		</div>
+		<?php
+			$last_user_to_update_settings = get_current_user_id();
+
+		?>
+		<input type="hidden" id="2fa_main_user" name="wp_2fa_settings[2fa_settings_last_updated_by]" value="<?php echo esc_attr( $last_user_to_update_settings ); ?>">
 		<?php
 	}
 }

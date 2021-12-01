@@ -14,6 +14,8 @@ return array(
     'ValueError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     'WP2FA\\Admin\\Controllers\\Login_Attempts' => $baseDir . '/includes/classes/Admin/Controllers/class-login-attempts.php',
     'WP2FA\\Admin\\Controllers\\Settings' => $baseDir . '/includes/classes/Admin/Controllers/class-settings.php',
+    'WP2FA\\Admin\\HelpContactUs' => $baseDir . '/includes/classes/Admin/HelpContactUs.php',
+    'WP2FA\\Admin\\PremiumFeatures' => $baseDir . '/includes/classes/Admin/PremiumFeatures.php',
     'WP2FA\\Admin\\SettingsPage' => $baseDir . '/includes/classes/Admin/SettingsPage.php',
     'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => $baseDir . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
     'WP2FA\\Admin\\SettingsPages\\Settings_Page_General' => $baseDir . '/includes/classes/Admin/SettingsPages/class-settings-page-general.php',

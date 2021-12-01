@@ -145,7 +145,7 @@ class UserProfile {
 						$form_content .= '<a href="#" class="button button-primary remove-2fa" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . __( 'Remove 2FA', 'wp-2fa' ) . '</a>';
 					}
 					if ( SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) {
-					$form_content .= '</td><tr><td class="backup-methods-label">';
+					$form_content .= '</td><tr><th class="backup-methods-label">';
 						$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
 						if ( $codes_remaining > 0 ) {
 							$backup_codes_desc = '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . __( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
@@ -162,7 +162,7 @@ class UserProfile {
 						 */
 						$form_content = apply_filters( 'wp_2fa_additional_form_buttons', $form_content );
 
-						$form_content .= '</td></tr>';
+						$form_content .= '</th></tr>';
 					}
 				}
 			}
