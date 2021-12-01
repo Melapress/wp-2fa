@@ -752,7 +752,12 @@ class Login {
 				wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
 
-			self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider );
+			if ( Authentication::check_number_of_attempts( $user ) ) {
+				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider );
+			} else {
+				Authentication::get_login_attempts_instance()->clear_login_attempts( $user );
+				\wp_redirect( \wp_login_url() );
+			}
 			exit;
 		}
 
@@ -875,7 +880,7 @@ class Login {
 	public static function totp_authentication_page( $user ) {
 		require_once ABSPATH . '/wp-admin/includes/template.php';
 		?>
-		<p><?php echo WP2FA::get_wp2fa_setting( 'default-text-code-page', true ); ?></p>
+		<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ); ?></p>
 		<p>
 			</br>
 			<label for="authcode"><?php esc_html_e( 'Authentication Code:', 'wp-2fa' ); ?></label>
@@ -893,6 +898,15 @@ class Login {
 	 */
 	public static function validate_totp_authentication( \WP_User $user = null ) {
 		if ( ! empty( $_REQUEST['authcode'] ) ) { // WPCS: CSRF ok, nonce verified by login_form_validate_2fa().
+			$valid = Authentication::is_valid_authcode(
+				User::get_instance( ( $user ) ? $user : '' )->getTotpKey(),
+				sanitize_text_field( $_REQUEST['authcode'] ) // WPCS: CSRF ok, nonce verified by login_form_validate_2fa().
+			);
+			if ( $valid ) {
+				Authentication::get_login_attempts_instance()->clear_login_attempts( $user );
+			} else {
+				Authentication::get_login_attempts_instance()->increase_login_attempts( $user );
+			}
 			return Authentication::is_valid_authcode(
 				User::get_instance( ( $user ) ? $user : '' )->getTotpKey(),
 				sanitize_text_field( $_REQUEST['authcode'] ) // WPCS: CSRF ok, nonce verified by login_form_validate_2fa().
@@ -925,7 +939,7 @@ class Login {
 
 		require_once ABSPATH . '/wp-admin/includes/template.php';
 		?>
-	<p><?php echo WP2FA::get_wp2fa_setting( 'default-text-code-page', true ); ?></p>
+	<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ); ?></p>
 	<p>
 	</br>
 		<label for="authcode"><?php esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>

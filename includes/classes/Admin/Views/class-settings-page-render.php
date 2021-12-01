@@ -74,7 +74,7 @@ class Settings_Page_Render {
 						)
 					);
 					?>
-					" class="nav-tab <?php echo isset( $_REQUEST['tab'] ) && 'generic-settings' === $_REQUEST['tab'] ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Generic plugin settings', 'wp-2fa' ); // @codingStandardsIgnoreLine - No nonce verification warning?></a>
+					" class="nav-tab <?php echo isset( $_REQUEST['tab'] ) && 'generic-settings' === $_REQUEST['tab'] ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'General plugin settings', 'wp-2fa' ); // @codingStandardsIgnoreLine - No nonce verification warning?></a>
 					<a href="
 					<?php
 					echo esc_url(

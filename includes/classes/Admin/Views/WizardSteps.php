@@ -219,7 +219,7 @@ class WizardSteps {
         $setupnonce = wp_create_nonce( 'wp-2fa-send-setup-email' );
         ?>
             <div class="option-pill">
-                <h3><?php esc_html_e( 'Reconfigure email', 'wp-2fa' ); ?></h3>
+                <h3><?php esc_html_e( 'Reconfigure one-time code over email method', 'wp-2fa' ); ?></h3>
                 <p>
                 <?php esc_html_e( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ); ?>
                 </p>
@@ -476,9 +476,9 @@ class WizardSteps {
     public static function getGenerateCodesLink() {
         $nonce = self::jsonNonce();
 
-        $label = __( 'Backup 2FA:', 'wp-2fa' );
+        $label = __( 'Backup 2FA methods:', 'wp-2fa' );
 
-        return $label . '</td><td><a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes  data-nonce="' . esc_attr( $nonce ) . '" onclick="MicroModal.show( \'configure-2fa-backup-codes\' );">' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</a>';
+        return $label . '</th><td><a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes  data-nonce="' . esc_attr( $nonce ) . '" onclick="MicroModal.show( \'configure-2fa-backup-codes\' );">' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</a>';
     }
 
     /**

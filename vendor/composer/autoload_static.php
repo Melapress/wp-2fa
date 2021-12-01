@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitd92f410e0083d84a32a053f4c8983181
+class ComposerStaticInita61bba49b9abea9cfcb7fa4e73224783
 {
     public static $files = array (
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
@@ -142,6 +142,8 @@ class ComposerStaticInitd92f410e0083d84a32a053f4c8983181
         'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
         'WP2FA\\Admin\\Controllers\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-login-attempts.php',
         'WP2FA\\Admin\\Controllers\\Settings' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-settings.php',
+        'WP2FA\\Admin\\HelpContactUs' => __DIR__ . '/../..' . '/includes/classes/Admin/HelpContactUs.php',
+        'WP2FA\\Admin\\PremiumFeatures' => __DIR__ . '/../..' . '/includes/classes/Admin/PremiumFeatures.php',
         'WP2FA\\Admin\\SettingsPage' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPage.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_General' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-general.php',
@@ -179,9 +181,9 @@ class ComposerStaticInitd92f410e0083d84a32a053f4c8983181
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitd92f410e0083d84a32a053f4c8983181::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitd92f410e0083d84a32a053f4c8983181::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitd92f410e0083d84a32a053f4c8983181::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInita61bba49b9abea9cfcb7fa4e73224783::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInita61bba49b9abea9cfcb7fa4e73224783::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInita61bba49b9abea9cfcb7fa4e73224783::$classMap;
 
         }, null, ClassLoader::class);
     }

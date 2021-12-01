@@ -16,97 +16,97 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: includes/classes/WP2FA.php:144
+#: includes/classes/WP2FA.php:145
 msgid "Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email."
 msgstr ""
 
-#: includes/classes/WP2FA.php:147
+#: includes/classes/WP2FA.php:148
 msgid "Enter a backup verification code."
 msgstr ""
 
-#: includes/classes/WP2FA.php:445
+#: includes/classes/WP2FA.php:453
 msgid "Your login confirmation code for {site_name}"
 msgstr ""
 
-#: includes/classes/WP2FA.php:449
+#: includes/classes/WP2FA.php:457
 msgid "Enter %1$s to log in."
 msgstr ""
 
-#: includes/classes/WP2FA.php:453, includes/classes/WP2FA.php:469, includes/classes/WP2FA.php:484
+#: includes/classes/WP2FA.php:461, includes/classes/WP2FA.php:477, includes/classes/WP2FA.php:492
 msgid "Thank you."
 msgstr ""
 
-#: includes/classes/WP2FA.php:454, includes/classes/WP2FA.php:470, includes/classes/WP2FA.php:484
+#: includes/classes/WP2FA.php:462, includes/classes/WP2FA.php:478, includes/classes/WP2FA.php:492
 msgid "Email sent by"
 msgstr ""
 
-#: includes/classes/WP2FA.php:455, includes/classes/WP2FA.php:471
+#: includes/classes/WP2FA.php:463, includes/classes/WP2FA.php:479
 msgid "WP 2FA plugin."
 msgstr ""
 
-#: includes/classes/WP2FA.php:459
+#: includes/classes/WP2FA.php:467
 msgid "Your user on {site_name} has been locked"
 msgstr ""
 
-#: includes/classes/WP2FA.php:461
+#: includes/classes/WP2FA.php:469
 msgid "Hello."
 msgstr ""
 
-#: includes/classes/WP2FA.php:463
+#: includes/classes/WP2FA.php:471
 msgid "Since you have not enabled two-factor authentication for the user %1$s on the website %2$s within the grace period, your account has been locked."
 msgstr ""
 
-#: includes/classes/WP2FA.php:468
+#: includes/classes/WP2FA.php:476
 msgid "Contact your website administrator to unlock your account."
 msgstr ""
 
-#: includes/classes/WP2FA.php:475
+#: includes/classes/WP2FA.php:483
 msgid "Your user on {site_name} has been unlocked"
 msgstr ""
 
-#: includes/classes/WP2FA.php:478
+#: includes/classes/WP2FA.php:486
 msgid "Hello,"
 msgstr ""
 
-#: includes/classes/WP2FA.php:478
+#: includes/classes/WP2FA.php:486
 msgid "Your user"
 msgstr ""
 
-#: includes/classes/WP2FA.php:478
+#: includes/classes/WP2FA.php:486
 msgid "on the website"
 msgstr ""
 
-#: includes/classes/WP2FA.php:478
+#: includes/classes/WP2FA.php:486
 msgid "has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again."
 msgstr ""
 
-#: includes/classes/WP2FA.php:481
+#: includes/classes/WP2FA.php:489
 msgid "You can configure 2FA from this page:"
 msgstr ""
 
-#: includes/classes/WP2FA.php:484
+#: includes/classes/WP2FA.php:492
 msgid "WP 2FA plugin"
 msgstr ""
 
-#: includes/classes/WP2FA.php:671
+#: includes/classes/WP2FA.php:679
 msgid "Test email from WP 2FA"
 msgstr ""
 
-#: includes/classes/WP2FA.php:672
+#: includes/classes/WP2FA.php:680
 msgid "This email was sent by the WP 2FA plugin to test the email delivery."
 msgstr ""
 
-#: includes/classes/WP2FA.php:738
+#: includes/classes/WP2FA.php:746
 msgid "There is %s method available from which you can choose for 2FA:"
 msgid_plural "There are %s methods available from which you can choose for 2FA:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/classes/WP2FA.php:843
+#: includes/classes/WP2FA.php:851
 msgid "To ensure emails are delivered so users do not have problems logging in, we recommend using the free plugin"
 msgstr ""
 
-#: includes/classes/WP2FA.php:843
+#: includes/classes/WP2FA.php:851
 msgid "WP Mail SMTP"
 msgstr ""
 
@@ -148,6 +148,222 @@ msgstr ""
 
 #: includes/functions/core.php:259, includes/classes/Admin/SetupWizard.php:232, includes/classes/Shortcodes/Shortcodes.php:61, includes/classes/Shortcodes/Shortcodes.php:73, includes/classes/Shortcodes/Shortcodes.php:148
 msgid "New code sent"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:20, includes/classes/Admin/HelpContactUs.php:21
+msgid "Help & Contact Us"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:38, includes/classes/Admin/HelpContactUs.php:45
+msgid "Help"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:46, includes/classes/Admin/HelpContactUs.php:104, includes/classes/Admin/HelpContactUs.php:121
+msgid "Contact us"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:47
+msgid "System info"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:75, includes/classes/Admin/HelpContactUs.php:85
+msgid "Getting started"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:77
+msgid "Getting started with WP 2FA and making 2FA compulsory is as easy as 1 2 3 with WP 2FA. This can be easily done through the install wizard or the plugin settings. If you are stuck, no problem! Below are a few links of guides to help you get started:"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:79
+msgid "Getting started with WP 2FA"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:80
+msgid "Configuring 2FA policies & making 2FA mandatory"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:81
+msgid "Allowing users to configure 2FA from a website page (no dashboard access)"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:89
+msgid "Plugin documentation"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:91
+msgid "For more technical information about the WP 2FA plugin please visit the plugin's knowledge base."
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:93
+msgid "Knowledge base"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:99
+msgid "Plugin support"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:101
+msgid "Do you need assistance with the plugin? Have you noticed or encountered an issue while using WP 2FA, or do you just want to report something to us?"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:103
+msgid "Open support ticket"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:153
+msgid "System information"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:200
+msgid "Our WordPress Plugins"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:208
+msgid "Keep a log of users and under the hood site activity."
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:220, includes/classes/Admin/HelpContactUs.php:243, includes/classes/Admin/HelpContactUs.php:266
+msgid "LEARN MORE"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:231
+msgid "Automatically identify unauthorized file changes on your WordPress site."
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:254
+msgid "Protect website forms & login pages from spam bots & automated attacks."
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:20
+msgid "Premium Features"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:21
+msgid "Premium Features ➤"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:140
+msgid "Upgrade to Premium to benefit more!"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:147
+msgid "WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and you secure and better protected than ever before. We thank you for the continued trust you show in our plugin."
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:148
+msgid "Upgrade to WP 2FA Premium to automate more, encouraging users to utilize 2FA to its fullest extent and give your users more flexibility by allowing them to work from pretty much anywhere without compromising on security."
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:152
+msgid "Upgrade to Premium today to start benefiting from value-added features such as:"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:154
+msgid "Trusted devices: Give users the option to add trusted devices so they do not have to enter the 2FA code each time they log in"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:155
+msgid "White labeling tools & features: Gain increased trust by extending your business' branding and tone of voice to all 2FA pages"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:156
+msgid "Configure different policies for different user roles: While requiring everyone to use 2FA is generally a good idea, stricter policies for more sensitive accounts can help you keep everyone happy"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:159, includes/classes/Admin/PremiumFeatures.php:337
+msgid "UPGRADE NOW"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:160, includes/classes/Admin/PremiumFeatures.php:338
+msgid "Get the Free 14-day trial"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:165
+msgid "Take advantage of these benefits and many others, with prices starting from as little as $59 for 5 users per year. Below is the complete list of Premium features:"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:173
+msgid "Premium"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:176
+msgid "Free"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:181
+msgid "Support"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:184
+msgid "Email & forums"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:187
+msgid "Forums"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:192
+msgid "Install on unlimited websites"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:203
+msgid "E-commerce, membership & other third party plugins support"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:214
+msgid "2FA code via mobile app"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:225
+msgid "2FA code over email"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:236, includes/classes/Admin/Views/FirstTimeWizardSteps.php:143
+msgid "Backup codes"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:247
+msgid "One-click 2FA login"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:258
+msgid "Different 2FA policies per user role"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:269
+msgid "Trusted devices (don't ask for 2FA code)"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:280
+msgid "Secondary 2FA backup method"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:291
+msgid "White labeling (logo, text, colors & fonts)"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:302
+msgid "Reports & Statistics"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:313
+msgid "Configurable 2FA code expiration time"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:324
+msgid "Sortable users' 2FA status"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:345
+msgid "For more information about the WP 2FA, please %1$s. If you have any questions about the plugin or would like to ask us anything, please %2$s"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:346
+msgid "visit our website"
+msgstr ""
+
+#: includes/classes/Admin/PremiumFeatures.php:347
+msgid "our contact form."
 msgstr ""
 
 #: includes/classes/Admin/SettingsPage.php:37, includes/classes/Admin/SettingsPage.php:38, includes/classes/Admin/SettingsPage.php:109, includes/classes/Admin/SetupWizard.php:305
@@ -467,7 +683,7 @@ msgstr ""
 msgid "Your user account has been locked because you have not configured 2FA within the grace period. Please contact the website administrator to unlock your user and you can configure 2FA."
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:386, includes/classes/Authenticator/Login.php:742, includes/classes/Authenticator/Login.php:752, includes/classes/Authenticator/Login.php:764, includes/classes/Authenticator/Login.php:783
+#: includes/classes/Authenticator/Login.php:386, includes/classes/Authenticator/Login.php:742, includes/classes/Authenticator/Login.php:752, includes/classes/Authenticator/Login.php:769, includes/classes/Authenticator/Login.php:788
 msgid "Failed to create a login nonce."
 msgstr ""
 
@@ -496,27 +712,27 @@ msgstr ""
 msgid "&larr; Back to %s"
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:755, includes/classes/Authenticator/Login.php:790
+#: includes/classes/Authenticator/Login.php:756, includes/classes/Authenticator/Login.php:795
 msgid "ERROR: Invalid verification code."
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:769
+#: includes/classes/Authenticator/Login.php:774
 msgid "ERROR: Invalid backup code."
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:787
+#: includes/classes/Authenticator/Login.php:792
 msgid "A new code has been sent."
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:827
+#: includes/classes/Authenticator/Login.php:832
 msgid "You have logged in successfully."
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:881
+#: includes/classes/Authenticator/Login.php:886
 msgid "Authentication Code:"
 msgstr ""
 
-#: includes/classes/Authenticator/Login.php:931, includes/classes/Authenticator/Login.php:979
+#: includes/classes/Authenticator/Login.php:945, includes/classes/Authenticator/Login.php:993
 msgid "Verification Code:"
 msgstr ""
 
@@ -725,23 +941,23 @@ msgstr ""
 msgid "Hide settings from other administrators"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:160, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:444, includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:71
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:170, includes/classes/Admin/SettingsPages/class-settings-page-policies.php:444, includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:71
 msgid "Settings saving processes complete"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:234
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:244
 msgid "Do you want to delete the plugin data from the database upon uninstall?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:236
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:246
 msgid "The plugin saves its settings in the WordPress database. By default the plugin settings are kept in the database so if it is installed again, you do not have to reconfigure the plugin. Enable this setting to delete the plugin settings from the database upon uninstall."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:241
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:251
 msgid "Delete data"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:247
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:257
 msgid "Delete data upon uninstall"
 msgstr ""
 
@@ -996,10 +1212,6 @@ msgstr ""
 msgid "Secondary 2FA methods:"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:143
-msgid "Backup codes"
-msgstr ""
-
 #: includes/classes/Admin/Views/FirstTimeWizardSteps.php:149
 msgid "Backup codes are a secondary method which you can use to log in to the website in case the primary 2FA method is unavailable. Therefore they can't be enabled and used as a primary method."
 msgstr ""
@@ -1169,7 +1381,7 @@ msgid "Reset Key"
 msgstr ""
 
 #: includes/classes/Admin/Views/WizardSteps.php:222
-msgid "Reconfigure email"
+msgid "Reconfigure one-time code over email method"
 msgstr ""
 
 #: includes/classes/Admin/Views/WizardSteps.php:224, includes/classes/Admin/Views/WizardSteps.php:342
@@ -1289,7 +1501,7 @@ msgid "It is recommended to generate and print some backup codes in case you los
 msgstr ""
 
 #: includes/classes/Admin/Views/WizardSteps.php:479
-msgid "Backup 2FA:"
+msgid "Backup 2FA methods:"
 msgstr ""
 
 #: includes/classes/Admin/Views/WizardSteps.php:499
