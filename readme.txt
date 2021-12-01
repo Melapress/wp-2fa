@@ -1,6 +1,6 @@
 === WP 2FA - Two-factor authentication for WordPress ===
 Contributors: WPWhiteSecurity, robert681
-Plugin URI: https://www.wpwhitesecurity.com/wordpress-plugins/wp-2fa/
+Plugin URI: https://wp2fa.io
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
