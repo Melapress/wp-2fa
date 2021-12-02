@@ -90,7 +90,7 @@ function deactivate() {
  * @return void
  */
 function uninstall() {
-	if ( ! empty( \WP2FA\WP2FA::get_wp2fa_setting( 'delete_data_upon_uninstall' ) ) ) {
+	if ( ! empty( \WP2FA\WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
 		// Delete settings from wp_options.
 		if ( \WP2FA\WP2FA::is_this_multisite() ) {
 			$network_id = get_current_network_id();
@@ -206,6 +206,14 @@ function style_url( $stylesheet, $context ) {
  */
 function admin_scripts() {
 
+	global $pagenow;
+
+	// Get page argument from $_GET array.
+	$page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING );
+	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && "profile.php" !== $pagenow ) {
+		return;
+	}
+
 	wp_enqueue_script(
 		'wp_2fa_admin',
 		script_url( 'admin', 'admin' ),
@@ -230,15 +238,16 @@ function admin_scripts() {
 
 	// Data array.
 	$data_array = array(
-		'ajaxURL'              => admin_url( 'admin-ajax.php' ),
-		'roles'                => \WP2FA\WP2FA::wp_2fa_get_roles(),
-		'nonce'                => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-		'codeValidatedHeading' => esc_html__( 'Congratulations', 'wp-2fa' ),
-		'codeValidatedText'    => esc_html__( 'Your account just got more secure', 'wp-2fa' ),
-		'codeValidatedButton'  => esc_html__( 'Close Wizard & Refresh', 'wp-2fa' ),
-		'processingText'       => esc_html__( 'Processing Update', 'wp-2fa' ),
-		'email_sent_success'   => esc_html__( 'Email successfully sent', 'wp-2fa' ),
-		'email_sent_failure'   => esc_html__( 'Email delivery failed', 'wp-2fa' )
+		'ajaxURL'                        => admin_url( 'admin-ajax.php' ),
+		'roles'                          => \WP2FA\WP2FA::wp_2fa_get_roles(),
+		'nonce'                          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
+		'codeValidatedHeading'           => esc_html__( 'Congratulations', 'wp-2fa' ),
+		'codeValidatedText'              => esc_html__( 'Your account just got more secure', 'wp-2fa' ),
+		'codeValidatedButton'            => esc_html__( 'Close Wizard & Refresh', 'wp-2fa' ),
+		'processingText'                 => esc_html__( 'Processing Update', 'wp-2fa' ),
+		'email_sent_success'             => esc_html__( 'Email successfully sent', 'wp-2fa' ),
+		'email_sent_failure'             => esc_html__( 'Email delivery failed', 'wp-2fa' ),
+		'license_validation_in_progress' => esc_html__( 'Validating your license, please wait...', 'wp-2fa' )
 	);
 	wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
 

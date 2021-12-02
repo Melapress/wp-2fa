@@ -9,9 +9,9 @@
 
 namespace WP2FA\Authenticator;
 
-use WP2FA\Admin\User;
-use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\SettingsPage;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\SvgWriter;
+use WP2FA\Admin\Controllers\Login_Attempts;
 
 /**
  * Authenticator class
@@ -26,14 +26,31 @@ class Authentication {
 	const DEFAULT_DIGIT_COUNT         = 6;
 	const DEFAULT_TIME_STEP_SEC       = 30;
 	const DEFAULT_TIME_STEP_ALLOWANCE = 4;
-	private static $_base_32_chars    = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 	/**
-	 * Constructor.
+	 * Holds the name of the meta key for the allowed login attempts
+	 *
+	 * @var string
+	 *
+	 * @since latest
 	 */
-	public function __construct() {
+	private static $login_num_meta_key = WP_2FA_PREFIX . 'email-login-attempts';
 
-	}
+	/**
+	 * The login attempts class
+	 *
+	 * @var WP2FA\Extensions\Login_Attempts
+	 *
+	 * @since latest
+	 */
+	private static $login_attempts = null;
+
+	/**
+	 * String with the base32 characters
+	 *
+	 * @var string
+	 */
+	private static $base_32_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 	/**
 	 * Gemerate QR code
@@ -45,12 +62,21 @@ class Authentication {
 	 */
 	public static function get_google_qr_code( $name, $key, $title = null ) {
 		// Encode to support spaces, question marks and other characters.
-		$name       = rawurlencode( $name );
-		$google_url = urlencode( 'otpauth://totp/' . $name . '?secret=' . $key );
+		$name = rawurlencode( $name );
+
+		self::decrypt_key_if_needed( $key );
+
+		$target_url = ( 'otpauth://totp/' . $name . '?secret=' . $key );
 		if ( isset( $title ) ) {
-			$google_url .= urlencode( '&issuer=' . rawurlencode( $title ) );
+			$target_url .= ( '&issuer=' . rawurlencode( $title ) );
 		}
-		return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=' . $google_url;
+
+		$qr     = new QrCode( $target_url );
+		$qr->setWriterOptions(['exclude_xml_declaration'=>true]);
+		$writer = new SvgWriter();
+		$result = $writer->writeString( $qr );
+
+		return 'data:image/svg+xml;base64,'.base64_encode($result);
 	}
 
 	/**
@@ -64,7 +90,13 @@ class Authentication {
 		$bytes  = ceil( $bitsize / 8 );
 		$secret = wp_generate_password( $bytes, true, true );
 
-		return self::base32_encode( $secret );
+		$secret = Open_SSL::encrypt( self::base32_encode( $secret ) );
+
+		if ( Open_SSL::is_ssl_available() ) {
+			$secret = 'ssl_' . $secret;
+		}
+
+		return $secret;
 	}
 	/**
 	 * Returns a base32 encoded string.
@@ -88,7 +120,7 @@ class Authentication {
 		$base32_string     = '';
 
 		foreach ( $five_bit_sections as $five_bit_section ) {
-			$base32_string .= self::$_base_32_chars[ base_convert( str_pad( $five_bit_section, 5, '0' ), 2, 10 ) ];
+			$base32_string .= self::$base_32_chars[ base_convert( str_pad( $five_bit_section, 5, '0' ), 2, 10 ) ];
 		}
 
 		return $base32_string;
@@ -102,7 +134,19 @@ class Authentication {
 	 * @return string
 	 */
 	public static function get_user_totp_key( $user_id ) {
-		return (string) get_user_meta( $user_id, self::SECRET_META_KEY, true );
+
+		$key = (string) get_user_meta( $user_id, self::SECRET_META_KEY, true );
+
+		$test = $key;
+
+		self::decrypt_key_if_needed( $test );
+
+		if ( ! self::is_valid_key( $test ) ) {
+			$key = self::generate_key();
+			\update_user_meta( $user_id, self::SECRET_META_KEY, $key );
+		}
+
+		return $key;
 	}
 
 	/**
@@ -113,7 +157,9 @@ class Authentication {
 	 * @return boolean
 	 */
 	public static function is_valid_key( $key ) {
-		$check = sprintf( '/^[%s]+$/', self::$_base_32_chars );
+		self::decrypt_key_if_needed( $key );
+
+		$check = sprintf( '/^[%s]+$/', self::$base_32_chars );
 
 		if ( 1 === preg_match( $check, $key ) ) {
 			return true;
@@ -131,6 +177,8 @@ class Authentication {
 	 * @return bool Whether the code is valid within the time frame
 	 */
 	public static function is_valid_authcode( $key, $authcode ) {
+
+		self::decrypt_key_if_needed( $key );
 
 		$max_ticks = apply_filters( 'wp_2fa_totp_time_step_allowance', self::DEFAULT_TIME_STEP_ALLOWANCE );
 
@@ -189,7 +237,7 @@ class Authentication {
 	 *
 	 * @param string $base32_string The base 32 string to decode.
 	 *
-	 * @throws Exception If string contains non-base32 characters.
+	 * @throws \Exception If string contains non-base32 characters.
 	 *
 	 * @return string Binary representation of decoded string
 	 */
@@ -197,7 +245,7 @@ class Authentication {
 
 		$base32_string = strtoupper( $base32_string );
 
-		if ( ! preg_match( '/^[' . self::$_base_32_chars . ']+$/', $base32_string, $match ) ) {
+		if ( ! preg_match( '/^[' . self::$base_32_chars . ']+$/', $base32_string, $match ) ) {
 			throw new \Exception( 'Invalid characters in the base32 string.' );
 		}
 
@@ -209,7 +257,7 @@ class Authentication {
 		for ( $i = 0; $i < $l; $i++ ) {
 
 			$n  = $n << 5; // Move buffer left by 5 to make room.
-			$n  = $n + strpos( self::$_base_32_chars, $base32_string[ $i ] );    // Add value into buffer.
+			$n  = $n + strpos( self::$base_32_chars, $base32_string[ $i ] );    // Add value into buffer.
 			$j += 5; // Keep track of number of bits in buffer.
 
 			if ( $j >= 8 ) {
@@ -307,19 +355,23 @@ class Authentication {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param int    $user_id User ID.
-	 * @param string $token User token.
+	 * @param \WP_User $user User ID.
+	 * @param string   $token User token.
 	 * @return boolean
 	 */
-	public static function validate_token( $user_id, $token ) {
+	public static function validate_token( $user, $token ) {
+		$user_id      = $user->ID;
 		$hashed_token = self::get_user_token( $user_id );
 		// Bail if token is empty or it doesn't match.
 		if ( empty( $hashed_token ) || ( wp_hash( $token ) !== $hashed_token ) ) {
+			self::get_login_attempts_instance()->increase_login_attempts( $user );
 			return false;
 		}
 
+
 		// Ensure that the token can't be re-used.
 		self::delete_token( $user_id );
+		self::get_login_attempts_instance()->clear_login_attempts( $user );
 
 		return true;
 	}
@@ -378,43 +430,123 @@ class Authentication {
 		return delete_user_meta( $user_id, self::SECRET_META_KEY );
 	}
 
-	public static function getApps() {
-		return [
-			'authy' => [
+	/**
+	 * Returns list of all the auth apps and their properties
+	 *
+	 * @return array
+	 */
+	public static function get_apps(): array {
+		return array(
+			'authy'     => array(
 				'logo' => 'authy-logo.png',
 				'hash' => 'authy',
-				'name' => 'Authy'
-			],
-			'google' => [
+				'name' => 'Authy',
+			),
+			'google'    => array(
 				'logo' => 'google-logo.png',
 				'hash' => 'google',
-				'name' => 'Google Authenticator'
-			],
-			'microsoft' => [
+				'name' => 'Google Authenticator',
+			),
+			'microsoft' => array(
 				'logo' => 'microsoft-logo.png',
 				'hash' => 'microsoft',
-				'name' => 'Microsoft Authenticator'
-			],
-			'duo' => [
+				'name' => 'Microsoft Authenticator',
+			),
+			'duo'       => array(
 				'logo' => 'duo-logo.png',
 				'hash' => 'duo',
-				'name' => 'Duo Security'
-			],
-			'lastpass' => [
+				'name' => 'Duo Security',
+			),
+			'lastpass'  => array(
 				'logo' => 'lastpass-logo.png',
 				'hash' => 'lastpass',
-				'name' => 'LastPass'
-			],
-			'freeotp' => [
+				'name' => 'LastPass',
+			),
+			'freeotp'   => array(
 				'logo' => 'free-otp-logo.png',
 				'hash' => 'freeotp',
-				'name' => 'FreeOTP'
-			],
-			'okta' => [
+				'name' => 'FreeOTP',
+			),
+			'okta'      => array(
 				'logo' => 'okta-logo.png',
 				'hash' => 'okta',
-				'name' => 'Okta'
-			]
-		];
+				'name' => 'Okta',
+			),
+		);
+	}
+
+	/**
+	 * Getter for the base32 character set
+	 *
+	 * @return string
+	 *
+	 * @since latest
+	 */
+	public static function get_base32_characters(): string {
+		return self::$base_32_chars;
+	}
+
+	/**
+	 * Validates base32 encoded string
+	 *
+	 * @param string $text = The text to be validated.
+	 *
+	 * @return boolean
+	 *
+	 * @since latest
+	 */
+	public static function validate_base32_string( string $text ): bool {
+		if ( ! preg_match( '/^[' . self::$base_32_chars . ']+$/', $text, $match ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks the given key and decrypts it if necessarily
+	 *
+	 * @param string $key - The key to check.
+	 *
+	 * @return string
+	 *
+	 * @since latest
+	 */
+	public static function decrypt_key_if_needed( string &$key ): string {
+
+		if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
+			$key = Open_SSL::decrypt( substr( $key, 4 ) );
+		}
+
+		return $key;
+	}
+
+	/**
+	 * Returns instance of the LoginAttempts class
+	 *
+	 * @return LoginAttempts
+	 *
+	 * @since latest
+	 */
+	public static function get_login_attempts_instance() {
+		if ( null === self::$login_attempts ) {
+
+			self::$login_attempts = new Login_Attempts( self::$login_num_meta_key );
+
+		}
+		return self::$login_attempts;
+	}
+
+	/**
+	 * Checks the number of login attempts
+	 *
+	 * @param \WP_User $user - The user we have to check for.
+	 *
+	 * @return boolean
+	 *
+	 * @since latest
+	 */
+	public static function check_number_of_attempts( \WP_User $user ):bool {
+		return self::get_login_attempts_instance()->check_number_of_attempts( $user );
 	}
 }

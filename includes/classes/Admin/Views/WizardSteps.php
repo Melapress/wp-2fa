@@ -8,7 +8,7 @@ use WP2FA\Utils\UserUtils;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
 
-defined( 'ABSPATH' ) || exit; // Exit if accessed directly
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 /**
  * WP2FA Wizard Settings view controller
@@ -54,6 +54,15 @@ class WizardSteps {
     private static $jsonNonce = null;
 
     /**
+     * Holds the url to which to redirect the user after the setup is finished
+     *
+     * @var string
+     *
+     * @since latest
+     */
+    private static $redirect_url = null;
+
+    /**
      * Introduction step form
      *
      * @since 1.7
@@ -85,12 +94,12 @@ class WizardSteps {
      *
      * @since 1.7
      *
-     * @param string $nextStep - url of the nex step
+     * @param string $nextStep - url of the next step.
      *
      * @return void
      */
     public static function welcomeStep( $nextStep ) {
-        $redirect = Settings::getSettingsPageLink();
+        $redirect = Settings::get_settings_page_link();
 
         ?>
         <h3><?php esc_html_e( 'Let us help you get started', 'wp-2fa' ); ?></h3>
@@ -155,13 +164,14 @@ class WizardSteps {
                 </label>
             <?php
             if ( current_user_can( 'administrator' ) ) {
-                printf( '<p class="description">%1$s <a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank">%2$s</a>.</p>', esc_html__( 'Email reliability and deliverability is important when using this method, otherwise you might have problems logging in. To ensure emails are always delivered we recommend using the free plugin', 'wp-2fa' ), esc_html__( 'WP Mail SMTP', 'wp-2fa' ) );
+                echo '<p class="description">' . WP2FA::print_email_deliverability_message() . '</p>'; // @codingStandardsIgnoreLine
             }
             ?>
             </div>
             <?php
         }
     }
+
 
     /**
      * Shows the option to reconfigure email (if applicable)
@@ -209,7 +219,7 @@ class WizardSteps {
         $setupnonce = wp_create_nonce( 'wp-2fa-send-setup-email' );
         ?>
             <div class="option-pill">
-                <h3><?php esc_html_e( 'Reconfigure email', 'wp-2fa' ); ?></h3>
+                <h3><?php esc_html_e( 'Reconfigure one-time code over email method', 'wp-2fa' ); ?></h3>
                 <p>
                 <?php esc_html_e( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ); ?>
                 </p>
@@ -242,12 +252,15 @@ class WizardSteps {
          */
         $closeDiv = '';
 
-        $qrCode        = '<img class="qr-code" src="' . esc_url( self::getQRCode() ) . '" id="wp-2fa-totp-qrcode" />';
+        $qrCode        = '<img class="qr-code" src="' . ( self::getQRCode() ) . '" id="wp-2fa-totp-qrcode" />';
         $open30Wrapper = '
         <div class="mb-30 clear-both">
         ';
-        $open50Wrapper = '
-            <div class="modal-50">
+        $open60Wrapper = '
+            <div class="modal-60">
+        ';
+        $open40Wrapper = '
+            <div class="modal-40">
         ';
         $closeDiv      = '
         </div>
@@ -257,19 +270,19 @@ class WizardSteps {
         ?>
         <div class="step-setting-wrapper <?php echo $addStepAttributes; ?>">
             <h3><?php esc_html_e( 'Setup the 2FA method', 'wp-2fa' ); ?></h3>
-            <?php echo $open30Wrapper . $open50Wrapper; ?>
+            <?php echo $open30Wrapper . $open60Wrapper; ?>
             <div class="option-pill">
                 <ol>
                     <li><?php esc_html_e( 'Download and start the application of your choice (for detailed steps on setting it up click on the application icon of our choice below)', 'wp-2fa' ); ?></li>
                     <li><?php esc_html_e( 'From within the application scan the QR code provided on the right. Otherwise, enter the following code manually in the application:', 'wp-2fa' ); ?>
-                        <div><code class="app-key"><?php echo esc_html( self::getUser()->getTotpKey() ); ?></code></div>
+                        <div><code class="app-key"><?php echo esc_html( self::getUser()->get_totp_decrypted() ); ?></code></div>
                     </li>
                     <li><?php esc_html_e( 'Click the "I\'m ready" button below when you complete the application setup process to proceed with the wizard.', 'wp-2fa' ); ?></li>
                 </ol>
             </div>
             <?php
             echo $closeDiv; // closes 50 wrapper
-            echo $open50Wrapper;
+            echo $open40Wrapper;
             ?>
             <div class="qr-code-wrapper">
             <?php echo $qrCode; ?>
@@ -280,7 +293,7 @@ class WizardSteps {
             ?>
             <h4><?php esc_html_e( 'For detailed guides for your desired app, click below.', 'wp-2fa' ); ?></h4>
             <div class="apps-wrapper">
-            <?php foreach ( Authentication::getApps() as $app ) { ?>
+            <?php foreach ( Authentication::get_apps() as $app ) { ?>
             <a href="https://www.wpwhitesecurity.com/support/kb/configuring-2fa-apps/#<?php echo $app['hash']; ?>" target="_blank" class="app-logo"><img src="<?php echo esc_url( WP_2FA_URL . 'dist/images/' . $app['logo'] ); ?>"></a>
             <?php } ?>
             </div>
@@ -297,7 +310,7 @@ class WizardSteps {
                 </label>
                 <div class="verification-response"></div>
             </fieldset>
-            <input type="hidden" name="wp-2fa-totp-key" value="<?php echo esc_attr( self::getUser()->getTotpKey() ); ?>" />
+            <input type="hidden" name="wp-2fa-totp-key" value="<?php echo esc_attr( self::getUser()->get_totp_decrypted() ); ?>" />
             <br>
             <a href="#" class="modal__btn button button-primary" data-validate-authcode-ajax data-nonce="<?php echo esc_attr( $validateNonce ); ?>"><?php esc_html_e( 'Validate & Save Configuration', 'wp-2fa' ); ?></a>
             <button class="modal__btn button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
@@ -335,6 +348,9 @@ class WizardSteps {
                     <span><?php esc_html_e( 'Use my user email (', 'wp-2fa' ); ?><small><?php echo esc_attr( self::getUser()->getUser()->user_email ); ?></small><?php esc_html_e( ')', 'wp-2fa' ); ?></span>
                 </label>
             </div>
+            <?php
+			if ( Settings::get_role_or_default_setting( 'specify-email_hotp', self::getUser()->getUser() ) ) {
+			    ?>
             <div class="option-pill">
                 <label for="use_custom_email">
                     <input type="radio" name="wp_2fa_email_address" id="use_custom_email" value="use_custom_email">
@@ -342,6 +358,9 @@ class WizardSteps {
                     <input type="email" name="custom-email-address" id="custom-email-address" class="input" value="" placeholder="<?php esc_html_e( 'Email address', 'wp-2fa' ); ?>"/>
                 </label>
             </div>
+                <?php
+			}
+			?>
             </fieldset>
             <p class="description"><?php esc_html_e( 'Note: you should be able to access the mailbox of the email address to complete the following step.', 'wp-2fa' ); ?></p>
             <div class="wp2fa-setup-actions">
@@ -360,7 +379,6 @@ class WizardSteps {
                 <div class="verification-response"></div>
             </fieldset>
             <br />
-            <input type="hidden" name="wp-2fa-totp-key" value="<?php echo esc_attr( self::getUser()->getTotpKey() ); ?>" />
             <a href="#" class="modal__btn modal__btn-primary button button-primary" data-validate-authcode-ajax data-nonce="<?php echo esc_attr( $validateNonce ); ?>"><?php esc_html_e( 'Validate & Save Configuration', 'wp-2fa' ); ?></a>
             <a href="#" class="modal__btn button button-secondary resend-email-code" data-trigger-setup-email data-user-id="<?php echo esc_attr( self::getUser()->getUser()->ID ); ?>" data-nonce="<?php echo esc_attr( $setupnonce ); ?>">
                 <span class="resend-inner"><?php esc_html_e( 'Send me another code', 'wp-2fa' ); ?></span>
@@ -377,14 +395,11 @@ class WizardSteps {
      *
      * @return void
      */
-    public static function backupCodesConfigure() {
+    public static function backup_codes_configure() {
 
-        $userType = UserUtils::determine_user_2fa_status( self::getUser()->getUser() );
+        $user_type = UserUtils::determine_user_2fa_status( self::getUser()->getUser() );
 
-        $redirect = '';
-        if ( '' !== trim( WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' ) ) ) {
-            $redirect = \trailingslashit( get_site_url() ) . WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' );
-        }
+        $redirect = self::determine_redirect_url();
 
         $nonce = self::jsonNonce();
         ?>
@@ -392,14 +407,14 @@ class WizardSteps {
         <h3><?php esc_html_e( 'Your login just got more secure', 'wp-2fa' ); ?></h3>
         <p><?php esc_html_e( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ); ?></p>
         <?php
-        if ( in_array( 'user_needs_to_setup_backup_codes', $userType, true ) ) {
+        if ( in_array( 'user_needs_to_setup_backup_codes', $user_type, true ) ) {
             ?>
             <p><?php esc_html_e( 'You can exit this wizard now or continue to create backup codes.', 'wp-2fa' ); ?></p>
         <?php } ?>
             <div class="wp2fa-setup-actions">
-            <?php if ( in_array( 'user_needs_to_setup_backup_codes', $userType, true ) ) { ?>
-                <button class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Generate backup codes', 'wp-2fa' ); ?>" data-trigger-generate-backup-codes data-nonce="<?php echo esc_attr( $nonce ); ?>" data-user-id="<?php echo esc_attr( self::getUser()->getUser()->ID ); ?>">
-                    <?php esc_html_e( 'Generate backup codes', 'wp-2fa' ); ?>
+            <?php if ( in_array( 'user_needs_to_setup_backup_codes', $user_type, true ) ) { ?>
+                <button class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Generate backup codes', 'wp-2fa' ); ?>" data-trigger-generate-backup-codes data-nonce="<?php echo esc_attr( $nonce ); ?>">
+                    <?php esc_html_e( 'Generate list of backup codes', 'wp-2fa' ); ?>
                 </button>
                 <a href="#" class="button button-secondary" data-close-2fa-modal value="<?php esc_attr_e( 'I’ll generate them later', 'wp-2fa' ); ?>">
                     <?php esc_html_e( 'I’ll generate them later', 'wp-2fa' ); ?>
@@ -439,8 +454,8 @@ class WizardSteps {
             <h3><?php esc_html_e( 'Generate backup codes', 'wp-2fa' ); ?></h3>
             <p><?php esc_html_e( 'It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method. ', 'wp-2fa' ); ?></p>
             <div class="wp2fa-setup-actions">
-                <button class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Generate backup codes', 'wp-2fa' ); ?>" data-trigger-generate-backup-codes data-nonce="<?php echo esc_attr( $nonce ); ?>" data-user-id="<?php echo esc_attr( self::getUser()->getUser()->ID ); ?>">
-                    <?php esc_html_e( 'Generate backup codes', 'wp-2fa' ); ?>
+                <button class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Generate backup codes', 'wp-2fa' ); ?>" data-trigger-generate-backup-codes data-nonce="<?php echo esc_attr( $nonce ); ?>">
+                    <?php esc_html_e( 'Generate list of backup codes', 'wp-2fa' ); ?>
                 </button>
                 <a href="#" class="button button-secondary" value="<?php esc_attr_e( 'I’ll generate them later', 'wp-2fa' ); ?>" data-close-2fa-modal="">
                     <?php esc_html_e( 'I’ll generate them later', 'wp-2fa' ); ?>
@@ -456,31 +471,32 @@ class WizardSteps {
      *
      * @since 1.7
      *
-     * @return void
+     * @return string
      */
     public static function getGenerateCodesLink() {
         $nonce = self::jsonNonce();
 
-        return '<a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes  data-nonce="' . esc_attr( $nonce ) . '" data-user-id="' . esc_attr( self::getUser()->getUser()->ID ) . '" onclick="MicroModal.show( \'configure-2fa-backup-codes\' );">' . __( 'Generate Backup Codes', 'wp-2fa' ) . '</a>';
+        $label = __( 'Backup 2FA methods:', 'wp-2fa' );
+
+        return $label . '</th><td><a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes  data-nonce="' . esc_attr( $nonce ) . '" onclick="MicroModal.show( \'configure-2fa-backup-codes\' );">' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</a>';
     }
 
     /**
      * Shows the wrapper where backup code are generated and showed to the user
      *
+     * @param boolean $backup_only - If we want to show backup window only - sets the class of the div to active.
+     *
      * @since 1.7
      *
      * @return void
      */
-    public static function generatedBackupCodes( $backupOnly = false ) {
+    public static function generated_backup_codes( $backup_only = false ) {
         $nonce = self::jsonNonce();
 
-        $redirect = '';
-        if ( '' !== trim( WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' ) ) ) {
-            $redirect = \trailingslashit( get_site_url() ) . WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' );
-        }
+        $redirect = self::determine_redirect_url();
 
         ?>
-        <div class="step-setting-wrapper align-center<?php echo ( $backupOnly ) ? ' active' : ''; ?>" data-step-title="<?php esc_html_e( 'Your backup codes', 'wp-2fa' ); ?>">
+        <div class="step-setting-wrapper align-center<?php echo ( $backup_only ) ? ' active' : ''; ?>" data-step-title="<?php esc_html_e( 'Your backup codes', 'wp-2fa' ); ?>">
             <h3><?php esc_html_e( 'Backup codes generated', 'wp-2fa' ); ?></h3>
             <p><?php esc_html_e( 'Here are your backup codes:', 'wp-2fa' ); ?></p>
             <code id="backup-codes-wrapper"></code>
@@ -514,14 +530,14 @@ class WizardSteps {
      *
      * @since 1.7
      *
-     * @param boolean $setupWizard
+     * @param boolean $setup_wizard - Is that a call from setup wizard or not.
      *
      * @return void
      */
-    public static function congratulationsStep( $setupWizard = false ) {
+    public static function congratulations_step( $setup_wizard = false ) {
 
-        if ( $setupWizard ) {
-            self::congratulationsStepPluginWizard();
+        if ( $setup_wizard ) {
+            self::congratulations_step_plugin_wizard();
             return;
         }
         ?>
@@ -542,18 +558,15 @@ class WizardSteps {
      *
      * @return void
      */
-    public static function congratulationsStepPluginWizard() {
-        $redirect = get_edit_profile_url( self::getUser()->getUser()->ID );
-
-        if ( '' !== trim( WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' ) ) ) {
-            $redirect = \trailingslashit( get_site_url() ) . WP2FA::get_wp2fa_setting( 'redirect-user-custom-page-global' );
-        }
+    public static function congratulations_step_plugin_wizard() {
+        $redirect    = ( '' !== self::determine_redirect_url() ) ? self::determine_redirect_url() : get_edit_profile_url( self::getUser()->getUser()->ID );
+        $slide_title = ( User::is_excluded( self::getUser()->getUser()->ID ) ) ? esc_html__( 'Congratulations.', 'wp-2fa' ) : esc_html__( 'Congratulations, you\'re almost there...', 'wp-2fa' );
         ?>
-        <h3><?php esc_html_e( 'Congratulations, you\'re almost there...', 'wp-2fa' ); ?></h3>
+        <h3><?php echo $slide_title; ?></h3>
         <p><?php esc_html_e( 'Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu.', 'wp-2fa' ); ?></p>
-       
+
             <?php
-            if ( WP2FA::is_user_excluded( self::getUser()->getUser()->ID ) ) {
+            if ( User::is_excluded( self::getUser()->getUser()->ID ) ) {
                 ?>
         <div class="wp2fa-setup-actions">
             <a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary close-first-time-wizard">
@@ -565,7 +578,7 @@ class WizardSteps {
                 ?>
         <p><?php esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
         <div class="wp2fa-setup-actions">
-            <a href="<?php echo esc_url( Settings::getSetupPageLink() ); ?>" class="button button-secondary">
+            <a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-secondary">
                 <?php esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
             </a>
             <a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary close-first-time-wizard">
@@ -586,7 +599,7 @@ class WizardSteps {
             ?>
             <div class="wizard-step" id="2fa-wizard-totp">
                 <fieldset>
-                    <?php WizardSteps::totpConfigure(); ?>
+                    <?php self::totpConfigure(); ?>
                 </fieldset>
             </div>
             <?php
@@ -595,11 +608,18 @@ class WizardSteps {
             ?>
             <div class="wizard-step" id="2fa-wizard-email">
                 <fieldset>
-                    <?php WizardSteps::emailConfigure(); ?>
+                    <?php self::emailConfigure(); ?>
                 </fieldset>
             </div>
             <?php
         }
+
+        /**
+         * Add an option for external providers to add their own modal methods options.
+         *
+         * @since latest
+         */
+        do_action( 'wp_2fa_modal_methods' );
     }
 
     /**
@@ -609,12 +629,70 @@ class WizardSteps {
      *
      * @return \WP2FA\Admin\User
      */
-    private static function getUser() {
+    public static function getUser() {
         if ( null === self::$user ) {
-            self::$user = new User();
+            self::$user = User::get_instance();
         }
 
         return self::$user;
+    }
+
+    /**
+     * Choosing backup method step
+     * When there are more than one backup method - give the user ability to choose one
+     *
+     * @return void
+     *
+     * @since latest
+     */
+    public static function choose_backup_method() {
+        $redirect = get_edit_profile_url( self::getUser()->getUser()->ID );
+        ?>
+        <div class="wizard-step" id="2fa-wizard-backup-methods">
+            <div class="option-pill">
+                <h3><?php esc_html_e( 'Your login just got more secure', 'wp-2fa' ); ?></h3>
+                <p><?php esc_html_e( 'It is recommended to have a backup 2FA method in case you cannot generate a code from your 2FA app and you need to log in. You can configure any of the below. You can always configure any or both from your user profile page later.', 'wp-2fa' ); ?></p>
+            </div>
+        <?php
+        $backup_methods = Settings::get_backup_methods();
+
+        $i = 0;
+        foreach ( $backup_methods as $method_name => $method ) {
+            $checked = '';
+            if ( ! $i ) {
+                $checked = ' checked="checked"';
+            }
+            $i = 1;
+            ?>
+            <div><label for="<?php echo \esc_attr( $method_name ); ?>"><input name="backup_method_select" data-step="<?php echo \esc_attr( $method['wizard-step'] ); ?>" type="radio" id="<?php echo \esc_attr( $method_name ); ?>" <?php echo $checked; ?>><?php echo $method['button_name']; // @codingStandardsIgnoreLine ?></label><br /></div>
+            <?php
+        }
+        ?>
+            <div class="wp2fa-setup-actions">
+                <a id="select-backup-method" href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-secondary">
+                    <?php esc_html_e( 'Configure backup 2FA method', 'wp-2fa' ); ?>
+                </a>
+                <a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary close-first-time-wizard">
+                        <?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
+                </a>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Generates nonce for JSON calls
+     *
+     * @since 1.7
+     *
+     * @return string
+     */
+    protected static function jsonNonce() {
+        if ( null === self::$jsonNonce ) {
+            self::$jsonNonce = wp_create_nonce( 'wp-2fa-backup-codes-generate-json-' . self::getUser()->getUser()->ID );
+        }
+
+        return self::$jsonNonce;
     }
 
     /**
@@ -626,7 +704,7 @@ class WizardSteps {
      */
     private static function isTotpEnabled(): bool {
         if ( null === self::$totpEnabled ) {
-            self::$totpEnabled = empty( WP2FA::get_wp2fa_setting( 'enable_totp' ) ) ? false : true;
+            self::$totpEnabled = empty( Settings::get_role_or_default_setting( 'enable_totp', 'current' ) ) ? false : true;
         }
 
         return self::$totpEnabled;
@@ -641,7 +719,7 @@ class WizardSteps {
      */
     private static function isMailEnabled(): bool {
         if ( null === self::$emailEnabled ) {
-            self::$emailEnabled = empty( WP2FA::get_wp2fa_setting( 'enable_email' ) ) ? false : true;
+            self::$emailEnabled = empty( Settings::get_role_or_default_setting( 'enable_email', 'current' ) ) ? false : true;
         }
 
         return self::$emailEnabled;
@@ -668,17 +746,32 @@ class WizardSteps {
     }
 
     /**
-     * Generates nonce for JSON calls
-     *
-     * @since 1.7
+     * Determines the redirect url for the user
      *
      * @return string
+     *
+     * @since latest
      */
-    private static function jsonNonce() {
-        if ( null === self::$jsonNonce ) {
-            self::$jsonNonce = wp_create_nonce( 'wp-2fa-backup-codes-generate-json-' . self::getUser()->getUser()->ID );
+    private static function determine_redirect_url(): string {
+        if ( null === self::$redirect_url ) {
+            $redirect_page = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', self::getUser()->getUser() );
+            self::$redirect_url = ( '' !== trim( $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
+
+            if (
+                'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', self::getUser()->getUser() ) ||
+                'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
+                if (
+                    '' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page', self::getUser()->getUser() ) ) ||
+                    '' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
+                    if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', self::getUser()->getUser() ) ) {
+                        self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', self::getUser()->getUser() );
+                    } else {
+                        self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
+                    }
+                }
+            }
         }
 
-        return self::$jsonNonce;
+        return self::$redirect_url;
     }
 }

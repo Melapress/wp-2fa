@@ -8,11 +8,11 @@ use WP2FA\Admin\Views\WizardSteps;
 use WP2FA\Admin\Controllers\Settings;
 use \WP2FA\Utils\UserUtils as UserUtils;
 use WP2FA\Admin\Views\FirstTimeWizardSteps;
-use \WP2FA\Admin\UserProfile as UserProfile;
 use \WP2FA\Admin\SettingsPage as SettingsPage;
 use WP2FA\Utils\SettingsUtils as SettingsUtils;
 use \WP2FA\Utils\GenerateModal as GenerateModal;
 use \WP2FA\Authenticator\Authentication as Authentication;
+use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
 
 /**
  * Our class for creating a step by step wizard for easy configuration.
@@ -172,7 +172,7 @@ class SetupWizard {
 		$current_step       = filter_input( INPUT_GET, 'current-step', FILTER_SANITIZE_STRING );
 		$this->current_step = ! empty( $current_step ) ? $current_step : current( array_keys( $this->wizard_steps ) );
 
-		if ( 'backup_codes' === $this->current_step && ! SettingsPage::are_backup_codes_enabled() ) {
+		if ( 'backup_codes' === $this->current_step && ! SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) {
 
 			$redirectToFinish = add_query_arg( ['current-step' => 'finish', 'all-set' => 1] );
 			wp_safe_redirect( esc_url_raw( $redirectToFinish ) );
@@ -185,6 +185,12 @@ class SetupWizard {
 			'wp_2fa_setup_wizard',
 			Core\style_url( 'setup-wizard', 'admin' ),
 			array( 'select2' ),
+			WP_2FA_VERSION
+		);
+
+		wp_enqueue_style(
+			'wp_2fa_admin-style',
+			Core\style_url( 'admin-style', 'admin' ),
 			WP_2FA_VERSION
 		);
 
@@ -268,7 +274,7 @@ class SetupWizard {
 			<?php do_action( 'admin_print_styles' ); ?>
 		</head>
 		<body class="wp2fa-setup wp-core-ui">
-			<div class="setup-wizard-wrapper">
+			<div class="setup-wizard-wrapper wp-2fa-settings-wrapper">
 				<h1 id="wp2fa-logo"><a href="https://wpsecurityauditlog.com" target="_blank"><img src="<?php echo esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ); ?>"></a></h1>
 		<?php
 	}
@@ -280,7 +286,7 @@ class SetupWizard {
 		$user  = wp_get_current_user();
 		$roles = (array) $user->roles;
 
-		$redirect = Settings::getSettingsPageLink();
+		$redirect = Settings::get_settings_page_link();
 		?>
 			<div class="wp2fa-setup-footer">
 				<?php if ( 'welcome' !== $this->current_step && 'finish' !== $this->current_step ) : // Don't show the link on the first & last step. ?>
@@ -384,11 +390,9 @@ class SetupWizard {
 	 * Step View: `Finish`
 	 */
 	private function wp_2fa_step_finish() {
-
-		$wp2faUser       = new User();
-		$wp2faUser->deleteUserMeta( WP_2FA_PREFIX . 'user_needs_to_reconfigure_2fa');
-		
-		WizardSteps::congratulationsStep( true );
+		$wp2faUser = User::get_instance();
+		$wp2faUser->deleteUserMeta( WP_2FA_PREFIX . 'user_needs_to_reconfigure_2fa' );
+		WizardSteps::congratulations_step( true );
 	}
 
 	/**
@@ -405,15 +409,11 @@ class SetupWizard {
 	 * Step View: `Choose Methods`
 	 */
 	private function wp_2fa_step_global_2fa_methods() {
-		$enforced_roles = WP2FA::get_wp2fa_setting( 'enforced_roles' );
-		$enforced_users = WP2FA::get_wp2fa_setting( 'enforced_users' );
-		$excluded_users = WP2FA::get_wp2fa_setting( 'excluded_users' );
-		$excluded_roles = WP2FA::get_wp2fa_setting( 'excluded_roles' );
 		?>
 		<form method="post" class="wp2fa-setup-form" autocomplete="off">
 			<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
 			<div class="step-setting-wrapper active" data-step-title="<?php esc_html_e( 'Choose 2FA methods', 'wp-2fa' ); ?>">
-				<?php FirstTimeWizardSteps::selectMethod( true ); ?>
+				<?php FirstTimeWizardSteps::select_method( true ); ?>
 				<div class="wp2fa-setup-actions">
 					<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
 				</div>
@@ -442,7 +442,7 @@ class SetupWizard {
 
 			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
 				<h3><?php esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
-				<p><?php esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
+				<p class="description"><?php esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
 				<?php FirstTimeWizardSteps::gracePeriod( true ); ?>
 				<div class="wp2fa-setup-actions">
 					<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php esc_html_e( 'All done', 'wp-2fa' ); ?></button>
@@ -460,17 +460,17 @@ class SetupWizard {
 		// Check nonce.
 		check_admin_referer( 'wp2fa-step-choose-method' );
 
-		$input = ( isset( $_POST[ WP_2FA_SETTINGS_NAME ] ) ) ? wp_unslash( $_POST[ WP_2FA_SETTINGS_NAME ] ) : array();
+		$input = ( isset( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) ? wp_unslash( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) : array();
 
 		if ( ! WP2FA::is_this_multisite() ) {
 			unregister_setting(
-				WP_2FA_SETTINGS_NAME,
-				WP_2FA_SETTINGS_NAME
+				WP_2FA_POLICY_SETTINGS_NAME,
+				WP_2FA_POLICY_SETTINGS_NAME
 			);
 		}
-		$settings_page      = new SettingsPage;
+		$settings_page      = new Settings_Page_Policies();
 		$sanitized_settings = $settings_page->validate_and_sanitize( $input, 'setup_wizard' );
-		$update_options     = SettingsUtils::update_option( WP_2FA_SETTINGS_NAME, $sanitized_settings );
+		WP2FA::updatePluginSettings( $sanitized_settings );
 
 		wp_safe_redirect( esc_url_raw( $this->get_next_step() ) );
 		exit();
@@ -480,11 +480,11 @@ class SetupWizard {
 	 * Send email with fresh code, or to setup email 2fa.
 	 *
 	 * @param int $user_id User id we want to send the message to.
-	 * @param string $nonce The nonce.
+	 * @param string $nominated_email_address - The user custom address to use (name of the meta key to check for).
 	 *
 	 * @return bool
 	 */
-	public static function send_authentication_setup_email( $user_id, $nonce = '' ) {
+	public static function send_authentication_setup_email( $user_id, $nominated_email_address = 'nominated_email_address' ) {
 
 		// If we have a nonce posted, check it.
 		if ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
@@ -515,7 +515,10 @@ class SetupWizard {
 			update_user_meta( $user->ID, WP_2FA_PREFIX . 'nominated_email_address', $email );
 		}
 
-		$enabled_email_address = get_user_meta( $user->ID, WP_2FA_PREFIX . 'nominated_email_address', true );
+		$enabled_email_address = '';
+		if ( ! empty( $nominated_email_address ) ) {
+			$enabled_email_address = get_user_meta( $user->ID, WP_2FA_PREFIX . $nominated_email_address, true );
+		}
 
 		// Generate a token and setup email.
 		$token   = Authentication::generate_token( $user->ID );
@@ -538,12 +541,7 @@ class SetupWizard {
 		// Grab current user.
 		$user = wp_get_current_user();
 
-		// Delete the key and enabled methods
-		Authentication::delete_user_totp_key( $user->ID );
-		delete_user_meta( $user->ID, WP_2FA_PREFIX . 'enabled_methods' );
-
 		$key    = Authentication::generate_key();
-		update_user_meta( $user->ID, WP_2FA_PREFIX . 'totp_key', $key );
 
 		$site_name  = get_bloginfo( 'name', 'display' );
 		$totp_title = apply_filters( 'wp_2fa_totp_title', $site_name . ':' . $user->user_login, $user );
@@ -551,7 +549,7 @@ class SetupWizard {
 
 		wp_send_json_success(
 			array(
-				'key'  => $key,
+				'key'  => Authentication::decrypt_key_if_needed( $key ),
 				'qr'   => $new_qr,
 			)
 		);
