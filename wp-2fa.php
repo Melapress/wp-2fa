@@ -1,9 +1,9 @@
 <?php // phpcs:ignore
 /**
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress
- * Plugin URI:  https://www.wpwhitesecurity.com/wordpress-plugins/wp-2fa/
+ * Plugin URI:  https://wp2fa.io
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
- * Version:     1.7.1
+ * Version:     2.0.0
  * Author:      WP White Security
  * Author URI:  https://www.wpwhitesecurity.com
  * Text Domain: wp-2fa

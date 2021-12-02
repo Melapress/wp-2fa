@@ -2,8 +2,6 @@
 
 namespace WP2FA\Admin;
 
-use \WP2FA\WP2FA as WP2FA;
-
 /**
  * HelpContactUs - Handles contact us tab and content.
  */
@@ -39,23 +37,20 @@ class HelpContactUs {
 			</div>
 			<div class="nav-tab-wrapper">
 				<?php
-					// Get current tab
+					// Get current tab.
 					$current_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'help';
 				?>
 				<a href="<?php echo esc_url( remove_query_arg( 'tab' ) ); ?>" class="nav-tab<?php echo 'help' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'Help', 'wp-2fa' ); ?></a>
-				<a href="<?php echo esc_url( add_query_arg( 'tab', 'contact-us' ) ); ?>" class="nav-tab<?php echo 'contact-us' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'Contact us', 'wp-2fa' ); ?></a>
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'system-info' ) ); ?>" class="nav-tab<?php echo 'system-info' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'System info', 'wp-2fa' ); ?></a>
 			</div>
 			<div class="wp2fa-help-section nav-tabs">
-				<?php 
+				<?php
 					$this->sidebar();
-					if ( 'help' == $current_tab ) {
-						$this->help();
-					} else if ( 'contact-us' == $current_tab ) {
-						$this->contact_us();
-					} else if ( 'system-info' == $current_tab ) {
-						$this->system_info();
-					}
+				if ( 'help' == $current_tab ) {
+					$this->help();
+				} elseif ( 'system-info' == $current_tab ) {
+					$this->system_info();
+				}
 				?>
 			</div>
 		</div>
@@ -76,9 +71,9 @@ class HelpContactUs {
 			</div>
 			<p><?php esc_html_e( 'Getting started with WP 2FA and making 2FA compulsory is as easy as 1 2 3 with WP 2FA. This can be easily done through the install wizard or the plugin settings. If you are stuck, no problem! Below are a few links of guides to help you get started:', 'wp-2fa' ); ?></p>
 			<ul>
-				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://wp2fa.io/support/kb/getting-started-wp-2fa-plugin/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ), __( 'Getting started with WP 2FA', 'wp-2fa' ) ); ?></li>
-				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://wp2fa.io/support/kb/configure-2fa-policies-enforce/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ), __( 'Configuring 2FA policies & making 2FA mandatory', 'wp-2fa' ) ); ?></li>
-				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://wp2fa.io/support/kb/configure-2fa-front-end-page-wordpress/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ), __( 'Allowing users to configure 2FA from a website page (no dashboard access)', 'wp-2fa' ) ); ?></li>
+				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://wp2fa.io/support/kb/getting-started-wp-2fa-plugin/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ), esc_html__( 'Getting started with WP 2FA', 'wp-2fa' ) ); ?></li>
+				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://wp2fa.io/support/kb/configure-2fa-policies-enforce/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ), esc_html__( 'Configuring 2FA policies & making 2FA mandatory', 'wp-2fa' ) ); ?></li>
+				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://wp2fa.io/support/kb/configure-2fa-front-end-page-wordpress/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ), esc_html__( 'Allowing users to configure 2FA from a website page (no dashboard access)', 'wp-2fa' ) ); ?></li>
 			</ul>
 			<!-- End -->
 			<br>
@@ -105,38 +100,6 @@ class HelpContactUs {
 			</div>
 			<!-- End -->
 		</div>
-		<?php
-	}
-
-	/**
-	 * Contact us tab content.
-	 *
-	 * @return void
-	 */
-	public function contact_us() {
-		?>
-		<div class="wp2fa-help-main">
-			<!-- getting started -->
-			<div class="title">
-				<h2><?php esc_html_e( 'Contact us', 'wp-2fa' ); ?></h2>
-			</div>
-			<style type="text/css">
-				.fs-secure-notice {
-					position: relative !important;
-					top: 0 !important;
-					left: 0 !important;
-				}
-				.fs-full-size-wrapper {
-					margin: 10px 20px 0 2px !important;
-				}
-			</style>
-			<?php
-			$freemius_id = wp2fa_freemius()->get_id();
-			$vars = array( 'id' => $freemius_id );
-			echo fs_get_template( 'contact.php', $vars );
-			?>
-		</div>
-
 		<?php
 	}
 
@@ -207,7 +170,9 @@ class HelpContactUs {
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Keep a log of users and under the hood site activity.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
-								<a href="<?php echo esc_url(
+								<a href="
+                                <?php
+                                echo esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -217,7 +182,36 @@ class HelpContactUs {
 										),
 										'https://wpactivitylog.com'
 									)
-								); ?>" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+                                );
+								?>
+                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+							</div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="plugin-box">
+						<div class="plugin-img">
+							<img src="<?php echo WP_2FA_URL; ?>dist/images/wp-password-img.jpg" alt="">
+						</div>
+						<div class="plugin-desc">
+							<p><?php esc_html_e( 'Enforce strong password policies on WordPress.', 'wp-2fa' ); ?></p>
+							<div class="cta-btn">
+								<a href="
+                                <?php
+                                echo esc_url(
+									add_query_arg(
+										array(
+											'utm_source'   => 'plugin',
+											'utm_medium'   => 'referral',
+											'utm_campaign' => 'WSAL',
+											'utm_content'  => 'WP2FA+banner',
+										),
+										'https://www.wpwhitesecurity.com/wordpress-plugins/password-security/'
+									)
+                                );
+								?>
+                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -230,7 +224,9 @@ class HelpContactUs {
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Automatically identify unauthorized file changes on your WordPress site.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
-								<a href="<?php echo esc_url(
+								<a href="
+                                <?php
+                                echo esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -240,7 +236,9 @@ class HelpContactUs {
 										),
 										'https://www.wpwhitesecurity.com/wordpress-plugins/website-file-changes-monitor/'
 									)
-								); ?>" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+                                );
+								?>
+                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -253,7 +251,9 @@ class HelpContactUs {
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Protect website forms & login pages from spam bots & automated attacks.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
-								<a href="<?php echo esc_url(
+								<a href="
+                                <?php
+                                echo esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -263,7 +263,9 @@ class HelpContactUs {
 										),
 										'https://www.wpwhitesecurity.com/wordpress-plugins/captcha-plugin-wordpress/'
 									)
-								); ?>" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+                                );
+								?>
+                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -274,10 +276,10 @@ class HelpContactUs {
 	}
 
 	/**
-	 * Gather basic settings and system information for use in the system info tab. Left instranslated (as is the case in all plugins)
+	 * Gather basic settings and system information for use in the system info tab. Left untranslated (as is the case in all plugins)
 	 * as its for our use only.
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public function get_sysinfo() {
 		// System info.
@@ -293,11 +295,11 @@ class HelpContactUs {
 
 		// Get theme info.
 		$theme_data   = wp_get_theme();
-		$theme        = $theme_data->Name . ' ' . $theme_data->Version;
-		$parent_theme = $theme_data->Template;
+		$theme        = $theme_data->name . ' ' . $theme_data->version;
+		$parent_theme = $theme_data->template;
 		if ( ! empty( $parent_theme ) ) {
 			$parent_theme_data = wp_get_theme( $parent_theme );
-			$parent_theme      = $parent_theme_data->Name . ' ' . $parent_theme_data->Version;
+			$parent_theme      = $parent_theme_data->name . ' ' . $parent_theme_data->version;
 		}
 
 		// Language information.
@@ -327,7 +329,7 @@ class HelpContactUs {
 		$sysinfo .= 'WP_DEBUG:                 ' . ( defined( 'WP_DEBUG' ) ? WP_DEBUG ? 'Enabled' : 'Disabled' : 'Not set' ) . "\n";
 		$sysinfo .= 'WP Memory Limit:          ' . WP_MEMORY_LIMIT . "\n";
 
-	// Get plugins that have an update.
+		// Get plugins that have an update.
 		$updates = get_plugin_updates();
 
 		// Must-use plugins.
@@ -417,12 +419,12 @@ class HelpContactUs {
 		$wp2fa_options = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE 'wp_2fa_%'", ARRAY_A );
 
 		if ( ! empty( $wp2fa_options ) ) {
-			foreach ($wp2fa_options as $option => $value) {
+			foreach ( $wp2fa_options as $option => $value ) {
 				$sysinfo .= 'Option: ' . $value['option_name'] . "\n";
 				$sysinfo .= 'Value: ' . print_r( $value['option_value'], true ) . "\n\n";
 			}
 		}
-		
+
 		$sysinfo .= "\n" . '### System Info → End ###' . "\n\n";
 
 		return $sysinfo;

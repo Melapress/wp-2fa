@@ -343,8 +343,8 @@ class PremiumFeatures {
 				<p><?php 
 				$text = sprintf(
 						esc_html__( 'For more information about the WP 2FA, please %1$s. If you have any questions about the plugin or would like to ask us anything, please %2$s', 'wp-2fa' ),
-						'<a href="'. esc_url( 'https://wp2fa.io' ) . '">' . esc_html__( 'visit our website', 'wp-2fa' ) . '</a>',
-						'<a href="'. esc_url(  'https://wp2fa.io/contact/') . '">' . esc_html__( 'our contact form.', 'wp-2fa' ) . '</a>'
+						'<a target="_blank" href="'. esc_url( 'https://wp2fa.io' ) . '">' . esc_html__( 'visit our website', 'wp-2fa' ) . '</a>',
+						'<a target="_blank" href="'. esc_url(  'https://wp2fa.io/contact/') . '">' . esc_html__( 'our contact form', 'wp-2fa' ) . '</a>.'
 				);
 
 				echo $text;

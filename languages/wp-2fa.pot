@@ -150,87 +150,91 @@ msgstr ""
 msgid "New code sent"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:20, includes/classes/Admin/HelpContactUs.php:21
+#: includes/classes/Admin/HelpContactUs.php:18, includes/classes/Admin/HelpContactUs.php:19
 msgid "Help & Contact Us"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:38, includes/classes/Admin/HelpContactUs.php:45
+#: includes/classes/Admin/HelpContactUs.php:36, includes/classes/Admin/HelpContactUs.php:43
 msgid "Help"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:46, includes/classes/Admin/HelpContactUs.php:104, includes/classes/Admin/HelpContactUs.php:121
-msgid "Contact us"
-msgstr ""
-
-#: includes/classes/Admin/HelpContactUs.php:47
+#: includes/classes/Admin/HelpContactUs.php:44
 msgid "System info"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:75, includes/classes/Admin/HelpContactUs.php:85
+#: includes/classes/Admin/HelpContactUs.php:70, includes/classes/Admin/HelpContactUs.php:80
 msgid "Getting started"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:77
+#: includes/classes/Admin/HelpContactUs.php:72
 msgid "Getting started with WP 2FA and making 2FA compulsory is as easy as 1 2 3 with WP 2FA. This can be easily done through the install wizard or the plugin settings. If you are stuck, no problem! Below are a few links of guides to help you get started:"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:79
+#: includes/classes/Admin/HelpContactUs.php:74
 msgid "Getting started with WP 2FA"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:80
+#: includes/classes/Admin/HelpContactUs.php:75
 msgid "Configuring 2FA policies & making 2FA mandatory"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:81
+#: includes/classes/Admin/HelpContactUs.php:76
 msgid "Allowing users to configure 2FA from a website page (no dashboard access)"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:89
+#: includes/classes/Admin/HelpContactUs.php:84
 msgid "Plugin documentation"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:91
+#: includes/classes/Admin/HelpContactUs.php:86
 msgid "For more technical information about the WP 2FA plugin please visit the plugin's knowledge base."
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:93
+#: includes/classes/Admin/HelpContactUs.php:88
 msgid "Knowledge base"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:99
+#: includes/classes/Admin/HelpContactUs.php:94
 msgid "Plugin support"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:101
+#: includes/classes/Admin/HelpContactUs.php:96
 msgid "Do you need assistance with the plugin? Have you noticed or encountered an issue while using WP 2FA, or do you just want to report something to us?"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:103
+#: includes/classes/Admin/HelpContactUs.php:98
 msgid "Open support ticket"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:153
+#: includes/classes/Admin/HelpContactUs.php:99
+msgid "Contact us"
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:116
 msgid "System information"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:200
+#: includes/classes/Admin/HelpContactUs.php:163
 msgid "Our WordPress Plugins"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:208
+#: includes/classes/Admin/HelpContactUs.php:171
 msgid "Keep a log of users and under the hood site activity."
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:220, includes/classes/Admin/HelpContactUs.php:243, includes/classes/Admin/HelpContactUs.php:266
+#: includes/classes/Admin/HelpContactUs.php:187, includes/classes/Admin/HelpContactUs.php:214, includes/classes/Admin/HelpContactUs.php:241, includes/classes/Admin/HelpContactUs.php:268
 msgid "LEARN MORE"
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:231
+#: includes/classes/Admin/HelpContactUs.php:198
+msgid "Enforce strong password policies on WordPress."
+msgstr ""
+
+#: includes/classes/Admin/HelpContactUs.php:225
 msgid "Automatically identify unauthorized file changes on your WordPress site."
 msgstr ""
 
-#: includes/classes/Admin/HelpContactUs.php:254
+#: includes/classes/Admin/HelpContactUs.php:252
 msgid "Protect website forms & login pages from spam bots & automated attacks."
 msgstr ""
 
@@ -363,7 +367,7 @@ msgid "visit our website"
 msgstr ""
 
 #: includes/classes/Admin/PremiumFeatures.php:347
-msgid "our contact form."
+msgid "our contact form"
 msgstr ""
 
 #: includes/classes/Admin/SettingsPage.php:37, includes/classes/Admin/SettingsPage.php:38, includes/classes/Admin/SettingsPage.php:109, includes/classes/Admin/SetupWizard.php:305

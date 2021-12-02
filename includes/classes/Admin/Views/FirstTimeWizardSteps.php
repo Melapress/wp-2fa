@@ -543,7 +543,7 @@ class FirstTimeWizardSteps {
 					<?php esc_html_e( 'days', 'wp-2fa' ); ?>
 				</label>
 				<?php
-					$after_grace_content = \apply_filters( 'wp_2fa_after_grace_period', '' );
+					$after_grace_content = \apply_filters( 'wp_2fa_after_grace_period', '', '', 'wp_2fa_policy' );
 					echo $after_grace_content;
 				?>
 				<?php
