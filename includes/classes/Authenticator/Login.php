@@ -131,7 +131,7 @@ class Login {
 		 * @param string $configured_providers - Configured providers.
 		 * @param string $enabled_providers - Enabled providers.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		return apply_filters( 'wp_2fa_user_configured_provider', $configured_providers, $enabled_providers );
 	}
@@ -212,7 +212,7 @@ class Login {
 	 *
 	 * @param \WP_User $user WordPress user object.
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static function clear_session_and_show_2fa_form( $user ) {
 		/**
@@ -243,7 +243,7 @@ class Login {
 	 * Retrieves the correct URL to the 2FA setup page. It handles configurable custom page as well as multisite.
 	 *
 	 * @return string 2FA setup page URL.
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static function get_2fa_setup_url() {
 		$new_page_id        = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
@@ -332,7 +332,7 @@ class Login {
 	 * Generates an error object representing locked user account.
 	 *
 	 * @return \WP_Error User account locked error.
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_user_locked_error() {
 		return new \WP_Error(
@@ -484,7 +484,7 @@ class Login {
 				 * @param \WP_User $user - User for which the login form is shown.
 				 * @param string $provider - The name of the provider.
 				 *
-				 * @since latest
+				 * @since 2.0.0
 				 */
 				do_action( 'wp_2fa_login_form', $user, $provider );
 			}
@@ -498,7 +498,7 @@ class Login {
 				 * @param \WP_User $user - User for which the login form is shown.
 				 * @param string $provider - The name of the provider.
 				 *
-				 * @since latest
+				 * @since 2.0.0
 				 */
 				do_action( 'wp_2fa_login_before_submit_button', $user, $provider );
 				?>
@@ -539,7 +539,7 @@ class Login {
 			 * @param \WP_User $user - User for which the login form is shown.
 			 * @param string $provider - The name of the provider.
 			 *
-			 * @since latest
+			 * @since 2.0.0
 			 */
 			do_action( 'wp_2fa_login_html_before_end', $user, $provider );
 			?>
@@ -577,7 +577,7 @@ class Login {
 		 * @param string $redirect_to - Where to redirect the user after successful login.
 		 * @param bool $rememberme - Remember me status.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		do_action( 'wp_2fa_login_html_after_backup_providers', $user, $provider, $login_nonce, $redirect_to, $rememberme );
 
@@ -795,7 +795,7 @@ class Login {
 					self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider );
 				} else {
 					Authentication::get_login_attempts_instance()->clear_login_attempts( $user );
-					\wp_redirect( \wp_login_url() );	
+					\wp_redirect( \wp_login_url() );
 				}
 			}
 
@@ -808,7 +808,7 @@ class Login {
 		 * @param \WP_User $user - User for which the login form is shown.
 		 * @param string $provider - The name of the provider.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		do_action( 'wp_2fa_validate_login_form', $user, $provider );
 

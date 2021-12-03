@@ -136,7 +136,7 @@ class UserUtils {
 	 * Works our a list of available 2FA methods. It doesn't include the disabled ones.
 	 *
 	 * @return string[]
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_available_2fa_methods(): array {
 		$available_methods = array();
@@ -154,7 +154,7 @@ class UserUtils {
 		 *
 		 * @param array $available_methods - The array with all the available methods.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		return apply_filters( 'wp_2fa_available_2fa_methods', $available_methods );
 	}

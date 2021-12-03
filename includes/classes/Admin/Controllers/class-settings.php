@@ -58,7 +58,7 @@ class Settings {
 	 *
 	 * @var array
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $backup_methods = null;
 
@@ -133,7 +133,7 @@ class Settings {
 	 *
 	 * @return boolean
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function check_setting_in_all_roles( string $setting_name ): bool {
 		global $wp_roles;
@@ -160,7 +160,7 @@ class Settings {
 	 *
 	 * @return mixed
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_role_or_default_setting( string $setting_name, $user = null, $role = null, $get_default_on_empty = false, $get_default_value = false ) {
 		/**
@@ -207,7 +207,7 @@ class Settings {
 	 *
 	 * @return array
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_backup_methods(): array {
 
@@ -218,7 +218,7 @@ class Settings {
 			 *
 			 * @param array The array with all the backup methods currently supported.
 			 *
-			 * @since latest
+			 * @since 2.0.0
 			 */
 			self::$backup_methods = apply_filters( WP_2FA_PREFIX . 'backup_methods_list', array() );
 		}
@@ -233,7 +233,7 @@ class Settings {
 	 *
 	 * @return array
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_enabled_backup_methods_for_user_role( \WP_User $user ): array {
 		$backup_methods = self::get_backup_methods();
@@ -244,7 +244,7 @@ class Settings {
 		 * @param array - Backup methods array.
 		 * @param \WP_User - The user to check for.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		return apply_filters( 'wp_2fa_backup_methods_enabled', $backup_methods, $user );
 	}

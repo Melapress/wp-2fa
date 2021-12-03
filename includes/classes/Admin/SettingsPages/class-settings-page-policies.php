@@ -21,7 +21,7 @@ use \WP2FA\Utils\GenerateModal as GenerateModal;
 /**
  * Settings_Page_Policies - Class for handling settings
  *
- * @since latest
+ * @since 2.0.0
  */
 class Settings_Page_Policies {
 
@@ -30,7 +30,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -149,7 +149,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static function new_page_created( string $role = '' ) {
 		// Check if new user page has been published.
@@ -189,7 +189,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return array|void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function validate_and_sanitize( $input ) {
 
@@ -209,7 +209,7 @@ class Settings_Page_Policies {
 			 * @param bool - Default at this point is true - no method is selected.
 			 * @param array $input - The input array with all the data.
 			 *
-			 * @since latest
+			 * @since 2.0.0
 			 */
 			$no_methods_set = apply_filters( 'wp_2fa_save_additional_enabled_methods', true, $input );
 
@@ -285,7 +285,7 @@ class Settings_Page_Policies {
 			 *
 			 * @param array $output - The output array with all the data we will store in the settings.
 			 *
-			 * @since latest
+			 * @since 2.0.0
 			 */
 			$output = apply_filters( 'wp_2fa_no_method_enabled', $output );
 		}
@@ -450,7 +450,7 @@ class Settings_Page_Policies {
 		 * @param array $output - The output array with all the data we will store in the settings.
 		 * @param array $input - The input array with all the data we received from the user.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( 'wp_2fa_filter_output_content', $output, $input );
 
@@ -476,7 +476,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 *
 	 * @SuppressWarnings(PHPMD.ExitExpressions)
 	 */
@@ -525,7 +525,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return mixed
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function generate_custom_user_profile_page( $page_slug, string $role = '' ) {
 		// Bail if user doesn't have permissions to be here.
@@ -573,7 +573,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return \WP_Post
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function get_post_by_post_name( $slug = '', $post_type = '' ) {
 		if ( ! $slug || ! $post_type ) {
@@ -594,7 +594,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function select_method_setting() {
 		FirstTimeWizardSteps::select_method( false );
@@ -605,7 +605,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function select_enforcement_policy_setting() {
 		FirstTimeWizardSteps::enforcementPolicy( false );
@@ -616,7 +616,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function user_profile_settings() {
 		ob_start();
@@ -712,7 +712,7 @@ class Settings_Page_Policies {
 		 *
 		 * @param string $output - Parsed HTML with the methods.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'user_profile_settings', $output );
 
@@ -724,7 +724,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function user_redirect_after_wizard() {
 		ob_start();
@@ -754,7 +754,7 @@ class Settings_Page_Policies {
 		 *
 		 * @param string $output - Parsed HTML with the methods.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'redirect_after', $output );
 
@@ -766,7 +766,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function excluded_roles_or_users_setting() {
 		$enforcement    = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
@@ -783,7 +783,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function excluded_network_sites() {
 		FirstTimeWizardSteps::excludedNetworkSites();
@@ -794,7 +794,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function grace_period_setting() {
 		ob_start();
@@ -823,7 +823,7 @@ class Settings_Page_Policies {
 		 *
 		 * @param string $output - Parsed HTML with the methods.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'grace_period', $output );
 
@@ -835,7 +835,7 @@ class Settings_Page_Policies {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function disable_2fa_removal_setting() {
 		ob_start();
@@ -869,7 +869,7 @@ class Settings_Page_Policies {
 		 *
 		 * @param string $output - Parsed HTML with the methods.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'disable_2fa', $output );
 

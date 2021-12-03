@@ -51,7 +51,7 @@ class SettingsUtils {
 	/**
 	 * Converts a string (e.g. 'yes' or 'no') to a bool.
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 * @param string $string String to convert.
 	 * @return bool
 	 */
@@ -62,7 +62,7 @@ class SettingsUtils {
 	/**
 	 * Converts a bool to a 'yes' or 'no'.
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 * @param bool $bool String to convert.
 	 * @return string
 	 */

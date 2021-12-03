@@ -22,7 +22,7 @@ class BackupCodes {
 	 *
 	 * @var string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $login_num_meta_key = WP_2FA_PREFIX . 'backup-login-attempts';
 
@@ -45,7 +45,7 @@ class BackupCodes {
 	 *
 	 * @var string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static $method_name = 'backup_codes';
 
@@ -54,7 +54,7 @@ class BackupCodes {
 	 *
 	 * @var WP2FA\Extensions\Login_Attempts
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $login_attempts = null;
 
@@ -107,7 +107,7 @@ class BackupCodes {
 	 *
 	 * @return LoginAttempts
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_login_attempts_instance() {
 		if ( null === self::$login_attempts ) {
@@ -125,7 +125,7 @@ class BackupCodes {
 	 *
 	 * @return boolean
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function check_number_of_attempts( \WP_User $user ):bool {
 		return self::get_login_attempts_instance()->check_number_of_attempts( $user );
@@ -228,7 +228,7 @@ class BackupCodes {
 	 *
 	 * @return array
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function add_backup_method( array $backup_methods ): array {
 		return array_merge(
@@ -254,7 +254,7 @@ class BackupCodes {
 	 *
 	 * @return array
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function check_backup_method( array $backup_methods, \WP_User $user ): array {
 		$enabled = SettingsPage::are_backup_codes_enabled( $user->roles[0] );
@@ -271,7 +271,7 @@ class BackupCodes {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_method_name(): string {
 		return self::$method_name;

@@ -16,7 +16,7 @@ use WP2FA\Utils\Debugging;
 /**
  * Open_SSL - Class for encryption and decryption of the string using open_ssl method
  *
- * @since latest
+ * @since 2.0.0
  */
 class Open_SSL {
 
@@ -29,7 +29,7 @@ class Open_SSL {
 	 *
 	 * @var mixed|boolean
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $ssl_enabled = null;
 
@@ -40,7 +40,7 @@ class Open_SSL {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function encrypt( string $text ): string {
 		Debugging::log( 'Encrypting a text: '. $text );
@@ -69,7 +69,7 @@ class Open_SSL {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function decrypt( string $text ): string {
 		Debugging::log( 'Decrypting a text: '. $text );
@@ -97,7 +97,7 @@ class Open_SSL {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function secure_random( int $octets = 0 ): string {
 		if ( 0 === $octets ) {
@@ -112,7 +112,7 @@ class Open_SSL {
 	 *
 	 * @return boolean
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function is_ssl_available(): bool {
 		if ( null === self::$ssl_enabled ) {

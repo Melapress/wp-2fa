@@ -6,7 +6,7 @@ namespace WP2FA\Utils;
  * Utility class to extract info from current request.
  *
  * @package WP2FA\Utils
- * @since latest
+ * @since 2.0.0
  */
 class RequestUtils {
 
@@ -15,7 +15,7 @@ class RequestUtils {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_ip() {
 		foreach (
@@ -44,7 +44,7 @@ class RequestUtils {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_user_agent() {
 		if ( ! array_key_exists( 'HTTP_USER_AGENT', $_SERVER ) ) {

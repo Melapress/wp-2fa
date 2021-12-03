@@ -111,7 +111,7 @@ class FirstTimeWizardSteps {
 									?>
 									<label for="specify-email_hotp-<?php echo $option_key; ?>">
 										<input type="radio" name="wp_2fa_policy[specify-email_hotp]" id="specify-email_hotp-<?php echo $option_key; ?>" value="<?php echo $option_settings['value']; ?>" class="js-nested"
-										
+
 											<?php checked( Settings::get_role_or_default_setting( 'specify-email_hotp', null ), $option_settings['value'] ); ?>
 										>
 										<span><?php echo $option_settings['label']; // @codingStandardsIgnoreLine - already escaped ?></span>
@@ -134,7 +134,7 @@ class FirstTimeWizardSteps {
 							<div class="method-title"><em><?php esc_html_e( 'Secondary 2FA methods:', 'wp-2fa' ); ?></em></div>
 							<br>
 							<label for="backup-codes" <?php echo $class; // @codingStandardsIgnoreLine - escaped in our code ?>>
-								<input <?php echo $class; // @codingStandardsIgnoreLine - escaped in our code ?> type="checkbox" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]" 
+								<input <?php echo $class; // @codingStandardsIgnoreLine - escaped in our code ?> type="checkbox" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]"
 								<?php echo $data_role; // @codingStandardsIgnoreLine - escaped in our code ?>
 								value="yes"
 								<?php checked( WP2FA::get_wp2fa_setting( 'backup_codes_enabled' ), 'yes' ); ?>
@@ -184,11 +184,11 @@ class FirstTimeWizardSteps {
 		 * @param string $output - Parsed HTML with the methods.
 		 * @param bool $setup_wizard - The type of the wizard (first time wizard / settings).
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'select_methods', $output, $setup_wizard );
 
-		echo $output; // @codingStandardsIgnoreLine - not escaped warning 
+		echo $output; // @codingStandardsIgnoreLine - not escaped warning
 	}
 
 	/**

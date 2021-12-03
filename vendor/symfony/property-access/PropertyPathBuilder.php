@@ -63,6 +63,8 @@ class PropertyPathBuilder
 
     /**
      * Appends an index element to the current path.
+     *
+     * @param string $name The name of the appended index
      */
     public function appendIndex(string $name)
     {
@@ -72,6 +74,8 @@ class PropertyPathBuilder
 
     /**
      * Appends a property element to the current path.
+     *
+     * @param string $name The name of the appended property
      */
     public function appendProperty(string $name)
     {
@@ -81,6 +85,9 @@ class PropertyPathBuilder
 
     /**
      * Removes elements from the current path.
+     *
+     * @param int $offset The offset at which to remove
+     * @param int $length The length of the removed piece
      *
      * @throws OutOfBoundsException if offset is invalid
      */
@@ -134,6 +141,9 @@ class PropertyPathBuilder
     /**
      * Replaces a property element by an index element.
      *
+     * @param int    $offset The offset at which to replace
+     * @param string $name   The new name of the element. Optional
+     *
      * @throws OutOfBoundsException If the offset is invalid
      */
     public function replaceByIndex(int $offset, string $name = null)
@@ -151,6 +161,9 @@ class PropertyPathBuilder
 
     /**
      * Replaces an index element by a property element.
+     *
+     * @param int    $offset The offset at which to replace
+     * @param string $name   The new name of the element. Optional
      *
      * @throws OutOfBoundsException If the offset is invalid
      */

@@ -16,7 +16,7 @@ use WP2FA\Utils\Debugging;
 /**
  * Settings_Page_White_Label - Class for handling settings
  *
- * @since latest
+ * @since 2.0.0
  */
 class Settings_Page_White_Label {
 
@@ -25,7 +25,7 @@ class Settings_Page_White_Label {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function render() {
 		settings_fields( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
@@ -40,7 +40,7 @@ class Settings_Page_White_Label {
 	 *
 	 * @return array|void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function validate_and_sanitize( $input ) {
 
@@ -77,7 +77,7 @@ class Settings_Page_White_Label {
 		 * @param array $output - The output array with all the data we will store in the settings.
 		 * @param array $input - The input array with all the data we received from the user.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( 'wp_2fa_filter_output_content', $output, $input );
 
@@ -89,7 +89,7 @@ class Settings_Page_White_Label {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 *
 	 * @SuppressWarnings(PHPMD.ExitExpressions)
 	 */
@@ -136,7 +136,7 @@ class Settings_Page_White_Label {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function change_default_text_area() {
 		do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_before_default_text' );
