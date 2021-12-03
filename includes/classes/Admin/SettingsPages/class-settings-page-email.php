@@ -18,7 +18,7 @@ use WP2FA\Utils\SettingsUtils as SettingsUtils;
 /**
  * Settings_Page_Email - Class for handling email settings
  *
- * @since latest
+ * @since 2.0.0
  */
 class Settings_Page_Email {
 
@@ -27,7 +27,7 @@ class Settings_Page_Email {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function render() {
 		settings_fields( WP_2FA_EMAIL_SETTINGS_NAME );
@@ -41,7 +41,7 @@ class Settings_Page_Email {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 *
 	 * @SuppressWarnings(PHPMD.ExitExpressions)
 	 */
@@ -86,7 +86,7 @@ class Settings_Page_Email {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function email_from_settings() {
 		?>
@@ -154,7 +154,7 @@ class Settings_Page_Email {
 	 *
 	 * @return EmailTemplate[]
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function get_email_notification_definitions() {
 		$result = array(
@@ -180,7 +180,7 @@ class Settings_Page_Email {
 		 *
 		 * @param array $result - The array with all the email templates.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$result = apply_filters( 'wp_2fa_email_notification_definitions', $result );
 
@@ -200,7 +200,7 @@ class Settings_Page_Email {
 	/**
 	 * Validate email templates before saving
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 *
 	 * @SuppressWarnings(PHPMD.ExitExpressions)
 	 */
@@ -303,7 +303,7 @@ class Settings_Page_Email {
 		 *
 		 * @param array $output - The output array with all the data we will store in the settings.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( 'wp_2fa_filter_output_email_template_content', $output );
 
@@ -326,7 +326,7 @@ class Settings_Page_Email {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function email_settings() {
 		$custom_user_page_id        = Settings::check_setting_in_all_roles( 'custom-user-page-id' );

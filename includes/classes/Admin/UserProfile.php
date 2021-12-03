@@ -158,7 +158,7 @@ class UserProfile {
 						/**
 						 * Add an option for external providers to add their own user form buttons.
 						 *
-						 * @since latest
+						 * @since 2.0.0
 						 */
 						$form_content = apply_filters( 'wp_2fa_additional_form_buttons', $form_content );
 
@@ -315,7 +315,7 @@ class UserProfile {
 										/**
 										 * Add an option for external providers to add their own 2fa methods options.
 										 *
-										 * @since latest
+										 * @since 2.0.0
 										 */
 										do_action( 'wp_2fa_methods_options' );
 									?>
@@ -335,7 +335,7 @@ class UserProfile {
 											/**
 											 * Add an option for external providers to add their own reconfigure methods options.
 											 *
-											 * @since latest
+											 * @since 2.0.0
 											 */
 											do_action( 'wp_2fa_methods_reconfigure_options' );
 										?>
@@ -355,7 +355,7 @@ class UserProfile {
 						/**
 						 * Add an option for external providers to add their own wizard steps.
 						 *
-						 * @since latest
+						 * @since 2.0.0
 						 */
 						do_action( 'wp_2fa_additional_settings_steps' );
 
@@ -382,7 +382,7 @@ class UserProfile {
 			/**
 			 * Add an option for external providers to add their own 2fa methods options.
 			 *
-			 * @since latest
+			 * @since 2.0.0
 			 */
 			do_action( 'wp_2fa_methods_wizards' );
 		?>

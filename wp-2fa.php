@@ -57,7 +57,7 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 	 *
 	 * Note: This code MUST NOT be present in the premium version an is removed automatically during the build process.
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	function wp2fa_free_on_plugin_activation() {
 		$premium_version_slug = 'wp-2fa-premium/wp-2fa.php';

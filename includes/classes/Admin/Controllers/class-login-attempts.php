@@ -18,7 +18,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 	/**
 	 * Responsible for the login attempts
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	class Login_Attempts {
 
@@ -27,7 +27,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 *
 		 * @var string
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		private $meta_key = WP_2FA_PREFIX . 'login-attempts';
 
@@ -36,7 +36,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 *
 		 * @var integer
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		private $number_of_allowed_attempts = 3;
 
@@ -46,7 +46,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 * @param string  $meta_key - The meta key name.
 		 * @param integer $attempts - Number of the allowed login attempts.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public function __construct( string $meta_key = '', int $attempts = 0 ) {
 			if ( '' !== trim( $meta_key ) ) {
@@ -60,7 +60,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
         /**
          * Increasing login attempts for User
          *
-         * @since latest
+         * @since 2.0.0
          *
          * @param \WP_User $user - the WP User.
          *
@@ -77,7 +77,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
         /**
          * Returns the number of unsuccessful attempts for the User
          *
-         * @since latest
+         * @since 2.0.0
          *
          * @param \WP_User $user - the WP User.
          *
@@ -90,7 +90,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
         /**
          * Clearing login attempts for User
          *
-         * @since latest
+         * @since 2.0.0
          *
          * @param \WP_User $user - the WP User.
          *
@@ -106,7 +106,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 *
 		 * @return integer
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public function get_allowed_login_attempts(): int {
 			return $this->number_of_allowed_attempts;
@@ -119,7 +119,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 *
 		 * @return integer
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public function set_number_of_login_attempts( int $number ): int {
 			$this->number_of_allowed_attempts = $number;
@@ -132,7 +132,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 *
 		 * @return string
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public function get_meta_key(): string {
 
@@ -146,7 +146,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 *
 		 * @return string
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public function set_meta_key( string $meta_key ): string {
 			$this->meta_key = $meta_key;
@@ -161,7 +161,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 *
 		 * @return boolean
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public function check_number_of_attempts( \WP_User $user ):bool {
 			if ( $this->get_allowed_login_attempts() < $this->get_login_attempts( $user ) ) {

@@ -29,7 +29,7 @@ class WP2FA {
 	 *
 	 * @var string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $secret_key = null;
 
@@ -38,7 +38,7 @@ class WP2FA {
 	 *
 	 * @var array
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $plugin_settings = array();
 
@@ -423,7 +423,7 @@ class WP2FA {
 				 * @param string - The name of the setting.
 				 * @param string - The role name.
 				 *
-				 * @since latest
+				 * @since 2.0.0
 				 */
 				return apply_filters( 'wp_2fa_setting_generic', $wp2fa_setting[ $setting_name ], $setting_name, $role );
 			} else {
@@ -511,7 +511,7 @@ class WP2FA {
 		 *
 		 * @param array $default_settings - Array with the default settings.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$default_settings = apply_filters( 'wp_2fa_mail_default_settings', $default_settings );
 
@@ -764,7 +764,7 @@ class WP2FA {
 		 *
 		 * @param array - Value of the settings.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$settings = apply_filters( 'wp_2fa_policy_settings', self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] );
 
@@ -775,7 +775,7 @@ class WP2FA {
 	 *
 	 * @return bool
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static function action_check() {
 		$actions_array = array(
@@ -789,7 +789,7 @@ class WP2FA {
 		 *
 		 * @param array $actions_array - Array with the default settings.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$actions_array = apply_filters( 'wp_2fa_actions_check', $actions_array );
 
@@ -802,7 +802,7 @@ class WP2FA {
 	 * @param array $settings
 	 * @param bool $skip_option_save If true, the settings themselves are not saved. This is needed when saving settings from settings page as WordPress options API takes care of that.
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function updatePluginSettings( $settings, $skip_option_save = false, $settings_name=WP_2FA_POLICY_SETTINGS_NAME ) {
 		// update local copy of settings.
@@ -825,7 +825,7 @@ class WP2FA {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_secret_key() {
 		if ( null === self::$secret_key ) {
@@ -844,7 +844,7 @@ class WP2FA {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function print_email_deliverability_message() {
 

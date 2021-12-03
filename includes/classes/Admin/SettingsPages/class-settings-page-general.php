@@ -17,7 +17,7 @@ use WP2FA\Utils\SettingsUtils as SettingsUtils;
 /**
  * Settings_Page_General - Class for handling general settings
  *
- * @since latest
+ * @since 2.0.0
  */
 class Settings_Page_General {
 
@@ -26,7 +26,7 @@ class Settings_Page_General {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function render() {
 		settings_fields( WP_2FA_SETTINGS_NAME );
@@ -41,7 +41,7 @@ class Settings_Page_General {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function grace_period_frequency() {
 		?>
@@ -83,7 +83,7 @@ class Settings_Page_General {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function limit_settings_access() {
 		?>
@@ -176,7 +176,7 @@ class Settings_Page_General {
 		 * @param array $output - The output array with all the data we will store in the settings.
 		 * @param array $input - The input array with all the data we received from the user.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( 'wp_2fa_filter_output_content_general_settings', $output, $input );
 
@@ -236,7 +236,7 @@ class Settings_Page_General {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private function remove_data_upon_uninstall() {
 		?>
