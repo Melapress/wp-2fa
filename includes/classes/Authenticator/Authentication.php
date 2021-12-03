@@ -32,7 +32,7 @@ class Authentication {
 	 *
 	 * @var string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $login_num_meta_key = WP_2FA_PREFIX . 'email-login-attempts';
 
@@ -41,7 +41,7 @@ class Authentication {
 	 *
 	 * @var WP2FA\Extensions\Login_Attempts
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	private static $login_attempts = null;
 
@@ -480,7 +480,7 @@ class Authentication {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_base32_characters(): string {
 		return self::$base_32_chars;
@@ -493,7 +493,7 @@ class Authentication {
 	 *
 	 * @return boolean
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function validate_base32_string( string $text ): bool {
 		if ( ! preg_match( '/^[' . self::$base_32_chars . ']+$/', $text, $match ) ) {
@@ -510,7 +510,7 @@ class Authentication {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function decrypt_key_if_needed( string &$key ): string {
 
@@ -526,7 +526,7 @@ class Authentication {
 	 *
 	 * @return LoginAttempts
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function get_login_attempts_instance() {
 		if ( null === self::$login_attempts ) {
@@ -544,7 +544,7 @@ class Authentication {
 	 *
 	 * @return boolean
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public static function check_number_of_attempts( \WP_User $user ):bool {
 		return self::get_login_attempts_instance()->check_number_of_attempts( $user );

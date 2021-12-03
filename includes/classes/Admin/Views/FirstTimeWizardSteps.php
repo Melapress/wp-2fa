@@ -184,7 +184,7 @@ class FirstTimeWizardSteps {
 		 * @param string $output - Parsed HTML with the methods.
 		 * @param bool $setup_wizard - The type of the wizard (first time wizard / settings).
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'select_methods', $output, $setup_wizard );
 

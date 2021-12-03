@@ -20,7 +20,7 @@ use WP2FA\Admin\SettingsPages\{
 /**
  * Settings_Page_Render - Class for rendering the plugin settings settings
  *
- * @since latest
+ * @since 2.0.0
  */
 class Settings_Page_Render {
 

@@ -40,7 +40,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * Local cache of created user instances. Associative array where the keys are user IDs.
 		 *
 		 * @var User[]
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		private static $user_instances = [];
 
@@ -51,7 +51,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @param mixed $user You can use \WP_User, integer (representing ID of the user), or any value that returns true checked against empty in PHP.
 		 *
 		 * @return User
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public static function get_instance( $user = '' ) {
 			$user = self::determine_user( $user );
@@ -94,7 +94,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		/**
 		 * Runs necessary checks and updates the user enforcement state metadata.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		private function updateUserEnforcementState() {
 			if ( ! isset( $this->user->ID ) ) {
@@ -117,7 +117,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @param \WP_User $user User to evaluate.
 		 *
 		 * @return bool True if the user is enforced based on current plugin settings.
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		private function run_user_enforcement_check( $user ) {
 			$user_roles     = $user->roles;
@@ -263,7 +263,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @param \WP_User $user User to evaluate.
 		 *
 		 * @return bool True if the user is excluded based on current plugin settings.
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		private function run_user_exclusion_check( $user ) {
 			$user_roles     = $user->roles;
@@ -395,7 +395,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				 * @param User $user WP2FA User object.
 				 *
 				 * @return boolean True if the user account should be locked.
-				 * @since latest
+				 * @since 2.0.0
 				 */
 				$should_be_locked = apply_filters( 'wp_2fa_should_account_be_locked_on_grace_period_expiration', true, $this );
 				if ( ! $should_be_locked ) {
@@ -410,7 +410,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				 *
 				 * @param User $user WP2FA User object.
 				 *
-				 * @since latest
+				 * @since 2.0.0
 				 */
 				do_action( 'wp_2fa_after_grace_period_expired', $this );
 
@@ -421,7 +421,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				 * @param User $user WP2FA User object.
 				 *
 				 * @return boolean True if the email notification can be sent.
-				 * @since latest
+				 * @since 2.0.0
 				 */
 				$notify_user = apply_filters( 'wp_2fa_send_account_locked_notification', true, $this );
 				if ( $notify_user ) {
@@ -538,7 +538,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				 * @param mixed - Value of the method.
 				 * @param WP_User - The user which must be checked.
 				 *
-				 * @since latest
+				 * @since 2.0.0
 				 */
 				return apply_filters( 'wp_2fa_user_enabled_methods', $this->user->get( WP_2FA_PREFIX . 'enabled_methods', $this->user ) );
 			}
@@ -625,7 +625,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 *
 		 * @return string
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public function get_totp_decrypted(): string {
 			$key = $this->getTotpKey();
@@ -830,7 +830,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 *
 		 * @return bool True if the user account is locked. False otherwise.
 		 *
-		 * @since latest
+		 * @since 2.0.0
 		 */
 		public static function isUserLocked( $user_id ) {
 			$result = (bool) get_user_meta( $user_id, WP_2FA_PREFIX . 'user_grace_period_expired', true );

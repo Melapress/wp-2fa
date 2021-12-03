@@ -503,7 +503,7 @@ class SettingsPage {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.0.0
 	 */
 	public function settings_saved_admin_notice() {
 		if ( isset( $_GET['settings-updated'] ) && 'true' === $_GET['settings-updated'] ) :

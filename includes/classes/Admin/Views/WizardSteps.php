@@ -58,7 +58,7 @@ class WizardSteps {
      *
      * @var string
      *
-     * @since latest
+     * @since 2.0.0
      */
     private static $redirect_url = null;
 
@@ -617,7 +617,7 @@ class WizardSteps {
         /**
          * Add an option for external providers to add their own modal methods options.
          *
-         * @since latest
+         * @since 2.0.0
          */
         do_action( 'wp_2fa_modal_methods' );
     }
@@ -643,7 +643,7 @@ class WizardSteps {
      *
      * @return void
      *
-     * @since latest
+     * @since 2.0.0
      */
     public static function choose_backup_method() {
         $redirect = get_edit_profile_url( self::getUser()->getUser()->ID );
@@ -750,7 +750,7 @@ class WizardSteps {
      *
      * @return string
      *
-     * @since latest
+     * @since 2.0.0
      */
     private static function determine_redirect_url(): string {
         if ( null === self::$redirect_url ) {
