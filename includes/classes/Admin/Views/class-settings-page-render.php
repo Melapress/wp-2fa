@@ -40,7 +40,7 @@ class Settings_Page_Render {
 		}
 		?>
 
-		<div class="wrap wp-2fa-settings-wrapper">
+		<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
 			<h2><?php esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
 			<hr>
 			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) : ?>
