@@ -48,7 +48,7 @@ class GenerateModal {
       <div class="modal__overlay" tabindex="-1" data-micromodal-close>
         <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-'. esc_attr( $modal_id ) .'-title" '. $max_width_styles .'>
             '. $title .'
-          <main class="modal__content" id="modal-'. esc_attr( $modal_id ) .'-content">
+          <main class="modal__content wp2fa-form-styles" id="modal-'. esc_attr( $modal_id ) .'-content">
             '. wpautop( $modal_content ) .'
           </main>
           <footer class="modal__footer">

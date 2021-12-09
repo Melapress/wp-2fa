@@ -274,7 +274,7 @@ class SetupWizard {
 			<?php do_action( 'admin_print_styles' ); ?>
 		</head>
 		<body class="wp2fa-setup wp-core-ui">
-			<div class="setup-wizard-wrapper wp-2fa-settings-wrapper">
+			<div class="setup-wizard-wrapper wp-2fa-settings-wrapper wp2fa-form-styles">
 				<h1 id="wp2fa-logo"><a href="https://wpsecurityauditlog.com" target="_blank"><img src="<?php echo esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ); ?>"></a></h1>
 		<?php
 	}
@@ -410,7 +410,7 @@ class SetupWizard {
 	 */
 	private function wp_2fa_step_global_2fa_methods() {
 		?>
-		<form method="post" class="wp2fa-setup-form" autocomplete="off">
+		<form method="post" class="wp2fa-setup-form wp2fa-form-styles" autocomplete="off">
 			<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
 			<div class="step-setting-wrapper active" data-step-title="<?php esc_html_e( 'Choose 2FA methods', 'wp-2fa' ); ?>">
 				<?php FirstTimeWizardSteps::select_method( true ); ?>
