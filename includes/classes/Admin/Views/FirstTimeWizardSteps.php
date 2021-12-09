@@ -216,7 +216,7 @@ class FirstTimeWizardSteps {
 					<td>
 			<?php } ?>
 						<fieldset class="contains-hidden-inputs">
-							<label for="all-users" style="margin-bottom: 10px !important; display: block;">
+							<label for="all-users" style="margin:. 35em 0 .5em !important; display: block;">
 								<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="all-users" value="all-users"
 								<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'all-users' ); ?>
 								>
@@ -224,21 +224,19 @@ class FirstTimeWizardSteps {
 							</label>
 
 							<?php if ( WP2FA::is_this_multisite() ) : ?>
-								<label for="superadmins-only" style="margin-bottom: 10px; display: block;">
+								<label for="superadmins-only" style="margin:. 35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="superadmins-only" value="superadmins-only"
 											<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'superadmins-only' ); ?> />
 									<span><?php esc_html_e( 'Only super admins', 'wp-2fa' ); ?></span>
 								</label>
-								<br/>
-								<label for="superadmins-siteadmins-only" style="margin-bottom: 10px; display: block;">
+								<label for="superadmins-siteadmins-only" style="margin:. 35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="superadmins-siteadmins-only" value="superadmins-siteadmins-only"
 											<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'superadmins-siteadmins-only' ); ?> />
 									<span><?php esc_html_e( 'Only super admins and site admins', 'wp-2fa' ); ?></span>
 								</label>
-								<br/>
 							<?php endif; ?>
 
-							<label for="certain-roles-only" style="margin-bottom: 10px; display: block;">
+							<label for="certain-roles-only" style="margin:. 35em 0 .5em !important; display: block;">
 								<?php $checked = in_array( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), [ 'certain-roles-only', 'certain-users-only' ] ); ?>
 								<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="certain-roles-only" value="certain-roles-only"
 								<?php ( $setup_wizard ) ? checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'certain-roles-only' ) : checked( $checked ); ?>
@@ -283,16 +281,16 @@ class FirstTimeWizardSteps {
 									</p>
 								</div>
 									<?php if ( WP2FA::is_this_multisite() ) { ?>
-								<div style="margin-left: 70px">
-									<input type="checkbox" name="wp_2fa_policy[superadmins-role-add]" id="superadmins-role-add" value="yes"
+								<p class="description">
+									<input type="checkbox" name="wp_2fa_policy[superadmins-role-add]" id="superadmins-role-add" value="yes" style="position: relative; top: -3px;" 
 											<?php checked( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ), 'yes' ); ?> />
 									<label for="superadmins-role-add"><?php esc_html_e( 'Also enforce 2FA on network users with super admin privileges', 'wp-2fa' ); ?></label>
-								</div>
+								</p>
 								<?php } ?>
 							</fieldset>
 					<?php if ( WP2FA::is_this_multisite() ) { ?>
 							<div>
-								<label for="enforce-on-multisite" style="margin-bottom: 10px; display: block;">
+								<label for="enforce-on-multisite" style="margin:. 35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="enforce-on-multisite" value="enforce-on-multisite"
 										<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'enforce-on-multisite' ); ?>
 									data-unhide-when-checked=".all-sites">
@@ -324,7 +322,7 @@ class FirstTimeWizardSteps {
 							</div>
 					<?php } ?>
 							<div>
-								<label for="do-not-enforce">
+								<label for="do-not-enforce" style="margin:. 35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="do-not-enforce" value="do-not-enforce"
 									<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'do-not-enforce' ); ?>
 									>

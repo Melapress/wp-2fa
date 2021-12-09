@@ -1240,91 +1240,91 @@ msgstr ""
 msgid "Only super admins"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:236
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:235
 msgid "Only super admins and site admins"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:246
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:244
 msgid "Only for specific users and roles"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:251
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:249
 msgid "Users :"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:267
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:265
 msgid "Roles :"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:289
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:287
 msgid "Also enforce 2FA on network users with super admin privileges"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:299
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:297
 msgid "These sub-sites"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:303
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:301
 msgid "Sites :"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:331
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:329
 msgid "Do not enforce on any users"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:358
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:356
 msgid "Do you want to exclude any users or roles from 2FA? "
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:360
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:358
 msgid "If you are enforcing 2FA on all users but for some reason you would like to exclude individual user(s) or users with a specific role, you can exclude them below"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:371, includes/classes/Admin/Views/FirstTimeWizardSteps.php:368
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:369, includes/classes/Admin/Views/FirstTimeWizardSteps.php:366
 msgid "Exclude the following users"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:398, includes/classes/Admin/Views/FirstTimeWizardSteps.php:393
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:396, includes/classes/Admin/Views/FirstTimeWizardSteps.php:391
 msgid "Exclude the following roles"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:420
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:418
 msgid "Also exclude users with super admin privilege"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:446
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:444
 msgid "Do you want to exclude all the users of a site from 2FA? "
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:448
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:446
 msgid "If you are enforcing 2FA on all users but for some reason you do not want to enforce it on a specific sub site, specify the sub site name below:"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:456, includes/classes/Admin/Views/FirstTimeWizardSteps.php:465
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:454, includes/classes/Admin/Views/FirstTimeWizardSteps.php:463
 msgid "Exclude the following sites"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:521
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:519
 msgid "Users have to configure 2FA straight away."
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:528
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:526
 msgid "Give users a grace period to configure 2FA"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:537
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:535
 msgid "hours"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:543
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:541
 msgid "days"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:557
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:555
 msgid "Seconds"
 msgstr ""
 
-#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:569
+#: includes/classes/Admin/Views/FirstTimeWizardSteps.php:567
 msgid "Note: If users do not configure it within the configured stipulated time, their account will be locked and have to be unlocked manually."
 msgstr ""
 

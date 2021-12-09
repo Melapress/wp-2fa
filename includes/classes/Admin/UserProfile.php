@@ -277,7 +277,7 @@ class UserProfile {
 								__( 'Are you sure?', 'wp-2fa' ),
 								__( 'Any unsaved changes will be lost!', 'wp-2fa' ),
 								array(
-									'<button class="modal__btn button-confirm" data-micromodal-close aria-label="Close this dialog window and the wizard">' . __( 'Yes', 'wp-2fa' ) . '</button>',
+									'<button class="modal__btn button-confirm" aria-label="Close this dialog window and the wizard">' . __( 'Yes', 'wp-2fa' ) . '</button>',
 									'<button class="modal__btn button-decline" data-micromodal-close aria-label="Close this dialog window">' . __( 'No', 'wp-2fa' ) . '</button>',
 								),
 								'',
@@ -285,7 +285,7 @@ class UserProfile {
 							);
 						?>
 						<button class="modal__close" aria-label="Close modal"></button>
-						<main class="modal__content" id="modal-1-content">
+						<main class="modal__content wp2fa-form-styles" id="modal-1-content">
 						<?php
 							$logo_section = '<p style="text-align: center; padding:0; margin: 0;"><img style="filter: invert(76.4%); width: 50px; margin: 0 auto;" src="' . WP_2FA_URL . 'dist/images/wp-2fa-white-icon20x28.svg' . '" /></p>';
 							$logo_section = apply_filters( 'wp_fa_plugin_logo_wizard', $logo_section );
@@ -393,7 +393,7 @@ class UserProfile {
 				<div class="modal__overlay" tabindex="-1" data-micromodal-close>
 					<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
 					<button class="modal__close" aria-label="Close modal" data-close-2fa-modal></button>
-					<main class="modal__content" id="modal-1-content">
+					<main class="modal__content wp2fa-form-styles" id="modal-1-content">
 						<?php WizardSteps::generated_backup_codes( true ); ?>
 					</main>
 					</div>
