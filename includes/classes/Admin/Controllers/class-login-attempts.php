@@ -66,7 +66,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
          *
          * @return void
          */
-        public function increase_login_attempts( \WP_User $user ): void {
+        public function increase_login_attempts( \WP_User $user ) {
             $attempts = $this->get_login_attempts( $user );
             if ( '' === $attempts ) {
                 $attempts = 0;
@@ -96,10 +96,9 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
          *
          * @return void
          */
-        public function clear_login_attempts( \WP_User $user ): void {
+        public function clear_login_attempts( \WP_User $user ) {
 			\delete_user_meta( $user->ID, $this->meta_key );
         }
-
 
 		/**
 		 * Returns the number of allowed login attempts

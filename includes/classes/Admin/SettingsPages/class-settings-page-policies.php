@@ -151,7 +151,8 @@ class Settings_Page_Policies {
 	 *
 	 * @since 2.0.0
 	 */
-	private static function new_page_created( string $role = '' ) {
+	private static function new_page_created( $role = '' ) {
+		$role = is_null( $role ) ? '' : $role;
 		// Check if new user page has been published.
 		if ( ! empty( get_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role ) ) ) {
 			delete_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role );

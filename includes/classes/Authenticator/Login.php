@@ -932,7 +932,7 @@ class Login {
 		if ( empty( $has_token ) || ! $has_token ) {
 			if ( Settings::get_role_or_default_setting( 'specify-email_hotp', $user, null, true ) ) {
 				SetupWizard::send_authentication_setup_email( $user->ID );
-			} else {
+			} elseif ( empty( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
 				SetupWizard::send_authentication_setup_email( $user->ID, '' );
 			}
 		}

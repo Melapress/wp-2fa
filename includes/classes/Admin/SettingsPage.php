@@ -633,7 +633,9 @@ class SettingsPage {
 	 *
 	 * @return bool
 	 */
-	public static function are_backup_codes_enabled( string $role = 'global' ) {
+	public static function are_backup_codes_enabled( $role = 'global' ) {
+
+		$role = is_null( $role ) ? 'global' : $role;
 
 		if ( ! isset( self::$backupCodesEnabled[ $role ] ) ) {
 			self::$backupCodesEnabled[ $role ] = false;
