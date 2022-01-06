@@ -163,6 +163,12 @@ class Login {
 	public static function wp_login( $user_login, $user ) {
 
 		$user_status = User::getUserStatus( $user );
+
+		if ( 'no_determined_yet' === $user_status ) {
+			\update_user_meta( $user->ID, WP_2FA_PREFIX . 'global_settings_hash', '' );
+		}
+		update_user_meta( $user->ID, WP_2FA_PREFIX . 'login_date', time() );
+
 		/**
 		 * User is not required to use the 2FA
 		 */
@@ -438,7 +444,7 @@ class Login {
 	 * @param string|object $provider An override to the provider.
 	 */
 	public static function login_html( $user, $login_nonce, $redirect_to, $error_msg = '', $provider = null ) {
-		if ( ! $provider || ('backup_codes' === $provider && ! SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) ) {
+		if ( ! $provider || ('backup_codes' === $provider && ! SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) ) {
 			$provider = self::get_available_providers_for_user( $user );
 		}
 
@@ -546,7 +552,7 @@ class Login {
 		</form>
 
 		<?php
-		if ( 'backup_codes' !== $provider && SettingsPage::are_backup_codes_enabled( $user->roles[0] ) && isset( $codes_remaining ) && $codes_remaining > 0 ) {
+		if ( 'backup_codes' !== $provider && SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) && isset( $codes_remaining ) && $codes_remaining > 0 ) {
 			$login_url = self::login_url(
 				array(
 					'action'        => 'backup_2fa',
@@ -932,7 +938,7 @@ class Login {
 		if ( empty( $has_token ) || ! $has_token ) {
 			if ( Settings::get_role_or_default_setting( 'specify-email_hotp', $user, null, true ) ) {
 				SetupWizard::send_authentication_setup_email( $user->ID );
-			} else {
+			} elseif ( empty( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
 				SetupWizard::send_authentication_setup_email( $user->ID, '' );
 			}
 		}

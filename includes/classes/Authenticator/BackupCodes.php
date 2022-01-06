@@ -257,7 +257,7 @@ class BackupCodes {
 	 * @since 2.0.0
 	 */
 	public static function check_backup_method( array $backup_methods, \WP_User $user ): array {
-		$enabled = SettingsPage::are_backup_codes_enabled( $user->roles[0] );
+		$enabled = SettingsPage::are_backup_codes_enabled( reset( $user->roles ) );
 
 		if ( ! $enabled ) {
 			unset( $backup_methods[ self::$method_name ] );

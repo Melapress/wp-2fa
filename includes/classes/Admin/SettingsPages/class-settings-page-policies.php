@@ -41,7 +41,7 @@ class Settings_Page_Policies {
 		if ( ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) ) ) {
 			$main_user = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
 		} else {
-			$main_user = '';
+			$main_user = get_current_user_id();
 		}
 
 		if ( class_exists( '\WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
@@ -151,7 +151,8 @@ class Settings_Page_Policies {
 	 *
 	 * @since 2.0.0
 	 */
-	private static function new_page_created( string $role = '' ) {
+	private static function new_page_created( $role = '' ) {
+		$role = is_null( $role ) ? '' : $role;
 		// Check if new user page has been published.
 		if ( ! empty( get_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role ) ) ) {
 			delete_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role );
@@ -608,7 +609,7 @@ class Settings_Page_Policies {
 	 * @since 2.0.0
 	 */
 	private function select_enforcement_policy_setting() {
-		FirstTimeWizardSteps::enforcementPolicy( false );
+		FirstTimeWizardSteps::enforcement_policy( false );
 	}
 
 	/**
@@ -773,7 +774,7 @@ class Settings_Page_Policies {
 		$disabled_class = ( 'all-users' === $enforcement ) ? 'enabled' : 'disabled';
 		?>
 		<div id="exclusion_settings_wrapper" class="<?php echo esc_attr( $disabled_class ); ?>">
-		<?php FirstTimeWizardSteps::excludeUsers(); ?>
+		<?php FirstTimeWizardSteps::exclude_users(); ?>
 		</div>
 		<?php
 	}
@@ -786,7 +787,7 @@ class Settings_Page_Policies {
 	 * @since 2.0.0
 	 */
 	private function excluded_network_sites() {
-		FirstTimeWizardSteps::excludedNetworkSites();
+		FirstTimeWizardSteps::excluded_network_sites();
 	}
 
 	/**
@@ -810,7 +811,7 @@ class Settings_Page_Policies {
 				<tr>
 					<th><label for="grace-policy"><?php esc_html_e( 'Grace period', 'wp-2fa' ); ?></label></th>
 					<td>
-					<?php FirstTimeWizardSteps::gracePeriod( true ); ?>
+					<?php FirstTimeWizardSteps::grace_period( true ); ?>
 					</td>
 				</tr>
 			</tbody>
