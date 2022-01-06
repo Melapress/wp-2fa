@@ -351,11 +351,10 @@ class SettingsPage {
 
 		// Check we have a user before doing anything else.
 		if ( is_a( $user, '\WP_User' ) ) {
-			$user_id = (int) $user->ID;
 			if ( ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) ) ) {
 				$main_user = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
 			} else {
-				$main_user = '';
+				$main_user = get_current_user_id();
 			}
 			if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $user->ID !== $main_user ) {
 				// Remove admin menu item.
@@ -633,7 +632,9 @@ class SettingsPage {
 	 *
 	 * @return bool
 	 */
-	public static function are_backup_codes_enabled( string $role = 'global' ) {
+	public static function are_backup_codes_enabled( $role = 'global' ) {
+
+		$role = is_null( $role ) ? 'global' : $role;
 
 		if ( ! isset( self::$backupCodesEnabled[ $role ] ) ) {
 			self::$backupCodesEnabled[ $role ] = false;

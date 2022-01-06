@@ -174,7 +174,7 @@ class Settings {
 		 */
 		if ( $user instanceof \WP_User ) {
 			if ( null === $role ) {
-				$role = $user->roles[0];
+				$role = reset( $user->roles );
 			}
 			return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value, $role );
 		}
@@ -182,7 +182,7 @@ class Settings {
 		// Extract user by an ID.
 		if ( is_int( $user ) ) {
 			if ( null === $role ) {
-				$role = ( new \WP_User( $user ) )->roles[0];
+				$role = reset( ( new \WP_User( $user ) )->roles );
 			}
 			return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value, $role );
 		}
@@ -197,7 +197,7 @@ class Settings {
 				return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value );
 			}
 
-			$role = User::get_instance()->getUser()->roles[0];
+			$role = reset( User::get_instance()->getUser()->roles );
 		}
 		return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value, $role );
 	}
