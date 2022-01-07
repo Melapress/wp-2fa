@@ -56,25 +56,26 @@ class Settings_Page_Render {
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
-							),
-							network_admin_url( 'admin.php' )
-						)
-					);
-					?>
-					" class="nav-tab <?php echo (! isset( $_REQUEST['tab']) || isset( $_REQUEST['tab'] ) && 'email-settings' === $_REQUEST['tab'] ) ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Email Settings & Templates', 'wp-2fa' ); // @codingStandardsIgnoreLine - No nonce verification warning?></a>
-					<a href="
-					<?php
-					echo esc_url(
-						add_query_arg(
-							array(
-								'page' => 'wp-2fa-settings',
 								'tab'  => 'generic-settings',
 							),
 							network_admin_url( 'admin.php' )
 						)
 					);
 					?>
-					" class="nav-tab <?php echo isset( $_REQUEST['tab'] ) && 'generic-settings' === $_REQUEST['tab'] ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'General plugin settings', 'wp-2fa' ); // @codingStandardsIgnoreLine - No nonce verification warning?></a>
+					" class="nav-tab <?php echo ( ! isset( $_REQUEST['tab']) || isset( $_REQUEST['tab'] ) && 'generic-settings' === $_REQUEST['tab'] ) ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'General plugin settings', 'wp-2fa' ); // @codingStandardsIgnoreLine - No nonce verification warning?></a>
+					<a href="
+					<?php
+					echo esc_url(
+						add_query_arg(
+							array(
+								'page' => 'wp-2fa-settings',
+								'tab'  => 'email-settings',
+							),
+							network_admin_url( 'admin.php' )
+						)
+					);
+					?>
+					" class="nav-tab <?php echo ( isset( $_REQUEST['tab'] ) && 'email-settings' === $_REQUEST['tab'] ) ? 'nav-tab-active' : ''; ?>"><?php esc_html_e( 'Email Settings & Templates', 'wp-2fa' ); // @codingStandardsIgnoreLine - No nonce verification warning?></a>
 					<a href="
 					<?php
 					echo esc_url(
@@ -95,7 +96,7 @@ class Settings_Page_Render {
 					} else {
 						$action = 'options.php';
 					}
-					if ( isset( $_REQUEST['tab'] ) && 'generic-settings' === $_REQUEST['tab'] ) : // @codingStandardsIgnoreLine - No nonce verification warning
+					if ( ! isset( $_REQUEST['tab'] ) || isset( $_REQUEST['tab'] ) && 'generic-settings' === $_REQUEST['tab'] ) : // @codingStandardsIgnoreLine - No nonce verification warning
 						?>
 					<br/>
 						<?php
@@ -143,7 +144,7 @@ class Settings_Page_Render {
 				}
 				?>
 
-				<?php if ( ! isset( $_REQUEST['tab'] ) || isset( $_REQUEST['tab'] ) && 'email-settings' === $_REQUEST['tab'] ) : // @codingStandardsIgnoreLine - No nonce verification warning?>
+				<?php if ( isset( $_REQUEST['tab'] ) && 'email-settings' === $_REQUEST['tab'] ) : // @codingStandardsIgnoreLine - No nonce verification warning?>
 					<br/>
 					<?php
 						printf(

@@ -993,11 +993,11 @@ msgstr ""
 msgid "Changing this setting whilst you still have roles/users excluded will result in these being removed from the settings."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:115, includes/classes/Admin/Views/class-settings-page-render.php:104, includes/classes/Admin/Views/class-settings-page-render.php:124
+#: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:115, includes/classes/Admin/Views/class-settings-page-render.php:105, includes/classes/Admin/Views/class-settings-page-render.php:125
 msgid "Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:116, includes/classes/Admin/Views/class-settings-page-render.php:105, includes/classes/Admin/Views/class-settings-page-render.php:125, includes/classes/Admin/Views/class-settings-page-render.php:152
+#: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:116, includes/classes/Admin/Views/class-settings-page-render.php:106, includes/classes/Admin/Views/class-settings-page-render.php:126, includes/classes/Admin/Views/class-settings-page-render.php:153
 msgid "support@wpwhitesecurity.com"
 msgstr ""
 
@@ -1146,19 +1146,19 @@ msgstr ""
 msgid "Backup code page text"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-settings-page-render.php:64
-msgid "Email Settings & Templates"
-msgstr ""
-
-#: includes/classes/Admin/Views/class-settings-page-render.php:77
+#: includes/classes/Admin/Views/class-settings-page-render.php:65
 msgid "General plugin settings"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-settings-page-render.php:90
+#: includes/classes/Admin/Views/class-settings-page-render.php:78
+msgid "Email Settings & Templates"
+msgstr ""
+
+#: includes/classes/Admin/Views/class-settings-page-render.php:91
 msgid "White labeling"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-settings-page-render.php:151
+#: includes/classes/Admin/Views/class-settings-page-render.php:152
 msgid "Use the settings below to configure the emails which are sent to users as part of the 2FA plugin. If you have any questions send us an email at"
 msgstr ""
 

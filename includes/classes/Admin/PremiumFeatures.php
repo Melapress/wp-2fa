@@ -156,7 +156,7 @@ class PremiumFeatures {
 					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Configure different policies for different user roles: While requiring everyone to use 2FA is generally a good idea, stricter policies for more sensitive accounts can help you keep everyone happy', 'wp-2fa' ); ?></li>
 				</ul>
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
+					<a href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=upgrade+page+upgrade' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
 					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
 				</div>			
 			</div>
@@ -334,7 +334,7 @@ class PremiumFeatures {
 				</table>
 
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
+					<a href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=upgrade+page+upgrade' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
 					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
 				</div>		
 			</div>
