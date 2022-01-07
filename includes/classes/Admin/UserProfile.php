@@ -266,7 +266,7 @@ class UserProfile {
 
 		$user = wp_get_current_user();
 
-		if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) ) { ?>
+		if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) { ?>
 		<div>
 			<div class="wp2fa-modal micromodal-slide" id="configure-2fa" aria-hidden="true">
 				<div class="modal__overlay" tabindex="-1" data-micromodal-close>
@@ -292,7 +292,7 @@ class UserProfile {
 
 							echo $logo_section;
 
-						if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) ) :
+						if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) {
 
 							$available_methods = UserUtils::get_available_2fa_methods();
 
@@ -324,7 +324,7 @@ class UserProfile {
 									<a href="#" class="modal__btn button button-primary 2fa-choose-method" data-name="next_step_setting_modal_wizard" data-next-step><?php esc_html_e( 'Next Step', 'wp-2fa' ); ?></a>
 									<button class="modal__btn button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
 								</div>
-							<?php endif; ?>
+						<?php } ?>
 
 							<?php if ( UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) ) { ?>
 								<div class="wizard-step active">
