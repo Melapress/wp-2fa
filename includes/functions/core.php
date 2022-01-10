@@ -103,7 +103,7 @@ function uninstall() {
 					AND site_id = %d
 					",
 					[
-						'wp_2fa_%',
+						'%wp_2fa_%',
 						$network_id
 					]
 				)
@@ -117,7 +117,7 @@ function uninstall() {
 					WHERE option_name LIKE %s
 					",
 					[
-						'wp_2fa_%',
+						'%wp_2fa_%',
 					]
 				)
 			);
