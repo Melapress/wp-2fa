@@ -348,8 +348,8 @@ class WP2FA {
 	 * @param boolean $getDefaultValue return default value setting (ignore the stored ones)
 	 * @return mixed               Settings value or default value.
 	 */
-	public static function get_wp2fa_setting( $setting_name = '', $getDefaultOnEmpty = false, $getDefaultValue = false, string $role = 'global'  ) {
-
+	public static function get_wp2fa_setting( $setting_name = '', $getDefaultOnEmpty = false, $getDefaultValue = false, $role = 'global' ) {
+		$role = is_null( $role ) ? 'global' : $role;
 		return self::get_wp2fa_setting_generic( WP_2FA_POLICY_SETTINGS_NAME, $setting_name, $getDefaultOnEmpty, $getDefaultValue, $role );
 	}
 
@@ -379,8 +379,9 @@ class WP2FA {
 		return self::get_wp2fa_setting_generic( WP_2FA_WHITE_LABEL_SETTINGS_NAME, $setting_name, $getDefaultOnEmpty, $getDefaultValue );
 	}
 
-	private static function get_wp2fa_setting_generic( $wp_2fa_setting = WP_2FA_POLICY_SETTINGS_NAME, $setting_name = '', $get_default_on_empty = false, $get_default_value = false, string $role = 'global' ) {
+	private static function get_wp2fa_setting_generic( $wp_2fa_setting = WP_2FA_POLICY_SETTINGS_NAME, $setting_name = '', $get_default_on_empty = false, $get_default_value = false, $role = 'global' ) {
 		$default_settings = self::getDefaultSettings();
+		$role = is_null( $role ) ? 'global' : $role;
 
 		if ( true === $get_default_value ) {
 			if ( isset( $default_settings[ $setting_name ] ) ) {

@@ -127,7 +127,7 @@ class UserProfile {
 
 				$form_content .= '<br /><br />';
 
-				if ( SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) {
+				if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) {
 					$form_content .= '<a href="' . esc_url( $backup_codes_url ) . '" class="button button-primary">' . __( 'Generate list of Backup Codes', 'wp-2fa' ) . '</a>';
 
 					$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
@@ -144,7 +144,7 @@ class UserProfile {
 					if ( self::can_user_remove_2fa( $user->ID ) ) {
 						$form_content .= '<a href="#" class="button button-primary remove-2fa" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . __( 'Remove 2FA', 'wp-2fa' ) . '</a>';
 					}
-					if ( SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) {
+					if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) {
 					$form_content .= '</td><tr><th class="backup-methods-label">';
 						$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
 						if ( $codes_remaining > 0 ) {
@@ -266,7 +266,7 @@ class UserProfile {
 
 		$user = wp_get_current_user();
 
-		if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) ) { ?>
+		if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) { ?>
 		<div>
 			<div class="wp2fa-modal micromodal-slide" id="configure-2fa" aria-hidden="true">
 				<div class="modal__overlay" tabindex="-1" data-micromodal-close>
@@ -292,7 +292,7 @@ class UserProfile {
 
 							echo $logo_section;
 
-						if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) ) :
+						if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) {
 
 							$available_methods = UserUtils::get_available_2fa_methods();
 
@@ -324,7 +324,7 @@ class UserProfile {
 									<a href="#" class="modal__btn button button-primary 2fa-choose-method" data-name="next_step_setting_modal_wizard" data-next-step><?php esc_html_e( 'Next Step', 'wp-2fa' ); ?></a>
 									<button class="modal__btn button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
 								</div>
-							<?php endif; ?>
+						<?php } ?>
 
 							<?php if ( UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) ) { ?>
 								<div class="wizard-step active">
@@ -360,7 +360,7 @@ class UserProfile {
 						do_action( 'wp_2fa_additional_settings_steps' );
 
 						// Create a nonce for use in ajax call to generate codes.
-						if ( SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) {
+						if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) {
 							?>
 							<div class="wizard-step" id="2fa-wizard-config-backup-codes">
 							<?php WizardSteps::backup_codes_configure(); ?>
@@ -387,7 +387,7 @@ class UserProfile {
 			do_action( 'wp_2fa_methods_wizards' );
 		?>
 
-		<?php if ( SettingsPage::are_backup_codes_enabled( $user->roles[0] ) ) { ?>
+		<?php if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) { ?>
 		<div>
 			<div class="wp2fa-modal micromodal-slide" id="configure-2fa-backup-codes" aria-hidden="true">
 				<div class="modal__overlay" tabindex="-1" data-micromodal-close>

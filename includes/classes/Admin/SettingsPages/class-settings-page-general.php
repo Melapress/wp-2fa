@@ -155,7 +155,7 @@ class Settings_Page_General {
 			if ( false === $policies ) {
 				$policies = WP2FA::getDefaultSettings();
 			}
-			$policies['2fa_settings_last_updated_by'] = $input['2fa_settings_last_updated_by'];
+			$policies['2fa_settings_last_updated_by'] = (int) $input['2fa_settings_last_updated_by'];
 
 			WP2FA::updatePluginSettings( $policies );
 		}

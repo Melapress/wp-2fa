@@ -38,6 +38,7 @@ class UserUtils {
 		$is_user_excluded     = User::is_excluded( $user->ID );
 		$isUserEnforced       = User::is_enforced( $user->ID );
 		$isUserLocked         = User::isUserLocked( $user->ID );
+		$user_last_login      = get_user_meta( $user->ID, WP_2FA_PREFIX . 'login_date', true );
 
 		// First lets see if the user already has a token.
 		$enabled_methods = get_user_meta( $user->ID, WP_2FA_PREFIX . 'enabled_methods', true );
@@ -78,7 +79,11 @@ class UserUtils {
 		}
 
 		if ( $noEnforcedMethods && empty( $enabled_methods ) && ! $is_user_excluded ) {
-			$user_type[] = 'no_required_not_enabled';
+			if ( empty( $user_last_login ) ) {
+				$user_type[] = 'no_determined_yet';
+			} else {
+				$user_type[] = 'no_required_not_enabled';
+			}
 		}
 
 		if ( ! $noEnforcedMethods && empty( $enabled_methods ) && ! $is_user_excluded && $isUserEnforced ) {
@@ -86,7 +91,11 @@ class UserUtils {
 		}
 
 		if ( ! $noEnforcedMethods && empty( $enabled_methods ) && ! $is_user_excluded && ! $isUserEnforced ) {
-			$user_type[] = 'no_required_not_enabled';
+			if ( empty( $user_last_login ) ) {
+				$user_type[] = 'no_determined_yet';
+			} else {
+				$user_type[] = 'no_required_not_enabled';
+			}
 		}
 
 		if ( $is_user_excluded ) {
@@ -359,6 +368,7 @@ class UserUtils {
 				'no_required_not_enabled'          => __( 'Not required & not configured', 'wp-2fa' ),
 				'user_is_excluded'                 => __( 'Not allowed', 'wp-2fa' ),
 				'user_is_locked'                   => __( 'Locked', 'wp-2fa' ),
+				'no_determined_yet'                => __( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
 			];
 		}
 

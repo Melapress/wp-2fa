@@ -359,8 +359,8 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 
 			$user_id  = $this->user->ID;
 			$settings = SettingsUtils::get_option( WP_2FA_POLICY_SETTINGS_NAME );
-			if ( ! is_array( $settings ) || 'do-not-enforce' === $settings['enforcement-policy'] ) {
-				//  2FA is not enforced, make sure to clear any related user meta previously created
+			if ( ! is_array( $settings ) || ( isset( $settings['enforcement-policy'] ) && 'do-not-enforce' === $settings['enforcement-policy'] ) ) {
+				// 2FA is not enforced, make sure to clear any related user meta previously created
 				$this->deleteUserMeta( WP_2FA_PREFIX . 'is_locked' );
 				$this->deleteUserMeta( WP_2FA_PREFIX . 'grace_period_expiry' );
 				$this->deleteUserMeta( WP_2FA_PREFIX . 'locked_account_notification' );

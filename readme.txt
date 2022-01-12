@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 4.5
 Tested up to: 5.8
-Stable tag: 2.0.1
+Stable tag: 2.1.0
 Requires PHP: 7.0.0
 
 Harden your website login page; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -112,14 +112,19 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 
 == Changelog ==
 
-= 2.0.1 (2021-12-09) =
+= 2.1.0 (2022-01-12) =
 	
+* **New features**
+	* Added a new default user status - User has not logged in yet.
+
 * **Improvements**
-	* Improved the spacing of several network specific policy options (UI).
-	* Moved setting inline JS to wp_footer to improve theme compatibility.
-	* Prefixed all select2 styling to avoid conflicts.
+	* Update a number of links used in the plugin.
+	* Updated the redirects and logic that are triggered after the install wizard (improved UX).
+	* Better handling of users without user role.
 	
-* **Bug fix**
-	* Fixed: close 'x'icon not closing modal wizard.
+* **Bug fixes**
+	* Fixed: User 2FA state is permanentely cached when using Redis object caching.
+	* Fixed an edge case in which the admin might be locked out of the plugin's settings during an upgrade.
+	* Fixed a PHP warning triggered during login on some websites.
 
 Refer to the complete [plugin changelog](https://wp2fa.io/support/kb/wp-2fa-changelog/) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.

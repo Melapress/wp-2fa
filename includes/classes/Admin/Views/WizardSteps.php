@@ -581,7 +581,7 @@ class WizardSteps {
             <a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-secondary">
                 <?php esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
             </a>
-            <a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary close-first-time-wizard">
+            <a href="<?php echo esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary close-first-time-wizard">
                     <?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
             </a>
         </div>
