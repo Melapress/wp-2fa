@@ -90,3 +90,9 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 
 	register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
 }
+
+register_activation_hook( __FILE__, 'wp_2fa_activate' );
+
+function wp_2fa_activate() {
+	delete_transient( 'wp_2fa_config_file_hash' );
+}
