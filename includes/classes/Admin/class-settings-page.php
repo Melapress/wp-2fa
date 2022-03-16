@@ -1,11 +1,22 @@
-<?php // phpcs:ignore
+<?php
+/**
+ * Settings rendering class.
+ *
+ * @package    wp2fa
+ * @subpackage settings
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ */
 
 namespace WP2FA\Admin;
 
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Utils\UserUtils;
-use WP2FA\Utils\SettingsUtils;
+use WP2FA\Utils\User_Utils;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Settings_Page_Render;
 use WP2FA\Admin\SettingsPages\{
 	Settings_Page_Policies,
@@ -15,18 +26,18 @@ use WP2FA\Admin\SettingsPages\{
 };
 
 /**
- * SettingsPage - Class for handling settings
+ * Class for handling settings
  */
-class SettingsPage {
+class Settings_Page {
 
 	const TOP_MENU_SLUG = 'wp-2fa-policies';
 
 	/**
-	 * Holds the status of the backupcodes functionality
+	 * Holds the status of the backup codes functionality
 	 *
 	 * @var bool[]
 	 */
-	private static $backupCodesEnabled = array();
+	private static $backup_codes_enabled = array();
 
 	/**
 	 * Create admin menu entry and settings page
@@ -39,28 +50,27 @@ class SettingsPage {
 			'manage_options',
 			self::TOP_MENU_SLUG,
 			null,
-			"data:image/svg+xml;base64,".base64_encode(file_get_contents(WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg')),
+			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
 			81
 		);
 
-		$settings_policies = new Settings_Page_Policies();
-		$settings_general = new Settings_Page_General();
+		$settings_policies    = new Settings_Page_Policies();
 		$settings_white_label = new Settings_Page_White_Label();
-		$settings_email = new Settings_Page_Email();
-		$settings_render = new Settings_Page_Render();
+		$settings_email       = new Settings_Page_Email();
+		$settings_render      = new Settings_Page_Render();
 
 		add_submenu_page(
-				self::TOP_MENU_SLUG,
+			self::TOP_MENU_SLUG,
 			esc_html__( '2FA Policies', 'wp-2fa' ),
 			esc_html__( '2FA Policies', 'wp-2fa' ),
 			'manage_options',
-				self::TOP_MENU_SLUG,
+			self::TOP_MENU_SLUG,
 			array( $settings_policies, 'render' ),
 			1
 		);
 
 		add_submenu_page(
-				self::TOP_MENU_SLUG,
+			self::TOP_MENU_SLUG,
 			esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
 			esc_html__( 'Settings', 'wp-2fa' ),
 			'manage_options',
@@ -87,7 +97,7 @@ class SettingsPage {
 		register_setting(
 			WP_2FA_SETTINGS_NAME,
 			WP_2FA_SETTINGS_NAME,
-			array( $settings_general, 'validate_and_sanitize' )
+			array( \WP2FA\Admin\SettingsPages\Settings_Page_General::class, 'validate_and_sanitize' )
 		);
 
 		register_setting(
@@ -96,7 +106,15 @@ class SettingsPage {
 			array( $settings_email, 'validate_and_sanitize' )
 		);
 
-		do_action( 'wp_2fa_after_admin_menu_created', self::TOP_MENU_SLUG, false);
+		/**
+		 * Fires after the main menu settings are registered.
+		 *
+		 * @param string - The menu slug.
+		 * @param bool - Is that multisite install or not.
+		 *
+		 * @since 2.0.0
+		 */
+		do_action( WP_2FA_PREFIX . 'after_admin_menu_created', self::TOP_MENU_SLUG, false );
 	}
 
 	/**
@@ -108,26 +126,26 @@ class SettingsPage {
 			esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
 			esc_html__( 'WP 2FA', 'wp-2fa' ),
 			'manage_options',
-				self::TOP_MENU_SLUG,
+			self::TOP_MENU_SLUG,
 			null,
-			"data:image/svg+xml;base64,".base64_encode(file_get_contents(WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg')),
+			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
 			81
 		);
 
 		$settings_policies = new Settings_Page_Policies();
 		add_submenu_page(
-				self::TOP_MENU_SLUG,
+			self::TOP_MENU_SLUG,
 			esc_html__( '2FA Policies', 'wp-2fa' ),
 			esc_html__( '2FA Policies', 'wp-2fa' ),
 			'manage_options',
-				self::TOP_MENU_SLUG,
+			self::TOP_MENU_SLUG,
 			array( $settings_policies, 'render' ),
 			1
 		);
 
 		$settings_render = new Settings_Page_Render();
 		add_submenu_page(
-				self::TOP_MENU_SLUG,
+			self::TOP_MENU_SLUG,
 			esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
 			esc_html__( 'Settings', 'wp-2fa' ),
 			'manage_options',
@@ -136,11 +154,21 @@ class SettingsPage {
 			2
 		);
 
-		do_action( 'wp_2fa_after_admin_menu_created', self::TOP_MENU_SLUG, true);
+		/**
+		 * Fires after the main menu settings are registered.
+		 *
+		 * @param string - The menu slug.
+		 * @param bool - Is that multisite install or not.
+		 *
+		 * @since 2.0.0
+		 */
+		do_action( WP_2FA_PREFIX . 'after_admin_menu_created', self::TOP_MENU_SLUG, true );
 	}
 
 	/**
 	 * Get all users
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public function get_all_users() {
 		// Die if user does not have permission to view.
@@ -156,22 +184,25 @@ class SettingsPage {
 		}
 
 		$users_args = array(
-			'fields'         => array( 'ID', 'user_login' ),
+			'fields' => array( 'ID', 'user_login' ),
 		);
-		if ( WP2FA::is_this_multisite() ) {
+		if ( WP_Helper::is_multisite() ) {
 			$users_args['blog_id'] = 0;
 		}
-		$users_data = UserUtils::get_all_user_ids_and_login_names( 'query', $users_args );
+		$users_data = User_Utils::get_all_user_ids_and_login_names( 'query', $users_args );
 
 		// Create final array which we will fill in below.
-		$users = [];
+		$users = array();
 
 		foreach ( $users_data as $user ) {
 			if ( strpos( $user['user_login'], $get_array['term'] ) !== false ) {
-				array_push( $users, [
-					'value' => $user['user_login'],
-					'label' => $user['user_login']
-				]);
+				array_push(
+					$users,
+					array(
+						'value' => $user['user_login'],
+						'label' => $user['user_login'],
+					)
+				);
 			}
 		}
 
@@ -181,6 +212,8 @@ class SettingsPage {
 
 	/**
 	 * Get all network sites
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public function get_all_network_sites() {
 		// Die if user does not have permission to view.
@@ -202,10 +235,13 @@ class SettingsPage {
 			$site_details                = '';
 			$site_details[ $subsite_id ] = $subsite_name;
 			if ( false !== stripos( $subsite_name, $get_array['term'] ) ) {
-				array_push( $sites_found, [
-					'label' => $subsite_id,
-					'value' => $subsite_name
-				]);
+				array_push(
+					$sites_found,
+					array(
+						'label' => $subsite_id,
+						'value' => $subsite_name,
+					)
+				);
 			}
 		}
 		echo wp_json_encode( $sites_found );
@@ -216,6 +252,8 @@ class SettingsPage {
 	 * Unlock users accounts if they have overrun grace period
 	 *
 	 * @param  int $user_id User ID.
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public function unlock_account( $user_id ) {
 		// Die if user does not have permission to view.
@@ -242,19 +280,19 @@ class SettingsPage {
 			global $wpdb;
 			$wpdb->query(
 				$wpdb->prepare(
-			   "
+					"
 			   DELETE FROM $wpdb->usermeta
 				 WHERE user_id = %d
 				 AND meta_key IN ( %s, %s )
 			   ",
-			   [
-					 intval( $get_array['user_id'] ),
-					 WP_2FA_PREFIX . 'user_grace_period_expired',
-					 WP_2FA_PREFIX . 'locked_account_notification',
-				 ]
-		   )
+					array(
+						intval( $get_array['user_id'] ),
+						User_Helper::USER_GRACE_KEY,
+						WP_2FA_PREFIX . 'locked_account_notification',
+					)
+				)
 			);
-			update_user_meta( intval( $get_array['user_id'] ), WP_2FA_PREFIX . 'grace_period_expiry', $grace_expiry );
+			User_Helper::set_user_expiry_date( $grace_expiry, intval( $get_array['user_id'] ) );
 			$this->send_account_unlocked_email( intval( $get_array['user_id'] ) );
 			add_action( 'admin_notices', array( $this, 'user_unlocked_notice' ) );
 		}
@@ -264,6 +302,8 @@ class SettingsPage {
 	 * Remove user 2fa config
 	 *
 	 * @param  int $user_id User ID.
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public function remove_user_2fa( $user_id ) {
 		// Filter $_GET array for security.
@@ -277,17 +317,11 @@ class SettingsPage {
 		if ( isset( $get_array['user_id'] ) ) {
 			$user_id = intval( $get_array['user_id'] );
 
-			$user_meta_values = array_filter(
-				get_user_meta( $user_id ),
-				function( $key ) {
-					return strpos( $key, 'wp_2fa_' ) === 0;
-				},
-				ARRAY_FILTER_USE_KEY
-			);
-
-			foreach ( array_keys( $user_meta_values ) as $meta_name ) {
-				\delete_user_meta( $user_id, $meta_name );
+			if ( ! current_user_can( 'manage_options' ) && get_current_user_id() !== $user_id ) {
+				return;
 			}
+
+			User_Helper::remove_all_2fa_meta_for_user( $user_id );
 
 			$is_needed = User::is_enforced( $user_id );
 
@@ -297,14 +331,14 @@ class SettingsPage {
 					$create_a_string = WP2FA::get_wp2fa_setting( 'grace-period' ) . ' ' . WP2FA::get_wp2fa_setting( 'grace-period-denominator' );
 					// Turn that string into a time.
 					$grace_expiry = strtotime( $create_a_string );
-					update_user_meta( $user_id, WP_2FA_PREFIX . 'grace_period_expiry', $grace_expiry );
+					User_Helper::set_user_expiry_date( $grace_expiry, $user_id );
 					update_user_meta( $user_id, WP_2FA_PREFIX . 'update_nag_dismissed', true );
 				}
 				$grace_policy = WP2FA::get_wp2fa_setting( 'grace-policy' );
 				if ( 'no-grace-period' === $grace_policy ) {
-					update_user_meta( $user_id, WP_2FA_PREFIX . 'user_enforced_instantly', true );
+					User_Helper::set_user_enforced_instantly( true, $user_id );
 					// Set this to a known older value so its already expired.
-					update_user_meta( $user_id, WP_2FA_PREFIX . 'grace_period_expiry', '1609502400' );
+					User_Helper::set_user_expiry_date( '1609502400', $user_id );
 					// Get sessions for user with ID $user_id.
 					$sessions = \WP_Session_Tokens::get_instance( $user_id );
 					// Log them out.
@@ -340,7 +374,7 @@ class SettingsPage {
 		$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_unlocked_email_subject' ) ) );
 		$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_unlocked_email_body' ), $user_id ) );
 
-		self::send_email($email, $subject, $message);
+		self::send_email( $email, $subject, $message );
 	}
 
 	/**
@@ -369,7 +403,7 @@ class SettingsPage {
 	 * @param array $links Default row content.
 	 *
 	 * @return array
-	 * @throws \Freemius_Exception
+	 * @throws \Freemius_Exception - freemius exception.
 	 */
 	public function add_plugin_action_links( $links ) {
 		// add link to the external free trial page in free version and also in premium version if license is not active.
@@ -384,7 +418,7 @@ class SettingsPage {
 		}
 
 		// add link to the plugin settings page.
-		$url = Settings::get_settings_page_link();
+		$url   = Settings::get_settings_page_link();
 		$links = array_merge(
 			array(
 				'<a href="' . esc_url( $url ) . '">' . esc_html__( 'Configure 2FA Settings', 'wp-2fa' ) . '</a>',
@@ -437,19 +471,31 @@ class SettingsPage {
 		<?php
 	}
 
+	/**
+	 * Updates options for multisite
+	 *
+	 * @return void
+	 *
+	 * @since 2.0.0
+	 */
 	public function update_wp2fa_network_options() {
 
 		$settings_policies = new Settings_Page_Policies();
 
 		$settings_policies->update_wp2fa_network_options();
 
-		$settings_general = new Settings_Page_General();
-
-		$settings_general->update_wp2fa_network_options();
+		Settings_Page_General::update_wp2fa_network_options();
 
 		$settings_white_label = new Settings_Page_White_Label();
 
 		$settings_white_label->update_wp2fa_network_options();
+
+		/**
+		 * Gives the ability for extensions to set their settings in the plugin.
+		 *
+		 * @since latest
+		 */
+		do_action( WP_2FA_PREFIX . 'update_network_settings' );
 	}
 
 	/**
@@ -465,7 +511,7 @@ class SettingsPage {
 	 * These are used instead of add_settings_error which in a network site. Used to show if settings have been updated or failed.
 	 */
 	public function settings_saved_network_admin_notice() {
-		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && $_GET['wp_2fa_network_settings_updated'] == 'true' ) :
+		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'true' === $_GET['wp_2fa_network_settings_updated'] ) :
 			?>
 			<div class="notice notice-success is-dismissible">
 				<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
@@ -475,7 +521,7 @@ class SettingsPage {
 			</div>
 			<?php
 		endif;
-		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && $_GET['wp_2fa_network_settings_updated'] == 'false' ) :
+		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'false' === $_GET['wp_2fa_network_settings_updated'] ) :
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><?php esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
@@ -488,7 +534,7 @@ class SettingsPage {
 		if ( isset( $_GET['wp_2fa_network_settings_error'] ) ) :
 			?>
 			<div class="notice notice-error is-dismissible">
-				<p><?php echo urldecode_deep( $_GET['wp_2fa_network_settings_error'] ); ?></p>
+				<p><?php echo urldecode_deep( $_GET['wp_2fa_network_settings_error'] ); // phpcs:ignore ?></p>
 				<button type="button" class="notice-dismiss">
 					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 				</button>
@@ -520,14 +566,14 @@ class SettingsPage {
 					<?php
 				}
 			} else {
-			?>
+				?>
 			<div class="notice notice-success is-dismissible">
 				<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
 				<button type="button" class="notice-dismiss">
 					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 				</button>
 			</div>
-			<?php
+				<?php
 			}
 		endif;
 		if ( isset( $_GET['settings-updated'] ) && 'false' === $_GET['settings-updated'] ) :
@@ -543,7 +589,7 @@ class SettingsPage {
 		if ( isset( $_GET['settings_error'] ) ) :
 			?>
 			<div class="notice notice-error is-dismissible">
-				<p><?php echo urldecode_deep( $_GET['settings_error'] ); ?></p>
+				<p><?php echo urldecode_deep( $_GET['settings_error'] ); // phpcs:ignore ?></p>
 				<button type="button" class="notice-dismiss">
 					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 				</button>
@@ -554,6 +600,11 @@ class SettingsPage {
 
 	/**
 	 * Add our custom state to our created page.
+	 *
+	 * @param array   $post_states - array with the post states.
+	 * @param WP_Post $post - the WP post.
+	 *
+	 * @return array
 	 */
 	public function add_display_post_states( $post_states, $post ) {
 		if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
@@ -582,7 +633,7 @@ class SettingsPage {
 		if ( 'use-custom-email' === WP2FA::get_wp2fa_email_templates( 'email_from_setting' ) ) {
 			$headers .= 'From: ' . WP2FA::get_wp2fa_email_templates( 'custom_from_display_name' ) . ' <' . WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) . '>' . "\r\n";
 		} else {
-			$headers .= 'From: ' . get_bloginfo( 'name' ) . ' <' . get_bloginfo('admin_email') . '>' . "\r\n";
+			$headers .= 'From: ' . get_bloginfo( 'name' ) . ' <' . get_bloginfo( 'admin_email' ) . '>' . "\r\n";
 		}
 
 		// Fire our email.
@@ -606,7 +657,7 @@ class SettingsPage {
 			return explode( ',', $value );
 		}
 
-		return [];
+		return array();
 	}
 
 	/**
@@ -618,7 +669,7 @@ class SettingsPage {
 		global $wpdb;
 
 		$bg_jobs = $wpdb->get_results(
-				"SELECT option_value FROM $wpdb->options
+			"SELECT option_value FROM $wpdb->options
 				WHERE option_name LIKE '%_2fa_bg_%'"
 		);
 
@@ -626,7 +677,7 @@ class SettingsPage {
 	}
 
 	/**
-	 * Checks if the backup codes option is globally enabled
+	 * Checks if the backup codes option is enabled for the role
 	 *
 	 * @param string $role - The role name.
 	 *
@@ -634,19 +685,19 @@ class SettingsPage {
 	 */
 	public static function are_backup_codes_enabled( $role = 'global' ) {
 
-		$role = is_null( $role ) ? 'global' : $role;
+		$role = ( is_null( $role ) || empty( $role ) ) ? 'global' : $role;
 
-		if ( ! isset( self::$backupCodesEnabled[ $role ] ) ) {
-			self::$backupCodesEnabled[ $role ] = false;
+		if ( ! isset( self::$backup_codes_enabled[ $role ] ) ) {
+			self::$backup_codes_enabled[ $role ] = false;
 
 			if ( 'global' === $role ) {
 				$setting_value = Settings::get_role_or_default_setting( 'backup_codes_enabled' );
 			} else {
 				$setting_value = Settings::get_role_or_default_setting( 'backup_codes_enabled', 'current', $role );
 			}
-			self::$backupCodesEnabled[ $role ] = SettingsUtils::string_to_bool( $setting_value );
+			self::$backup_codes_enabled[ $role ] = Settings_Utils::string_to_bool( $setting_value );
 		}
 
-		return self::$backupCodesEnabled[ $role ];
+		return self::$backup_codes_enabled[ $role ];
 	}
 }

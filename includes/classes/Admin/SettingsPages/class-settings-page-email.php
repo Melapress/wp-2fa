@@ -2,94 +2,99 @@
 /**
  * Email settings class.
  *
- * @package   wp2fa
- * @copyright 2021 WP White Security
- * @license   https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link      https://wordpress.org/plugins/wp-2fa/
+ * @package    wp2fa
+ * @subpackage settings-pages
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\SettingsPages;
 
-use WP2FA\EmailTemplate;
+use WP2FA\Email_Template;
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Utils\SettingsUtils as SettingsUtils;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
 
 /**
- * Settings_Page_Email - Class for handling email settings
- *
- * @since 2.0.0
+ * Email settings tab
  */
-class Settings_Page_Email {
-
+if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 	/**
-	 * Render the settings
-	 *
-	 * @return void
+	 * Settings_Page_Email - Class for handling email settings
 	 *
 	 * @since 2.0.0
 	 */
-	public function render() {
-		settings_fields( WP_2FA_EMAIL_SETTINGS_NAME );
-		$this->email_from_settings();
-		$this->email_settings();
-		submit_button( esc_html__( 'Save email settings and templates', 'wp-2fa' ) );
-	}
+	class Settings_Page_Email {
 
-	/**
-	 * Handle saving email options to the network main site options.
-	 *
-	 * @return void
-	 *
-	 * @since 2.0.0
-	 *
-	 * @SuppressWarnings(PHPMD.ExitExpressions)
-	 */
-	public function update_wp2fa_network_options() {
-		if ( isset( $_POST['email_from_setting'] ) ) { // @codingStandardsIgnoreLine - No nonce verification warning
-			$options = $this->validate_and_sanitize( wp_unslash( $_POST ) ); // @codingStandardsIgnoreLine - No nonce verification warning
-
-			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) || isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) { // @codingStandardsIgnoreLine - No nonce verification warning
-				// redirect back to our options page.
-				wp_safe_redirect(
-					add_query_arg(
-						array(
-							'page' => 'wp-2fa-settings',
-							'wp_2fa_network_settings_updated' => 'false',
-							'tab'  => 'email-settings',
-						),
-						network_admin_url( 'admin.php' )
-					)
-				);
-				exit;
-			}
-
-			SettingsUtils::update_option( WP_2FA_EMAIL_SETTINGS_NAME, $options );
+		/**
+		 * Render the settings
+		 *
+		 * @return void
+		 *
+		 * @since 2.0.0
+		 */
+		public function render() {
+			settings_fields( WP_2FA_EMAIL_SETTINGS_NAME );
+			$this->email_from_settings();
+			$this->email_settings();
+			submit_button( esc_html__( 'Save email settings and templates', 'wp-2fa' ) );
 		}
 
-		// redirect back to our options page.
-		wp_safe_redirect(
-			add_query_arg(
-				array(
-					'page'                            => 'wp-2fa-settings',
-					'wp_2fa_network_settings_updated' => 'true',
-					'tab'                             => 'email-settings',
-				),
-				network_admin_url( 'admin.php' )
-			)
-		);
-		exit;
-	}
+		/**
+		 * Handle saving email options to the network main site options.
+		 *
+		 * @return void
+		 *
+		 * @since 2.0.0
+		 *
+		 * @SuppressWarnings(PHPMD.ExitExpressions)
+		 */
+		public function update_wp2fa_network_options() {
+			if ( isset( $_POST['email_from_setting'] ) ) { // phpcs:ignore
+				$options = $this->validate_and_sanitize( wp_unslash( $_POST ) ); // phpcs:ignore
 
-	/**
-	 * Email settings
-	 *
-	 * @return void
-	 *
-	 * @since 2.0.0
-	 */
-	private function email_from_settings() {
-		?>
+				if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) || isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) { // phpcs:ignore
+					// redirect back to our options page.
+					wp_safe_redirect(
+                        add_query_arg(
+                            array(
+								'page' => 'wp-2fa-settings',
+								'wp_2fa_network_settings_updated' => 'false',
+								'tab'  => 'email-settings',
+                            ),
+                            network_admin_url( 'admin.php' )
+                        )
+					);
+					exit;
+				}
+
+				Settings_Utils::update_option( WP_2FA_EMAIL_SETTINGS_NAME, $options );
+			}
+
+			// redirect back to our options page.
+			wp_safe_redirect(
+                add_query_arg(
+                    array(
+						'page'                            => 'wp-2fa-settings',
+						'wp_2fa_network_settings_updated' => 'true',
+						'tab'                             => 'email-settings',
+                    ),
+                    network_admin_url( 'admin.php' )
+                )
+			);
+			exit;
+		}
+
+		/**
+		 * Email settings
+		 *
+		 * @return void
+		 *
+		 * @since 2.0.0
+		 */
+		private function email_from_settings() {
+			?>
 		<h3><?php esc_html_e( 'Which email address should the plugin use as a from address?', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'Use these settings to customize the "from" name and email address for all correspondence sent from our plugin.', 'wp-2fa' ); ?>
@@ -146,200 +151,204 @@ class Settings_Page_Email {
 		<br>
 		<hr>
 
-		<?php
-	}
-
-	/**
-	 * Creates the email notification definitions.
-	 *
-	 * @return EmailTemplate[]
-	 *
-	 * @since 2.0.0
-	 */
-	public function get_email_notification_definitions() {
-		$result = array(
-			new EmailTemplate(
-                'login_code',
-                esc_html__( 'Login code email', 'wp-2fa' ),
-                esc_html__( 'This is the email sent to a user when a login code is required.', 'wp-2fa' )
-			),
-			new EmailTemplate(
-                'account_locked',
-                esc_html__( 'User account locked email', 'wp-2fa' ),
-                esc_html__( 'This is the email sent to a user upon grace period expiry.', 'wp-2fa' )
-			),
-			new EmailTemplate(
-                'account_unlocked',
-                esc_html__( 'User account unlocked email', 'wp-2fa' ),
-                esc_html__( 'This is the email sent to a user when the user\'s account has been unlocked.', 'wp-2fa' )
-			),
-		);
+			<?php
+		}
 
 		/**
-		 * Add an option for external providers to implement their own email template settings for the settings tab.
+		 * Creates the email notification definitions.
 		 *
-		 * @param array $result - The array with all the email templates.
+		 * @return Email_Template[]
 		 *
 		 * @since 2.0.0
 		 */
-		$result = apply_filters( 'wp_2fa_email_notification_definitions', $result );
-
-		if ( count( $result ) > 3 ) {
-			$result[0]->setCanBeToggled( false );
-			$result[1]->setCanBeToggled( false );
-			$result[2]->setEmailContentId( 'user_account_locked' );
-			$result[3]->setEmailContentId( 'user_account_unlocked' );
-		} else {
-			$result[0]->setCanBeToggled( false );
-			$result[1]->setEmailContentId( 'user_account_locked' );
-			$result[2]->setEmailContentId( 'user_account_unlocked' );
-		}
-		return $result;
-	}
-
-	/**
-	 * Validate email templates before saving
-	 *
-	 * @since 2.0.0
-	 *
-	 * @SuppressWarnings(PHPMD.ExitExpressions)
-	 */
-	public function validate_and_sanitize() {
-
-		// Bail if user doesn't have permissions to be here.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		if ( empty( $_POST ) || ! isset( $_POST['_wpnonce'] ) || empty( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) || ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) ) { // @codingStandardsIgnoreLine - Not unslashed warning
-			die( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
-		}
-
-		if ( isset( $_POST['email_from_setting'] ) && 'use-defaults' === $_POST['email_from_setting'] || isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] ) {
-			$output['email_from_setting'] = sanitize_text_field( wp_unslash( $_POST['email_from_setting'] ) );
-		}
-
-		if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) {
-			add_settings_error(
-				WP_2FA_SETTINGS_NAME,
-				esc_attr( 'email_from_settings_error' ),
-				esc_html__( 'Please provide an email address', 'wp-2fa' ),
-				'error'
+		public function get_email_notification_definitions() {
+			$result = array(
+				new Email_Template(
+					'login_code',
+					esc_html__( 'Login code email', 'wp-2fa' ),
+					esc_html__( 'This is the email sent to a user when a login code is required.', 'wp-2fa' )
+				),
+				new Email_Template(
+					'account_locked',
+					esc_html__( 'User account locked email', 'wp-2fa' ),
+					esc_html__( 'This is the email sent to a user upon grace period expiry.', 'wp-2fa' )
+				),
+				new Email_Template(
+					'account_unlocked',
+					esc_html__( 'User account unlocked email', 'wp-2fa' ),
+					esc_html__( 'This is the email sent to a user when the user\'s account has been unlocked.', 'wp-2fa' )
+				),
 			);
-			$output['custom_from_email_address'] = '';
-		}
 
-		if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) ) {
-			add_settings_error(
-				WP_2FA_SETTINGS_NAME,
-				esc_attr( 'display_name_settings_error' ),
-				esc_html__( 'Please provide a display name.', 'wp-2fa' ),
-				'error'
-			);
-			$output['custom_from_email_address'] = '';
-		}
+			/**
+			 * Add an option for external providers to implement their own email template settings for the settings tab.
+			 *
+			 * @param array $result - The array with all the email templates.
+			 *
+			 * @since 2.0.0
+			 */
+			$result = apply_filters( WP_2FA_PREFIX . 'email_notification_definitions', $result );
 
-		if ( isset( $_POST['custom_from_email_address'] ) && ! empty( $_POST['custom_from_email_address'] ) ) {
-			if ( ! filter_var( wp_unslash( $_POST['custom_from_email_address'] ), FILTER_VALIDATE_EMAIL ) ) {
-				add_settings_error(
-					WP_2FA_SETTINGS_NAME,
-					esc_attr( 'email_invalid_settings_error' ),
-					esc_html__( 'Please provide a valid email address. Your email address has not been updated.', 'wp-2fa' ),
-					'error'
-				);
-			}
-			$output['custom_from_email_address'] = sanitize_email( wp_unslash( $_POST['custom_from_email_address'] ) );
-		}
-
-		if ( isset( $_POST['custom_from_display_name'] ) && ! empty( $_POST['custom_from_display_name'] ) ) {
-			// Check if the string contains HTML/tags.
-			preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) ), $matches );
-			if ( count( $matches ) > 0 ) {
-				add_settings_error(
-					WP_2FA_SETTINGS_NAME,
-					esc_attr( 'display_name_invalid_settings_error' ),
-					esc_html__( 'Please only use alphanumeric text. Your display name has not been updated.', 'wp-2fa' ),
-					'error'
-				);
+			if ( count( $result ) > 3 ) {
+				$result[0]->set_can_be_toggled( false );
+				$result[1]->set_can_be_toggled( false );
+				$result[2]->set_email_content_id( 'user_account_locked' );
+				$result[3]->set_email_content_id( 'user_account_unlocked' );
 			} else {
-				$output['custom_from_display_name'] = sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) );
+				$result[0]->set_can_be_toggled( false );
+				$result[1]->set_email_content_id( 'user_account_locked' );
+				$result[2]->set_email_content_id( 'user_account_unlocked' );
 			}
-		}
-
-		if ( isset( $_POST['login_code_email_subject'] ) ) {
-			$output['login_code_email_subject'] = wp_kses_post( wp_unslash( $_POST['login_code_email_subject'] ) );
-		}
-
-		if ( isset( $_POST['login_code_email_body'] ) ) {
-			$output['login_code_email_body'] = wpautop( wp_kses_post( wp_unslash( $_POST['login_code_email_body'] ) ) );
-		}
-
-		if ( isset( $_POST['user_account_locked_email_subject'] ) ) {
-			$output['user_account_locked_email_subject'] = wp_kses_post( wp_unslash( $_POST['user_account_locked_email_subject'] ) );
-		}
-
-		if ( isset( $_POST['user_account_locked_email_body'] ) ) {
-			$output['user_account_locked_email_body'] = wpautop( wp_kses_post( wp_unslash( $_POST['user_account_locked_email_body'] ) ) );
-		}
-
-		if ( isset( $_POST['user_account_unlocked_email_subject'] ) ) {
-			$output['user_account_unlocked_email_subject'] = wp_kses_post( wp_unslash( $_POST['user_account_unlocked_email_subject'] ) );
-		}
-
-		if ( isset( $_POST['user_account_unlocked_email_body'] ) ) {
-			$output['user_account_unlocked_email_body'] = wpautop( wp_kses_post( wp_unslash( $_POST['user_account_unlocked_email_body'] ) ) );
-		}
-
-		if ( isset( $_POST['send_account_locked_email'] ) && 'enable_account_locked_email' === $_POST['send_account_locked_email'] ) {
-			$output['send_account_locked_email'] = sanitize_text_field( wp_unslash( $_POST['send_account_locked_email'] ) );
-		}
-
-		if ( isset( $_POST['send_account_unlocked_email'] ) && 'enable_account_unlocked_email' === $_POST['send_account_unlocked_email'] ) {
-			$output['send_account_unlocked_email'] = sanitize_text_field( wp_unslash( $_POST['send_account_unlocked_email'] ) );
+			return $result;
 		}
 
 		/**
-		 * Filter the values we are about to store in the plugin settings.
+		 * Validate email templates before saving
 		 *
-		 * @param array $output - The output array with all the data we will store in the settings.
+		 * @since 2.0.0
+		 *
+		 * @SuppressWarnings(PHPMD.ExitExpressions)
+		 */
+		public function validate_and_sanitize() {
+
+			// Bail if user doesn't have permissions to be here.
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			if ( empty( $_POST ) || ! isset( $_POST['_wpnonce'] ) || empty( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) || ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) ) { // phpcs:ignore
+				die( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
+			}
+
+			$output = array();
+
+			if ( isset( $_POST['email_from_setting'] ) && 'use-defaults' === $_POST['email_from_setting'] || isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] ) {
+				$output['email_from_setting'] = sanitize_text_field( wp_unslash( $_POST['email_from_setting'] ) );
+			}
+
+			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) {
+				add_settings_error(
+                    WP_2FA_SETTINGS_NAME,
+                    esc_attr( 'email_from_settings_error' ),
+                    esc_html__( 'Please provide an email address', 'wp-2fa' ),
+                    'error'
+				);
+				$output['custom_from_email_address'] = '';
+			}
+
+			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) ) {
+				add_settings_error(
+                    WP_2FA_SETTINGS_NAME,
+                    esc_attr( 'display_name_settings_error' ),
+                    esc_html__( 'Please provide a display name.', 'wp-2fa' ),
+                    'error'
+				);
+				$output['custom_from_email_address'] = '';
+			}
+
+			if ( isset( $_POST['custom_from_email_address'] ) && ! empty( $_POST['custom_from_email_address'] ) ) {
+				if ( ! filter_var( wp_unslash( $_POST['custom_from_email_address'] ), FILTER_VALIDATE_EMAIL ) ) {
+					add_settings_error(
+                        WP_2FA_SETTINGS_NAME,
+                        esc_attr( 'email_invalid_settings_error' ),
+                        esc_html__( 'Please provide a valid email address. Your email address has not been updated.', 'wp-2fa' ),
+                        'error'
+					);
+				}
+				$output['custom_from_email_address'] = sanitize_email( wp_unslash( $_POST['custom_from_email_address'] ) );
+			}
+
+			if ( isset( $_POST['custom_from_display_name'] ) && ! empty( $_POST['custom_from_display_name'] ) ) {
+				// Check if the string contains HTML/tags.
+				preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) ), $matches );
+				if ( count( $matches ) > 0 ) {
+					add_settings_error(
+                        WP_2FA_SETTINGS_NAME,
+                        esc_attr( 'display_name_invalid_settings_error' ),
+                        esc_html__( 'Please only use alphanumeric text. Your display name has not been updated.', 'wp-2fa' ),
+                        'error'
+					);
+				} else {
+					$output['custom_from_display_name'] = sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) );
+				}
+			}
+
+			if ( isset( $_POST['login_code_email_subject'] ) ) {
+				$output['login_code_email_subject'] = wp_kses_post( wp_unslash( $_POST['login_code_email_subject'] ) );
+			}
+
+			if ( isset( $_POST['login_code_email_body'] ) ) {
+				$output['login_code_email_body'] = wpautop( wp_kses_post( wp_unslash( $_POST['login_code_email_body'] ) ) );
+			}
+
+			if ( isset( $_POST['user_account_locked_email_subject'] ) ) {
+				$output['user_account_locked_email_subject'] = wp_kses_post( wp_unslash( $_POST['user_account_locked_email_subject'] ) );
+			}
+
+			if ( isset( $_POST['user_account_locked_email_body'] ) ) {
+				$output['user_account_locked_email_body'] = wpautop( wp_kses_post( wp_unslash( $_POST['user_account_locked_email_body'] ) ) );
+			}
+
+			if ( isset( $_POST['user_account_unlocked_email_subject'] ) ) {
+				$output['user_account_unlocked_email_subject'] = wp_kses_post( wp_unslash( $_POST['user_account_unlocked_email_subject'] ) );
+			}
+
+			if ( isset( $_POST['user_account_unlocked_email_body'] ) ) {
+				$output['user_account_unlocked_email_body'] = wpautop( wp_kses_post( wp_unslash( $_POST['user_account_unlocked_email_body'] ) ) );
+			}
+
+			$output['send_account_locked_email'] = '';
+			if ( isset( $_POST['send_account_locked_email'] ) && 'enable_account_locked_email' === $_POST['send_account_locked_email'] ) {
+				$output['send_account_locked_email'] = sanitize_text_field( wp_unslash( $_POST['send_account_locked_email'] ) );
+			}
+
+			$output['send_account_unlocked_email'] = '';
+			if ( isset( $_POST['send_account_unlocked_email'] ) && 'enable_account_unlocked_email' === $_POST['send_account_unlocked_email'] ) {
+				$output['send_account_unlocked_email'] = sanitize_text_field( wp_unslash( $_POST['send_account_unlocked_email'] ) );
+			}
+
+			/**
+			 * Filter the values we are about to store in the plugin settings.
+			 *
+			 * @param array $output - The output array with all the data we will store in the settings.
+			 *
+			 * @since 2.0.0
+			 */
+			$output = apply_filters( WP_2FA_PREFIX . 'filter_output_email_template_content', $output );
+
+			// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
+			global $wp_settings_errors;
+			if ( isset( $wp_settings_errors ) ) {
+				$errors             = array_map( 'unserialize', array_unique( array_map( 'serialize', $wp_settings_errors ) ) );
+				$wp_settings_errors = $errors; // phpcs:ignore
+			}
+
+			if ( isset( $output ) ) {
+				return $output;
+			} else {
+				return;
+			}
+		}
+
+		/**
+		 * Email settings
+		 *
+		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		$output = apply_filters( 'wp_2fa_filter_output_email_template_content', $output );
-
-		// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
-		global $wp_settings_errors;
-		if ( isset( $wp_settings_errors ) ) {
-			$errors             = array_map( 'unserialize', array_unique( array_map( 'serialize', $wp_settings_errors ) ) );
-			$wp_settings_errors = $errors; // @codingStandardsIgnoreLine - Not using WP globals warning
-		}
-
-		if ( isset( $output ) ) {
-			return $output;
-		} else {
-			return;
-		}
-	}
-
-	/**
-	 * Email settings
-	 *
-	 * @return void
-	 *
-	 * @since 2.0.0
-	 */
-	private function email_settings() {
-		$custom_user_page_id        = Settings::check_setting_in_all_roles( 'custom-user-page-id' );
-		$email_template_definitions = $this->get_email_notification_definitions();
-		?>
+		private function email_settings() {
+			$custom_user_page_id        = Settings::check_setting_in_all_roles( 'custom-user-page-id' );
+			$email_template_definitions = $this->get_email_notification_definitions();
+			?>
 		<h1><?php esc_html_e( 'Email Templates', 'wp-2fa' ); ?></h1>
-		<?php foreach ( $email_template_definitions as $email_template ) : ?>
-			<?php $template_id = $email_template->getId(); ?>
-		<h3><?php echo esc_html( $email_template->getTitle() ); ?></h3>
-		<p class="description"><?php echo $email_template->getDescription(); // @codingStandardsIgnoreLine - All output escaped warning ?></p>warning
+			<?php foreach ( $email_template_definitions as $email_template ) : ?>
+				<?php $template_id = $email_template->get_id(); ?>
+		<h3><?php echo esc_html( $email_template->get_title() ); ?></h3>
+		<p class="description"><?php echo $email_template->get_description(); // phpcs:ignore ?></p>warning
 		<table class="form-table">
 			<tbody>
-			<?php if ( $email_template->canBeToggled() ) : ?>
+				<?php if ( $email_template->can_be_toggled() ) : ?>
 				<tr>
 					<th><label for="send_<?php echo esc_attr( $template_id ); ?>_email"><?php esc_html_e( 'Send this email', 'wp-2fa' ); ?></label></th>
 					<td>
@@ -352,7 +361,7 @@ class Settings_Page_Email {
 					</td>
 				</tr>
 			<?php endif; ?>
-				<?php $template_id = $email_template->getEmailContentId(); ?>
+				<?php $template_id = $email_template->get_email_content_id(); ?>
 				<tr>
 					<th><label for="<?php echo esc_attr( $template_id ); ?>_email_subject"><?php esc_html_e( 'Email subject', 'wp-2fa' ); ?></label></th>
 					<td>
@@ -414,6 +423,7 @@ class Settings_Page_Email {
 		<br>
 		<hr>
 		<?php endforeach; ?>
-		<?php
+			<?php
+		}
 	}
 }

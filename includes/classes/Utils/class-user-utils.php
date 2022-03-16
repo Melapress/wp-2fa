@@ -1,10 +1,20 @@
 <?php
+/**
+ * Responsible for different user's manipulations.
+ *
+ * @package    wp2fa
+ * @subpackage user-utils
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ */
+
 namespace WP2FA\Utils;
 
 use WP2FA\Admin\User;
 use WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\Controllers\Settings;
-use \WP2FA\Authenticator\BackupCodes as BackupCodes;
+use \WP2FA\Authenticator\Backup_Codes as Backup_Codes;
+use WP2FA\Admin\Helpers\User_Helper;
 
 /**
  * Utility class for creating modal popup markup.
@@ -12,7 +22,7 @@ use \WP2FA\Authenticator\BackupCodes as BackupCodes;
  * @package WP2FA\Utils
  * @since 1.4.2
  */
-class UserUtils {
+class User_Utils {
 
 	/**
 	 * Holds map with human readable 2FA statuses
@@ -21,6 +31,15 @@ class UserUtils {
 	 */
 	private static $statuses;
 
+	/**
+	 * Determines the proper 2FA status of the given user
+	 *
+	 * @param [type] $user - The user to check.
+	 *
+	 * @return array
+	 *
+	 * @since latest
+	 */
 	public static function determine_user_2fa_status( $user ) {
 
 		// Get current user, we going to need this regardless.
@@ -28,24 +47,24 @@ class UserUtils {
 
 		// Bail if we still dont have an object.
 		if ( ! is_a( $user, '\WP_User' ) || ! is_a( $current_user, '\WP_User' ) ) {
-			return [];
+			return array();
 		}
 
 		$roles = (array) $user->roles;
 
 		// Grab grace period UNIX time.
-		$grace_period_expired = get_user_meta( $user->ID, WP_2FA_PREFIX . 'user_grace_period_expired', true );
+		$grace_period_expired = User_Helper::get_grace_period( $user );
 		$is_user_excluded     = User::is_excluded( $user->ID );
-		$isUserEnforced       = User::is_enforced( $user->ID );
-		$isUserLocked         = User::isUserLocked( $user->ID );
+		$is_user_enforced     = User::is_enforced( $user->ID );
+		$is_user_locked       = User_Helper::is_user_locked( $user->ID );
 		$user_last_login      = get_user_meta( $user->ID, WP_2FA_PREFIX . 'login_date', true );
 
 		// First lets see if the user already has a token.
-		$enabled_methods = get_user_meta( $user->ID, WP_2FA_PREFIX . 'enabled_methods', true );
+		$enabled_methods = User_Helper::get_enabled_method_for_user( $user );
 
-		$noEnforcedMethods = false;
+		$no_enforced_methods = false;
 		if ( 'do-not-enforce' === WP2FA::get_wp2fa_setting( 'enforcement-policy' ) ) {
-			$noEnforcedMethods = true;
+			$no_enforced_methods = true;
 		}
 
 		$user_type = array();
@@ -74,11 +93,11 @@ class UserUtils {
 			$user_type[] = 'has_enabled_methods';
 		}
 
-		if ( $noEnforcedMethods && ! empty( $enabled_methods ) ) {
+		if ( $no_enforced_methods && ! empty( $enabled_methods ) ) {
 			$user_type[] = 'no_required_has_enabled';
 		}
 
-		if ( $noEnforcedMethods && empty( $enabled_methods ) && ! $is_user_excluded ) {
+		if ( $no_enforced_methods && empty( $enabled_methods ) && ! $is_user_excluded ) {
 			if ( empty( $user_last_login ) ) {
 				$user_type[] = 'no_determined_yet';
 			} else {
@@ -86,11 +105,11 @@ class UserUtils {
 			}
 		}
 
-		if ( ! $noEnforcedMethods && empty( $enabled_methods ) && ! $is_user_excluded && $isUserEnforced ) {
+		if ( ! $no_enforced_methods && empty( $enabled_methods ) && ! $is_user_excluded && $is_user_enforced ) {
 			$user_type[] = 'user_needs_to_setup_2fa';
 		}
 
-		if ( ! $noEnforcedMethods && empty( $enabled_methods ) && ! $is_user_excluded && ! $isUserEnforced ) {
+		if ( ! $no_enforced_methods && empty( $enabled_methods ) && ! $is_user_excluded && ! $is_user_enforced ) {
 			if ( empty( $user_last_login ) ) {
 				$user_type[] = 'no_determined_yet';
 			} else {
@@ -102,18 +121,36 @@ class UserUtils {
 			$user_type[] = 'user_is_excluded';
 		}
 
-		if ( $isUserLocked ) {
+		if ( $is_user_locked ) {
 			$user_type[] = 'user_is_locked';
 		}
 
-		$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
+		$codes_remaining = Backup_Codes::codes_remaining_for_user( $user );
 		if ( 0 === $codes_remaining ) {
 			$user_type[] = 'user_needs_to_setup_backup_codes';
 		}
 
-		return apply_filters( 'wp_2fa_additional_user_types', $user_type, $user );
+		/**
+		 * Gives the ability to alter the user types for the user.
+		 *
+		 * @param string $user_type - Type of the user.
+		 * @param \WP_User $user - The WP user.
+		 *
+		 * @since 2.0.0
+		 */
+		return apply_filters( WP_2FA_PREFIX . 'additional_user_types', $user_type, $user );
 	}
 
+	/**
+	 * Checks is all values exist in given array
+	 *
+	 * @param array $needles - Which values to check.
+	 * @param array $haystack - The array to check against.
+	 *
+	 * @return bool
+	 *
+	 * @since latest
+	 */
 	public static function in_array_all( $needles, $haystack ) {
 		return empty( array_diff( $needles, $haystack ) );
 	}
@@ -121,17 +158,17 @@ class UserUtils {
 	/**
 	 * Check if role is not in given array of roles
 	 *
-	 * @param array $roles
-	 * @param array $userRoles
+	 * @param array $roles - All roles.
+	 * @param array $user_roles - The User roles.
 	 *
 	 * @return bool
 	 */
-	public static function roleIsNot( $roles, $userRoles ) {
+	public static function role_is_not( $roles, $user_roles ) {
 		if (
 			empty(
 				array_intersect(
 					$roles,
-					$userRoles
+					$user_roles
 				)
 			)
 		) {
@@ -142,37 +179,10 @@ class UserUtils {
 	}
 
 	/**
-	 * Works our a list of available 2FA methods. It doesn't include the disabled ones.
-	 *
-	 * @return string[]
-	 * @since 2.0.0
-	 */
-	public static function get_available_2fa_methods(): array {
-		$available_methods = array();
-
-		if ( ! empty( Settings::get_role_or_default_setting( 'enable_email', 'current' ) ) ) {
-			$available_methods[] = 'email';
-		}
-
-		if ( ! empty( Settings::get_role_or_default_setting( 'enable_totp', 'current' ) ) ) {
-			$available_methods[] = 'totp';
-		}
-
-		/**
-		 * Add an option for external providers to implement their own 2fa methods and set them as available.
-		 *
-		 * @param array $available_methods - The array with all the available methods.
-		 *
-		 * @since 2.0.0
-		 */
-		return apply_filters( 'wp_2fa_available_2fa_methods', $available_methods );
-	}
-
-	/**
 	 * Return all users, either by using a direct query or get_users.
 	 *
 	 * @param string $method Method to use.
-	 * @param array $users_args Query arguments.
+	 * @param array  $users_args Query arguments.
 	 *
 	 * @return mixed              Array of IDs/Object of Users.
 	 */
@@ -182,7 +192,7 @@ class UserUtils {
 			return get_users( $users_args );
 		}
 
-		//  method is "query", let's build the SQL query ourselves
+		// method is "query", let's build the SQL query ourselves.
 		global $wpdb;
 
 		$batch_size = isset( $users_args['batch_size'] ) ? $users_args['batch_size'] : false;
@@ -198,8 +208,8 @@ class UserUtils {
 					SELECT  ID, user_login
 					FROM    ' . $wpdb->users . ' u INNER JOIN ' . $wpdb->usermeta . ' um
 					ON      u.ID = um.user_id
-					WHERE   um.meta_key LIKE \'' . $wpdb->base_prefix . '%capabilities' . '\'
-					AND     (
+					WHERE   um.meta_key LIKE \'' . $wpdb->base_prefix . '%capabilities' . '\'' . // phpcs:ignore
+					' AND     (
 			';
 			$i      = 1;
 			foreach ( $roles as $role ) {
@@ -211,11 +221,14 @@ class UserUtils {
 			}
 			$select .= ' ) ';
 
-			$excluded_users = ( ! empty( $users_args['excluded_users'] ) ) ? $users_args['excluded_users'] : [];
+			$excluded_users = ( ! empty( $users_args['excluded_users'] ) ) ? $users_args['excluded_users'] : array();
 
-			$excluded_users = array_map( function ( $excluded_user ) {
-				return '"' . $excluded_user . '"';
-			}, $excluded_users );
+			$excluded_users = array_map(
+				function ( $excluded_user ) {
+					return '"' . $excluded_user . '"';
+				},
+				$excluded_users
+			);
 
 			if ( ! empty( $excluded_users ) ) {
 				$select .= '
@@ -232,7 +245,6 @@ class UserUtils {
 				)
 				';
 			}
-
 		}
 
 		if ( $batch_size ) {
@@ -246,7 +258,7 @@ class UserUtils {
 	 * Get list of IDs only if they have a specific 2FA method enabled.
 	 *
 	 * @param string $removing Method to search for.
-	 * @param $users_args
+	 * @param array  $users_args - Additional arguments.
 	 *
 	 * @return array            User details.
 	 */
@@ -272,15 +284,25 @@ class UserUtils {
 
 		$users = $wpdb->get_results( $select );
 
-		$users = array_map( function ( $user ) {
-			return (int) $user->ID;
-		}, $users );
+		$users = array_map(
+			function ( $user ) {
+				return (int) $user->ID;
+			},
+			$users
+		);
 
 		$users = implode( ',', $users );
 
 		return $users;
 	}
 
+	/**
+	 * Collects all the users with 2FA meta data
+	 *
+	 * @param array $users_args - Arguments.
+	 *
+	 * @return string
+	 */
 	public static function get_all_user_ids_who_have_wp_2fa_metadata_present( $users_args ) {
 
 		global $wpdb;
@@ -302,9 +324,12 @@ class UserUtils {
 
 		$users = $wpdb->get_results( $select );
 
-		$users = array_map( function ( $user ) {
-			return (int) $user->ID;
-		}, $users );
+		$users = array_map(
+			function ( $user ) {
+				return (int) $user->ID;
+			},
+			$users
+		);
 
 		$users = implode( ',', $users );
 
@@ -312,19 +337,22 @@ class UserUtils {
 	}
 
 	/**
-	 * Retrieve string of comma seperated IDs.
+	 * Retrieve string of comma separated IDs.
 	 *
 	 * @param string $method Method to use.
-	 * @param array $users_args Query arguments.
+	 * @param array  $users_args Query arguments.
 	 *
 	 * @return string             List of IDs.
 	 */
 	public static function get_all_user_ids( $method, $users_args ) {
-		$user_data = UserUtils::get_all_users_data( $method, $users_args );
+		$user_data = self::get_all_users_data( $method, $users_args );
 
-		$users = array_map( function ( $user ) {
-			return (int) $user->ID;
-		}, $user_data );
+		$users = array_map(
+			function ( $user ) {
+				return (int) $user->ID;
+			},
+			$user_data
+		);
 
 		return implode( ',', $users );
 	}
@@ -333,20 +361,23 @@ class UserUtils {
 	 * Retrieve array if user IDs and login names.
 	 *
 	 * @param string $method Method to use.
-	 * @param array $users_args Query arguments.
+	 * @param array  $users_args Query arguments.
 	 *
 	 * @return array              User details.
 	 */
 	public static function get_all_user_ids_and_login_names( $method, $users_args ) {
-		$user_data = UserUtils::get_all_users_data( $method, $users_args );
-		$user_item = [];
+		$user_data = self::get_all_users_data( $method, $users_args );
+		$user_item = array();
 
-		$users = array_map( function ( $user ) {
-			$user_item['ID']         = (int) $user->ID;
-			$user_item['user_login'] = $user->user_login;
+		$users = array_map(
+			function ( $user ) {
+				$user_item['ID']         = (int) $user->ID;
+				$user_item['user_login'] = $user->user_login;
 
-			return $user_item;
-		}, $user_data );
+				return $user_item;
+			},
+			$user_data
+		);
 
 		return $users;
 	}
@@ -358,47 +389,47 @@ class UserUtils {
 	 *
 	 * @return array
 	 */
-	public static function getHumanReadableUserStatuses() {
+	public static function get_human_readable_user_statuses() {
 		if ( null === self::$statuses ) {
 			self::$statuses =
-			[
-				'has_enabled_methods'              => __( 'Configured', 'wp-2fa' ),
-				'user_needs_to_setup_2fa'          => __( 'Required but not configured', 'wp-2fa' ),
-				'no_required_has_enabled'          => __( 'Configured (but not required)', 'wp-2fa' ),
-				'no_required_not_enabled'          => __( 'Not required & not configured', 'wp-2fa' ),
-				'user_is_excluded'                 => __( 'Not allowed', 'wp-2fa' ),
-				'user_is_locked'                   => __( 'Locked', 'wp-2fa' ),
-				'no_determined_yet'                => __( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
-			];
+			array(
+				'has_enabled_methods'     => __( 'Configured', 'wp-2fa' ),
+				'user_needs_to_setup_2fa' => __( 'Required but not configured', 'wp-2fa' ),
+				'no_required_has_enabled' => __( 'Configured (but not required)', 'wp-2fa' ),
+				'no_required_not_enabled' => __( 'Not required & not configured', 'wp-2fa' ),
+				'user_is_excluded'        => __( 'Not allowed', 'wp-2fa' ),
+				'user_is_locked'          => __( 'Locked', 'wp-2fa' ),
+				'no_determined_yet'       => __( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
+			);
 		}
 
 		return self::$statuses;
 	}
 
 	/**
-	 * Gets the user types extracted with @see UserUtils::determine_user_2fa_status,
+	 * Gets the user types extracted with @see User_Utils::determine_user_2fa_status,
 	 * checks values and generates human readable 2FA status text
 	 *
-	 * @param array $userTypes
+	 * @param array $user_types - The types of the user.
 	 *
 	 * @return array An array with the id and label elements of user 2FA status. Empty in case there is not match.
 	 *
 	 * @since 1.7.0 Changed the function to return the id and label of the first match it finds instead of concatenated labels of all matched statuses.
 	 */
-	public static function extractStatuses( $userTypes ) {
+	public static function extract_statuses( $user_types ) {
 		if ( null === self::$statuses ) {
-			self::getHumanReadableUserStatuses();
+			self::get_human_readable_user_statuses();
 		}
 
 		foreach ( self::$statuses as $key => $value ) {
-			if ( in_array( $key, $userTypes ) ) {
-				return [
-					'id'=> $key,
-					'label' => $value
-					];
+			if ( in_array( $key, $user_types, true ) ) {
+				return array(
+					'id'    => $key,
+					'label' => $value,
+				);
 			}
 		}
 
-		return [];
+		return array();
 	}
 }

@@ -1,13 +1,21 @@
-<?php // phpcs:ignore
+<?php
+/**
+ * Premium features rendering class.
+ *
+ * @package    wp2fa
+ * @subpackage admin
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ * @since      2.0.0
+ */
 
 namespace WP2FA\Admin;
 
-use \WP2FA\WP2FA as WP2FA;
-
 /**
- * PremiumFeatures - Handles contact the features page and content.
+ * Handles contact the features page and content.
  */
-class PremiumFeatures {
+class Premium_Features {
 
 	const TOP_MENU_SLUG = 'wp-2fa-premium-features';
 
@@ -25,6 +33,27 @@ class PremiumFeatures {
 			100
 		);
 	}
+
+    /**
+     * Adds an upgrade banner to settings pages.
+     *
+     * @return void
+     */
+    public function add_settings_banner() {
+        $banner  = '<div id="wp-2fa-side-banner">';
+        $banner .= '<img src="' . esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) .'">';
+        $banner .= '<p>' . esc_html__( 'Upgrade to Premium to:', 'wp-2fa' ) . '</p>';
+        $banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Add trusted devices (\'Remember this device\' option)', 'wp-2fa' ) . '</li>';
+        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
+        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'White labeling of 2FA code page', 'wp-2fa' ) . '</li>';
+        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'One-click 2FA login', 'wp-2fa' ) . '</li>';
+        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Many other features', 'wp-2fa' ) . '</li>';
+        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'No Ads!', 'wp-2fa' ) . '</li></ul>';
+        $banner .= '<a href="https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=sidebar+advert&utm_campaign=WP2FA&utm_content=upgrade+now" class="button button-primary" target="_blank">' . esc_html__( 'Upgrade now', 'wp-2fa' ) . '</a> <a href="https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=sidebar+advert&utm_campaign=WP2FA&utm_content=get+trial" class="link" target="_blank">'  . esc_html__( 'Get a Free 14-day trial', 'wp-2fa' ) . '</a>';
+        $banner .= '</div>';
+        
+        echo $banner;
+    }
 
 	/**
 	 * Handles rendering the content.
@@ -68,7 +97,7 @@ class PremiumFeatures {
 				text-align: center;
 			}
 
-			.premium-cta a, .table-link {
+			.premium-cta a:not(.inverse), .table-link {
 				background-color: #3E6BFF;
 				color: #fff;
 				padding: 15px 26px;
@@ -87,6 +116,12 @@ class PremiumFeatures {
 				background-color: #fff;
 			}
 
+            .premium-cta a.inverse {
+				font-weight: 700;
+				text-decoration: none;
+				font-size: 16px;
+            }
+
 			.content-block {
 				margin-bottom: 26px;
 				border-bottom: 1px solid #eee;
@@ -99,14 +134,14 @@ class PremiumFeatures {
 			}
 			.feature-table tr td:first-of-type {
 				text-align: left;
-    			font-weight: 500;
+				font-weight: 500;
 			}
 			.feature-table td p {
 				margin-top: 0;
 			}
 			.row-head span {
 				font-size: 17px;
-    			font-weight: 700;
+				font-weight: 700;
 			}
 			.feature-table .dashicons {
 				color: #3E6BFF;
@@ -141,7 +176,7 @@ class PremiumFeatures {
 			</div>
 			<div class="content-block">
 				<div class="logo-wrap">
-					<img class="wp2fa-logo" src="<?php echo WP_2FA_URL; ?>dist/images/wp-2fa-color_opt.png" alt="">
+					<img class="wp2fa-logo" src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-2fa-color_opt.png" alt="">
 				</div>
 				<div>
 					<p><?php esc_html_e( 'WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and you secure and better protected than ever before. We thank you for the continued trust you show in our plugin.', 'wp-2fa' ); ?></p>
@@ -157,7 +192,7 @@ class PremiumFeatures {
 				</ul>
 				<div class="premium-cta">
 					<a href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=upgrade+page+upgrade' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
-					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
+					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=get+trial+upgrade+page' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
 				</div>			
 			</div>
 
@@ -330,25 +365,39 @@ class PremiumFeatures {
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
 							</td>
 						</tr>
+                        <tr class="c2">
+							<td class="c6" colspan="1" rowspan="1">
+								<p class="c10"><span class="c5"><?php esc_html_e( 'No Ads!', 'wp-2fa' ); ?></span></p>
+							</td>
+							<td class="c8" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+							</td>
+							<td class="c12" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 
 				<div class="premium-cta">
 					<a href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=upgrade+page+upgrade' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
-					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
+					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=get+trial+upgrade+page' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
 				</div>		
 			</div>
 					
 			<div>
-				<p><?php 
+				<p>
+				<?php
 				$text = sprintf(
-						esc_html__( 'For more information about the WP 2FA, please %1$s. If you have any questions about the plugin or would like to ask us anything, please %2$s', 'wp-2fa' ),
-						'<a target="_blank" href="'. esc_url( 'https://wp2fa.io' ) . '">' . esc_html__( 'visit our website', 'wp-2fa' ) . '</a>',
-						'<a target="_blank" href="'. esc_url(  'https://wp2fa.io/contact/') . '">' . esc_html__( 'our contact form', 'wp-2fa' ) . '</a>.'
+					/* translators: 1: Link to our site 2: Link to our contact page */
+					esc_html__( 'For more information about the WP 2FA plugin visit the %1$s. If you have any questions or would like to get in touch with us, please use %2$s. We look forward to hearing from you.', 'wp-2fa' ),
+					'<a target="_blank" href="' . esc_url( 'https://wp2fa.io' ) . '">' . esc_html__( 'plugin\'s website', 'wp-2fa' ) . '</a>',
+					'<a target="_blank" href="' . esc_url( 'https://wp2fa.io/contact/' ) . '">' . esc_html__( 'our contact form', 'wp-2fa' ) . '</a>.'
 				);
 
-				echo $text;
-				?></p>
+				   echo $text; // phpcs:ignore
+				?>
+				</p>
 			</div>
 		</div>		
 		<?php

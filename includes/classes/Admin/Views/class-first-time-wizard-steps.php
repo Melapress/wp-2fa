@@ -1,9 +1,19 @@
 <?php
+/**
+ * Settings page render class.
+ *
+ * @package    wp2fa
+ * @subpackage views
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ */
 
 namespace WP2FA\Admin\Views;
 
 use WP2FA\WP2FA;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Helpers\WP_Helper;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -12,7 +22,7 @@ defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
  *
  * @since 1.7
  */
-class FirstTimeWizardSteps {
+class First_Time_Wizard_Steps {
 
 	/**
 	 * Select method step
@@ -49,7 +59,7 @@ class FirstTimeWizardSteps {
 							<br>
 							<label for="totp">
 								<input type="checkbox" id="totp" name="wp_2fa_policy[enable_totp]" value="enable_totp"
-								<?php echo $data_role; // @codingStandardsIgnoreLine - escaped in our code ?>
+								<?php echo $data_role; // phpcs:ignore ?>
 								<?php checked( 'enable_totp', WP2FA::get_wp2fa_setting( 'enable_totp' ), true ); ?>
 								>
 								<?php esc_html_e( 'One-time code via 2FA App (TOTP) - ', 'wp-2fa' ); ?><a href="https://www.wpwhitesecurity.com/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank" rel=noopener><?php esc_html_e( 'complete list of supported 2FA apps.', 'wp-2fa' ); ?></a>
@@ -66,12 +76,21 @@ class FirstTimeWizardSteps {
 							}
 							?>
 							<?php
-							\do_action( 'wp_2fa_after_totp_setup', $setup_wizard, $data_role, null );
+							/**
+							 * Fired right after the TOTP method HTML rendering.
+							 *
+							 * @param bool $wizard - Is that a wizard call or settings call.
+							 * @param string $data_role - String with the JS data to add to form element.
+							 * @param string $name - The name of the role.
+							 *
+							 * @since 2.0.0
+							 */
+							\do_action( WP_2FA_PREFIX . 'after_totp_setup', $setup_wizard, $data_role, null );
 							?>
 							<br/>
 							<label for="hotp">
 								<input type="checkbox" id="hotp" name="wp_2fa_policy[enable_email]" value="enable_email"
-								<?php echo $data_role; // @codingStandardsIgnoreLine - escaped in our code ?>
+								<?php echo $data_role; // phpcs:ignore ?>
 								<?php checked( WP2FA::get_wp2fa_setting( 'enable_email' ), 'enable_email' ); ?>
 								>
 								<?php esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' ); ?>
@@ -81,7 +100,7 @@ class FirstTimeWizardSteps {
 								} else {
 									echo ' - ';
 								}
-								echo WP2FA::print_email_deliverability_message(); // @codingStandardsIgnoreLine
+								echo WP2FA::print_email_deliverability_message(); // phpcs:ignore
 								if ( $setup_wizard ) {
 									echo '</p>';
 								}
@@ -91,7 +110,6 @@ class FirstTimeWizardSteps {
 							</label>
 							<?php if ( ! $setup_wizard ) { ?>
 							<div class="use-different-hotp-mail<?php echo \esc_attr( ( false === WP2FA::get_wp2fa_setting( 'enable_email' ) ? ' disabled' : '' ) ); ?>">
-								<?php?>
 								<p class="description" style="margin-bottom: 5px; font-style: normal;">
 									<?php esc_html_e( 'Allow user to specify the email address of choice', 'wp-2fa' ); ?>
 								</p>
@@ -114,7 +132,7 @@ class FirstTimeWizardSteps {
 										<input type="radio" name="wp_2fa_policy[specify-email_hotp]" id="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>" value="<?php echo \esc_attr( $option_settings['value'] ); ?>" class="js-nested"
 											<?php checked( Settings::get_role_or_default_setting( 'specify-email_hotp', null ), $option_settings['value'] ); ?>
 										>
-										<span><?php echo $option_settings['label']; // @codingStandardsIgnoreLine - already escaped ?></span>
+										<span><?php echo $option_settings['label']; // phpcs:ignore ?></span>
 									</label>
 										<?php
 								}
@@ -128,14 +146,14 @@ class FirstTimeWizardSteps {
 								$class = '';
 
 								if ( '' === trim( Settings::get_role_or_default_setting( 'enable_totp', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_email', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_oob_email', null, null, true ) ) ) {
-									$class = ' class="disabled"';
+									$class = 'disabled';
 								}
 								?>
 								<div class="method-title"><em><?php esc_html_e( 'Secondary 2FA methods:', 'wp-2fa' ); ?></em></div>
 								<br>
-								<label for="backup-codes" <?php echo $class; // @codingStandardsIgnoreLine - escaped in our code ?>>
-									<input <?php echo $class; // @codingStandardsIgnoreLine - escaped in our code ?> type="checkbox" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]" 
-									<?php echo $data_role; // @codingStandardsIgnoreLine - escaped in our code ?>
+								<label for="backup-codes" class="wp-2fa-settings-wrapper <?php echo $class; // phpcs:ignore ?>">
+									<input type="checkbox" class="<?php echo \esc_attr( $class ); ?>" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]" 
+									<?php echo $data_role; // phpcs:ignore ?>
 									value="yes"
 									<?php checked( WP2FA::get_wp2fa_setting( 'backup_codes_enabled' ), 'yes' ); ?>
 									>
@@ -153,7 +171,16 @@ class FirstTimeWizardSteps {
 									?>
 								</label>
 								<?php
-								\do_action( 'wp_2fa_after_backup_methods_setup', $setup_wizard, $data_role, null );
+								/**
+								 * Fires after the backup methods HTML rendering is finished.
+								 *
+								 * @param bool $wizard - Is that wizard ot standard setting.
+								 * @param string $data_role - The JS data attribute for the form inputs.
+								 * @param string $role - The name of the user role.
+								 *
+								 * @since 2.0.0
+								 */
+								\do_action( WP_2FA_PREFIX . 'after_backup_methods_setup', $setup_wizard, $data_role, null );
 							} else {
 								?>
 								<input type="hidden" name="wp_2fa_policy[backup_codes_enabled]" value="yes">
@@ -188,7 +215,7 @@ class FirstTimeWizardSteps {
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'select_methods', $output, $setup_wizard );
 
-		echo $output; // @codingStandardsIgnoreLine - not escaped warning 
+		echo $output; // phpcs:ignore
 	}
 
 	/**
@@ -223,7 +250,7 @@ class FirstTimeWizardSteps {
 							<span><?php esc_html_e( 'All users', 'wp-2fa' ); ?></span>
 							</label>
 
-							<?php if ( WP2FA::is_this_multisite() ) : ?>
+							<?php if ( WP_Helper::is_multisite() ) : ?>
 								<label for="superadmins-only" style="margin:.35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="superadmins-only" value="superadmins-only"
 											<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'superadmins-only' ); ?> />
@@ -273,14 +300,14 @@ class FirstTimeWizardSteps {
 												$selected = 'selected="selected"';
 											}
 											?>
-														<option <?php echo $selected; // @codingStandardsIgnoreLine ?> value="<?php echo \esc_attr( strtolower( $role ) ); ?>"><?php echo \esc_html( $role_name ); ?></option>
+														<option <?php echo $selected; // phpcs:ignore ?> value="<?php echo \esc_attr( strtolower( $role ) ); ?>"><?php echo \esc_html( $role_name ); ?></option>
 												<?php
 										}
 										?>
 										</select>
 									</p>
 								</div>
-									<?php if ( WP2FA::is_this_multisite() ) { ?>
+									<?php if ( WP_Helper::is_multisite() ) { ?>
 								<p class="description">
 									<input type="checkbox" name="wp_2fa_policy[superadmins-role-add]" id="superadmins-role-add" value="yes" style="position: relative; top: -3px;" 
 											<?php checked( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ), 'yes' ); ?> />
@@ -288,7 +315,7 @@ class FirstTimeWizardSteps {
 								</p>
 								<?php } ?>
 							</fieldset>
-					<?php if ( WP2FA::is_this_multisite() ) { ?>
+					<?php if ( WP_Helper::is_multisite() ) { ?>
 							<div>
 								<label for="enforce-on-multisite" style="margin:.35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="enforce-on-multisite" value="enforce-on-multisite"
@@ -301,7 +328,7 @@ class FirstTimeWizardSteps {
 										<label for="slim-multi-select"><?php esc_html_e( 'Sites :', 'wp-2fa' ); ?></label> <select multiple="multiple" id="slim-multi-select" name="wp_2fa_policy[included_sites][]" style="display:none; width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 											<?php
 											$selected_sites = WP2FA::get_wp2fa_setting( 'included_sites' );
-											foreach ( WP2FA::getMultiSites() as $site ) {
+											foreach ( WP_Helper::get_multi_sites() as $site ) {
 												$args = array(
 													'blog_id' => $site->blog_id,
 												);
@@ -312,7 +339,7 @@ class FirstTimeWizardSteps {
 													$selected = 'selected="selected"';
 												}
 												?>
-												<option <?php echo $selected; // @codingStandardsIgnoreLine ?> value="<?php echo \esc_attr( $site->blog_id ); ?>"><?php echo \esc_html( $current_blog_details->blogname ); ?></option>
+												<option <?php echo $selected; // phpcs:ignore ?> value="<?php echo \esc_attr( $site->blog_id ); ?>"><?php echo \esc_html( $current_blog_details->blogname ); ?></option>
 												<?php
 											}
 											?>
@@ -363,7 +390,7 @@ class FirstTimeWizardSteps {
 		<table class="form-table js-enforcement-policy-section">
 			<tbody>
 				<tr>
-					<th><label for="enforcement-policy"><?php esc_html_e( 'Exclude the following users', 'wp-2fa' ); ?></label></th>
+					<th><label id="exclude-users" for="excluded-users-multi-select"><?php esc_html_e( 'Exclude the following users', 'wp-2fa' ); ?></label></th>
 					<td>
 		<?php } else { ?>
 					<label for="excluded-users-multi-select"><?php esc_html_e( 'Exclude the following users', 'wp-2fa' ); ?>
@@ -381,19 +408,19 @@ class FirstTimeWizardSteps {
 								?>
 								</select>
 							</div>
-		<?php
-		if ( ! $setup_wizard ) {
-			?>
+						<?php
+						if ( ! $setup_wizard ) {
+							?>
 
 							</td>
 					</tr>
 					<tr>
-						<th><label for="enforcement-policy"><?php esc_html_e( 'Exclude the following roles', 'wp-2fa' ); ?></label></th>
+						<th><label for="excluded-roles-multi-select"><?php esc_html_e( 'Exclude the following roles', 'wp-2fa' ); ?></label></th>
 						<td>
 							<p>
 						<?php } else { ?>
 							<br>
-								<label for="enforcement-policy"><?php esc_html_e( 'Exclude the following roles', 'wp-2fa' ); ?></label>
+								<label for="excluded-roles-multi-select"><?php esc_html_e( 'Exclude the following roles', 'wp-2fa' ); ?></label>
 							<?php } ?>
 									<select multiple="multiple" id="excluded-roles-multi-select" name="wp_2fa_policy[excluded_roles][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 									<?php
@@ -405,13 +432,13 @@ class FirstTimeWizardSteps {
 											$selected = 'selected="selected"';
 										}
 										?>
-											<option <?php echo $selected;  // @codingStandardsIgnoreLine ?> value="<?php echo \esc_attr( strtolower( $role ) ); ?>"><?php echo \esc_html( $role_name ); ?></option>
+											<option <?php echo $selected;  // phpcs:ignore ?> value="<?php echo \esc_attr( strtolower( $role ) ); ?>"><?php echo \esc_html( $role_name ); ?></option>
 											<?php
 									}
 									?>
 									</select>
 							<br>
-							<?php if ( WP2FA::is_this_multisite() ) { ?>
+							<?php if ( WP_Helper::is_multisite() ) { ?>
 							<div style="margin-top:10px;">
 								<input type="checkbox" name="wp_2fa_policy[superadmins-role-exclude]" id="superadmins-role-exclude" value="yes"
 									<?php checked( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ), 'yes' ); ?> />
@@ -504,7 +531,12 @@ class FirstTimeWizardSteps {
 	 */
 	public static function grace_period( $setup_wizard = false ) {
 		$grace_period = (int) WP2FA::get_wp2fa_setting( 'grace-period', true );
-		$testing      = apply_filters( 'wp_2fa_allow_grace_period_in_seconds', false );
+		/**
+		 * Via that, you can change the grace period TTL.
+		 *
+		 * @param bool - Default at this point is true - no method is selected.
+		 */
+		$testing = apply_filters( WP_2FA_PREFIX . 'allow_grace_period_in_seconds', false );
 		if ( $testing ) {
 			$grace_max = 600;
 		} else {
@@ -541,11 +573,27 @@ class FirstTimeWizardSteps {
 					<?php esc_html_e( 'days', 'wp-2fa' ); ?>
 				</label>
 				<?php
-					$after_grace_content = \apply_filters( 'wp_2fa_after_grace_period', '', '', 'wp_2fa_policy' );
-					echo $after_grace_content; // @codingStandardsIgnoreLine
+					/**
+					 * Fires after the grace period. Gives the ability to change the parsed code.
+					 *
+					 * @param string $content - HTML content.
+					 * @param string $role - The name of the role.
+					 * @param string $name_prefix - Name prefix for the input name, includes the role name if provided.
+					 * @param string $data_role - Data attribute - used by the JS.
+					 * @param string $role_id - The role name, used to identify the inputs.
+					 *
+					 * @since 2.0.0
+					 */
+					$after_grace_content = \apply_filters( WP_2FA_PREFIX . 'after_grace_period', '', '', 'wp_2fa_policy' );
+					echo $after_grace_content; // phpcs:ignore
 				?>
 				<?php
-				$testing = apply_filters( 'wp_2fa_allow_grace_period_in_seconds', false );
+				/**
+				 * Via that, you can change the grace period TTL.
+				 *
+				 * @param bool - Default at this point is true - no method is selected.
+				 */
+				$testing = apply_filters( WP_2FA_PREFIX . 'allow_grace_period_in_seconds', false );
 				if ( $testing ) {
 					?>
 					<label class="radio-inline">

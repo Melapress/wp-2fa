@@ -77,7 +77,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		 * @since 2.1.0
 		 */
 		do_action( 'login_head' );
-		if ( is_multisite() ) {
+		if ( \WP2FA\Admin\Helpers\WP_Helper::is_multisite() ) {
 				$login_header_url   = network_home_url();
 				$login_header_title = get_network()->site_name;
 		} else {
@@ -104,7 +104,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		 * To match the URL/title set above, Multisite sites have the blog name,
 		 * while single sites get the header title.
 		 */
-		if ( is_multisite() ) {
+		if ( \WP2FA\Admin\Helpers\WP_Helper::is_multisite() ) {
 				$login_header_text = get_bloginfo( 'name', 'display' );
 		} else {
 				$login_header_text = $login_header_title;
