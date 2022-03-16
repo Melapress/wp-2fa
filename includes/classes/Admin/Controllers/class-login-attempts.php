@@ -2,8 +2,11 @@
 /**
  * Responsible for the plugin login attempts
  *
- * @package wp2fa
- * @subpackage login-attempts
+ * @package    wp2fa
+ * @subpackage admin_controllers
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\Controllers;
@@ -51,54 +54,54 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		public function __construct( string $meta_key = '', int $attempts = 0 ) {
 			if ( '' !== trim( $meta_key ) ) {
 				$this->meta_key = $meta_key;
-            }
+			}
 			if ( 0 !== $attempts ) {
 				$this->number_of_allowed_attempts = $attempts;
-            }
+			}
 		}
 
-        /**
-         * Increasing login attempts for User
-         *
-         * @since 2.0.0
-         *
-         * @param \WP_User $user - the WP User.
-         *
-         * @return void
-         */
-        public function increase_login_attempts( \WP_User $user ) {
-            $attempts = $this->get_login_attempts( $user );
-            if ( '' === $attempts ) {
-                $attempts = 0;
-            }
+		/**
+		 * Increasing login attempts for User
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param \WP_User $user - the WP User.
+		 *
+		 * @return void
+		 */
+		public function increase_login_attempts( \WP_User $user ) {
+			$attempts = $this->get_login_attempts( $user );
+			if ( '' === $attempts ) {
+				$attempts = 0;
+			}
 			\update_user_meta( $user->ID, $this->meta_key, ++$attempts );
-        }
+		}
 
-        /**
-         * Returns the number of unsuccessful attempts for the User
-         *
-         * @since 2.0.0
-         *
-         * @param \WP_User $user - the WP User.
-         *
-         * @return integer
-         */
-        public function get_login_attempts( \WP_User $user ): int {
-            return (int) \get_user_meta( $user->ID, $this->meta_key, true );
-        }
+		/**
+		 * Returns the number of unsuccessful attempts for the User
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param \WP_User $user - the WP User.
+		 *
+		 * @return integer
+		 */
+		public function get_login_attempts( \WP_User $user ): int {
+			return (int) \get_user_meta( $user->ID, $this->meta_key, true );
+		}
 
-        /**
-         * Clearing login attempts for User
-         *
-         * @since 2.0.0
-         *
-         * @param \WP_User $user - the WP User.
-         *
-         * @return void
-         */
-        public function clear_login_attempts( \WP_User $user ) {
+		/**
+		 * Clearing login attempts for User
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param \WP_User $user - the WP User.
+		 *
+		 * @return void
+		 */
+		public function clear_login_attempts( \WP_User $user ) {
 			\delete_user_meta( $user->ID, $this->meta_key );
-        }
+		}
 
 		/**
 		 * Returns the number of allowed login attempts

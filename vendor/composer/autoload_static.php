@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInite413ccca56308054856addf26eb955a8
+class ComposerStaticInit3fee6bbdf54272764f550434bf0c249d
 {
     public static $files = array (
         'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
@@ -87,39 +87,42 @@ class ComposerStaticInite413ccca56308054856addf26eb955a8
 
     public static $classMap = array (
         'WP2FA\\Admin\\Controllers\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-login-attempts.php',
+        'WP2FA\\Admin\\Controllers\\Methods' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-methods.php',
         'WP2FA\\Admin\\Controllers\\Settings' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-settings.php',
-        'WP2FA\\Admin\\HelpContactUs' => __DIR__ . '/../..' . '/includes/classes/Admin/HelpContactUs.php',
-        'WP2FA\\Admin\\PremiumFeatures' => __DIR__ . '/../..' . '/includes/classes/Admin/PremiumFeatures.php',
-        'WP2FA\\Admin\\SettingsPage' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPage.php',
+        'WP2FA\\Admin\\Help_Contact_Us' => __DIR__ . '/../..' . '/includes/classes/Admin/class-help-contact-us.php',
+        'WP2FA\\Admin\\Helpers\\User_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-user-helper.php',
+        'WP2FA\\Admin\\Helpers\\WP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-wp-helper.php',
+        'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_General' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-general.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Policies' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-policies.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_White_Label' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-white-label.php',
-        'WP2FA\\Admin\\SetupWizard' => __DIR__ . '/../..' . '/includes/classes/Admin/SetupWizard.php',
-        'WP2FA\\Admin\\User' => __DIR__ . '/../..' . '/includes/classes/Admin/User.php',
-        'WP2FA\\Admin\\UserListing' => __DIR__ . '/../..' . '/includes/classes/Admin/UserListing.php',
-        'WP2FA\\Admin\\UserNotices' => __DIR__ . '/../..' . '/includes/classes/Admin/UserNotices.php',
-        'WP2FA\\Admin\\UserProfile' => __DIR__ . '/../..' . '/includes/classes/Admin/UserProfile.php',
-        'WP2FA\\Admin\\UserRegistered' => __DIR__ . '/../..' . '/includes/classes/Admin/UserRegistered.php',
-        'WP2FA\\Admin\\Views\\FirstTimeWizardSteps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/FirstTimeWizardSteps.php',
+        'WP2FA\\Admin\\Settings_Page' => __DIR__ . '/../..' . '/includes/classes/Admin/class-settings-page.php',
+        'WP2FA\\Admin\\Setup_Wizard' => __DIR__ . '/../..' . '/includes/classes/Admin/class-setup-wizard.php',
+        'WP2FA\\Admin\\User' => __DIR__ . '/../..' . '/includes/classes/Admin/class-user.php',
+        'WP2FA\\Admin\\User_Listing' => __DIR__ . '/../..' . '/includes/classes/Admin/class-user-listing.php',
+        'WP2FA\\Admin\\User_Notices' => __DIR__ . '/../..' . '/includes/classes/Admin/class-user-notices.php',
+        'WP2FA\\Admin\\User_Profile' => __DIR__ . '/../..' . '/includes/classes/Admin/class-user-profile.php',
+        'WP2FA\\Admin\\User_Registered' => __DIR__ . '/../..' . '/includes/classes/Admin/class-user-registered.php',
+        'WP2FA\\Admin\\Views\\First_Time_Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-first-time-wizard-steps.php',
         'WP2FA\\Admin\\Views\\Settings_Page_Render' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-settings-page-render.php',
-        'WP2FA\\Admin\\Views\\WizardSteps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/WizardSteps.php',
-        'WP2FA\\Authenticator\\Authentication' => __DIR__ . '/../..' . '/includes/classes/Authenticator/Authentication.php',
-        'WP2FA\\Authenticator\\BackupCodes' => __DIR__ . '/../..' . '/includes/classes/Authenticator/BackupCodes.php',
-        'WP2FA\\Authenticator\\Login' => __DIR__ . '/../..' . '/includes/classes/Authenticator/Login.php',
+        'WP2FA\\Admin\\Views\\Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-wizard-steps.php',
+        'WP2FA\\Authenticator\\Authentication' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-authentication.php',
+        'WP2FA\\Authenticator\\Backup_Codes' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-backup-codes.php',
+        'WP2FA\\Authenticator\\Login' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-login.php',
         'WP2FA\\Authenticator\\Open_SSL' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-open-ssl.php',
-        'WP2FA\\Cron\\CronTasks' => __DIR__ . '/../..' . '/includes/classes/Cron/CronTasks.php',
-        'WP2FA\\EmailTemplate' => __DIR__ . '/../..' . '/includes/classes/EmailTemplate.php',
-        'WP2FA\\Shortcodes\\Shortcodes' => __DIR__ . '/../..' . '/includes/classes/Shortcodes/Shortcodes.php',
-        'WP2FA\\Utils\\AbstractMigration' => __DIR__ . '/../..' . '/includes/classes/Utils/AbstractMigration.php',
-        'WP2FA\\Utils\\DateTimeUtils' => __DIR__ . '/../..' . '/includes/classes/Utils/DateTimeUtils.php',
-        'WP2FA\\Utils\\Debugging' => __DIR__ . '/../..' . '/includes/classes/Utils/Debugging.php',
-        'WP2FA\\Utils\\GenerateModal' => __DIR__ . '/../..' . '/includes/classes/Utils/GenerateModal.php',
-        'WP2FA\\Utils\\Migration' => __DIR__ . '/../..' . '/includes/classes/Utils/Migration.php',
-        'WP2FA\\Utils\\RequestUtils' => __DIR__ . '/../..' . '/includes/classes/Utils/RequestUtils.php',
-        'WP2FA\\Utils\\SettingsUtils' => __DIR__ . '/../..' . '/includes/classes/Utils/SettingsUtils.php',
-        'WP2FA\\Utils\\UserUtils' => __DIR__ . '/../..' . '/includes/classes/Utils/UserUtils.php',
-        'WP2FA\\WP2FA' => __DIR__ . '/../..' . '/includes/classes/WP2FA.php',
+        'WP2FA\\Cron\\Cron_Tasks' => __DIR__ . '/../..' . '/includes/classes/Cron/class-cron-tasks.php',
+        'WP2FA\\Email_Template' => __DIR__ . '/../..' . '/includes/classes/class-email-template.php',
+        'WP2FA\\Shortcodes\\Shortcodes' => __DIR__ . '/../..' . '/includes/classes/Shortcodes/class-shortcodes.php',
+        'WP2FA\\Utils\\Abstract_Migration' => __DIR__ . '/../..' . '/includes/classes/Utils/class-abstract-migration.php',
+        'WP2FA\\Utils\\Date_Time_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-date-time-utils.php',
+        'WP2FA\\Utils\\Debugging' => __DIR__ . '/../..' . '/includes/classes/Utils/class-debugging.php',
+        'WP2FA\\Utils\\Generate_Modal' => __DIR__ . '/../..' . '/includes/classes/Utils/class-generate-modal.php',
+        'WP2FA\\Utils\\Migration' => __DIR__ . '/../..' . '/includes/classes/Utils/class-migration.php',
+        'WP2FA\\Utils\\Request_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-request-utils.php',
+        'WP2FA\\Utils\\Settings_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-settings-utils.php',
+        'WP2FA\\Utils\\User_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-user-utils.php',
+        'WP2FA\\WP2FA' => __DIR__ . '/../..' . '/includes/classes/class-wp2fa.php',
         'WP_Async_Request' => __DIR__ . '/..' . '/deliciousbrains/wp-background-processing/classes/wp-async-request.php',
         'WP_Background_Process' => __DIR__ . '/..' . '/deliciousbrains/wp-background-processing/classes/wp-background-process.php',
     );
@@ -127,9 +130,9 @@ class ComposerStaticInite413ccca56308054856addf26eb955a8
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInite413ccca56308054856addf26eb955a8::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInite413ccca56308054856addf26eb955a8::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInite413ccca56308054856addf26eb955a8::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3fee6bbdf54272764f550434bf0c249d::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3fee6bbdf54272764f550434bf0c249d::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit3fee6bbdf54272764f550434bf0c249d::$classMap;
 
         }, null, ClassLoader::class);
     }
