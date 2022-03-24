@@ -12,13 +12,13 @@
 namespace WP2FA\Admin\SettingsPages;
 
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\Controllers\Settings;
-use \WP2FA\Utils\Debugging as Debugging;
-use WP2FA\Admin\Views\First_Time_Wizard_Steps;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
 use \WP2FA\Utils\Generate_Modal as Generate_Modal;
+use \WP2FA\Utils\Debugging as Debugging;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Admin\Views\First_Time_Wizard_Steps;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Policies settings tab
@@ -102,7 +102,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					} else {
 						$action = 'options.php';
 					}
-					if ( ! isset( $_REQUEST['tab'] ) || isset( $_REQUEST['tab'] ) && '2fa-settings' === $_REQUEST['tab'] ) :// phpcs:ignore WP no nonce warning
+					if ( ! isset( $_REQUEST['tab'] ) || isset( $_REQUEST['tab'] ) && '2fa-settings' === $_REQUEST['tab'] ) :// phpcs:ignore
 						?>
 					<br/>
 						<?php
@@ -352,7 +352,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$output['grace-period-denominator'] = sanitize_text_field( $input['grace-period-denominator'] );
 			}
 
-			if ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] || isset( $input['create-custom-user-page'] ) && 'no' === $input['create-custom-user-page'] ) {
+			if ( ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] ) || ( isset( $input['create-custom-user-page'] ) && 'no' === $input['create-custom-user-page'] ) ) {
 				$output['create-custom-user-page'] = sanitize_text_field( $input['create-custom-user-page'] );
 			}
 
@@ -602,7 +602,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		 * @param string $slug - The post slug.
 		 * @param string $post_type - Post type.
 		 *
-		 * @return \WP_Post
+		 * @return \WP_Post|bool
 		 *
 		 * @since 2.0.0
 		 */
@@ -800,10 +800,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		 * @since 2.0.0
 		 */
 		private function excluded_roles_or_users_setting() {
-			$enforcement    = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
-			$disabled_class = ( 'do-not-enforce' === $enforcement ) ? 'disabled' : 'enabled';
 			?>
-		<div id="exclusion_settings_wrapper" class="<?php echo esc_attr( $disabled_class ); ?>">
+		<div id="exclusion_settings_wrapper">
 			<?php First_Time_Wizard_Steps::exclude_users(); ?>
 		</div>
 			<?php

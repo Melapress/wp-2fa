@@ -19,10 +19,10 @@
 
 namespace WP2FA\Authenticator;
 
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\SvgWriter;
-use WP2FA\Admin\Controllers\Login_Attempts;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Login_Attempts;
+use Endroid\QrCode\Writer\SvgWriter;
+use Endroid\QrCode\QrCode;
 
 /**
  * Authenticator class
@@ -47,7 +47,7 @@ class Authentication {
 	/**
 	 * The login attempts class
 	 *
-	 * @var WP2FA\Extensions\Login_Attempts
+	 * @var \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */
@@ -84,7 +84,7 @@ class Authentication {
 		$writer = new SvgWriter();
 		$result = $writer->writeString( $qr );
 
-		return 'data:image/svg+xml;base64,' . base64_encode( $result );
+		return 'data:image/svg+xml;base64,' . base64_encode( $result ); // phpcs:ignore
 	}
 
 	/**
@@ -528,7 +528,7 @@ class Authentication {
 	/**
 	 * Returns instance of the LoginAttempts class
 	 *
-	 * @return LoginAttempts
+	 * @return \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */

@@ -13,9 +13,9 @@ namespace WP2FA\Admin;
 
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Utils\Date_Time_Utils;
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * User_Notices - Class for displaying notices to our users.
@@ -35,7 +35,7 @@ class User_Notices {
 		$enforcement_policy = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
 		if ( ! empty( $enforcement_policy ) ) {
 			// Check we are supposed to, before adding action to show nag.
-			if ( in_array( $enforcement_policy, array( 'all-users', 'certain-roles-only', 'certain-users-only', 'superadmins-only', 'superadmins-siteadmins-only', 'enforce-on-multisite' ) ) ) {
+			if ( in_array( $enforcement_policy, array( 'all-users', 'certain-roles-only', 'certain-users-only', 'superadmins-only', 'superadmins-siteadmins-only', 'enforce-on-multisite', true ), true ) ) {
 				add_action( 'admin_notices', array( $this, 'user_setup_2fa_nag' ) );
 				add_action( 'network_admin_notices', array( $this, 'user_setup_2fa_nag' ) );
 			} elseif ( 'do-not-enforce' === WP2FA::get_wp2fa_setting( 'enforcement-policy' ) ) {
@@ -57,8 +57,8 @@ class User_Notices {
 
 		$this->ensure_user();
 
-		if ( isset( $_GET['user_id'] ) ) {
-			$current_profile_user_id = (int) $_GET['user_id'];
+		if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
+			$current_profile_user_id = (int) $_GET['user_id']; // phpcs:ignore
 		} elseif ( ! is_null( $this->wp2fa_user->get_2fa_wp_user() ) ) {
 			$current_profile_user_id = $this->wp2fa_user->get_2fa_wp_user()->ID;
 		} else {
@@ -66,8 +66,8 @@ class User_Notices {
 		}
 
 		if ( ! $current_profile_user_id ||
-			isset( $_GET['user_id'] ) &&
-			$_GET['user_id'] !== $this->wp2fa_user->get_2fa_wp_user()->ID ||
+			isset( $_GET['user_id'] ) && // phpcs:ignore
+			$_GET['user_id'] !== $this->wp2fa_user->get_2fa_wp_user()->ID || // phpcs:ignore
 			User_Helper::get_user_enforced_instantly( $this->wp2fa_user->get_2fa_wp_user() ) ) {
 			return;
 		}

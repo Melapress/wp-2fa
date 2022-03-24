@@ -65,10 +65,10 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 
 					foreach ( $settings as $setting_tab => $setting_values ) {
 						$active_class = '';
-						if ( ! isset( $_REQUEST['tab'] ) && $setting_values['default'] ) {
+						if ( ! isset( $_REQUEST['tab'] ) && $setting_values['default'] ) { // phpcs:ignore
 							$active_class         = 'nav-tab-active';
 							$default_settings_key = $setting_tab;
-						} elseif ( isset( $_REQUEST['tab'] ) && $setting_tab === $_REQUEST['tab'] ) {
+						} elseif ( isset( $_REQUEST['tab'] ) && $setting_tab === $_REQUEST['tab'] ) { // phpcs:ignore
 							$active_class = 'nav-tab-active';
 						}
 						echo '<a href="' . $setting_values['url'] . '" class="nav-tab ' . $active_class . '">' . $setting_values['name'] . '</a>'; // phpcs:ignore
@@ -79,7 +79,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 					$show_tab = $default_settings_key;
 
 					if ( isset( $_REQUEST['tab'] ) && array_key_exists( $_REQUEST['tab'], $settings ) ) { // phpcs:ignore
-						$show_tab = \sanitize_text_field( \wp_unslash( $_REQUEST['tab'] ) );
+						$show_tab = \sanitize_text_field( \wp_unslash( $_REQUEST['tab'] ) ); // phpcs:ignore
 					}
 
 					if ( WP_Helper::is_multisite() ) {

@@ -12,10 +12,10 @@
 namespace WP2FA\Admin\Views;
 
 use WP2FA\WP2FA;
-use WP2FA\Admin\User;
 use WP2FA\Utils\User_Utils;
-use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
+use WP2FA\Admin\User;
+use WP2FA\Admin\Controllers\Settings;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -433,7 +433,7 @@ class Wizard_Steps {
 					</a>
 					<?php
 				} else {
-					?>								
+					?>
 					<a href="#" class="button button-secondary" data-close-2fa-modal value="<?php esc_attr_e( 'I’ll generate them later', 'wp-2fa' ); ?>">
 						<?php esc_html_e( 'I’ll generate them later', 'wp-2fa' ); ?>
 					</a>

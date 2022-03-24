@@ -12,17 +12,17 @@
 namespace WP2FA\Admin;
 
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Utils\Generate_Modal;
-use WP2FA\Admin\Views\Wizard_Steps;
-use WP2FA\Authenticator\Backup_Codes;
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Admin\Controllers\Methods;
-use WP2FA\Authenticator\Authentication;
 use \WP2FA\Utils\User_Utils as User_Utils;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Utils\Generate_Modal;
 use WP2FA\Authenticator\Open_SSL;
-use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Authenticator\Backup_Codes;
+use WP2FA\Authenticator\Authentication;
+use WP2FA\Admin\Views\Wizard_Steps;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Controllers\Methods;
 
 /**
  * User_Profile - Class for handling user things such as profile settings and admin list views.
@@ -37,8 +37,8 @@ class User_Profile {
 	 */
 	public function user_2fa_options( $user, $additional_args = array() ) {
 
-		if ( isset( $_GET['user_id'] ) ) {
-			$user_id = (int) $_GET['user_id'];
+		if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
+			$user_id = (int) $_GET['user_id']; // phpcs:ignore
 			$user    = get_user_by( 'id', $user_id );
 		} else {
 			// Get current user, we're going to need this regardless.
@@ -252,7 +252,7 @@ class User_Profile {
 		  </tbody>
 		</table>';
 
-			if ( ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) || User_Helper::get_user_enforced_instantly( $user ) ) {
+			if ( ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) || User_Helper::get_user_enforced_instantly( $user ) ) { // phpcs:ignore
 				$form_output .= '
 					<script>
 					window.addEventListener("load", function() {
@@ -454,8 +454,8 @@ class User_Profile {
 	 */
 	public function inline_2fa_profile_form( $is_shortcode = '', $show_preamble = true ) {
 
-		if ( isset( $_GET['user_id'] ) ) {
-			$user_id = (int) $_GET['user_id'];
+		if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
+			$user_id = (int) $_GET['user_id']; // phpcs:ignore
 			$user    = get_user_by( 'id', $user_id );
 		} else {
 			$user = wp_get_current_user();
@@ -593,7 +593,7 @@ class User_Profile {
 	/**
 	 * Validate a user's code when setting up 2fa via the inline form.
 	 *
-	 * @return string JSON result of validation.
+	 * @return void
 	 */
 	public function validate_authcode_via_ajax() {
 		check_ajax_referer( 'wp-2fa-validate-authcode' );
@@ -601,7 +601,11 @@ class User_Profile {
 		if ( isset( $_POST['form'] ) ) {
 			$input = wp_unslash( $_POST['form'] ); // phpcs:ignore
 		} else {
-			return 'No form';
+			wp_send_json_error(
+				array(
+					'error' => esc_html__( 'No form', 'wp-2fa' ),
+				)
+			);
 		}
 
 		$user = wp_get_current_user();
@@ -649,6 +653,12 @@ class User_Profile {
 			// Send the response.
 			wp_send_json_success();
 		}
+
+		wp_send_json_error(
+			array(
+				'error' => esc_html__( 'Error processing form', 'wp-2fa' ),
+			)
+		);
 	}
 
 	/**

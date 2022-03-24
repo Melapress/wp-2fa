@@ -10,16 +10,16 @@
 
 namespace WP2FA;
 
-use WP2FA\Admin\User;
-use WP2FA\Admin\User_Listing;
-use WP2FA\Admin\Settings_Page;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
 use WP2FA\Utils\Request_Utils;
 use WP2FA\Utils\Date_Time_Utils;
 use WP2FA\Authenticator\Open_SSL;
-use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\User_Listing;
+use WP2FA\Admin\User;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Main WP2FA Class.
@@ -624,20 +624,20 @@ class WP2FA {
 			 * - custom 2FA page if enabled and created
 			 * - AJAX requests originating from these 2FA setup UIs
 			 */
-			if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && self::action_check() ) {
+			if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && self::action_check() ) { // phpcs:ignore
 				return;
 			}
 
 			if ( is_admin() || is_network_admin() ) {
 				$allowed_admin_page = 'profile.php';
-				if ( $pagenow === $allowed_admin_page && ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) ) {
+				if ( $pagenow === $allowed_admin_page && ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) ) { // phpcs:ignore
 					return;
 				}
 			}
 
 			if ( is_page() ) {
 				$custom_user_page_id = Settings::get_role_or_default_setting( 'custom-user-page-id', $user->get_2fa_wp_user() );
-				if ( ! empty( $custom_user_page_id ) && get_the_ID() == (int) $custom_user_page_id ) {
+				if ( ! empty( $custom_user_page_id ) && get_the_ID() === (int) $custom_user_page_id ) {
 					return;
 				}
 			}
@@ -818,7 +818,7 @@ class WP2FA {
 		if ( null === self::$secret_key ) {
 			self::$secret_key = Settings_Utils::get_option( 'secret_key' );
 			if ( empty( self::$secret_key ) ) {
-				self::$secret_key = base64_encode( Open_SSL::secure_random() );
+				self::$secret_key = base64_encode( Open_SSL::secure_random() ); // phpcs:ignore
 				Settings_Utils::update_option( 'secret_key', self::$secret_key );
 			}
 		}

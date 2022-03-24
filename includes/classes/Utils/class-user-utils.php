@@ -11,9 +11,9 @@
 
 namespace WP2FA\Utils;
 
-use WP2FA\Admin\User;
-use WP2FA\WP2FA as WP2FA;
 use \WP2FA\Authenticator\Backup_Codes as Backup_Codes;
+use WP2FA\WP2FA as WP2FA;
+use WP2FA\Admin\User;
 use WP2FA\Admin\Helpers\User_Helper;
 
 /**
@@ -252,48 +252,6 @@ class User_Utils {
 		}
 
 		return $wpdb->get_results( $select );
-	}
-
-	/**
-	 * Get list of IDs only if they have a specific 2FA method enabled.
-	 *
-	 * @param string $removing Method to search for.
-	 * @param array  $users_args - Additional arguments.
-	 *
-	 * @return array            User details.
-	 */
-	public static function get_all_user_ids_based_on_enabled_2fa_method( $removing, $users_args ) {
-
-		global $wpdb;
-
-		$batch_size = isset( $users_args['batch_size'] ) ? $users_args['batch_size'] : false;
-		$offset     = isset( $users_args['count'] ) ? $users_args['count'] * $batch_size : false;
-
-		$select = '
-			SELECT ID FROM ' . $wpdb->users . '
-			INNER JOIN ' . $wpdb->usermeta . ' ON ' . $wpdb->users . '.ID = ' . $wpdb->usermeta . '.user_id
-			WHERE ' . $wpdb->usermeta . '.meta_key = \'wp_2fa_enabled_methods\'
-			AND ' . $wpdb->usermeta . '.meta_value = \'' . $removing . '\'
-		';
-
-		if ( $batch_size ) {
-			$select .= '
-				LIMIT ' . $batch_size . ' OFFSET ' . $offset . '
-			';
-		}
-
-		$users = $wpdb->get_results( $select );
-
-		$users = array_map(
-			function ( $user ) {
-				return (int) $user->ID;
-			},
-			$users
-		);
-
-		$users = implode( ',', $users );
-
-		return $users;
 	}
 
 	/**

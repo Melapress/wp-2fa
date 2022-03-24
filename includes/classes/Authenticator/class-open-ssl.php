@@ -46,7 +46,7 @@ class Open_SSL {
 		Debugging::log( 'Encrypting a text: ' . $text );
 		if ( self::is_ssl_available() ) {
 			$iv   = self::secure_random( self::BLOCK_BYTE_SIZE );
-			$key  = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true );
+			$key  = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
 			$text = \openssl_encrypt(
 				$text,
 				self::CIPHER_METHOD,
@@ -55,7 +55,7 @@ class Open_SSL {
 				$iv
 			);
 
-			$text = \base64_encode( $iv . $text );
+			$text = \base64_encode( $iv . $text ); //phpcs:ignore
 		}
 		Debugging::log( 'Encrypted text: ' . $text );
 
@@ -75,9 +75,9 @@ class Open_SSL {
 		Debugging::log( 'Decrypting a text: ' . $text );
 
 		if ( self::is_ssl_available() ) {
-			$decoded_base = \base64_decode( $text );
+			$decoded_base = \base64_decode( $text ); //phpcs:ignore
 
-			$key = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true );
+			$key = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
 
 			$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
 

@@ -362,7 +362,7 @@ class Help_Contact_Us {
 		$active_plugins = get_option( 'active_plugins', array() );
 
 		foreach ( $plugins as $plugin_path => $plugin ) {
-			if ( ! in_array( $plugin_path, $active_plugins ) ) {
+			if ( ! in_array( $plugin_path, $active_plugins, true ) ) {
 				continue;
 			}
 
@@ -374,7 +374,7 @@ class Help_Contact_Us {
 		$sysinfo .= "\n" . '-- WordPress Inactive Plugins --' . "\n\n";
 
 		foreach ( $plugins as $plugin_path => $plugin ) {
-			if ( in_array( $plugin_path, $active_plugins ) ) {
+			if ( in_array( $plugin_path, $active_plugins, true ) ) {
 				continue;
 			}
 
@@ -428,12 +428,12 @@ class Help_Contact_Us {
 
 		global $wpdb;
 
-		$wp2fa_options = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE 'wp_2fa_%'", ARRAY_A );
+		$wp2fa_options = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE 'wp_2fa_%'", ARRAY_A ); // phpcs:ignore
 
 		if ( ! empty( $wp2fa_options ) ) {
 			foreach ( $wp2fa_options as $option => $value ) {
 				$sysinfo .= 'Option: ' . $value['option_name'] . "\n";
-				$sysinfo .= 'Value: ' . print_r( $value['option_value'], true ) . "\n\n";
+				$sysinfo .= 'Value: ' . print_r( $value['option_value'], true ) . "\n\n"; // phpcs:ignore
 			}
 		}
 

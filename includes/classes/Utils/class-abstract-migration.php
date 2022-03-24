@@ -107,7 +107,7 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 					$method_as_version_numbers,
 					function( $method, $key ) use ( &$stored_version_as_number, &$target_version_as_number ) {
 						if ( $target_version_as_number > $stored_version_as_number ) {
-							return ( in_array( $key, range( $stored_version_as_number, $target_version_as_number ) ) );
+							return ( in_array( $key, range( $stored_version_as_number, $target_version_as_number ), true ) );
 						}
 
 						return false;

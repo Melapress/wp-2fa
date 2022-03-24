@@ -489,19 +489,19 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 *
 		 * @param null|int|\WP_User $user - The WP user that must be used.
 		 *
-		 * @return self
+		 * @return void
 		 *
 		 * @since latest
 		 */
 		public static function set_user( $user = null ) {
 			if ( null === $user || ( $user instanceof \WP_User ) ) {
 				if ( isset( self::$user ) && $user === self::$user ) {
-					return __CLASS__;
+					return;
                 }
 				self::$user = $user;
 			} elseif ( false !== ( filter_var( $user, FILTER_VALIDATE_INT ) ) ) {
 				if ( isset( self::$user ) && $user === self::$user->ID ) {
-					return __CLASS__;
+					return;
                 }
 				if ( ! function_exists( 'get_user_by' ) ) {
 					require ABSPATH . WPINC . '/pluggable.php';
@@ -509,7 +509,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				self::$user = \get_user_by( 'id', $user );
 			} elseif ( is_string( $user ) ) {
 				if ( isset( self::$user ) && $user === self::$user->ID ) {
-					return __CLASS__;
+					return;
                 }
 				if ( ! function_exists( 'get_user_by' ) ) {
 					require ABSPATH . WPINC . '/pluggable.php';
@@ -518,14 +518,12 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			} else {
 				self::$user = wp_get_current_user();
 			}
-
-			return __CLASS__;
 		}
 
 		/**
 		 * Returns the default role for the given user
 		 *
-		 * @param \WP_User $user - The WP user.
+		 * @param null|int|\WP_User $user - The WP user.
 		 *
 		 * @return string
 		 *
@@ -542,7 +540,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Checks if the user method is within the selected methods for the given role
 		 *
-		 * @param \WP_User $user - The WP user.
+		 * @param null|int|\WP_User $user - The WP user.
 		 *
 		 * @return boolean
 		 *
@@ -603,7 +601,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes all the meta keys associated with the given user
 		 *
-		 * @param null|\WP_User $user - The WP user for which we have to remove the meta data.
+		 * @param null|int|\WP_User $user - The WP user for which we have to remove the meta data.
 		 *
 		 * @return void
 		 *

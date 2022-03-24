@@ -11,10 +11,10 @@
 
 namespace WP2FA\Cron;
 
-use WP2FA\Admin\Settings_Page;
-use WP2FA\Admin\User;
-use WP2FA\Utils\User_Utils;
 use \WP2FA\WP2FA as WP2FA;
+use WP2FA\Utils\User_Utils;
+use WP2FA\Admin\User;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\WP_Helper;
 
 /**
@@ -102,6 +102,6 @@ class Cron_Tasks {
 		$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_subject' ), $user_id ) );
 		$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
 
-		Settings_Page::send_email( $email, $subject, $message );
+		return Settings_Page::send_email( $email, $subject, $message );
 	}
 }

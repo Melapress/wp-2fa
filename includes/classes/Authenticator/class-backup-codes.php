@@ -19,10 +19,10 @@
 
 namespace WP2FA\Authenticator;
 
-use WP2FA\Admin\Settings_Page;
 use \WP2FA\Authenticator\Authentication as Authentication;
-use WP2FA\Admin\Controllers\Login_Attempts;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Login_Attempts;
 
 /**
  * Backup code class, for handling backup code generation and such.
@@ -64,7 +64,7 @@ class Backup_Codes {
 	/**
 	 * The login attempts class
 	 *
-	 * @var WP2FA\Extensions\Login_Attempts
+	 * @var \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */
@@ -117,7 +117,7 @@ class Backup_Codes {
 	/**
 	 * Returns instance of the LoginAttempts class
 	 *
-	 * @return LoginAttempts
+	 * @return \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */
