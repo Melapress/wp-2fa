@@ -64,8 +64,6 @@ class Email_Template {
 		$this->title            = $title;
 		$this->description      = $description;
 		$this->email_content_id = $id;
-
-		return $this;
 	}
 
 	/**

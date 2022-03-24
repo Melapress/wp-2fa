@@ -12,15 +12,15 @@
 namespace WP2FA\Admin;
 
 use WP2FA\WP2FA;
-use WP2FA\Cron\Cron_Tasks;
 use WP2FA\Utils\User_Utils;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Cron\Cron_Tasks;
 use WP2FA\Authenticator\Open_SSL;
+use WP2FA\Authenticator\Authentication;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Controllers\Methods;
-use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Helpers\WP_Helper;
-use WP2FA\Authenticator\Authentication;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -463,9 +463,9 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		/**
 		 * Turns dynamic $user parameter to WordPress user object.
 		 *
-		 * @param string $user This can be \WP_User, integer (representing ID of the user), or any value that returns true checked against empty in PHP.
+		 * @param string|\WP_User $user This can be \WP_User, integer (representing ID of the user), or any value that returns true checked against empty in PHP.
 		 *
-		 * @return WP_User
+		 * @return \WP_User
 		 */
 		private static function determine_user( $user = '' ) {
 			// regular WordPress user object.

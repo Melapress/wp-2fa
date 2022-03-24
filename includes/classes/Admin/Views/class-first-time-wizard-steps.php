@@ -12,8 +12,8 @@
 namespace WP2FA\Admin\Views;
 
 use WP2FA\WP2FA;
-use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -39,7 +39,7 @@ class First_Time_Wizard_Steps {
 		?>
 		<h3><?php esc_html_e( 'Which two-factor authentication methods can your users use?', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'When you disable one of the below 2FA methods none of your users can use it.', 'wp-2fa' ); ?>
+			<?php esc_html_e( 'When you uncheck any of the below 2FA methods it won\'t be available for your users to use. You can always change this later on from the plugin\'s settings.', 'wp-2fa' ); ?>
 		</p>
 		<?php
 		$data_role = 'data-role="global"';
@@ -264,7 +264,7 @@ class First_Time_Wizard_Steps {
 							<?php endif; ?>
 
 							<label for="certain-roles-only" style="margin:.35em 0 .5em !important; display: block;">
-								<?php $checked = in_array( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), array( 'certain-roles-only', 'certain-users-only' ) ); ?>
+								<?php $checked = in_array( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), array( 'certain-roles-only', 'certain-users-only' ), true ); ?>
 								<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="certain-roles-only" value="certain-roles-only"
 								<?php ( $setup_wizard ) ? checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'certain-roles-only' ) : checked( $checked ); ?>
 								data-unhide-when-checked=".certain-roles-only-inputs, .certain-users-only-inputs">
@@ -296,7 +296,7 @@ class First_Time_Wizard_Steps {
 										$enforced_roles = WP2FA::get_wp2fa_setting( 'enforced_roles' );
 										foreach ( $all_roles as $role => $role_name ) {
 											$selected = '';
-											if ( in_array( $role, $enforced_roles ) ) {
+											if ( in_array( $role, $enforced_roles, true ) ) {
 												$selected = 'selected="selected"';
 											}
 											?>
@@ -335,7 +335,7 @@ class First_Time_Wizard_Steps {
 
 												$current_blog_details = get_blog_details( $args );
 												$selected             = '';
-												if ( in_array( $site->blog_id, $selected_sites ) ) {
+												if ( in_array( $site->blog_id, $selected_sites, true ) ) {
 													$selected = 'selected="selected"';
 												}
 												?>
@@ -428,7 +428,7 @@ class First_Time_Wizard_Steps {
 									$excluded_roles = WP2FA::get_wp2fa_setting( 'excluded_roles' );
 									foreach ( $all_roles as $role => $role_name ) {
 										$selected = '';
-										if ( in_array( strtolower( $role ), $excluded_roles ) ) {
+										if ( in_array( strtolower( $role ), $excluded_roles, true ) ) {
 											$selected = 'selected="selected"';
 										}
 										?>

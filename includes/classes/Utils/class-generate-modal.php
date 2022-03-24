@@ -9,7 +9,7 @@
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
- namespace WP2FA\Utils;
+namespace WP2FA\Utils;
 
 /**
  * Utility class for creating modal popup markup.

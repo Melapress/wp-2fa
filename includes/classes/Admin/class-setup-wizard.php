@@ -11,19 +11,19 @@
 
 namespace WP2FA\Admin;
 
-use \WP2FA\Core as Core;
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\Views\Wizard_Steps;
-use WP2FA\Admin\Controllers\Settings;
 use \WP2FA\Utils\User_Utils as User_Utils;
-use WP2FA\Admin\Views\First_Time_Wizard_Steps;
+use \WP2FA\Utils\Generate_Modal as Generate_Modal;
+use \WP2FA\Core as Core;
+use \WP2FA\Authenticator\Authentication as Authentication;
 use \WP2FA\Admin\Settings_Page as Settings_Page;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
-use \WP2FA\Utils\Generate_Modal as Generate_Modal;
-use \WP2FA\Authenticator\Authentication as Authentication;
+use WP2FA\Admin\Views\Wizard_Steps;
+use WP2FA\Admin\Views\First_Time_Wizard_Steps;
 use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
-use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Our class for creating a step by step wizard for easy configuration.
@@ -75,7 +75,7 @@ class Setup_Wizard {
 	public function setup_page() {
 
 		// Get page argument from $_GET array.
-		$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : '';
+		$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
 		if ( empty( $page ) || 'wp-2fa-setup' !== $page ) {
 			return;
 		}
@@ -108,18 +108,18 @@ class Setup_Wizard {
 		$user_type = User_Utils::determine_user_2fa_status( $user );
 
 		$wizard_steps = array(
-			'welcome'               => array(
+			'welcome'                => array(
 				'name'        => esc_html__( 'Welcome', 'wp-2fa' ),
 				'content'     => array( $this, 'wp_2fa_step_welcome' ),
 				'wizard_type' => 'welcome_wizard',
 			),
-			'settings_configuation' => array(
+			'settings_configuration' => array(
 				'name'        => esc_html__( 'Select 2FA Methods', 'wp-2fa' ),
 				'content'     => array( $this, 'wp_2fa_step_global_2fa_methods' ),
 				'save'        => array( $this, 'wp_2fa_step_global_2fa_methods_save' ),
 				'wizard_type' => 'welcome_wizard',
 			),
-			'finish'                => array(
+			'finish'                 => array(
 				'name'        => esc_html__( 'Setup Finish', 'wp-2fa' ),
 				'content'     => array( $this, 'wp_2fa_step_finish' ),
 				'save'        => array( $this, 'wp_2fa_step_finish_save' ),
@@ -181,7 +181,7 @@ class Setup_Wizard {
 		$this->wizard_steps = apply_filters( WP_2FA_PREFIX . 'wizard_default_steps', $wizard_steps );
 
 		// Set current step.
-		$current_step       = ( isset( $_GET['current-step'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['current-step'] ) ) : '';
+		$current_step       = ( isset( $_GET['current-step'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['current-step'] ) ) : ''; // phpcs:ignore
 		$this->current_step = ! empty( $current_step ) ? $current_step : current( array_keys( $this->wizard_steps ) );
 
 		if ( 'backup_codes' === $this->current_step && ! Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) {
@@ -229,6 +229,7 @@ class Setup_Wizard {
 		wp_enqueue_script(
 			'wp_2fa_micromodal',
 			Core\script_url( 'micromodal', 'admin', 'select2' ),
+			array(),
 			WP_2FA_VERSION,
 			true
 		);
@@ -258,7 +259,7 @@ class Setup_Wizard {
 		 *
 		 * @since latest
 		 */
-		$data_array = apply_filters( WP_2FA_PREFIX . 'js-wizard-settings', $data_array );
+		$data_array = apply_filters( WP_2FA_PREFIX . 'js_wizard_settings', $data_array );
 		wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
 
 		/**
@@ -429,7 +430,7 @@ class Setup_Wizard {
 	 */
 	private function wp_2fa_step_finish() {
 		$wp2fa_user = User::get_instance();
-		User_Helper::remove_user_needs_to_reconfigure_2fa( $wp2fa_user->get_2fa_wp_user );
+		User_Helper::remove_user_needs_to_reconfigure_2fa( $wp2fa_user->get_2fa_wp_user() );
 		Wizard_Steps::congratulations_step( true );
 	}
 
@@ -535,7 +536,6 @@ class Setup_Wizard {
 			$nonce_check = wp_verify_nonce( sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'wp-2fa-send-setup-email' );
 			if ( ! $nonce_check ) {
 				return false;
-				exit();
 			}
 		}
 

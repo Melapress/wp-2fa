@@ -14,9 +14,6 @@ namespace WP2FA\Admin;
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Utils\User_Utils;
 use WP2FA\Utils\Settings_Utils;
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Settings_Page_Render;
 use WP2FA\Admin\SettingsPages\{
 	Settings_Page_Policies,
@@ -24,6 +21,9 @@ use WP2FA\Admin\SettingsPages\{
 	Settings_Page_White_Label,
 	Settings_Page_Email
 };
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Class for handling settings
@@ -50,7 +50,7 @@ class Settings_Page {
 			'manage_options',
 			self::TOP_MENU_SLUG,
 			null,
-			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
+			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ), // phpcs:ignore
 			81
 		);
 
@@ -128,7 +128,7 @@ class Settings_Page {
 			'manage_options',
 			self::TOP_MENU_SLUG,
 			null,
-			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
+			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ), // phpcs:ignore
 			81
 		);
 
@@ -278,7 +278,7 @@ class Settings_Page {
 
 		if ( isset( $get_array['user_id'] ) ) {
 			global $wpdb;
-			$wpdb->query(
+			$wpdb->query( // phpcs:ignore
 				$wpdb->prepare(
 					"
 			   DELETE FROM $wpdb->usermeta
@@ -374,7 +374,7 @@ class Settings_Page {
 		$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_unlocked_email_subject' ) ) );
 		$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_unlocked_email_body' ), $user_id ) );
 
-		self::send_email( $email, $subject, $message );
+		return self::send_email( $email, $subject, $message );
 	}
 
 	/**
@@ -511,7 +511,7 @@ class Settings_Page {
 	 * These are used instead of add_settings_error which in a network site. Used to show if settings have been updated or failed.
 	 */
 	public function settings_saved_network_admin_notice() {
-		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'true' === $_GET['wp_2fa_network_settings_updated'] ) :
+		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'true' === $_GET['wp_2fa_network_settings_updated'] ) { // phpcs:ignore
 			?>
 			<div class="notice notice-success is-dismissible">
 				<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
@@ -520,8 +520,8 @@ class Settings_Page {
 				</button>
 			</div>
 			<?php
-		endif;
-		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'false' === $_GET['wp_2fa_network_settings_updated'] ) :
+		}
+		if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'false' === $_GET['wp_2fa_network_settings_updated'] ) { // phpcs:ignore
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><?php esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
@@ -530,8 +530,8 @@ class Settings_Page {
 				</button>
 			</div>
 			<?php
-		endif;
-		if ( isset( $_GET['wp_2fa_network_settings_error'] ) ) :
+		}
+		if ( isset( $_GET['wp_2fa_network_settings_error'] ) ) { // phpcs:ignore
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><?php echo urldecode_deep( $_GET['wp_2fa_network_settings_error'] ); // phpcs:ignore ?></p>
@@ -540,7 +540,7 @@ class Settings_Page {
 				</button>
 			</div>
 			<?php
-		endif;
+		}
 	}
 
 	/**
@@ -551,7 +551,7 @@ class Settings_Page {
 	 * @since 2.0.0
 	 */
 	public function settings_saved_admin_notice() {
-		if ( isset( $_GET['settings-updated'] ) && 'true' === $_GET['settings-updated'] ) :
+		if ( isset( $_GET['settings-updated'] ) && 'true' === $_GET['settings-updated'] ) { // phpcs:ignore
 			$wp_settings_errors = get_settings_errors();
 
 			if ( count( $wp_settings_errors ) ) {
@@ -575,8 +575,8 @@ class Settings_Page {
 			</div>
 				<?php
 			}
-		endif;
-		if ( isset( $_GET['settings-updated'] ) && 'false' === $_GET['settings-updated'] ) :
+		}
+		if ( isset( $_GET['settings-updated'] ) && 'false' === $_GET['settings-updated'] ) { // phpcs:ignore
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><?php esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
@@ -585,8 +585,8 @@ class Settings_Page {
 				</button>
 			</div>
 			<?php
-		endif;
-		if ( isset( $_GET['settings_error'] ) ) :
+		}
+		if ( isset( $_GET['settings_error'] ) ) { // phpcs:ignore
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><?php echo urldecode_deep( $_GET['settings_error'] ); // phpcs:ignore ?></p>
@@ -595,7 +595,7 @@ class Settings_Page {
 				</button>
 			</div>
 			<?php
-		endif;
+		}
 	}
 
 	/**
@@ -668,7 +668,7 @@ class Settings_Page {
 	public function get_current_number_of_active_bg_processes() {
 		global $wpdb;
 
-		$bg_jobs = $wpdb->get_results(
+		$bg_jobs = $wpdb->get_results( // phpcs:ignore
 			"SELECT option_value FROM $wpdb->options
 				WHERE option_name LIKE '%_2fa_bg_%'"
 		);

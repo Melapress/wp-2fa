@@ -11,11 +11,11 @@
 
 namespace WP2FA\Shortcodes;
 
-use \WP2FA\Core as Core;
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\Controllers\Settings;
-use \WP2FA\Admin\User_Notices as User_Notices;
+use \WP2FA\Core as Core;
 use \WP2FA\Admin\User_Profile as User_Profile;
+use \WP2FA\Admin\User_Notices as User_Notices;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Class for rendering shortcodes.
@@ -160,7 +160,7 @@ class Shortcodes {
 	/**
 	 * Output setup nag.
 	 *
-	 * @param [type] $atts - Array with the attributes passed to shortcode.
+	 * @param array $atts - Array with the attributes passed to shortcode.
 	 *
 	 * @return string
 	 */
@@ -200,6 +200,7 @@ class Shortcodes {
 
 			return $content;
 		}
-	}
 
+		return '';
+	}
 }

@@ -11,10 +11,10 @@
 
 namespace WP2FA\Admin\Controllers;
 
-use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -163,7 +163,7 @@ class Settings {
 		$roles = WP_Helper::get_roles();
 
 		foreach ( $roles as $role ) {
-			if ( ! empty( WP2FA::get_wp2fa_setting( $setting_name, null, null, $role ) ) ) {
+			if ( ! empty( WP2FA::get_wp2fa_setting( $setting_name, false, false, $role ) ) ) {
 				return true;
 			}
 		}

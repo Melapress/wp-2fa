@@ -29,7 +29,7 @@ class Settings_Utils {
 	 * @return string
 	 */
 	public static function create_settings_hash( array $settings ): string {
-		return md5( json_encode( $settings ) );
+		return md5( json_encode( $settings ) ); // phpcs:ignore
 	}
 
 	/**

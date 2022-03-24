@@ -11,15 +11,15 @@
 
 namespace WP2FA\Authenticator;
 
-use WP2FA\Admin\User;
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\Settings_Page;
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Helpers\WP_Helper;
-use \WP2FA\Admin\Setup_Wizard as Setup_Wizard;
 use \WP2FA\Authenticator\Backup_Codes as Backup_Codes;
 use \WP2FA\Authenticator\Authentication as Authentication;
+use \WP2FA\Admin\Setup_Wizard as Setup_Wizard;
+use WP2FA\Admin\User;
+use WP2FA\Admin\Settings_Page;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Class for handling logins.
@@ -114,7 +114,7 @@ class Login {
 		$is_user_instantly_enforced = User_Helper::get_user_enforced_instantly( $user );
 		if ( true === (bool) $is_user_instantly_enforced ) {
 			wp_safe_redirect(
-				self::get_2fa_setup_url() . ( ( isset( $_REQUEST['_wp_http_referer'] ) && ! empty( $_REQUEST['_wp_http_referer'] ) ) ? '?return=' . urlencode( \esc_url_raw( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ) ) : '' )
+				self::get_2fa_setup_url() . ( ( isset( $_REQUEST['_wp_http_referer'] ) && ! empty( $_REQUEST['_wp_http_referer'] ) ) ? '?return=' . urlencode( \esc_url_raw( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ) ) : '' ) // phpcs:ignore
 			);
 			exit();
 		}
@@ -208,11 +208,11 @@ class Login {
 	 * Prevent login through XML-RPC and REST API for users with at least one
 	 * 2FA method enabled.
 	 *
-	 * @param  WP_User|WP_Error $user Valid WP_User only if the previous filters
+	 * @param  \WP_User|\WP_Error $user Valid WP_User only if the previous filters
 	 *                                have verified and confirmed the
 	 *                                authentication credentials.
 	 *
-	 * @return WP_User|WP_Error
+	 * @return \WP_User|\WP_Error
 	 */
 	public static function filter_authenticate( $user ) {
 		if ( $user instanceof \WP_User && self::is_api_request() && User_Helper::is_user_using_two_factor( $user->ID ) && ! self::is_user_api_login_enabled( $user->ID ) ) {
@@ -300,7 +300,7 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function show_two_factor_login( $user ) {
 		if ( ! $user ) {
@@ -312,7 +312,7 @@ class Login {
 			wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 		}
 
-		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url();
+		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url(); //phpcs:ignore
 
 		self::login_html( $user, $login_nonce['key'], $redirect_to );
 	}
@@ -325,7 +325,7 @@ class Login {
 	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public static function backup_2fa() {
-		if ( ! isset( $_GET['wp-auth-id'], $_GET['wp-auth-nonce'], $_GET['provider'] ) ) {
+		if ( ! isset( $_GET['wp-auth-id'], $_GET['wp-auth-nonce'], $_GET['provider'] ) ) { //phpcs:ignore
 			return;
 		}
 
@@ -346,7 +346,7 @@ class Login {
 		if ( ! isset( $get_array['provider'] ) ) {
 			wp_die( esc_html__( 'Cheatin&#8217; uh?', 'wp-2fa' ), 403 );
 		} else {
-			$provider = sanitize_textarea_field( wp_unslash( $_GET['provider'] ) );
+			$provider = sanitize_textarea_field( wp_unslash( $_GET['provider'] ) ); //phpcs:ignore
 		}
 
 		self::login_html( $user, $nonce, esc_url_raw( wp_unslash( $get_array['redirect_to'] ) ), '', $provider );
@@ -359,7 +359,7 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User       $user WP_User object of the logged-in user.
+	 * @param \WP_User      $user WP_User object of the logged-in user.
 	 * @param string        $login_nonce A string nonce stored in usermeta.
 	 * @param string        $redirect_to The URL to which the user would like to be redirected.
 	 * @param string        $error_msg Optional. Login error message.
@@ -371,7 +371,7 @@ class Login {
 		}
 
 		$codes_remaining = Backup_Codes::codes_remaining_for_user( $user );
-		$interim_login   = isset( $_REQUEST['interim-login'] ) ? filter_var( wp_unslash( $_REQUEST['interim-login'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+		$interim_login   = isset( $_REQUEST['interim-login'] ) ? filter_var( wp_unslash( $_REQUEST['interim-login'] ), FILTER_VALIDATE_BOOLEAN ) : false; //phpcs:ignore
 		$rememberme      = intval( self::rememberme() );
 
 		if ( ! function_exists( 'login_header' ) ) {
@@ -470,8 +470,8 @@ class Login {
 					?>
 					<p class="2fa-email-resend">
 						<input type="submit" class="button"
-							   name="<?php echo esc_attr( self::INPUT_NAME_RESEND_CODE ); ?>"
-							   value="<?php esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
+						name="<?php echo esc_attr( self::INPUT_NAME_RESEND_CODE ); ?>"
+						value="<?php esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
 					</p>
 					<?php
 				}
@@ -596,14 +596,15 @@ class Login {
 	 * @since 0.1-dev
 	 *
 	 * @param int $user_id User ID.
-	 * @return array
+	 *
+	 * @return array|bool
 	 */
 	public static function create_login_nonce( $user_id ) {
 		$login_nonce = array();
 		try {
 			$login_nonce['key'] = bin2hex( random_bytes( 32 ) );
 		} catch ( \Exception $ex ) {
-			$login_nonce['key'] = wp_hash( $user_id . mt_rand() . microtime(), 'nonce' );
+			$login_nonce['key'] = wp_hash( $user_id . mt_rand() . microtime(), 'nonce' ); //phpcs:ignore
 		}
 		$login_nonce['expiration'] = time() + HOUR_IN_SECONDS;
 
@@ -731,7 +732,7 @@ class Login {
 				wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
 
-			if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
+			if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) { //phpcs:ignore
 				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore
 			} else {
 				if ( Authentication::check_number_of_attempts( $user ) ) {
@@ -829,7 +830,7 @@ class Login {
 	public static function rememberme() {
 		$rememberme = false;
 
-		if ( ! empty( $_REQUEST['rememberme'] ) ) {
+		if ( ! empty( $_REQUEST['rememberme'] ) ) { //phpcs:ignore
 			$rememberme = true;
 		}
 
@@ -846,7 +847,7 @@ class Login {
 	/**
 	 * Prints the form that prompts the user to authenticate.
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function totp_authentication_page( $user ) {
 		require_once ABSPATH . '/wp-admin/includes/template.php';
@@ -868,7 +869,7 @@ class Login {
 	 * @return bool Whether the user gave a valid code
 	 */
 	public static function validate_totp_authentication( \WP_User $user = null ) {
-		if ( ! empty( $_REQUEST['authcode'] ) ) { // WPCS: CSRF ok, nonce verified by login_form_validate_2fa().
+		if ( ! empty( $_REQUEST['authcode'] ) ) {  //phpcs:ignore
 			$valid = Authentication::is_valid_authcode(
 				User::get_instance( ( $user ) ? $user : '' )->get_totp_key(),
 				sanitize_text_field( $_REQUEST['authcode'] ) // phpcs:ignore
@@ -892,7 +893,7 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function email_authentication_page( $user ) {
 		if ( ! $user ) {
@@ -903,7 +904,7 @@ class Login {
 		if ( empty( $has_token ) || ! $has_token ) {
 			if ( Settings::get_role_or_default_setting( 'specify-email_hotp', $user, null, true ) ) {
 				Setup_Wizard::send_authentication_setup_email( $user->ID );
-			} elseif ( empty( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
+			} elseif ( empty( $_REQUEST['wp-2fa-email-code-resend'] ) ) {  //phpcs:ignore
 				Setup_Wizard::send_authentication_setup_email( $user->ID, '' );
 			}
 		}
@@ -924,11 +925,11 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 * @return boolean
 	 */
 	public static function validate_email_authentication( $user ) {
-		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-email-code'] ) ) {
+		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-email-code'] ) ) { //phpcs:ignore
 			return false;
 		}
 		return Authentication::validate_token( $user, $_REQUEST['wp-2fa-email-code'] ); // phpcs:ignore
@@ -938,11 +939,11 @@ class Login {
 	 * Send the email code if missing or requested. Stop the authentication
 	 * validation if a new token has been generated and sent.
 	 *
-	 * @param  WP_USer $user WP_User object of the logged-in user.
+	 * @param  \WP_User $user WP_User object of the logged-in user.
 	 * @return boolean
 	 */
 	public static function pre_process_email_authentication( $user ) {
-		if ( isset( $user->ID ) && isset( $_REQUEST[ self::INPUT_NAME_RESEND_CODE ] ) ) {
+		if ( isset( $user->ID ) && isset( $_REQUEST[ self::INPUT_NAME_RESEND_CODE ] ) ) { //phpcs:ignore
 			Setup_Wizard::send_authentication_setup_email( $user->ID );
 			return true;
 		}
@@ -954,7 +955,7 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function backup_codes_authentication_page( $user ) {
 		require_once ABSPATH . '/wp-admin/includes/template.php';
@@ -974,12 +975,12 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 *
 	 * @return boolean
 	 */
 	public static function validate_backup_codes( $user ) {
-		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-backup-code'] ) ) {
+		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-backup-code'] ) ) { //phpcs:ignore
 			return false;
 		}
 		return Backup_Codes::validate_code( $user, sanitize_text_field( $_POST['wp-2fa-backup-code'] ) ); // phpcs:ignore

@@ -8,8 +8,8 @@
 namespace WP2FA\Core;
 
 use \WP2FA\Utils\User_Utils;
-use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Admin\Helpers\WP_Helper;
 
 /**
  * Default setup routine
@@ -178,7 +178,7 @@ function get_enqueue_contexts() {
  * @param string $script Script file name (no .js extension).
  * @param string $context Context for the script ('admin', 'frontend', or 'shared').
  *
- * @return string|WP_Error URL
+ * @return string|\WP_Error URL
  */
 function script_url( $script, $context ) {
 
@@ -196,7 +196,7 @@ function script_url( $script, $context ) {
  * @param string $stylesheet Stylesheet file name (no .css extension).
  * @param string $context Context for the script ('admin', 'frontend', or 'shared').
  *
- * @return string URL
+ * @return string|\WP_Error  URL
  */
 function style_url( $stylesheet, $context ) {
 
@@ -218,7 +218,7 @@ function admin_scripts() {
 	global $pagenow;
 
 	// Get page argument from $_GET array.
-	$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : '';
+	$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
 	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && 'profile.php' !== $pagenow ) {
 		return;
 	}
@@ -277,7 +277,7 @@ function admin_scripts() {
  * @return void
  */
 function enqueue_multi_select_scripts() {
-	wp_enqueue_script( 'multi-site-select', script_url( 'multi-site-select', 'admin' ), array( 'jquery', 'select2' ), WP_2FA_VERSION );
+	wp_enqueue_script( 'multi-site-select', script_url( 'multi-site-select', 'admin' ), array( 'jquery', 'select2' ), WP_2FA_VERSION, false );
 }
 
 /**
@@ -287,7 +287,7 @@ function enqueue_multi_select_scripts() {
  */
 function enqueue_select2_scripts() {
 	wp_enqueue_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css', array(), WP_2FA_VERSION );
-	wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js', array( 'jquery' ), WP_2FA_VERSION );
+	wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js', array( 'jquery' ), WP_2FA_VERSION, false );
 }
 
 /**
