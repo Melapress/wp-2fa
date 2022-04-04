@@ -356,7 +356,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$output['create-custom-user-page'] = sanitize_text_field( $input['create-custom-user-page'] );
 			}
 
-			if ( 'yes' === $input['create-custom-user-page'] && isset( $input['custom-user-page-url'] ) && ! empty( $input['custom-user-page-url'] ) ) {
+			if ( ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] ) && isset( $input['custom-user-page-url'] ) && ! empty( $input['custom-user-page-url'] ) ) {
 				if ( WP2FA::get_wp2fa_setting( 'custom-user-page-url' ) !== $input['custom-user-page-url'] ) {
 					if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
 						$updated_post = array(
