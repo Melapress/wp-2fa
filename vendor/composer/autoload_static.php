@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit38f932826a86ea47b6377f6cb1cc84e0
+class ComposerStaticInitad67bcb8a567468bb44e9278b5a246fe
 {
     public static $files = array (
         'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
@@ -93,6 +93,7 @@ class ComposerStaticInit38f932826a86ea47b6377f6cb1cc84e0
         'WP2FA\\Admin\\Helpers\\User_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-user-helper.php',
         'WP2FA\\Admin\\Helpers\\WP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-wp-helper.php',
         'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
+        'WP2FA\\Admin\\SettingsPage' => __DIR__ . '/../..' . '/includes/classes/Admin/class-settingspage.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_General' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-general.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Policies' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-policies.php',
@@ -108,6 +109,7 @@ class ComposerStaticInit38f932826a86ea47b6377f6cb1cc84e0
         'WP2FA\\Admin\\Views\\Settings_Page_Render' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-settings-page-render.php',
         'WP2FA\\Admin\\Views\\Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-wizard-steps.php',
         'WP2FA\\Authenticator\\Authentication' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-authentication.php',
+        'WP2FA\\Authenticator\\BackupCodes' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-backupcodes.php',
         'WP2FA\\Authenticator\\Backup_Codes' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-backup-codes.php',
         'WP2FA\\Authenticator\\Login' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-login.php',
         'WP2FA\\Authenticator\\Open_SSL' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-open-ssl.php',
@@ -130,9 +132,9 @@ class ComposerStaticInit38f932826a86ea47b6377f6cb1cc84e0
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit38f932826a86ea47b6377f6cb1cc84e0::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit38f932826a86ea47b6377f6cb1cc84e0::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit38f932826a86ea47b6377f6cb1cc84e0::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitad67bcb8a567468bb44e9278b5a246fe::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitad67bcb8a567468bb44e9278b5a246fe::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitad67bcb8a567468bb44e9278b5a246fe::$classMap;
 
         }, null, ClassLoader::class);
     }

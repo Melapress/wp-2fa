@@ -249,6 +249,33 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		}
 
 		/**
+		 * Migration for version upto 2.2.0
+		 *
+		 * @return void
+		 */
+		protected static function migrate_up_to_220() {
+			global $wpdb;
+
+			$new_prefix = 'wp_2fa_trusted_device_';
+			$old_prefix = 'wp2fa_trusted_device_';
+
+			$wpdb->query(
+				$wpdb->prepare(
+					"
+				 UPDATE $wpdb->usermeta
+				 SET meta_key = REPLACE( meta_key, %s, %s )
+				 WHERE meta_key LIKE %s
+				 ",
+					array(
+						$old_prefix,
+						$new_prefix,
+						$old_prefix.'%',
+					)
+				)
+			);
+		}
+
+		/**
 		 * Returns the plugin settings by a given setting type
 		 *
 		 * @param mixed $setting_name - The setting which needs to be extracted.
