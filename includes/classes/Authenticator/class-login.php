@@ -985,4 +985,30 @@ class Login {
 		}
 		return Backup_Codes::validate_code( $user, sanitize_text_field( $_POST['wp-2fa-backup-code'] ) ); // phpcs:ignore
 	}
+
+	/**
+	 * Legacy compatibility - remove this when we stop supporting it - 6 months from now - 04.10.2022
+	 *
+	 * @param int $user_id - The WP user id.
+	 *
+	 * @return boolean
+	 *
+	 * @since latest
+	 */
+	public static function is_user_using_two_factor( $user_id ) {
+		return User_Helper::is_user_using_two_factor( $user_id );
+	}
+
+	/**
+	 * Legacy compatibility - remove this when we stop supporting it - 6 months from now - 04.10.2022
+	 *
+	 * @param \WP_User $user - The WP user.
+	 *
+	 * @return string
+	 *
+	 * @since latest
+	 */
+	public static function get_available_providers_for_user( $user ) {
+		return User_Helper::get_enabled_method_for_user( $user );
+	}
 }
