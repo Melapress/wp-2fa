@@ -43,7 +43,8 @@ class Premium_Features {
         $banner  = '<div id="wp-2fa-side-banner">';
         $banner .= '<img src="' . esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
         $banner .= '<p>' . esc_html__( 'Upgrade to Premium to:', 'wp-2fa' ) . '</p>';
-        $banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Add trusted devices (\'Remember this device\' option)', 'wp-2fa' ) . '</li>';
+        $banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Login with 2FA via push notification, SMS, WhatsApp or incoming call', 'wp-2fa' ) . '</li>';
+        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Add trusted devices (\'Remember this device\' option)', 'wp-2fa' ) . '</li>';
         $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
         $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'White labeling of 2FA code page', 'wp-2fa' ) . '</li>';
         $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'One-click 2FA login', 'wp-2fa' ) . '</li>';
@@ -179,15 +180,16 @@ class Premium_Features {
 					<img class="wp2fa-logo" src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-2fa-color_opt.png" alt="">
 				</div>
 				<div>
-					<p><?php esc_html_e( 'WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and you secure and better protected than ever before. We thank you for the continued trust you show in our plugin.', 'wp-2fa' ); ?></p>
-					<p><?php esc_html_e( 'Upgrade to WP 2FA Premium to automate more, encouraging users to utilize 2FA to its fullest extent and give your users more flexibility by allowing them to work from pretty much anywhere without compromising on security.', 'wp-2fa' ); ?></p>
+                    <p><?php esc_html_e( 'WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and you secure and better protected than ever before.', 'wp-2fa' ); ?></p>
+					<p><?php esc_html_e( 'Upgrade to WP 2FA Premium to add more secure authentication options and automate more, encouraging users to utilize 2FA to its fullest extent and give your users more flexibility by allowing them to work from anywhere without compromising on security.', 'wp-2fa' ); ?></p>
 				</div>
 			</div>
 			<div class="content-block">
-				<p><?php esc_html_e( 'Upgrade to Premium today to start benefiting from value-added features such as:', 'wp-2fa' ); ?></p>
+				<p><?php esc_html_e( 'Upgrade to Premium to start benefiting from value-added features such as:', 'wp-2fa' ); ?></p>
 				<ul class="feature-list">
-					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Trusted devices: Give users the option to add trusted devices so they do not have to enter the 2FA code each time they log in', 'wp-2fa' ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'White labeling tools & features: Gain increased trust by extending your business\' branding and tone of voice to all 2FA pages', 'wp-2fa' ); ?></li>
+                    <li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'More 2FA methods, including push notification, SMS, WhatsApp, and incoming call', 'wp-2fa' ); ?></li>
+                    <li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Trusted devices: Give users the option to add trusted devices so they do not have to enter the 2FA code each time they log in', 'wp-2fa' ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'White labelling features: Gain increased trust by extending your business\' branding and tone of voice to all 2FA pages', 'wp-2fa' ); ?></li>
 					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Configure different policies for different user roles: While requiring everyone to use 2FA is generally a good idea, stricter policies for more sensitive accounts can help you keep everyone happy', 'wp-2fa' ); ?></li>
 				</ul>
 				<div class="premium-cta">
@@ -195,7 +197,6 @@ class Premium_Features {
 					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=get+trial+upgrade+page' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
 				</div>			
 			</div>
-
 			<div class="content-block">
 				<p><?php esc_html_e( 'Take advantage of these benefits and many others, with prices starting from as little as $59 for 5 users per year. Below is the complete list of Premium features:', 'wp-2fa' ); ?></p>
 				<table class="c21 feature-table">
@@ -277,6 +278,29 @@ class Premium_Features {
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
 							</td>
 						</tr>
+                        <tr class="c2">
+							<td class="c6" colspan="1" rowspan="1">
+								<p class="c10"><span class="c5"><?php esc_html_e( '2FA login with push notification', 'wp-2fa' ); ?></span></p>
+							</td>
+							<td class="c8" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+							</td>
+							<td class="c12" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
+							</td>
+						</tr>
+                        <tr class="c2">
+							<td class="c6" colspan="1" rowspan="1">
+								<p class="c10"><span class="c5"><?php esc_html_e( '2FA login with SMS, WhatsApp & incoming call', 'wp-2fa' ); ?></span></p>
+							</td>
+							<td class="c8" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+							</td>
+							<td class="c12" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
+							</td>
+						</tr>
+
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
 								<p class="c10"><span class="c5"><?php esc_html_e( 'One-click 2FA login', 'wp-2fa' ); ?></span></p>

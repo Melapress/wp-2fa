@@ -259,6 +259,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 			$new_prefix = 'wp_2fa_trusted_device_';
 			$old_prefix = 'wp2fa_trusted_device_';
 
+			delete_transient( 'wp_2fa_config_file_hash' );
+
 			$wpdb->query(
 				$wpdb->prepare(
 					"
@@ -269,7 +271,7 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 					array(
 						$old_prefix,
 						$new_prefix,
-						$old_prefix.'%',
+						$old_prefix . '%',
 					)
 				)
 			);

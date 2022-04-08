@@ -124,6 +124,18 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 
 				self::store_updated_version();
 			}
+
+			/**
+			 * Downgrading the plugin? Set the version number.
+			 * Leave the rest as is.
+			 *
+			 * @return void
+			 *
+			 * @since latest
+			 */
+			if ( version_compare( static::get_stored_version(), \constant( static::$const_name_of_plugin_version ), '>' ) ) {
+				self::store_updated_version();
+			}
 		}
 
 		/**

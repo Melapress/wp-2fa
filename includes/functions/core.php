@@ -205,7 +205,6 @@ function style_url( $stylesheet, $context ) {
 	}
 
 	return WP_2FA_URL . "dist/css/${stylesheet}.css";
-
 }
 
 /**
@@ -256,6 +255,7 @@ function admin_scripts() {
 		'processingText'                 => esc_html__( 'Processing Update', 'wp-2fa' ),
 		'email_sent_success'             => esc_html__( 'Email successfully sent', 'wp-2fa' ),
 		'email_sent_failure'             => esc_html__( 'Email delivery failed', 'wp-2fa' ),
+		'invalidEmail'                   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
 		'license_validation_in_progress' => esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
 	);
 	wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
