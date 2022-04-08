@@ -91,17 +91,18 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 	register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
 }
 
-if ( ! function_exists( 'wp_2fa_activate' ) ) {
-	register_activation_hook( __FILE__, 'wp_2fa_activate' );
-
-	/**
-	 * Clears the config cache from the DB
-	 *
-	 * @return void
-	 *
-	 * @since latest
-	 */
-	function wp_2fa_activate() {
+/**
+ * Clears the config cache from the DB
+ *
+ * @return void
+ *
+ * @since 2.2.0
+ */
+add_action(
+    'upgrader_process_complete',
+    function() {
 		delete_transient( 'wp_2fa_config_file_hash' );
-	}
-}
+	},
+    10,
+    2
+);

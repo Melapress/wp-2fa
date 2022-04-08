@@ -67,7 +67,7 @@ class Shortcodes {
 	/**
 	 * Output setup form.
 	 *
-	 * @param [type] $atts - Array with the attributes passed to shortcode.
+	 * @param array $atts - Array with the attributes passed to shortcode.
 	 *
 	 * @return string
 	 */
@@ -194,7 +194,7 @@ class Shortcodes {
 			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
 
 			ob_start();
-			echo $notice->user_setup_2fa_nag( 'output_shortcode', $configure_2fa_url ); // phpcs:ignore
+			$notice->user_setup_2fa_nag( 'output_shortcode', $configure_2fa_url );
 			$content = ob_get_contents();
 			ob_end_clean();
 
