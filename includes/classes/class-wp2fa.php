@@ -282,6 +282,7 @@ class WP2FA {
 		// Premium Features.
 		add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( $this->premiumfeatures, 'add_extra_menu_item' ) );
         add_action( WP_2FA_PREFIX . 'before_plugin_settings', array( $this->premiumfeatures, 'add_settings_banner' ) );
+        add_action( 'admin_footer', array( $this->premiumfeatures, 'pricing_new_tab_js' ) );
 	}
 
 	/**

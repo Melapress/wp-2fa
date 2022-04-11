@@ -28,85 +28,85 @@ msgstr ""
 msgid "Enter a backup verification code."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:467
+#: includes/classes/class-wp2fa.php:468
 msgid "Your login confirmation code for {site_name}"
 msgstr ""
 
 #. translators: The login code provided from the plugin.
-#: includes/classes/class-wp2fa.php:471
+#: includes/classes/class-wp2fa.php:472
 msgid "Enter %1$s to log in."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:475, includes/classes/class-wp2fa.php:493, includes/classes/class-wp2fa.php:508
+#: includes/classes/class-wp2fa.php:476, includes/classes/class-wp2fa.php:494, includes/classes/class-wp2fa.php:509
 msgid "Thank you."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:476, includes/classes/class-wp2fa.php:494, includes/classes/class-wp2fa.php:508
+#: includes/classes/class-wp2fa.php:477, includes/classes/class-wp2fa.php:495, includes/classes/class-wp2fa.php:509
 msgid "Email sent by"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:477, includes/classes/class-wp2fa.php:495
+#: includes/classes/class-wp2fa.php:478, includes/classes/class-wp2fa.php:496
 msgid "WP 2FA plugin."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:481
+#: includes/classes/class-wp2fa.php:482
 msgid "Your user on {site_name} has been locked"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:483
+#: includes/classes/class-wp2fa.php:484
 msgid "Hello."
 msgstr ""
 
 #. translators: %1s - the name of the user
-#: includes/classes/class-wp2fa.php:487
+#: includes/classes/class-wp2fa.php:488
 msgid "Since you have not enabled two-factor authentication for the user %1$s on the website %2$s within the grace period, your account has been locked."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:492
+#: includes/classes/class-wp2fa.php:493
 msgid "Contact your website administrator to unlock your account."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:499
+#: includes/classes/class-wp2fa.php:500
 msgid "Your user on {site_name} has been unlocked"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:502
+#: includes/classes/class-wp2fa.php:503
 msgid "Hello,"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:502
+#: includes/classes/class-wp2fa.php:503
 msgid "Your user"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:502
+#: includes/classes/class-wp2fa.php:503
 msgid "on the website"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:502
+#: includes/classes/class-wp2fa.php:503
 msgid "has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:505
+#: includes/classes/class-wp2fa.php:506
 msgid "You can configure 2FA from this page:"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:508
+#: includes/classes/class-wp2fa.php:509
 msgid "WP 2FA plugin"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:704
+#: includes/classes/class-wp2fa.php:705
 msgid "Test email from WP 2FA"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:705
+#: includes/classes/class-wp2fa.php:706
 msgid "This email was sent by the WP 2FA plugin to test the email delivery."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:838
+#: includes/classes/class-wp2fa.php:839
 msgid "To ensure emails are delivered so users do not have problems logging in, we recommend using the free plugin"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:838
+#: includes/classes/class-wp2fa.php:839
 msgid "WP Mail SMTP"
 msgstr ""
 

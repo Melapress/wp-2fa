@@ -665,7 +665,7 @@ class Wizard_Steps {
 	 * @since 2.0.0
 	 */
 	public static function choose_backup_method() {
-		$redirect = get_edit_profile_url( self::get_user()->get_2fa_wp_user()->ID );
+		$redirect = self::determine_redirect_url();
 		?>
 		<div class="wizard-step" id="2fa-wizard-backup-methods">
 			<div class="option-pill">
@@ -697,6 +697,36 @@ class Wizard_Steps {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Determines the redirect url for the user
+	 *
+	 * @return string
+	 *
+	 * @since 2.0.0
+	 */
+	public static function determine_redirect_url(): string {
+		if ( null === self::$redirect_url ) {
+			$redirect_page      = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', self::get_user()->get_2fa_wp_user() );
+			self::$redirect_url = ( '' !== trim( $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
+
+			if (
+				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', self::get_user()->get_2fa_wp_user() ) ||
+				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
+				if (
+					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page', self::get_user()->get_2fa_wp_user() ) ) ||
+					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
+					if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', self::get_user()->get_2fa_wp_user() ) ) {
+						self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', self::get_user()->get_2fa_wp_user() );
+					} else {
+						self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
+					}
+				}
+			}
+		}
+
+		return self::$redirect_url;
 	}
 
 	/**
@@ -770,35 +800,5 @@ class Wizard_Steps {
 		);
 
 		return Authentication::get_google_qr_code( $totp_title, self::get_user()->get_totp_key(), $site_name );
-	}
-
-	/**
-	 * Determines the redirect url for the user
-	 *
-	 * @return string
-	 *
-	 * @since 2.0.0
-	 */
-	private static function determine_redirect_url(): string {
-		if ( null === self::$redirect_url ) {
-			$redirect_page      = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', self::get_user()->get_2fa_wp_user() );
-			self::$redirect_url = ( '' !== trim( $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
-
-			if (
-				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', self::get_user()->get_2fa_wp_user() ) ||
-				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
-				if (
-					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page', self::get_user()->get_2fa_wp_user() ) ) ||
-					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
-					if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', self::get_user()->get_2fa_wp_user() ) ) {
-						self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', self::get_user()->get_2fa_wp_user() );
-					} else {
-						self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
-					}
-				}
-			}
-		}
-
-		return self::$redirect_url;
 	}
 }
