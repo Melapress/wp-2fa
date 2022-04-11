@@ -426,4 +426,18 @@ class Premium_Features {
 		</div>		
 		<?php
 	}
+
+    /**
+     * Add "_blank" attr to pricing link to ensure it opens in new tab.
+     *
+     * @return void
+     */
+    public function pricing_new_tab_js() { ?>
+        <script type="text/javascript">
+            jQuery( document ).ready( function() {
+                jQuery( '.wp-2fa.pricing' ).parent().attr( 'target', '_blank' );
+            });
+        </script>
+        <?php
+    }
 }

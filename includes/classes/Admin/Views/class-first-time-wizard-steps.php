@@ -62,7 +62,7 @@ class First_Time_Wizard_Steps {
 								<?php echo $data_role; // phpcs:ignore ?>
 								<?php checked( 'enable_totp', WP2FA::get_wp2fa_setting( 'enable_totp' ), true ); ?>
 								>
-								<?php esc_html_e( 'One-time code via 2FA App (TOTP) - ', 'wp-2fa' ); ?><a href="https://www.wpwhitesecurity.com/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank" rel=noopener><?php esc_html_e( 'complete list of supported 2FA apps.', 'wp-2fa' ); ?></a>
+								<?php esc_html_e( 'One-time code via 2FA App (TOTP) - ', 'wp-2fa' ); ?><a href="https://wp2fa.io/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank" rel=noopener><?php esc_html_e( 'complete list of supported 2FA apps.', 'wp-2fa' ); ?></a>
 							</label>
 							<?php
 							if ( $setup_wizard ) {
@@ -231,7 +231,7 @@ class First_Time_Wizard_Steps {
 		?>
 		<h3 id="enforcement_settings"><?php esc_html_e( 'Do you want to enforce 2FA for some, or all the users? ', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. ', 'wp-2fa' ); ?> <a href="https://www.wpwhitesecurity.com/support/kb/configure-2fa-policies-enforce/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank" rel=noopener><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+			<?php esc_html_e( 'When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. ', 'wp-2fa' ); ?> <a href="https://wp2fa.io/support/kb/configure-2fa-policies-enforce/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank" rel=noopener><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 		</p>
 			<?php
 			if ( ! $setup_wizard ) {
