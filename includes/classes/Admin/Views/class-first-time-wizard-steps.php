@@ -70,7 +70,7 @@ class First_Time_Wizard_Steps {
 								printf(
 									/* translators: link to the knowledge base website */
 									esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
-									'<a href="https://www.wpwhitesecurity.com/support/kb/configuring-2fa-apps/" target="_blank">' . esc_html__( '2FA apps article on our knowledge base', 'wp-2fa' ) . '</a>'
+									'<a href="https://wp2fa.io/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( '2FA apps article on our knowledge base', 'wp-2fa' ) . '</a>'
 								);
 								echo '</p>';
 							}
