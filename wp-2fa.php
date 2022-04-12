@@ -1,4 +1,4 @@
-<?php // phpcs:ignore
+<?php
 /**
  * WP 2FA - Two-factor authentication for WordPress (Premium)
  *
@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress
- * Version:     2.1.0
+ * Version:     2.2.0
  * Plugin URI:  https://wp2fa.io/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      WP White Security
@@ -41,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '2.1.0' );
+	define( 'WP_2FA_VERSION', '2.2.0' );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'WP_2FA_INC', WP_2FA_PATH . 'includes/' );
@@ -91,8 +91,18 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 	register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
 }
 
-register_activation_hook( __FILE__, 'wp_2fa_activate' );
-
-function wp_2fa_activate() {
-	delete_transient( 'wp_2fa_config_file_hash' );
-}
+/**
+ * Clears the config cache from the DB
+ *
+ * @return void
+ *
+ * @since 2.2.0
+ */
+add_action(
+    'upgrader_process_complete',
+    function() {
+		delete_transient( 'wp_2fa_config_file_hash' );
+	},
+    10,
+    2
+);

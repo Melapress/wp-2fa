@@ -1,17 +1,17 @@
 [
     {
         "name": "bacon/bacon-qr-code",
-        "version": "2.0.4",
-        "version_normalized": "2.0.4.0",
+        "version": "2.0.7",
+        "version_normalized": "2.0.7.0",
         "source": {
             "type": "git",
             "url": "https://github.com/Bacon/BaconQrCode.git",
-            "reference": "f73543ac4e1def05f1a70bcd1525c8a157a1ad09"
+            "reference": "d70c840f68657ce49094b8d91f9ee0cc07fbf66c"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/f73543ac4e1def05f1a70bcd1525c8a157a1ad09",
-            "reference": "f73543ac4e1def05f1a70bcd1525c8a157a1ad09",
+            "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/d70c840f68657ce49094b8d91f9ee0cc07fbf66c",
+            "reference": "d70c840f68657ce49094b8d91f9ee0cc07fbf66c",
             "shasum": ""
         },
         "require": {
@@ -20,14 +20,15 @@
             "php": "^7.1 || ^8.0"
         },
         "require-dev": {
-            "phly/keep-a-changelog": "^1.4",
+            "phly/keep-a-changelog": "^2.1",
             "phpunit/phpunit": "^7 | ^8 | ^9",
+            "spatie/phpunit-snapshot-assertions": "^4.2.9",
             "squizlabs/php_codesniffer": "^3.4"
         },
         "suggest": {
             "ext-imagick": "to generate QR code images"
         },
-        "time": "2021-06-18T13:26:35+00:00",
+        "time": "2022-03-14T02:02:36+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -48,11 +49,7 @@
             }
         ],
         "description": "BaconQrCode is a QR code generator for PHP.",
-        "homepage": "https://github.com/Bacon/BaconQrCode",
-        "support": {
-            "issues": "https://github.com/Bacon/BaconQrCode/issues",
-            "source": "https://github.com/Bacon/BaconQrCode/tree/2.0.4"
-        }
+        "homepage": "https://github.com/Bacon/BaconQrCode"
     },
     {
         "name": "dasprid/enum",
@@ -97,11 +94,7 @@
         "keywords": [
             "enum",
             "map"
-        ],
-        "support": {
-            "issues": "https://github.com/DASPRiD/Enum/issues",
-            "source": "https://github.com/DASPRiD/Enum/tree/1.0.3"
-        }
+        ]
     },
     {
         "name": "deliciousbrains/wp-background-processing",
@@ -142,11 +135,7 @@
                 "email": "nom@deliciousbrains.com"
             }
         ],
-        "description": "WP Background Processing can be used to fire off non-blocking asynchronous requests or as a background processing tool, allowing you to queue tasks.",
-        "support": {
-            "issues": "https://github.com/deliciousbrains/wp-background-processing/issues",
-            "source": "https://github.com/deliciousbrains/wp-background-processing/tree/master"
-        }
+        "description": "WP Background Processing can be used to fire off non-blocking asynchronous requests or as a background processing tool, allowing you to queue tasks."
     },
     {
         "name": "endroid/qr-code",
@@ -214,10 +203,6 @@
             "qr",
             "qrcode"
         ],
-        "support": {
-            "issues": "https://github.com/endroid/qr-code/issues",
-            "source": "https://github.com/endroid/qr-code/tree/3.9.7"
-        },
         "funding": [
             {
                 "url": "https://github.com/endroid",
@@ -278,31 +263,27 @@
         "keywords": [
             "jwt",
             "php"
-        ],
-        "support": {
-            "issues": "https://github.com/firebase/php-jwt/issues",
-            "source": "https://github.com/firebase/php-jwt/tree/v5.5.1"
-        }
+        ]
     },
     {
         "name": "freemius/wordpress-sdk",
-        "version": "2.4.2",
-        "version_normalized": "2.4.2.0",
+        "version": "2.4.3",
+        "version_normalized": "2.4.3.0",
         "source": {
             "type": "git",
             "url": "https://github.com/Freemius/wordpress-sdk.git",
-            "reference": "84a9be4717effd7697a217e0d931f48ae0d2ecc6"
+            "reference": "d2c3e1c27792f34123f928ea9fa73be56c337d13"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/84a9be4717effd7697a217e0d931f48ae0d2ecc6",
-            "reference": "84a9be4717effd7697a217e0d931f48ae0d2ecc6",
+            "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/d2c3e1c27792f34123f928ea9fa73be56c337d13",
+            "reference": "d2c3e1c27792f34123f928ea9fa73be56c337d13",
             "shasum": ""
         },
         "require": {
             "php": ">=5.2"
         },
-        "time": "2021-02-08T16:47:44+00:00",
+        "time": "2022-03-03T09:14:17+00:00",
         "type": "library",
         "installation-source": "dist",
         "notification-url": "https://packagist.org/downloads/",
@@ -319,11 +300,7 @@
             "wordpress",
             "wordpress-plugin",
             "wordpress-theme"
-        ],
-        "support": {
-            "issues": "https://github.com/Freemius/wordpress-sdk/issues",
-            "source": "https://github.com/Freemius/wordpress-sdk/tree/2.4.2"
-        }
+        ]
     },
     {
         "name": "khanamiryan/qrcode-detector-decoder",
@@ -376,11 +353,7 @@
             "barcode",
             "qr",
             "zxing"
-        ],
-        "support": {
-            "issues": "https://github.com/khanamiryan/php-qrcode-detector-decoder/issues",
-            "source": "https://github.com/khanamiryan/php-qrcode-detector-decoder/tree/1.0.5.2"
-        }
+        ]
     },
     {
         "name": "myclabs/php-enum",
@@ -429,10 +402,6 @@
         "keywords": [
             "enum"
         ],
-        "support": {
-            "issues": "https://github.com/myclabs/php-enum/issues",
-            "source": "https://github.com/myclabs/php-enum/tree/1.8.3"
-        },
         "funding": [
             {
                 "url": "https://github.com/mnapoli",
@@ -503,9 +472,6 @@
             "symfony",
             "words"
         ],
-        "support": {
-            "source": "https://github.com/symfony/inflector/tree/v5.0.9"
-        },
         "funding": [
             {
                 "url": "https://symfony.com/sponsor",
@@ -520,7 +486,7 @@
                 "type": "tidelift"
             }
         ],
-        "abandoned": "use `EnglishInflector` from the String component instead"
+        "abandoned": "EnglishInflector from the String component"
     },
     {
         "name": "symfony/property-access",
@@ -590,9 +556,6 @@
             "property path",
             "reflection"
         ],
-        "support": {
-            "source": "https://github.com/symfony/property-access/tree/v5.0.11"
-        },
         "funding": [
             {
                 "url": "https://symfony.com/sponsor",

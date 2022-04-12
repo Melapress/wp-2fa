@@ -43,10 +43,10 @@ class Open_SSL {
 	 * @since 2.0.0
 	 */
 	public static function encrypt( string $text ): string {
-		Debugging::log( 'Encrypting a text: '. $text );
+		Debugging::log( 'Encrypting a text: ' . $text );
 		if ( self::is_ssl_available() ) {
 			$iv   = self::secure_random( self::BLOCK_BYTE_SIZE );
-			$key  = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true );
+			$key  = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
 			$text = \openssl_encrypt(
 				$text,
 				self::CIPHER_METHOD,
@@ -55,9 +55,9 @@ class Open_SSL {
 				$iv
 			);
 
-			$text = \base64_encode( $iv . $text );
+			$text = \base64_encode( $iv . $text ); //phpcs:ignore
 		}
-		Debugging::log( 'Encrypted text: '. $text );
+		Debugging::log( 'Encrypted text: ' . $text );
 
 		return $text;
 	}
@@ -72,12 +72,12 @@ class Open_SSL {
 	 * @since 2.0.0
 	 */
 	public static function decrypt( string $text ): string {
-		Debugging::log( 'Decrypting a text: '. $text );
+		Debugging::log( 'Decrypting a text: ' . $text );
 
 		if ( self::is_ssl_available() ) {
-			$decoded_base = \base64_decode( $text );
+			$decoded_base = \base64_decode( $text ); //phpcs:ignore
 
-			$key = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true );
+			$key = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
 
 			$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
 
@@ -85,7 +85,7 @@ class Open_SSL {
 			$ciphertext_raw = \substr( $decoded_base, $ivlen );
 			$text           = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
 		}
-		Debugging::log( 'Decrypted text: '. $text );
+		Debugging::log( 'Decrypted text: ' . $text );
 
 		return $text;
 	}

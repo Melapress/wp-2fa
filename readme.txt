@@ -5,8 +5,8 @@ License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 4.5
-Tested up to: 5.8
-Stable tag: 2.1.0
+Tested up to: 5.9.3
+Stable tag: 2.2.0
 Requires PHP: 7.0.0
 
 Harden your website login page; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -111,6 +111,32 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 8. The plugin blocks the accounts of users who are required to have 2FA but fail to enable it within the grace period, so they do not jeopardize the security of your website.
 
 == Changelog ==
+
+= 2.2.0 (2022-04-14) =
+
+Release notes: [2FA with SMS, Push notifications, WhatsApp & more!](https://wp2fa.io/wp-2fa-2-2-0/)
+
+* **New features**
+	* New setting to configure how to handle logins if an external 2FA service is unavailable during login.
+
+* **Improvements**
+	* Added the functionality to exclude users and roles from 2FA, regardless of the type of 2FA enforcement policy you have configured.
+	* Improved the function that checks which policies apply to the user logging in based on the user role (to address some inconsistencies when users' roles are changed).
+	* Applied several styling tweaks to the user 2FA setup wizard and plugin settings.
+	* Improved the text used in the white labelling settings.
+	* Removed the word "WordPress" from all 2FA user wizards.
+	* Added more validation checks to some of the plugin settings that accept user input.
+	* Improved the text in several notifications to better explain the issue to the user.
+	* Redirects after first-time install wizard improved to better guide administrators.
+	
+* **Security Fix**
+	* Insecure Direct Object Reference issue that allows users to disable another users' 2FA settings through a specific URL request. Issue reported by Maycon Vitali.
+	
+* **Bug fixes**
+	* Fixed: Fatal error caused in some edge causes, which was caused from the removal of premium code during the build process.
+	* Fixed: Plugin only redirecting user to a custom "after 2FA setup URL" if they generate the backup codes. 
+	* Fixed: Addressed a PHP warning triggered during logging in when there is are no set policies -([support ticket](https://wordpress.org/support/topic/php-warning-on-login/)).
+	* Fixed: JavaScript responsible for storing the email backup code was removed from the admin part.
 
 = 2.1.0 (2022-01-12) =
 	

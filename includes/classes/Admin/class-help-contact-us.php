@@ -1,11 +1,23 @@
-<?php // phpcs:ignore
+<?php
+/**
+ * Contact us and help rendering class.
+ *
+ * @package    wp2fa
+ * @subpackage admin
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ * @since      2.0.0
+ */
 
 namespace WP2FA\Admin;
 
+use WP2FA\Admin\Helpers\WP_Helper;
+
 /**
- * HelpContactUs - Handles contact us tab and content.
+ * Handles contact us tab and content.
  */
-class HelpContactUs {
+class Help_Contact_Us {
 
 	const TOP_MENU_SLUG = 'wp-2fa-help-contact-us';
 
@@ -38,7 +50,7 @@ class HelpContactUs {
 			<div class="nav-tab-wrapper">
 				<?php
 					// Get current tab.
-					$current_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : 'help';
+					$current_tab = isset( $_GET['tab'] ) ? \wp_unslash( $_GET['tab'] ) : 'help'; // phpcs:ignore
 				?>
 				<a href="<?php echo esc_url( remove_query_arg( 'tab' ) ); ?>" class="nav-tab<?php echo 'help' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'Help', 'wp-2fa' ); ?></a>
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'system-info' ) ); ?>" class="nav-tab<?php echo 'system-info' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'System info', 'wp-2fa' ); ?></a>
@@ -46,9 +58,9 @@ class HelpContactUs {
 			<div class="wp2fa-help-section nav-tabs">
 				<?php
 					$this->sidebar();
-				if ( 'help' == $current_tab ) {
+				if ( 'help' === $current_tab ) {
 					$this->help();
-				} elseif ( 'system-info' == $current_tab ) {
+				} elseif ( 'system-info' === $current_tab ) {
 					$this->system_info();
 				}
 				?>
@@ -116,7 +128,7 @@ class HelpContactUs {
 				<h2><?php esc_html_e( 'System information', 'wp-2fa' ); ?></h2>
 			</div>
 			<form method="post" dir="ltr">
-				<textarea readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="wsal-sysinfo"><?php echo $this->get_sysinfo(); ?></textarea>
+				<textarea readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="wsal-sysinfo"><?php echo $this->get_sysinfo(); // phpcs:ignore ?></textarea>
 				<p class="submit">
 					<input type="hidden" name="ppmwp-action" value="download_sysinfo" />
 					<?php submit_button( 'Download System Info File', 'primary', 'wp2fa-download-sysinfo', false ); ?>
@@ -165,14 +177,14 @@ class HelpContactUs {
 				<li>
 					<div class="plugin-box">
 						<div class="plugin-img">
-							<img src="<?php echo WP_2FA_URL; ?>dist/images/wp-security-audit-log-img.jpg" alt="">
+							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-security-audit-log-img.jpg" alt="">
 						</div>
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Keep a log of users and under the hood site activity.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
-                                <?php
-                                echo esc_url(
+								<?php
+								echo esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -182,9 +194,9 @@ class HelpContactUs {
 										),
 										'https://wpactivitylog.com'
 									)
-                                );
+								);
 								?>
-                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -192,14 +204,14 @@ class HelpContactUs {
 				<li>
 					<div class="plugin-box">
 						<div class="plugin-img">
-							<img src="<?php echo WP_2FA_URL; ?>dist/images/wp-password-img.jpg" alt="">
+							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-password-img.jpg" alt="">
 						</div>
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Enforce strong password policies on WordPress.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
-                                <?php
-                                echo esc_url(
+								<?php
+								echo esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -209,9 +221,9 @@ class HelpContactUs {
 										),
 										'https://www.wpwhitesecurity.com/wordpress-plugins/password-security/'
 									)
-                                );
+								);
 								?>
-                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -219,14 +231,14 @@ class HelpContactUs {
 				<li>
 					<div class="plugin-box">
 						<div class="plugin-img">
-							<img src="<?php echo WP_2FA_URL; ?>dist/images/website-file-changes-monitor.jpg" alt="">
+							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/website-file-changes-monitor.jpg" alt="">
 						</div>
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Automatically identify unauthorized file changes on your WordPress site.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
-                                <?php
-                                echo esc_url(
+								<?php
+								echo esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -236,9 +248,9 @@ class HelpContactUs {
 										),
 										'https://www.wpwhitesecurity.com/wordpress-plugins/website-file-changes-monitor/'
 									)
-                                );
+								);
 								?>
-                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -246,14 +258,14 @@ class HelpContactUs {
 				<li>
 					<div class="plugin-box">
 						<div class="plugin-img">
-							<img src="<?php echo WP_2FA_URL; ?>dist/images/c4wp.jpg" alt="">
+							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/c4wp.jpg" alt="">
 						</div>
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Protect website forms & login pages from spam bots & automated attacks.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
-                                <?php
-                                echo esc_url(
+								<?php
+								echo esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -263,9 +275,9 @@ class HelpContactUs {
 										),
 										'https://www.wpwhitesecurity.com/wordpress-plugins/captcha-plugin-wordpress/'
 									)
-                                );
+								);
 								?>
-                                " target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -291,7 +303,7 @@ class HelpContactUs {
 		$sysinfo .= '-- Site Info --' . "\n\n";
 		$sysinfo .= 'Site URL (WP Address):    ' . site_url() . "\n";
 		$sysinfo .= 'Home URL (Site Address):  ' . home_url() . "\n";
-		$sysinfo .= 'Multisite:                ' . ( is_multisite() ? 'Yes' : 'No' ) . "\n";
+		$sysinfo .= 'Multisite:                ' . ( WP_Helper::is_multisite() ? 'Yes' : 'No' ) . "\n";
 
 		// Get theme info.
 		$theme_data   = wp_get_theme();
@@ -326,7 +338,7 @@ class HelpContactUs {
 		}
 
 		$sysinfo .= 'ABSPATH:                  ' . ABSPATH . "\n";
-		$sysinfo .= 'WP_DEBUG:                 ' . ( defined( 'WP_DEBUG' ) ? WP_DEBUG ? 'Enabled' : 'Disabled' : 'Not set' ) . "\n";
+		$sysinfo .= 'WP_DEBUG:                 ' . ( defined( 'WP_DEBUG' ) ? ( WP_DEBUG ? 'Enabled' : 'Disabled' ) : 'Not set' ) . "\n";
 		$sysinfo .= 'WP Memory Limit:          ' . WP_MEMORY_LIMIT . "\n";
 
 		// Get plugins that have an update.
@@ -350,7 +362,7 @@ class HelpContactUs {
 		$active_plugins = get_option( 'active_plugins', array() );
 
 		foreach ( $plugins as $plugin_path => $plugin ) {
-			if ( ! in_array( $plugin_path, $active_plugins ) ) {
+			if ( ! in_array( $plugin_path, $active_plugins, true ) ) {
 				continue;
 			}
 
@@ -362,7 +374,7 @@ class HelpContactUs {
 		$sysinfo .= "\n" . '-- WordPress Inactive Plugins --' . "\n\n";
 
 		foreach ( $plugins as $plugin_path => $plugin ) {
-			if ( in_array( $plugin_path, $active_plugins ) ) {
+			if ( in_array( $plugin_path, $active_plugins, true ) ) {
 				continue;
 			}
 
@@ -370,7 +382,7 @@ class HelpContactUs {
 			$sysinfo .= $plugin['Name'] . ': ' . $plugin['Version'] . $update . "\n";
 		}
 
-		if ( is_multisite() ) {
+		if ( WP_Helper::is_multisite() ) {
 			// WordPress Multisite active plugins.
 			$sysinfo .= "\n" . '-- Network Active Plugins --' . "\n\n";
 
@@ -391,7 +403,7 @@ class HelpContactUs {
 		}
 
 		// Server configuration.
-		$server_software = filter_input( INPUT_SERVER, 'SERVER_SOFTWARE', FILTER_SANITIZE_STRING );
+		$server_software = ( isset( $_SERVER['SERVER_SOFTWARE'] ) ) ? \sanitize_text_field( \wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) : '';
 		$sysinfo        .= "\n" . '-- Webserver Configuration --' . "\n\n";
 		$sysinfo        .= 'PHP Version:              ' . PHP_VERSION . "\n";
 		$sysinfo        .= 'MySQL Version:            ' . $wpdb->db_version() . "\n";
@@ -416,12 +428,12 @@ class HelpContactUs {
 
 		global $wpdb;
 
-		$wp2fa_options = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE 'wp_2fa_%'", ARRAY_A );
+		$wp2fa_options = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE option_name LIKE 'wp_2fa_%'", ARRAY_A ); // phpcs:ignore
 
 		if ( ! empty( $wp2fa_options ) ) {
 			foreach ( $wp2fa_options as $option => $value ) {
 				$sysinfo .= 'Option: ' . $value['option_name'] . "\n";
-				$sysinfo .= 'Value: ' . print_r( $value['option_value'], true ) . "\n\n";
+				$sysinfo .= 'Value: ' . print_r( $value['option_value'], true ) . "\n\n"; // phpcs:ignore
 			}
 		}
 

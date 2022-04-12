@@ -1,4 +1,14 @@
-<?php // phpcs:ignore
+<?php
+/**
+ * Responsible for WP2FA user's backup codes manipulation.
+ *
+ * @package    wp2fa
+ * @subpackage backup-codes
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ */
+
 /**
  * Class for handling backup codes
  *
@@ -9,13 +19,15 @@
 
 namespace WP2FA\Authenticator;
 
-use WP2FA\Admin\SettingsPage;
 use \WP2FA\Authenticator\Authentication as Authentication;
+use WP2FA\Admin\Settings_Page;
+use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Login_Attempts;
+
 /**
  * Backup code class, for handling backup code generation and such.
  */
-class BackupCodes {
+class Backup_Codes {
 
 	/**
 	 * Holds the name of the meta key for the allowed login attempts
@@ -52,7 +64,7 @@ class BackupCodes {
 	/**
 	 * The login attempts class
 	 *
-	 * @var WP2FA\Extensions\Login_Attempts
+	 * @var \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */
@@ -61,10 +73,10 @@ class BackupCodes {
 	/**
 	 * Lets build!
 	 */
-	public function __construct() {
+	public static function init() {
 		\add_filter( WP_2FA_PREFIX . 'backup_methods_list', array( __CLASS__, 'add_backup_method' ), 10, 2 );
 		\add_filter( WP_2FA_PREFIX . 'backup_methods_enabled', array( __CLASS__, 'check_backup_method' ), 10, 2 );
-		\add_action( 'wp_ajax_run_ajax_generate_json', array( $this, 'run_ajax_generate_json' ) );
+		\add_action( 'wp_ajax_wp2fa_run_ajax_generate_json', array( __CLASS__, 'run_ajax_generate_json' ) );
 	}
 
 	/**
@@ -105,7 +117,7 @@ class BackupCodes {
 	/**
 	 * Returns instance of the LoginAttempts class
 	 *
-	 * @return LoginAttempts
+	 * @return \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */
@@ -238,8 +250,8 @@ class BackupCodes {
 					'wizard-step' => '2fa-wizard-config-backup-codes',
 					'button_name' => sprintf(
 							/* translators: URL with more information about the backup codes */
-                        esc_html__( 'Login with a backup code: you will get 10 backup codes and you can use one of them when you need to login and you cannot generate a code from the app. %s', 'wp-2fa' ),
-                        '<a href="https://www.wpwhitesecurity.com/2fa-backup-codes/" target="_blank">' . esc_html__( 'More information.', 'wp-2fa' ) . '</a>'
+						esc_html__( 'Login with a backup code: you will get 10 backup codes and you can use one of them when you need to login and you cannot generate a code from the app. %s', 'wp-2fa' ),
+						'<a href="https://www.wpwhitesecurity.com/2fa-backup-codes/" target="_blank">' . esc_html__( 'More information.', 'wp-2fa' ) . '</a>'
 					),
 				),
 			)
@@ -257,7 +269,7 @@ class BackupCodes {
 	 * @since 2.0.0
 	 */
 	public static function check_backup_method( array $backup_methods, \WP_User $user ): array {
-		$enabled = SettingsPage::are_backup_codes_enabled( reset( $user->roles ) );
+		$enabled = Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) );
 
 		if ( ! $enabled ) {
 			unset( $backup_methods[ self::$method_name ] );

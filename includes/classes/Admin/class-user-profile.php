@@ -1,39 +1,44 @@
-<?php // phpcs:ignore
+<?php
+/**
+ * Responsible for WP2FA user's profile settings.
+ *
+ * @package    wp2fa
+ * @subpackage user-utils
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ */
 
 namespace WP2FA\Admin;
 
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Utils\GenerateModal;
-use WP2FA\Admin\Views\WizardSteps;
-use WP2FA\Authenticator\BackupCodes;
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Authenticator\Authentication;
-use \WP2FA\Utils\UserUtils as UserUtils;
-use WP2FA\Utils\SettingsUtils as SettingsUtils;
+use \WP2FA\Utils\User_Utils as User_Utils;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Utils\Generate_Modal;
 use WP2FA\Authenticator\Open_SSL;
+use WP2FA\Authenticator\Backup_Codes;
+use WP2FA\Authenticator\Authentication;
+use WP2FA\Admin\Views\Wizard_Steps;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Controllers\Methods;
 
 /**
- * UserProfile - Class for handling user things such as profile settings and admin list views.
+ * User_Profile - Class for handling user things such as profile settings and admin list views.
  */
-class UserProfile {
-
-	const NOTICES_META_KEY = 'wp_2fa_totp_notices';
-
-	/**
-	 * Class constructor
-	 */
-	public function __construct() {
-	}
+class User_Profile {
 
 	/**
 	 * Add our buttons to the user profile editing screen.
 	 *
 	 * @param object $user User data.
+	 * @param array  $additional_args - Array with extra parameters for the method.
 	 */
 	public function user_2fa_options( $user, $additional_args = array() ) {
 
-		if ( isset( $_GET['user_id'] ) ) {
-			$user_id = (int) $_GET['user_id'];
+		if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
+			$user_id = (int) $_GET['user_id']; // phpcs:ignore
 			$user    = get_user_by( 'id', $user_id );
 		} else {
 			// Get current user, we're going to need this regardless.
@@ -45,7 +50,7 @@ class UserProfile {
 		}
 
 		// Ensure we have something in the settings.
-		if ( empty( SettingsUtils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) ) {
+		if ( empty( Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) ) {
 			return;
 		}
 
@@ -54,13 +59,13 @@ class UserProfile {
 			$show_preamble = \filter_var( $additional_args['show_preamble'], FILTER_VALIDATE_BOOLEAN );
 		}
 
-		$user_type = UserUtils::determine_user_2fa_status( $user );
+		$user_type = User_Utils::determine_user_2fa_status( $user );
 
 		$form_output     = '';
 		$form_content    = '';
-		$description     = __( 'Add two-factor authentication to strengthen the security of your WordPress user account.', 'wp-2fa' );
+		$description     = esc_html__( 'Add two-factor authentication to strengthen the security of your user account.', 'wp-2fa' );
 		$show_form_table = true;
-		$page_url        = ( WP2FA::is_this_multisite() ) ? 'index.php' : 'options-general.php';
+		$page_url        = ( WP_Helper::is_multisite() ) ? 'index.php' : 'options-general.php';
 
 		// Orphan user (a user with no role or capabilities).
 		if ( in_array( 'orphan_user', $user_type, true ) ) {
@@ -68,12 +73,12 @@ class UserProfile {
 			$additional_args['is_shortcode'] = true;
 
 			// Create useful message for admin.
-			if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'can_manage_options' ), $user_type ) ) {
-				$description = __( 'This user is required to setup 2FA but has not yet done so.', 'wp-2fa' );
+			if ( User_Utils::in_array_all( array( 'user_needs_to_setup_2fa', 'can_manage_options' ), $user_type ) ) {
+				$description = esc_html__( 'This user is required to setup 2FA but has not yet done so.', 'wp-2fa' );
 			}
 
-			if ( UserUtils::in_array_all( array( 'user_is_excluded', 'can_manage_options' ), $user_type ) ) {
-				$description = __( 'This user is excluded from configuring 2FA.', 'wp-2fa' );
+			if ( User_Utils::in_array_all( array( 'user_is_excluded', 'can_manage_options' ), $user_type ) ) {
+				$description = esc_html__( 'This user is excluded from configuring 2FA.', 'wp-2fa' );
 			}
 		}
 
@@ -83,10 +88,10 @@ class UserProfile {
 		}
 
 		// A user viewing their own profile AND has a 2FA method configured.
-		if ( UserUtils::in_array_all( array( 'viewing_own_profile' ), $user_type ) ) {
+		if ( User_Utils::in_array_all( array( 'viewing_own_profile' ), $user_type ) ) {
 			if (
-				UserUtils::in_array_all( array( 'has_enabled_methods' ), $user_type ) ||
-				UserUtils::in_array_all( array( 'no_required_has_enabled' ), $user_type )
+				User_Utils::in_array_all( array( 'has_enabled_methods' ), $user_type ) ||
+				User_Utils::in_array_all( array( 'no_required_has_enabled' ), $user_type )
 			) {
 				// Create wizard link based on which 2fa methods are allowed by admin.
 				if ( ! empty( Settings::get_role_or_default_setting( 'enable_totp', $user ) ) && ! empty( Settings::get_role_or_default_setting( 'enable_email', $user ) ) ) {
@@ -109,7 +114,7 @@ class UserProfile {
 					);
 				}
 
-				// Create backup codes URL;
+				// Create backup codes URL.
 				$backup_codes_url = add_query_arg(
 					array(
 						'page'         => 'wp-2fa-setup',
@@ -119,48 +124,48 @@ class UserProfile {
 					admin_url( $page_url )
 				);
 
-				$form_content .= '<a href="' . esc_url( $setup_2fa_url ) . '" class="button button-primary">' . __( 'Change 2FA Settings', 'wp-2fa' ) . '</a>';
+				$form_content .= '<a href="' . esc_url( $setup_2fa_url ) . '" class="button button-primary">' . esc_html__( 'Change 2FA Settings', 'wp-2fa' ) . '</a>';
 
 				if ( self::can_user_remove_2fa( $user->ID ) ) {
-					$form_content .= '<a href="#" class="button button-primary remove-2fa" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . __( 'Remove 2FA', 'wp-2fa' ) . '</a>';
+					$form_content .= '<a href="#" class="button button-primary remove-2fa" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . esc_html__( 'Remove 2FA', 'wp-2fa' ) . '</a>';
 				}
 
 				$form_content .= '<br /><br />';
 
-				if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) {
-					$form_content .= '<a href="' . esc_url( $backup_codes_url ) . '" class="button button-primary">' . __( 'Generate list of Backup Codes', 'wp-2fa' ) . '</a>';
+				if ( Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) {
+					$form_content .= '<a href="' . esc_url( $backup_codes_url ) . '" class="button button-primary">' . esc_html__( 'Generate list of Backup Codes', 'wp-2fa' ) . '</a>';
 
-					$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
+					$codes_remaining = Backup_Codes::codes_remaining_for_user( $user );
 					if ( $codes_remaining > 0 ) {
-						$form_content .= '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . __( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
+						$form_content .= '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . esc_html__( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 					} elseif ( 0 === $codes_remaining ) {
-						$form_content .= '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . __( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
+						$form_content .= '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 					}
 				}
 
 				if ( isset( $additional_args['is_shortcode'] ) && $additional_args['is_shortcode'] ) {
-					$form_content = '<a href="#" class="button button-primary remove-2fa" data-open-configure-2fa-wizard>' . __( 'Change 2FA settings', 'wp-2fa' ) . '</a>';
+					$form_content = '<a href="#" class="button button-primary remove-2fa" data-open-configure-2fa-wizard>' . esc_html__( 'Change 2FA settings', 'wp-2fa' ) . '</a>';
 
 					if ( self::can_user_remove_2fa( $user->ID ) ) {
-						$form_content .= '<a href="#" class="button button-primary remove-2fa" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . __( 'Remove 2FA', 'wp-2fa' ) . '</a>';
+						$form_content .= '<a href="#" class="button button-primary remove-2fa" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . esc_html__( 'Remove 2FA', 'wp-2fa' ) . '</a>';
 					}
-					if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) {
-					$form_content .= '</td><tr><th class="backup-methods-label">';
-						$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
+					if ( Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) {
+						$form_content   .= '</td><tr><th class="backup-methods-label">';
+						$codes_remaining = Backup_Codes::codes_remaining_for_user( $user );
 						if ( $codes_remaining > 0 ) {
-							$backup_codes_desc = '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . __( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
+							$backup_codes_desc = '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . esc_html__( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 						} elseif ( 0 === $codes_remaining ) {
-							$backup_codes_desc = '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . __( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
+							$backup_codes_desc = '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 						}
 
-						$form_content .= WizardSteps::getGenerateCodesLink() . $backup_codes_desc;
+						$form_content .= Wizard_Steps::get_generate_codes_link() . $backup_codes_desc;
 
 						/**
 						 * Add an option for external providers to add their own user form buttons.
 						 *
 						 * @since 2.0.0
 						 */
-						$form_content = apply_filters( 'wp_2fa_additional_form_buttons', $form_content );
+						$form_content = apply_filters( WP_2FA_PREFIX . 'additional_form_buttons', $form_content );
 
 						$form_content .= '</th></tr>';
 					}
@@ -175,25 +180,24 @@ class UserProfile {
 
 			// User viewing own profile and needs to enable 2FA.
 			if (
-				UserUtils::in_array_all( array( 'user_needs_to_setup_2fa' ), $user_type ) ||
-				UserUtils::roleIsNot( $show_if_user_is_not_in, $user_type )
+				User_Utils::in_array_all( array( 'user_needs_to_setup_2fa' ), $user_type ) ||
+				User_Utils::role_is_not( $show_if_user_is_not_in, $user_type )
 			) {
 				$first_time_setup_url = Settings::get_setup_page_link();
 
 				if ( isset( $additional_args['is_shortcode'] ) && $additional_args['is_shortcode'] ) {
-					$form_content .= '<a href="#" class="button button-primary" data-open-configure-2fa-wizard>' . __( 'Configure 2FA', 'wp-2fa' ) . '</a>';
-					$form_content .= '<p class="description">' . esc_html__( 'Once you configure 2FA you will also be able to generate backup codes, which can be used to log in when it is not possible to get the one-time code from the primary 2FA method.', 'wp-2fa' ) . '</p>';
+					$form_content .= '<a href="#" class="button button-primary" data-open-configure-2fa-wizard>' . esc_html__( 'Configure 2FA', 'wp-2fa' ) . '</a>';
 				}
 
 				if ( empty( $additional_args ) ) {
-					$form_content .= '<a href="' . esc_url( $first_time_setup_url ) . '" class="button button-primary">' . __( 'Configure Two-factor authentication (2FA)', 'wp-2fa' ) . '</a>';
+					$form_content .= '<a href="' . esc_url( $first_time_setup_url ) . '" class="button button-primary">' . esc_html__( 'Configure Two-factor authentication (2FA)', 'wp-2fa' ) . '</a>';
 				}
 			}
 		}
 
 		// Admin viewing users profile AND user has a configured 2FA method.
-		if ( UserUtils::in_array_all( array( 'can_manage_options', 'has_enabled_methods' ), $user_type ) && ! in_array( 'viewing_own_profile', $user_type, true ) ) {
-			$description = __( 'The user has already configured 2FA. When you reset the user\'s current 2FA configuration, the user can log back in with just the username and password.', 'wp-2fa' );
+		if ( User_Utils::in_array_all( array( 'can_manage_options', 'has_enabled_methods' ), $user_type ) && ! in_array( 'viewing_own_profile', $user_type, true ) ) {
+			$description = esc_html__( 'The user has already configured 2FA. When you reset the user\'s current 2FA configuration, the user can log back in with just the username and password.', 'wp-2fa' );
 
 			$remove_users_2fa_url = add_query_arg(
 				array(
@@ -205,11 +209,11 @@ class UserProfile {
 				admin_url( 'user-edit.php' )
 			);
 
-			$form_content .= '<a href="' . esc_url( $remove_users_2fa_url ) . '" class="button button-primary">' . __( 'Reset 2FA configuration', 'wp-2fa' ) . '</a>';
+			$form_content .= '<a href="' . esc_url( $remove_users_2fa_url ) . '" class="button button-primary">' . esc_html__( 'Reset 2FA configuration', 'wp-2fa' ) . '</a>';
 		}
 
 		// Admin viewing users profile AND users grace period has expired.
-		if ( UserUtils::in_array_all( array( 'can_manage_options', 'grace_has_expired' ), $user_type ) ) {
+		if ( User_Utils::in_array_all( array( 'can_manage_options', 'grace_has_expired' ), $user_type ) ) {
 			$unlock_user_url = add_query_arg(
 				array(
 					'action'       => 'unlock_account',
@@ -218,33 +222,37 @@ class UserProfile {
 				),
 				admin_url( 'user-edit.php' )
 			);
-			$form_content   .= '<a href="' . esc_url( $unlock_user_url ) . '" class="button button-primary">' . __( 'Unlock user and reset the grace period', 'wp-2fa' ) . '</a>';
+			$form_content   .= '<a href="' . esc_url( $unlock_user_url ) . '" class="button button-primary">' . esc_html__( 'Unlock user and reset the grace period', 'wp-2fa' ) . '</a>';
 		}
 
 		if ( $show_preamble ) {
-			$form_output .= '<h2>' . __( 'Two-factor authentication settings', 'wp-2fa' ) . '</h2>';
+			$form_output .= '<h2>' . esc_html__( 'Two-factor authentication settings', 'wp-2fa' ) . '</h2>';
 
 			if ( $description ) {
 					$form_output .= '<p class="description">' . $description . '</p>';
 			}
 		}
-
-		$form_content = apply_filters( 'wp_2fa_append_to_profile_form_content', $form_content );
+		/**
+		 * Gives the ability to add more content to the profile page.
+		 *
+		 * @param string $form_content - The parsed HTML of the form.
+		 */
+		$form_content = apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content );
 
 		if ( $show_form_table && ! empty( $form_content ) ) {
 			$form_output .= '
 		  <table class="form-table wp-2fa-user-profile-form" role="presentation">
-		    <tbody>
-		      <tr>
-		        <th><label>' . __( '2FA Setup:', 'wp-2fa' ) . '</label></th>
-		        <td>
-		          ' . $form_content . '
-		        </td>
-		      </tr>
-	      </tbody>
-	    </table>';
+			<tbody>
+			  <tr>
+				<th><label>' . esc_html__( '2FA Setup:', 'wp-2fa' ) . '</label></th>
+				<td>
+				  ' . $form_content . '
+				</td>
+			  </tr>
+		  </tbody>
+		</table>';
 
-			if ( (isset($_GET['show']) && 'wp-2fa-setup' === $_GET['show']) || ( User::get_instance($user) )->getEnforcedInstantly() ) {
+			if ( ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) || User_Helper::get_user_enforced_instantly( $user ) ) { // phpcs:ignore
 				$form_output .= '
 					<script>
 					window.addEventListener("load", function() {
@@ -255,30 +263,37 @@ class UserProfile {
 			}
 		}
 
-		echo $form_output;
+		echo $form_output; // phpcs:ignore
 
 		$this->generate_inline_modals( $user_type );
 	}
 
+	/**
+	 * Responsible for the building of all the modals.
+	 *
+	 * @param array $user_type - The WP user type.
+	 *
+	 * @return void
+	 */
 	public function generate_inline_modals( $user_type = array() ) {
 
 		ob_start();
 
 		$user = wp_get_current_user();
 
-		if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) { ?>
+		if ( User_Utils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) { ?>
 		<div>
 			<div class="wp2fa-modal micromodal-slide" id="configure-2fa" aria-hidden="true">
 				<div class="modal__overlay" tabindex="-1" data-micromodal-close>
 					<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
 						<?php
-							echo GenerateModal::generate_modal(
+							echo Generate_Modal::generate_modal( // phpcs:ignore
 								'notify-users',
 								__( 'Are you sure?', 'wp-2fa' ),
 								__( 'Any unsaved changes will be lost!', 'wp-2fa' ),
 								array(
-									'<button class="modal__btn button-confirm" aria-label="Close this dialog window and the wizard">' . __( 'Yes', 'wp-2fa' ) . '</button>',
-									'<button class="modal__btn button-decline" data-micromodal-close aria-label="Close this dialog window">' . __( 'No', 'wp-2fa' ) . '</button>',
+									'<button class="modal__btn button-confirm" aria-label="Close this dialog window and the wizard">' . esc_html__( 'Yes', 'wp-2fa' ) . '</button>',
+									'<button class="modal__btn button-decline" data-micromodal-close aria-label="Close this dialog window">' . esc_html__( 'No', 'wp-2fa' ) . '</button>',
 								),
 								'',
 								'430px'
@@ -287,29 +302,37 @@ class UserProfile {
 						<button class="modal__close" aria-label="Close modal"></button>
 						<main class="modal__content wp2fa-form-styles" id="modal-1-content">
 						<?php
-							$logo_section = '<p style="text-align: center; padding:0; margin: 0;"><img style="filter: invert(76.4%); width: 50px; margin: 0 auto;" src="' . WP_2FA_URL . 'dist/images/wp-2fa-white-icon20x28.svg' . '" /></p>';
-							$logo_section = apply_filters( 'wp_fa_plugin_logo_wizard', $logo_section );
+							$logo_section = '<p style="text-align: center; padding:0; margin: 0;"><img style="filter: invert(76.4%); width: 50px; margin: 0 auto;" src="' . WP_2FA_URL . 'dist/images/wp-2fa-white-icon20x28.svg" /></p>';
 
-							echo $logo_section;
+							/**
+							 * Filter to change the logo of the plugin login forms.
+							 *
+							 * @param string $logo - The parsed logo HTML.
+							 *
+							 * @since 2.0.0
+							 */
+  							$logo_section = apply_filters( WP_2FA_PREFIX . 'plugin_logo_wizard', $logo_section );
 
-						if ( UserUtils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || UserUtils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) {
+							echo $logo_section; // phpcs:ignore
 
-							$available_methods = UserUtils::get_available_2fa_methods();
+						if ( User_Utils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'no_determined_yet', 'viewing_own_profile' ), $user_type ) ) {
+
+							$available_methods = Methods::get_enabled_methods( User_Helper::get_user_role( $user ) );
 
 							$intro_text = esc_html__( 'Choose the 2FA authentication method', 'wp-2fa' );
-							if ( count( $available_methods ) > 1 ) {
-								$sub_text = WP2FA::getNumberOfPluginsText();
+							if ( count( $available_methods[ User_Helper::get_user_role( $user ) ] ) > 1 ) {
+								$sub_text = Methods::get_number_of_methods_text( User_Helper::get_user_role( $user ) );
 							} else {
 								$sub_text = esc_html__( 'Only the below 2FA method is allowed on this website:', 'wp-2fa' );
 							}
 							?>
 
 								<div class="wizard-step active">
-									<h3><?php echo sanitize_text_field( $intro_text ); ?></h3>
-									<p><?php echo sanitize_text_field( $sub_text ); ?></p>
+									<h3><?php echo esc_html( sanitize_text_field( $intro_text ) ); ?></h3>
+									<p><?php echo esc_html( sanitize_text_field( $sub_text ) ); ?></p>
 									<fieldset>
-									<?php WizardSteps::totpOption(); ?>
-									<?php WizardSteps::emailOption(); ?>
+									<?php Wizard_Steps::totp_option(); ?>
+									<?php Wizard_Steps::email_option(); ?>
 
 									<?php
 										/**
@@ -317,7 +340,7 @@ class UserProfile {
 										 *
 										 * @since 2.0.0
 										 */
-										do_action( 'wp_2fa_methods_options' );
+										do_action( WP_2FA_PREFIX . 'methods_options' );
 									?>
 									</fieldset>
 									<br>
@@ -326,30 +349,30 @@ class UserProfile {
 								</div>
 						<?php } ?>
 
-							<?php if ( UserUtils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) ) { ?>
+							<?php if ( User_Utils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) ) { ?>
 								<div class="wizard-step active">
 									<fieldset>
-										<?php WizardSteps::totpReConfigure(); ?>
-										<?php WizardSteps::emailReConfigure(); ?>
+										<?php Wizard_Steps::totp_re_configure(); ?>
+										<?php Wizard_Steps::email_re_configure(); ?>
 										<?php
 											/**
 											 * Add an option for external providers to add their own reconfigure methods options.
 											 *
 											 * @since 2.0.0
 											 */
-											do_action( 'wp_2fa_methods_reconfigure_options' );
+											do_action( WP_2FA_PREFIX . 'methods_reconfigure_options' );
 										?>
 									</fieldset>
 								</div>
 							<?php } ?>
 
-							<?php WizardSteps::showModalMethods(); ?>
+							<?php Wizard_Steps::show_modal_methods(); ?>
 						<?php
 
 						$backup_methods = Settings::get_enabled_backup_methods_for_user_role( $user );
 
 						if ( count( $backup_methods ) > 1 ) {
-							WizardSteps::choose_backup_method();
+							Wizard_Steps::choose_backup_method();
 						}
 
 						/**
@@ -357,18 +380,18 @@ class UserProfile {
 						 *
 						 * @since 2.0.0
 						 */
-						do_action( 'wp_2fa_additional_settings_steps' );
+						do_action( WP_2FA_PREFIX . 'additional_settings_steps' );
 
 						// Create a nonce for use in ajax call to generate codes.
-						if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) {
+						if ( Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) {
 							?>
 							<div class="wizard-step" id="2fa-wizard-config-backup-codes">
-							<?php WizardSteps::backup_codes_configure(); ?>
-							<?php WizardSteps::generated_backup_codes(); ?>
+							<?php Wizard_Steps::backup_codes_configure(); ?>
+							<?php Wizard_Steps::generated_backup_codes(); ?>
 							</div>
 						<?php } else { ?>
 							<div class="wizard-step" id="2fa-wizard-config-backup-codes">
-							<?php WizardSteps::congratulations_step(); ?>
+							<?php Wizard_Steps::congratulations_step(); ?>
 							</div>
 						<?php } ?>
 						</main>
@@ -384,17 +407,17 @@ class UserProfile {
 			 *
 			 * @since 2.0.0
 			 */
-			do_action( 'wp_2fa_methods_wizards' );
+			do_action( WP_2FA_PREFIX . 'methods_wizards' );
 		?>
 
-		<?php if ( SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) { ?>
+		<?php if ( Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) { ?>
 		<div>
 			<div class="wp2fa-modal micromodal-slide" id="configure-2fa-backup-codes" aria-hidden="true">
 				<div class="modal__overlay" tabindex="-1" data-micromodal-close>
 					<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
 					<button class="modal__close" aria-label="Close modal" data-close-2fa-modal></button>
 					<main class="modal__content wp2fa-form-styles" id="modal-1-content">
-						<?php WizardSteps::generated_backup_codes( true ); ?>
+						<?php Wizard_Steps::generated_backup_codes( true ); ?>
 					</main>
 					</div>
 				</div>
@@ -404,13 +427,13 @@ class UserProfile {
 		<?php
 
 		if ( self::can_user_remove_2fa( $user->ID ) ) :
-			echo GenerateModal::generate_modal(
+			echo Generate_Modal::generate_modal( // phpcs:ignore
 				'confirm-remove-2fa',
 				__( 'Remove 2FA?', 'wp-2fa' ),
 				__( 'Are you sure you want to remove two-factor authentication and lower the security of your user account?', 'wp-2fa' ),
 				array(
-					'<a href="#" class="modal__btn modal__btn-primary button button-primary" data-trigger-remove-2fa data-user-id="' . esc_attr( $user->ID ) . '" data-nonce="' . wp_create_nonce( 'wp-2fa-remove-user-2fa-nonce' ) . '">' . __( 'Yes', 'wp-2fa' ) . '</a>',
-					'<button class="modal__btn button" data-close-2fa-modal aria-label="Close this dialog window">' . __( 'No', 'wp-2fa' ) . '</button>',
+					'<a href="#" class="modal__btn modal__btn-primary button button-primary" data-trigger-remove-2fa data-user-id="' . esc_attr( $user->ID ) . '" data-nonce="' . wp_create_nonce( 'wp-2fa-remove-user-2fa-nonce' ) . '">' . esc_html__( 'Yes', 'wp-2fa' ) . '</a>',
+					'<button class="modal__btn button" data-close-2fa-modal aria-label="Close this dialog window">' . esc_html__( 'No', 'wp-2fa' ) . '</button>',
 				)
 			);
 		endif;
@@ -418,16 +441,21 @@ class UserProfile {
 		$output = ob_get_contents();
 		ob_end_clean();
 
-		echo $output;
+		echo $output; // phpcs:ignore
 	}
 
 	/**
 	 * Produces the 2FA configuration form for network users, or any user with no roles.
+	 *
+	 * @param string  $is_shortcode - Is it called from the shortcode.
+	 * @param boolean $show_preamble - Show / hide preamble.
+	 *
+	 * @return void
 	 */
 	public function inline_2fa_profile_form( $is_shortcode = '', $show_preamble = true ) {
 
-		if ( isset( $_GET['user_id'] ) ) {
-			$user_id = (int) $_GET['user_id'];
+		if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
+			$user_id = (int) $_GET['user_id']; // phpcs:ignore
 			$user    = get_user_by( 'id', $user_id );
 		} else {
 			$user = wp_get_current_user();
@@ -458,7 +486,7 @@ class UserProfile {
 	 */
 	public function user_2fa_row_actions( $actions, $user_object ) {
 		$nonce                = wp_create_nonce( 'wp-2fa-unlock-account-nonce' );
-		$grace_period_expired = get_user_meta( $user_object->ID, WP_2FA_PREFIX . 'user_grace_period_expired', true );
+		$grace_period_expired = User_Helper::get_grace_period( $user_object );
 		$url                  = add_query_arg(
 			array(
 				'action'       => 'unlock_account',
@@ -476,6 +504,10 @@ class UserProfile {
 
 	/**
 	 * Save user profile information.
+	 *
+	 * @param array $input - The array with values to process.
+	 *
+	 * @return void
 	 */
 	public function save_user_2fa_options( $input ) {
 
@@ -493,11 +525,11 @@ class UserProfile {
 		// Grab current user.
 		$user = wp_get_current_user();
 
+		// phpcs:disable
 		// Grab authcode and ensure its a number.
 		if ( isset( $_POST['wp-2fa-totp-authcode'] ) ) {
 			$_POST['wp-2fa-totp-authcode'] = (int) $_POST['wp-2fa-totp-authcode'];
 		}
-
 		if ( ( ! isset( $_POST['custom-email-address'] ) || isset( $_POST['custom-email-address'] ) && empty( $_POST['custom-email-address'] ) ) &&
 		( ! isset( $_POST['custom-oob-email-address'] ) || isset( $_POST['custom-oob-email-address'] ) && empty( $_POST['custom-oob-email-address'] ) ) ) {
 			if ( isset( $_POST['email'] ) ) {
@@ -511,9 +543,9 @@ class UserProfile {
 					update_user_meta( $user->ID, WP_2FA_PREFIX . 'nominated_email_address', $user->user_email );
 				}
 			}
-		} elseif ( isset( $_POST['custom-email-address'] ) && ! empty ( $_POST['custom-email-address'] ) ) {
+		} elseif ( isset( $_POST['custom-email-address'] ) && ! empty( $_POST['custom-email-address'] ) ) {
 			update_user_meta( $user->ID, WP_2FA_PREFIX . 'nominated_email_address', sanitize_email( wp_unslash( $_POST['custom-email-address'] ) ) );
-		} elseif ( isset( $_POST['custom-oob-email-address'] ) && ! empty ( $_POST['custom-oob-email-address'] ) ) {
+		} elseif ( isset( $_POST['custom-oob-email-address'] ) && ! empty( $_POST['custom-oob-email-address'] ) ) {
 			update_user_meta( $user->ID, WP_2FA_PREFIX . 'nominated_email_address', sanitize_email( wp_unslash( $_POST['custom-oob-email-address'] ) ) );
 		}
 
@@ -521,67 +553,59 @@ class UserProfile {
 		if ( ( isset( $_POST['wp_2fa_enabled_methods'] ) && 'totp' === $_POST['wp_2fa_enabled_methods'] ) ||
 			( isset( $_POST['wp_2fa_enabled_methods'] ) && 'email' === $_POST['wp_2fa_enabled_methods'] ) ||
 			( isset( $_POST['wp_2fa_enabled_methods'] ) && 'oob' === $_POST['wp_2fa_enabled_methods'] ) ) {
-			update_user_meta( $user->ID, WP_2FA_PREFIX . 'enabled_methods', sanitize_text_field( wp_unslash( $_POST['wp_2fa_enabled_methods'] ) ) );
+			User_Helper::set_enabled_method_for_user(sanitize_text_field( wp_unslash( $_POST['wp_2fa_enabled_methods'] ) ), $user);
 			self::delete_expire_and_enforced_keys( $user->ID );
-			User::setUserStatus( $user );
+			User::set_user_status( $user );
 		}
 
 		if ( isset( $_POST['wp-2fa-email-authcode'] ) && ! empty( $_POST['wp-2fa-email-authcode'] ) ) {
-			update_user_meta( $user->ID, WP_2FA_PREFIX . 'enabled_methods', 'email' );
+			User_Helper::set_enabled_method_for_user( 'email', $user );
 			self::delete_expire_and_enforced_keys( $user->ID );
-			User::setUserStatus( $user );
+			User::set_user_status( $user );
 		}
 
 		if ( isset( $_POST['wp-2fa-totp-authcode'] ) && ! empty( $_POST['wp-2fa-totp-authcode'] ) ) {
-			update_user_meta( $user->ID, WP_2FA_PREFIX . 'enabled_methods', 'totp' );
+			User_Helper::set_enabled_method_for_user( 'totp', $user );
 
 			$totp_key = $_POST['wp-2fa-totp-key'];
 			if ( Authentication::is_valid_key( $totp_key ) ) {
 				if ( Open_SSL::is_ssl_available() ) {
 					$totp_key = 'ssl_' . Open_SSL::encrypt( $totp_key );
 				}
-				update_user_meta( $user->ID, WP_2FA_PREFIX . 'totp_key', $totp_key );
+				User_Helper::set_user_totp_key( $totp_key, $user );
 				self::delete_expire_and_enforced_keys( $user->ID );
-				User::setUserStatus( $user );
+				User::set_user_status( $user );
 			}
 		}
+		// phpcs:enable
 	}
 
 	/**
-	 * Utility function to quickly remove data via direct query.
+	 * Utility function to remove user expiry and enforced data.
 	 *
 	 * @param  int $user_id User id to process.
 	 */
 	public static function delete_expire_and_enforced_keys( $user_id ) {
-		global $wpdb;
-		$wpdb->query(
-			$wpdb->prepare(
-				"
-				DELETE FROM $wpdb->usermeta
-				WHERE user_id = %d
-				AND meta_key IN ( %s, %s )
-				",
-				array(
-					$user_id,
-					WP_2FA_PREFIX . 'grace_period_expiry',
-					WP_2FA_PREFIX . 'user_enforced_instantly',
-				)
-			)
-		);
+		User_Helper::remove_user_expiry_date( $user_id );
+		User_Helper::remove_user_enforced_instantly( $user_id );
 	}
 
 	/**
 	 * Validate a user's code when setting up 2fa via the inline form.
 	 *
-	 * @return string JSON result of validation.
+	 * @return void
 	 */
 	public function validate_authcode_via_ajax() {
 		check_ajax_referer( 'wp-2fa-validate-authcode' );
 
 		if ( isset( $_POST['form'] ) ) {
-			$input = $_POST['form'];
+			$input = wp_unslash( $_POST['form'] ); // phpcs:ignore
 		} else {
-			return 'No form';
+			wp_send_json_error(
+				array(
+					'error' => esc_html__( 'No form', 'wp-2fa' ),
+				)
+			);
 		}
 
 		$user = wp_get_current_user();
@@ -611,10 +635,10 @@ class UserProfile {
 			// If its not totp, is it email.
 		} elseif ( ! empty( $input['wp-2fa-email-authcode'] ) ) {
 			if ( ! Authentication::validate_token( $user, sanitize_text_field( wp_unslash( $input['wp-2fa-email-authcode'] ) ) ) ) {
-				$our_errors = __( 'Invalid Email Authentication code.', 'wp-2fa' );
+				$our_errors = esc_html__( 'Invalid Email Authentication code.', 'wp-2fa' );
 			}
 		} else {
-			$our_errors = __( 'Please enter the code to finalize the 2FA setup.', 'wp-2fa' );
+			$our_errors = esc_html__( 'Please enter the code to finalize the 2FA setup.', 'wp-2fa' );
 		}
 
 		if ( ! empty( $our_errors ) ) {
@@ -629,9 +653,17 @@ class UserProfile {
 			// Send the response.
 			wp_send_json_success();
 		}
+
+		wp_send_json_error(
+			array(
+				'error' => esc_html__( 'Error processing form', 'wp-2fa' ),
+			)
+		);
 	}
 
 	/**
+	 * Checks the user for remove 2FA capabilities.
+	 *
 	 * @param int $user_id User ID.
 	 *
 	 * @return bool True if the user can remove 2FA from their account.

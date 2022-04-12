@@ -1,4 +1,14 @@
-<?php // phpcs:ignore
+<?php
+/**
+ * Responsible for WP2FA user's authentication.
+ *
+ * @package    wp2fa
+ * @subpackage authentication
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ */
+
 /**
  * Class for handling general authentication tasks.
  *
@@ -9,18 +19,16 @@
 
 namespace WP2FA\Authenticator;
 
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\SvgWriter;
+use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Login_Attempts;
+use Endroid\QrCode\Writer\SvgWriter;
+use Endroid\QrCode\QrCode;
 
 /**
  * Authenticator class
  */
 class Authentication {
 
-	const SECRET_META_KEY             = 'wp_2fa_totp_key';
-	const NOTICES_META_KEY            = 'wp_2fa_totp_notices';
-	const TOKEN_META_KEY              = 'wp_2fa_email_token';
 	const DEFAULT_KEY_BIT_SIZE        = 160;
 	const DEFAULT_CRYPTO              = 'sha1';
 	const DEFAULT_DIGIT_COUNT         = 6;
@@ -39,7 +47,7 @@ class Authentication {
 	/**
 	 * The login attempts class
 	 *
-	 * @var WP2FA\Extensions\Login_Attempts
+	 * @var \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */
@@ -71,12 +79,12 @@ class Authentication {
 			$target_url .= ( '&issuer=' . rawurlencode( $title ) );
 		}
 
-		$qr     = new QrCode( $target_url );
-		$qr->setWriterOptions(['exclude_xml_declaration'=>true]);
+		$qr = new QrCode( $target_url );
+		$qr->setWriterOptions( array( 'exclude_xml_declaration' => true ) );
 		$writer = new SvgWriter();
 		$result = $writer->writeString( $qr );
 
-		return 'data:image/svg+xml;base64,'.base64_encode($result);
+		return 'data:image/svg+xml;base64,' . base64_encode( $result ); // phpcs:ignore
 	}
 
 	/**
@@ -135,7 +143,7 @@ class Authentication {
 	 */
 	public static function get_user_totp_key( $user_id ) {
 
-		$key = (string) get_user_meta( $user_id, self::SECRET_META_KEY, true );
+		$key = (string) User_Helper::get_user_totp_key( $user_id );
 
 		$test = $key;
 
@@ -143,7 +151,7 @@ class Authentication {
 
 		if ( ! self::is_valid_key( $test ) ) {
 			$key = self::generate_key();
-			\update_user_meta( $user_id, self::SECRET_META_KEY, $key );
+			User_Helper::set_user_totp_key( $key, $user_id );
 		}
 
 		return $key;
@@ -179,8 +187,14 @@ class Authentication {
 	public static function is_valid_authcode( $key, $authcode ) {
 
 		self::decrypt_key_if_needed( $key );
-
-		$max_ticks = apply_filters( 'wp_2fa_totp_time_step_allowance', self::DEFAULT_TIME_STEP_ALLOWANCE );
+		/**
+		 * That allows to change the amount of thick for decrypting the key.
+		 *
+		 * @param bool - Default at this point is true - no method is selected.
+		 *
+		 * @since 2.0.0
+		 */
+		$max_ticks = apply_filters( WP_2FA_PREFIX . 'totp_time_step_allowance', self::DEFAULT_TIME_STEP_ALLOWANCE );
 
 		// Array of all ticks to allow, sorted using absolute value to test closest match first.
 		$ticks = range( - $max_ticks, $max_ticks );
@@ -346,7 +360,8 @@ class Authentication {
 	 */
 	public static function generate_token( $user_id ) {
 		$token = self::get_code();
-		update_user_meta( $user_id, self::TOKEN_META_KEY, wp_hash( $token ) );
+
+		User_Helper::set_email_token_for_user( wp_hash( $token ), $user_id );
 		return $token;
 	}
 
@@ -384,7 +399,7 @@ class Authentication {
 	 * @param int $user_id User ID.
 	 */
 	public static function delete_token( $user_id ) {
-		delete_user_meta( $user_id, self::TOKEN_META_KEY );
+		User_Helper::remove_email_token_for_user( $user_id );
 	}
 
 	/**
@@ -410,24 +425,13 @@ class Authentication {
 	 * @return string|boolean  User token or `false` if no token found.
 	 */
 	public static function get_user_token( $user_id ) {
-		$hashed_token = get_user_meta( $user_id, self::TOKEN_META_KEY, true );
+		$hashed_token = User_Helper::get_email_token_for_user( $user_id );
 
 		if ( ! empty( $hashed_token ) && is_string( $hashed_token ) ) {
 			return $hashed_token;
 		}
 
 		return false;
-	}
-
-	/**
-	 * Delete the TOTP secret key for a user.
-	 *
-	 * @param  int $user_id User ID.
-	 *
-	 * @return boolean If the key was deleted successfully.
-	 */
-	public static function delete_user_totp_key( $user_id ) {
-		return delete_user_meta( $user_id, self::SECRET_META_KEY );
 	}
 
 	/**
@@ -524,7 +528,7 @@ class Authentication {
 	/**
 	 * Returns instance of the LoginAttempts class
 	 *
-	 * @return LoginAttempts
+	 * @return \WP2FA\Admin\Controllers\Login_Attempts
 	 *
 	 * @since 2.0.0
 	 */

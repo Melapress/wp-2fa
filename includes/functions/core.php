@@ -1,5 +1,4 @@
-<?php // phpcs:ignore
-
+<?php
 /**
  * Core plugin functionality.
  *
@@ -8,9 +7,9 @@
 
 namespace WP2FA\Core;
 
-use \WP2FA\Admin\SettingsPage as SettingsPage;
-use \WP2FA\Utils\UserUtils;
-use WP2FA\Utils\SettingsUtils as SettingsUtils;
+use \WP2FA\Utils\User_Utils;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Admin\Helpers\WP_Helper;
 
 /**
  * Default setup routine
@@ -30,7 +29,12 @@ function setup() {
 	// Hook to allow async or defer on asset loading.
 	add_filter( 'script_loader_tag', $n( 'script_loader_tag' ), 10, 2 );
 
-	do_action( 'wp_2fa_loaded' );
+	/**
+	 * Fires after the plugin is loaded.
+	 *
+	 * @since 2.0.0
+	 */
+  	do_action( WP_2FA_PREFIX . 'loaded' );
 }
 
 /**
@@ -50,7 +54,13 @@ function i18n() {
  * @return void
  */
 function init() {
-	do_action( 'wp_2fa_init' );
+
+	/**
+	 * Fires when plugin is initiated.
+	 *
+	 * @since 2.0.0
+	 */
+	do_action( WP_2FA_PREFIX . 'init' );
 }
 
 /**
@@ -66,11 +76,11 @@ function activate() {
 	// Check if the user is allowed to manage options for the site.
 	if ( current_user_can( 'manage_options' ) ) {
 		// Add an option to let our plugin know this user has not been through the setup wizard.
-		SettingsUtils::update_option( 'redirect_on_activate', true );
+		Settings_Utils::update_option( 'redirect_on_activate', true );
 	}
 
 	// Add plugin version to wp_options.
-	SettingsUtils::update_option( 'plugin_version', WP_2FA_VERSION );
+	Settings_Utils::update_option( 'plugin_version', WP_2FA_VERSION );
 }
 
 /**
@@ -92,7 +102,7 @@ function deactivate() {
 function uninstall() {
 	if ( ! empty( \WP2FA\WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
 		// Delete settings from wp_options.
-		if ( \WP2FA\WP2FA::is_this_multisite() ) {
+		if ( WP_Helper::is_multisite() ) {
 			$network_id = get_current_network_id();
 			global $wpdb;
 			$wpdb->query(
@@ -102,10 +112,10 @@ function uninstall() {
 					WHERE meta_key LIKE %s
 					AND site_id = %d
 					",
-					[
+					array(
 						'%wp_2fa_%',
-						$network_id
-					]
+						$network_id,
+					)
 				)
 			);
 		} else {
@@ -116,21 +126,20 @@ function uninstall() {
 					DELETE FROM $wpdb->options
 					WHERE option_name LIKE %s
 					",
-					[
+					array(
 						'%wp_2fa_%',
-					]
+					)
 				)
 			);
 		}
 
 		$users_args = array(
-			'fields'     => array( 'ID' ),
+			'fields' => array( 'ID' ),
 		);
-		if ( \WP2FA\WP2FA::is_this_multisite() ) {
+		if ( WP_Helper::is_multisite() ) {
 			$users_args['blog_id'] = 0;
 		}
-		$settings = new SettingsPage();
-		$users = UserUtils::get_all_user_ids( 'query', $users_args );
+		$users = User_Utils::get_all_user_ids( 'query', $users_args );
 		if ( ! is_array( $users ) ) {
 			$users = explode( ',', $users );
 		}
@@ -138,17 +147,17 @@ function uninstall() {
 		foreach ( $users as $user_id ) {
 			global $wpdb;
 			$wpdb->query(
-			 $wpdb->prepare(
-				 "
+                $wpdb->prepare(
+                    "
 				 DELETE FROM $wpdb->usermeta
 				 WHERE user_id = %d
 				 AND meta_key LIKE %s
 				 ",
-				 [
-					 $user_id,
-					 'wp_2fa_%'
-				 ]
-			 )
+                    array(
+						$user_id,
+						'wp_2fa_%',
+                    )
+                )
 			);
 		}
 	}
@@ -169,7 +178,7 @@ function get_enqueue_contexts() {
  * @param string $script Script file name (no .js extension).
  * @param string $context Context for the script ('admin', 'frontend', or 'shared').
  *
- * @return string|WP_Error URL
+ * @return string|\WP_Error URL
  */
 function script_url( $script, $context ) {
 
@@ -187,7 +196,7 @@ function script_url( $script, $context ) {
  * @param string $stylesheet Stylesheet file name (no .css extension).
  * @param string $context Context for the script ('admin', 'frontend', or 'shared').
  *
- * @return string URL
+ * @return string|\WP_Error  URL
  */
 function style_url( $stylesheet, $context ) {
 
@@ -196,7 +205,6 @@ function style_url( $stylesheet, $context ) {
 	}
 
 	return WP_2FA_URL . "dist/css/${stylesheet}.css";
-
 }
 
 /**
@@ -209,8 +217,8 @@ function admin_scripts() {
 	global $pagenow;
 
 	// Get page argument from $_GET array.
-	$page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING );
-	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && "profile.php" !== $pagenow ) {
+	$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
+	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && 'profile.php' !== $pagenow ) {
 		return;
 	}
 
@@ -230,10 +238,10 @@ function admin_scripts() {
 		true
 	);
 
-	enqueueSelect2Scripts();
+	enqueue_select2_scripts();
 
-	if (\WP2FA\WP2FA::is_this_multisite()) {
-		enqueueMultiSelectScripts();
+	if ( WP_Helper::is_multisite() ) {
+		enqueue_multi_select_scripts();
 	}
 
 	// Data array.
@@ -247,7 +255,8 @@ function admin_scripts() {
 		'processingText'                 => esc_html__( 'Processing Update', 'wp-2fa' ),
 		'email_sent_success'             => esc_html__( 'Email successfully sent', 'wp-2fa' ),
 		'email_sent_failure'             => esc_html__( 'Email delivery failed', 'wp-2fa' ),
-		'license_validation_in_progress' => esc_html__( 'Validating your license, please wait...', 'wp-2fa' )
+		'invalidEmail'                   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+		'license_validation_in_progress' => esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
 	);
 	wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
 
@@ -267,8 +276,8 @@ function admin_scripts() {
  *
  * @return void
  */
-function enqueueMultiSelectScripts() {
-	wp_enqueue_script( 'multi-site-select', script_url( 'multi-site-select', 'admin' ), [ 'jquery', 'select2' ] );
+function enqueue_multi_select_scripts() {
+	wp_enqueue_script( 'multi-site-select', script_url( 'multi-site-select', 'admin' ), array( 'jquery', 'select2' ), WP_2FA_VERSION, false );
 }
 
 /**
@@ -276,9 +285,9 @@ function enqueueMultiSelectScripts() {
  *
  * @return void
  */
-function enqueueSelect2Scripts() {
-	wp_enqueue_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css' );
-	wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js', [ 'jquery' ] );
+function enqueue_select2_scripts() {
+	wp_enqueue_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css', array(), WP_2FA_VERSION );
+	wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js', array( 'jquery' ), WP_2FA_VERSION, false );
 }
 
 /**

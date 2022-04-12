@@ -1,14 +1,25 @@
-<?php // phpcs:ignore
+<?php
+/**
+ * Responsible for WP2FA user's login forms.
+ *
+ * @package    wp2fa
+ * @subpackage login
+ * @copyright  2021 WP White Security
+ * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
+ * @link       https://wordpress.org/plugins/wp-2fa/
+ */
 
 namespace WP2FA\Authenticator;
 
-use WP2FA\Admin\User;
 use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\SettingsPage;
-use WP2FA\Admin\Controllers\Settings;
-use \WP2FA\Admin\SetupWizard as SetupWizard;
-use \WP2FA\Authenticator\BackupCodes as BackupCodes;
+use \WP2FA\Authenticator\Backup_Codes as Backup_Codes;
 use \WP2FA\Authenticator\Authentication as Authentication;
+use \WP2FA\Admin\Setup_Wizard as Setup_Wizard;
+use WP2FA\Admin\User;
+use WP2FA\Admin\Settings_Page;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Class for handling logins.
@@ -20,9 +31,8 @@ class Login {
 	 *
 	 * @var string
 	 */
-	const ENABLED_PROVIDERS_USER_META_KEY = WP_2FA_PREFIX . 'enabled_methods';
-	const USER_META_NONCE_KEY             = 'wp_2fa_nonce';
-	const INPUT_NAME_RESEND_CODE          = 'wp-2fa-email-code-resend';
+	const USER_META_NONCE_KEY    = 'wp_2fa_nonce';
+	const INPUT_NAME_RESEND_CODE = 'wp-2fa-email-code-resend';
 
 	/**
 	 * Keep track of all the password-based authentication sessions that
@@ -37,31 +47,6 @@ class Login {
 	 */
 	public function __construct() {
 
-	}
-
-	/**
-	 * Grab list of possible providers.
-	 *
-	 * @return array
-	 */
-	public static function get_providers() {
-		$providers = array(
-			'totp',
-			'email',
-			'backup_codes',
-		);
-
-		/**
-		 * Filter the supplied providers.
-		 *
-		 * This lets third-parties either remove providers (such as Email), or
-		 * add their own providers (such as text message or Clef).
-		 *
-		 * @param array $provider array if available options.
-		 */
-		$providers = apply_filters( 'wp_2fa_providers', $providers );
-
-		return $providers;
 	}
 
 	/**
@@ -81,75 +66,6 @@ class Login {
 	}
 
 	/**
-	 * Get all Two-Factor Auth providers that are enabled for the specified|current user.
-	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
-	 * @return array
-	 */
-	public static function get_enabled_providers_for_user( $user = null ) {
-		if ( empty( $user ) || ! is_a( $user, 'WP_User' ) ) {
-			$user = wp_get_current_user();
-		}
-
-		$providers         = self::get_providers();
-		$enabled_providers = get_user_meta( $user->ID, self::ENABLED_PROVIDERS_USER_META_KEY, true );
-		if ( empty( $enabled_providers ) ) {
-			$enabled_providers = array();
-		}
-		$enabled_providers = array_intersect( $enabled_providers, array_keys( $providers ) );
-
-		return $enabled_providers;
-	}
-
-	/**
-	 * Get all Two-Factor Auth providers that are both enabled and configured for the specified|current user.
-	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
-	 * @return array
-	 */
-	public static function get_available_providers_for_user( $user = null ) {
-		if ( empty( $user ) || ! is_a( $user, 'WP_User' ) ) {
-			$user = wp_get_current_user();
-		}
-
-		// Lets see what 2fa method the use has chosen.
-		$enabled_providers = get_user_meta( $user->ID, self::ENABLED_PROVIDERS_USER_META_KEY, true );
-
-		// Setup an array which we will use shortly.
-		$configured_providers = '';
-
-		// Now lets confirm if the method is actually setup.
-		if ( 'totp' === $enabled_providers ) {
-			$configured_providers = $enabled_providers;
-		} elseif ( 'email' === $enabled_providers ) {
-			$configured_providers = $enabled_providers;
-		}
-
-		/**
-		 * Allows 3rd party providers to add their own provider name into the configured providers, if it is enabled for the user
-		 *
-		 * @param string $configured_providers - Configured providers.
-		 * @param string $enabled_providers - Enabled providers.
-		 *
-		 * @since 2.0.0
-		 */
-		return apply_filters( 'wp_2fa_user_configured_provider', $configured_providers, $enabled_providers );
-	}
-
-	/**
-	 * Quick boolean check for whether a given user is using two-step.
-	 *
-	 * @since 0.1-dev
-	 *
-	 * @param int $user_id Optional. User ID. Default is 'null'.
-	 * @return bool
-	 */
-	public static function is_user_using_two_factor( $user_id = null ) {
-		$provider = get_user_meta( $user_id, self::ENABLED_PROVIDERS_USER_META_KEY, true );
-		return ! empty( $provider );
-	}
-
-	/**
 	 * Handle the browser-based login.
 	 *
 	 * Note: All user meta data is in sync with the current version of plugin settings. This is taken care of in filter
@@ -159,13 +75,15 @@ class Login {
 	 *
 	 * @param string   $user_login Username.
 	 * @param \WP_User $user WP_User object of the logged-in user.
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public static function wp_login( $user_login, $user ) {
 
-		$user_status = User::getUserStatus( $user );
+		$user_status = User_Helper::get_2fa_status( $user );
 
 		if ( 'no_determined_yet' === $user_status ) {
-			\update_user_meta( $user->ID, WP_2FA_PREFIX . 'global_settings_hash', '' );
+			User_Helper::remove_global_settings_hash_for_user( $user->ID );
 		}
 		update_user_meta( $user->ID, WP_2FA_PREFIX . 'login_date', time() );
 
@@ -177,7 +95,7 @@ class Login {
 		}
 
 		// leave if the user has already got 2FA authentication configured.
-		if ( self::is_user_using_two_factor( $user->ID ) ) {
+		if ( User_Helper::is_user_using_two_factor( $user->ID ) ) {
 			self::clear_session_and_show_2fa_form( $user );
 		}
 
@@ -193,16 +111,16 @@ class Login {
 		}
 
 		// redirect to 2FA setup page if the 2FA configuration is enforced to happen instantly.
-		$is_user_instantly_enforced = get_user_meta( $user->ID, WP_2FA_PREFIX . 'user_enforced_instantly', true );
+		$is_user_instantly_enforced = User_Helper::get_user_enforced_instantly( $user );
 		if ( true === (bool) $is_user_instantly_enforced ) {
 			wp_safe_redirect(
-				self::get_2fa_setup_url() . ( ( isset( $_REQUEST['_wp_http_referer'] ) && ! empty( $_REQUEST['_wp_http_referer'] ) ) ? '?return=' . urlencode( $_REQUEST['_wp_http_referer'] ) : '' )
+				self::get_2fa_setup_url() . ( ( isset( $_REQUEST['_wp_http_referer'] ) && ! empty( $_REQUEST['_wp_http_referer'] ) ) ? '?return=' . urlencode( \esc_url_raw( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ) ) : '' ) // phpcs:ignore
 			);
 			exit();
 		}
 
 		// if there is some grace period configured, and it is not instant, we can let the users in (if they needed to
-		// be blocked, this would have already happened in wp_authenticate)
+		// be blocked, this would have already happened in wp_authenticate).
 		$grace_policy = WP2FA::get_wp2fa_setting( 'grace-policy' );
 		if ( 'use-grace-period' === $grace_policy ) {
 			return;
@@ -219,6 +137,8 @@ class Login {
 	 * @param \WP_User $user WordPress user object.
 	 *
 	 * @since 2.0.0
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	private static function clear_session_and_show_2fa_form( $user ) {
 		/**
@@ -230,7 +150,7 @@ class Login {
 		 *
 		 * @return bool
 		 */
-		$should_form_be_skipped = apply_filters( 'wp_2fa_skip_2fa_login_form', false, $user );
+		$should_form_be_skipped = apply_filters( WP_2FA_PREFIX . 'skip_2fa_login_form', false, $user );
 		if ( $should_form_be_skipped ) {
 			return;
 		}
@@ -258,7 +178,7 @@ class Login {
 			return $new_page_permalink;
 		}
 
-		if ( WP2FA::is_this_multisite() ) {
+		if ( WP_Helper::is_multisite() ) {
 			return Settings::get_setup_page_link();
 		}
 
@@ -288,14 +208,14 @@ class Login {
 	 * Prevent login through XML-RPC and REST API for users with at least one
 	 * 2FA method enabled.
 	 *
-	 * @param  WP_User|WP_Error $user Valid WP_User only if the previous filters
+	 * @param  \WP_User|\WP_Error $user Valid WP_User only if the previous filters
 	 *                                have verified and confirmed the
 	 *                                authentication credentials.
 	 *
-	 * @return WP_User|WP_Error
+	 * @return \WP_User|\WP_Error
 	 */
 	public static function filter_authenticate( $user ) {
-		if ( $user instanceof \WP_User && self::is_api_request() && self::is_user_using_two_factor( $user->ID ) && ! self::is_user_api_login_enabled( $user->ID ) ) {
+		if ( $user instanceof \WP_User && self::is_api_request() && User_Helper::is_user_using_two_factor( $user->ID ) && ! self::is_user_api_login_enabled( $user->ID ) ) {
 			return new \WP_Error(
 				'invalid_application_credentials',
 				esc_html__( 'Error: API login for user disabled.', 'wp-2fa' )
@@ -327,7 +247,7 @@ class Login {
 		// job).
 		$wp2fa_user->lock_user_account_if_needed();
 
-		if ( User::isUserLocked( $user->ID ) ) {
+		if ( User_Helper::is_user_locked( $user->ID ) ) {
 			return self::get_user_locked_error();
 		}
 
@@ -355,7 +275,7 @@ class Login {
 	 * @return boolean
 	 */
 	public static function is_user_api_login_enabled( $user_id ) {
-		return (bool) apply_filters( 'two_factor_user_api_login_enable', false, $user_id );
+  		return (bool) apply_filters( 'two_factor_user_api_login_enable', false, $user_id );
 	}
 
 	/**
@@ -380,7 +300,7 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function show_two_factor_login( $user ) {
 		if ( ! $user ) {
@@ -392,7 +312,7 @@ class Login {
 			wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 		}
 
-		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url();
+		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url(); //phpcs:ignore
 
 		self::login_html( $user, $login_nonce['key'], $redirect_to );
 	}
@@ -401,9 +321,11 @@ class Login {
 	 * Display the Backup code 2fa screen.
 	 *
 	 * @since 0.1-dev
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public static function backup_2fa() {
-		if ( ! isset( $_GET['wp-auth-id'], $_GET['wp-auth-nonce'], $_GET['provider'] ) ) {
+		if ( ! isset( $_GET['wp-auth-id'], $_GET['wp-auth-nonce'], $_GET['provider'] ) ) { //phpcs:ignore
 			return;
 		}
 
@@ -424,7 +346,7 @@ class Login {
 		if ( ! isset( $get_array['provider'] ) ) {
 			wp_die( esc_html__( 'Cheatin&#8217; uh?', 'wp-2fa' ), 403 );
 		} else {
-			$provider = sanitize_textarea_field( wp_unslash( $_GET['provider'] ) );
+			$provider = sanitize_textarea_field( wp_unslash( $_GET['provider'] ) ); //phpcs:ignore
 		}
 
 		self::login_html( $user, $nonce, esc_url_raw( wp_unslash( $get_array['redirect_to'] ) ), '', $provider );
@@ -437,19 +359,19 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User       $user WP_User object of the logged-in user.
+	 * @param \WP_User      $user WP_User object of the logged-in user.
 	 * @param string        $login_nonce A string nonce stored in usermeta.
 	 * @param string        $redirect_to The URL to which the user would like to be redirected.
 	 * @param string        $error_msg Optional. Login error message.
 	 * @param string|object $provider An override to the provider.
 	 */
 	public static function login_html( $user, $login_nonce, $redirect_to, $error_msg = '', $provider = null ) {
-		if ( ! $provider || ('backup_codes' === $provider && ! SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) ) ) {
-			$provider = self::get_available_providers_for_user( $user );
+		if ( ! $provider || ( 'backup_codes' === $provider && ! Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) ) {
+			$provider = User_Helper::get_enabled_method_for_user( $user );
 		}
 
-		$codes_remaining = BackupCodes::codes_remaining_for_user( $user );
-		$interim_login   = isset( $_REQUEST['interim-login'] ) ? filter_var( wp_unslash( $_REQUEST['interim-login'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+		$codes_remaining = Backup_Codes::codes_remaining_for_user( $user );
+		$interim_login   = isset( $_REQUEST['interim-login'] ) ? filter_var( wp_unslash( $_REQUEST['interim-login'] ), FILTER_VALIDATE_BOOLEAN ) : false; //phpcs:ignore
 		$rememberme      = intval( self::rememberme() );
 
 		if ( ! function_exists( 'login_header' ) ) {
@@ -467,9 +389,9 @@ class Login {
 			<input type="hidden" name="provider"      id="provider"      value="<?php echo esc_attr( $provider ); ?>" />
 			<input type="hidden" name="wp-auth-id"    id="wp-auth-id"    value="<?php echo esc_attr( $user->ID ); ?>" />
 			<input type="hidden" name="wp-auth-nonce" id="wp-auth-nonce" value="<?php echo esc_attr( $login_nonce ); ?>" />
-			<?php if ( $interim_login ): ?>
+			<?php if ( $interim_login ) : ?>
 				<input type="hidden" name="interim-login" value="1" />
-			<?php else: ?>
+			<?php else : ?>
 				<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
 			<?php endif; ?>
 			<input type="hidden" name="rememberme" id="rememberme" value="<?php echo esc_attr( $rememberme ); ?>"/>
@@ -492,10 +414,18 @@ class Login {
 				 *
 				 * @since 2.0.0
 				 */
-				do_action( 'wp_2fa_login_form', $user, $provider );
+				do_action( WP_2FA_PREFIX . 'login_form', $user, $provider );
 			}
 
-			$submit_button_disabled = apply_filters( 'wp_2fa_login_disable_submit_button', false, $user, $provider );
+			/**
+			 * Gives the ability to remove the submit button from the plugin forms
+			 *
+			 * @param bool - Default at this point is true - no method is selected.
+			 * @param array $input - The input array with all the data.
+			 *
+			 * @since 2.0.0
+			 */
+  			$submit_button_disabled = apply_filters( WP_2FA_PREFIX . 'login_disable_submit_button', false, $user, $provider );
 			if ( ! $submit_button_disabled ) {
 
 				/**
@@ -506,15 +436,23 @@ class Login {
 				 *
 				 * @since 2.0.0
 				 */
-				do_action( 'wp_2fa_login_before_submit_button', $user, $provider );
+				do_action( WP_2FA_PREFIX . 'login_before_submit_button', $user, $provider );
 				?>
 				<p>
 					<?php
 					if ( function_exists( 'submit_button' ) ) {
-						$button_text = apply_filters( 'wp_2fa_login_button_text', esc_html__( 'Log In', 'wp-2fa' ) );
+
+						/**
+						 * Using that filter, the default text of the login button could be changed
+						 *
+						 * @param callback - Callback function which is responsible for text manipulation.
+						 *
+						 * @since 2.0.0
+						 */
+						$button_text = apply_filters( WP_2FA_PREFIX . 'login_button_text', esc_html__( 'Log In', 'wp-2fa' ) );
 
 						submit_button( $button_text );
-					?>
+						?>
 					<script type="text/javascript">
 						setTimeout(function () {
 							var d
@@ -532,8 +470,8 @@ class Login {
 					?>
 					<p class="2fa-email-resend">
 						<input type="submit" class="button"
-							   name="<?php echo esc_attr( self::INPUT_NAME_RESEND_CODE ); ?>"
-							   value="<?php esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
+						name="<?php echo esc_attr( self::INPUT_NAME_RESEND_CODE ); ?>"
+						value="<?php esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
 					</p>
 					<?php
 				}
@@ -547,12 +485,12 @@ class Login {
 			 *
 			 * @since 2.0.0
 			 */
-			do_action( 'wp_2fa_login_html_before_end', $user, $provider );
+			do_action( WP_2FA_PREFIX . 'login_html_before_end', $user, $provider );
 			?>
 		</form>
 
 		<?php
-		if ( 'backup_codes' !== $provider && SettingsPage::are_backup_codes_enabled( reset( $user->roles ) ) && isset( $codes_remaining ) && $codes_remaining > 0 ) {
+		if ( 'backup_codes' !== $provider && Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) && isset( $codes_remaining ) && $codes_remaining > 0 ) {
 			$login_url = self::login_url(
 				array(
 					'action'        => 'backup_2fa',
@@ -585,7 +523,7 @@ class Login {
 		 *
 		 * @since 2.0.0
 		 */
-		do_action( 'wp_2fa_login_html_after_backup_providers', $user, $provider, $login_nonce, $redirect_to, $rememberme );
+		do_action( WP_2FA_PREFIX . 'login_html_after_backup_providers', $user, $provider, $login_nonce, $redirect_to, $rememberme );
 
 		?>
 
@@ -610,7 +548,7 @@ class Login {
 			padding: 0 24px;
 		}
 		.backup-methods-wrap a {
-			color: #999;
+			color: #50575e;
 			text-decoration: none;
 		}
 		ul.backup-methods {
@@ -658,14 +596,15 @@ class Login {
 	 * @since 0.1-dev
 	 *
 	 * @param int $user_id User ID.
-	 * @return array
+	 *
+	 * @return array|bool
 	 */
 	public static function create_login_nonce( $user_id ) {
 		$login_nonce = array();
 		try {
 			$login_nonce['key'] = bin2hex( random_bytes( 32 ) );
 		} catch ( \Exception $ex ) {
-			$login_nonce['key'] = wp_hash( $user_id . mt_rand() . microtime(), 'nonce' );
+			$login_nonce['key'] = wp_hash( $user_id . mt_rand() . microtime(), 'nonce' ); //phpcs:ignore
 		}
 		$login_nonce['expiration'] = time() + HOUR_IN_SECONDS;
 
@@ -682,10 +621,11 @@ class Login {
 	 * @since 0.1-dev
 	 *
 	 * @param int $user_id User ID.
-	 * @return bool
+	 *
+	 * @return void
 	 */
 	public static function delete_login_nonce( $user_id ) {
-		return delete_user_meta( $user_id, self::USER_META_NONCE_KEY );
+		User_Helper::remove_meta( self::USER_META_NONCE_KEY, $user_id );
 	}
 
 	/**
@@ -715,30 +655,28 @@ class Login {
 	 * Login form validation.
 	 *
 	 * @since 0.1-dev
+	 *
+	 * @SuppressWarnings(PHPMD.ExitExpression)
 	 */
 	public static function login_form_validate_2fa() {
-		if ( ! isset( $_POST['wp-auth-id'], $_POST['wp-auth-nonce'] ) ) {
+		if ( ! isset( $_POST['wp-auth-id'], $_POST['wp-auth-nonce'] ) ) { // phpcs:ignore
 			return;
 		}
 
-		$auth_id = (int) $_POST['wp-auth-id'];
+		$auth_id = (int) $_POST['wp-auth-id']; // phpcs:ignore
 		$user    = get_userdata( $auth_id );
 		if ( ! $user ) {
 			return;
 		}
 
-		$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : '';
+		$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore
 		if ( true !== self::verify_login_nonce( $user->ID, $nonce ) ) {
 			wp_safe_redirect( get_bloginfo( 'url' ) );
 			exit;
 		}
 
-		if ( isset( $_POST['provider'] ) ) {
-			$provider  = sanitize_textarea_field( wp_unslash( $_POST['provider'] ) );
-			$providers = self::get_available_providers_for_user( $user );
-			if ( isset( $providers[ $provider ] ) ) {
-				$provider = $providers[ $provider ];
-			}
+		if ( isset( $_POST['provider'] ) ) { // phpcs:ignore
+			$provider  = sanitize_textarea_field( wp_unslash( $_POST['provider'] ) ); // phpcs:ignore
 		}
 
 		// If this is an email login, or if the user failed validation previously, lets send the code to the user.
@@ -759,7 +697,7 @@ class Login {
 			}
 
 			if ( Authentication::check_number_of_attempts( $user ) ) {
-				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider );
+				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore
 			} else {
 				Authentication::get_login_attempts_instance()->clear_login_attempts( $user );
 				\wp_redirect( \wp_login_url() );
@@ -775,11 +713,11 @@ class Login {
 				wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
 
-			if ( BackupCodes::check_number_of_attempts( $user ) ) {
+			if ( Backup_Codes::check_number_of_attempts( $user ) ) {
 
-				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid backup code.', 'wp-2fa' ), $provider );
+				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid backup code.', 'wp-2fa' ), $provider ); // phpcs:ignore
 			} else {
-				BackupCodes::get_login_attempts_instance()->clear_login_attempts( $user );
+				Backup_Codes::get_login_attempts_instance()->clear_login_attempts( $user );
 				\wp_redirect( \wp_login_url() );
 			}
 			exit;
@@ -794,11 +732,11 @@ class Login {
 				wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
 
-			if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
-				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider );
+			if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) { //phpcs:ignore
+				self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore
 			} else {
 				if ( Authentication::check_number_of_attempts( $user ) ) {
-					self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider );
+					self::login_html( $user, $login_nonce['key'], esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore
 				} else {
 					Authentication::get_login_attempts_instance()->clear_login_attempts( $user );
 					\wp_redirect( \wp_login_url() );
@@ -816,27 +754,34 @@ class Login {
 		 *
 		 * @since 2.0.0
 		 */
-		do_action( 'wp_2fa_validate_login_form', $user, $provider );
+		do_action( WP_2FA_PREFIX . 'validate_login_form', $user, $provider );
 
 		self::delete_login_nonce( $user->ID );
 
 		$rememberme = false;
-		$remember   = ( isset( $_REQUEST['rememberme'] ) ) ? filter_var( $_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN ) : '';
+		$remember   = ( isset( $_REQUEST['rememberme'] ) ) ? filter_var( $_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN ) : ''; // phpcs:ignore
 		if ( ! empty( $remember ) ) {
 			$rememberme = true;
 		}
 
 		wp_set_auth_cookie( $user->ID, $rememberme );
 
-		do_action( 'wp_2fa_user_authenticated', $user );
+		/**
+		 * Fires when the user is authenticated.
+		 *
+		 * @param \WP_User - the logged in user
+		 *
+		 * @since 2.0.0
+		 */
+		do_action( WP_2FA_PREFIX . 'user_authenticated', $user );
 
 		// Must be global because that's how login_header() uses it.
 		global $interim_login;
-		$interim_login = ( isset( $_REQUEST['interim-login'] ) ) ? filter_var( $_REQUEST['interim-login'], FILTER_VALIDATE_BOOLEAN ) : false;
+		$interim_login = ( isset( $_REQUEST['interim-login'] ) ) ? filter_var( $_REQUEST['interim-login'], FILTER_VALIDATE_BOOLEAN ) : false; // phpcs:ignore
 
 		if ( $interim_login ) {
 			$message       = '<p class="message">' . __( 'You have logged in successfully.', 'wp-2fa' ) . '</p>';
-			$interim_login = 'success'; // WPCS: override ok.
+			$interim_login = 'success'; // phpcs:ignore
 			login_header( '', $message );
 			?>
 			</div>
@@ -850,13 +795,27 @@ class Login {
 		}
 
 		// Check if user has any roles/caps set - if they dont, we know its a "network" user.
-		if ( is_multisite() && ! get_active_blog_for_user( $user->ID ) && empty( $user->caps ) && empty( $user->caps ) ) {
+		if ( WP_Helper::is_multisite() && ! get_active_blog_for_user( $user->ID ) && empty( $user->caps ) && empty( $user->caps ) ) {
 			$redirect_to = user_admin_url();
 		} else {
-			$redirect_to = apply_filters( 'login_redirect', esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), $user );
+			$redirect_to = apply_filters( 'login_redirect', esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), $user ); // phpcs:ignore
 		}
 
-		BackupCodes::get_login_attempts_instance()->clear_login_attempts( $user );
+		Backup_Codes::get_login_attempts_instance()->clear_login_attempts( $user );
+
+		if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || admin_url() === $redirect_to ) ) {
+			// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
+			if ( WP_Helper::is_multisite() && ! get_active_blog_for_user( $user->ID ) && ! is_super_admin( $user->ID ) ) {
+				$redirect_to = user_admin_url();
+			} elseif ( WP_Helper::is_multisite() && ! $user->has_cap( 'read' ) ) {
+				$redirect_to = get_dashboard_url( $user->ID );
+			} elseif ( ! $user->has_cap( 'edit_posts' ) ) {
+				$redirect_to = $user->has_cap( 'read' ) ? admin_url( 'profile.php' ) : home_url();
+			}
+
+			wp_redirect( $redirect_to );
+			exit;
+		}
 
 		wp_safe_redirect( $redirect_to );
 
@@ -871,22 +830,29 @@ class Login {
 	public static function rememberme() {
 		$rememberme = false;
 
-		if ( ! empty( $_REQUEST['rememberme'] ) ) {
+		if ( ! empty( $_REQUEST['rememberme'] ) ) { //phpcs:ignore
 			$rememberme = true;
 		}
 
-		return (bool) apply_filters( 'wp_2fa_rememberme', $rememberme );
+		/**
+		 * Changes the remember me value.
+		 *
+		 * @param bool $rememberme - Current state of the remember me variable.
+		 *
+		 * @since 2.0.0
+		 */
+		return (bool) apply_filters( WP_2FA_PREFIX . 'rememberme', $rememberme );
 	}
 
 	/**
 	 * Prints the form that prompts the user to authenticate.
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function totp_authentication_page( $user ) {
 		require_once ABSPATH . '/wp-admin/includes/template.php';
 		?>
-		<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ); ?></p>
+		<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ); // phpcs:ignore ?></p>
 		<p>
 			</br>
 			<label for="authcode"><?php esc_html_e( 'Authentication Code:', 'wp-2fa' ); ?></label>
@@ -898,15 +864,15 @@ class Login {
 	/**
 	 * Validates authentication.
 	 *
-	 * @param \WP_User $user - The WP user, if presented
+	 * @param \WP_User $user - The WP user, if presented.
 	 *
 	 * @return bool Whether the user gave a valid code
 	 */
 	public static function validate_totp_authentication( \WP_User $user = null ) {
-		if ( ! empty( $_REQUEST['authcode'] ) ) { // WPCS: CSRF ok, nonce verified by login_form_validate_2fa().
+		if ( ! empty( $_REQUEST['authcode'] ) ) {  //phpcs:ignore
 			$valid = Authentication::is_valid_authcode(
-				User::get_instance( ( $user ) ? $user : '' )->getTotpKey(),
-				sanitize_text_field( $_REQUEST['authcode'] ) // WPCS: CSRF ok, nonce verified by login_form_validate_2fa().
+				User::get_instance( ( $user ) ? $user : '' )->get_totp_key(),
+				sanitize_text_field( $_REQUEST['authcode'] ) // phpcs:ignore
 			);
 			if ( $valid ) {
 				Authentication::get_login_attempts_instance()->clear_login_attempts( $user );
@@ -914,8 +880,8 @@ class Login {
 				Authentication::get_login_attempts_instance()->increase_login_attempts( $user );
 			}
 			return Authentication::is_valid_authcode(
-				User::get_instance( ( $user ) ? $user : '' )->getTotpKey(),
-				sanitize_text_field( $_REQUEST['authcode'] ) // WPCS: CSRF ok, nonce verified by login_form_validate_2fa().
+				User::get_instance( ( $user ) ? $user : '' )->get_totp_key(),
+				sanitize_text_field( $_REQUEST['authcode'] ) // phpcs:ignore
 			);
 		}
 
@@ -927,7 +893,7 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function email_authentication_page( $user ) {
 		if ( ! $user ) {
@@ -937,15 +903,15 @@ class Login {
 		$has_token = Authentication::user_has_token( $user->ID );
 		if ( empty( $has_token ) || ! $has_token ) {
 			if ( Settings::get_role_or_default_setting( 'specify-email_hotp', $user, null, true ) ) {
-				SetupWizard::send_authentication_setup_email( $user->ID );
-			} elseif ( empty( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
-				SetupWizard::send_authentication_setup_email( $user->ID, '' );
+				Setup_Wizard::send_authentication_setup_email( $user->ID );
+			} elseif ( empty( $_REQUEST['wp-2fa-email-code-resend'] ) ) {  //phpcs:ignore
+				Setup_Wizard::send_authentication_setup_email( $user->ID, '' );
 			}
 		}
 
 		require_once ABSPATH . '/wp-admin/includes/template.php';
 		?>
-	<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ); ?></p>
+	<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ); // phpcs:ignore ?></p>
 	<p>
 	</br>
 		<label for="authcode"><?php esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>
@@ -959,26 +925,26 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 * @return boolean
 	 */
 	public static function validate_email_authentication( $user ) {
-		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-email-code'] ) ) {
+		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-email-code'] ) ) { //phpcs:ignore
 			return false;
 		}
-		return Authentication::validate_token( $user, $_REQUEST['wp-2fa-email-code'] );
+		return Authentication::validate_token( $user, $_REQUEST['wp-2fa-email-code'] ); // phpcs:ignore
 	}
 
 	/**
 	 * Send the email code if missing or requested. Stop the authentication
 	 * validation if a new token has been generated and sent.
 	 *
-	 * @param  WP_USer $user WP_User object of the logged-in user.
+	 * @param  \WP_User $user WP_User object of the logged-in user.
 	 * @return boolean
 	 */
 	public static function pre_process_email_authentication( $user ) {
-		if ( isset( $user->ID ) && isset( $_REQUEST[ self::INPUT_NAME_RESEND_CODE ] ) ) {
-			SetupWizard::send_authentication_setup_email( $user->ID );
+		if ( isset( $user->ID ) && isset( $_REQUEST[ self::INPUT_NAME_RESEND_CODE ] ) ) { //phpcs:ignore
+			Setup_Wizard::send_authentication_setup_email( $user->ID );
 			return true;
 		}
 		return false;
@@ -989,12 +955,12 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 */
 	public static function backup_codes_authentication_page( $user ) {
 		require_once ABSPATH . '/wp-admin/includes/template.php';
 		?>
-		<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ); // @codingStandardsIgnoreLine ?></p><br/>
+		<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ); // phpcs:ignore ?></p><br/>
 		<p>
 			<label for="authcode"><?php esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>
 			<input type="tel" name="wp-2fa-backup-code" id="authcode" class="input" value="" size="20" pattern="[0-9]*" />
@@ -1009,14 +975,40 @@ class Login {
 	 *
 	 * @since 0.1-dev
 	 *
-	 * @param WP_User $user WP_User object of the logged-in user.
+	 * @param \WP_User $user WP_User object of the logged-in user.
 	 *
 	 * @return boolean
 	 */
 	public static function validate_backup_codes( $user ) {
-		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-backup-code'] ) ) {
+		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-backup-code'] ) ) { //phpcs:ignore
 			return false;
 		}
-		return BackupCodes::validate_code( $user, sanitize_text_field( $_POST['wp-2fa-backup-code'] ) );
+		return Backup_Codes::validate_code( $user, sanitize_text_field( $_POST['wp-2fa-backup-code'] ) ); // phpcs:ignore
+	}
+
+	/**
+	 * Legacy compatibility - remove this when we stop supporting it - 6 months from now - 04.10.2022
+	 *
+	 * @param int $user_id - The WP user id.
+	 *
+	 * @return boolean
+	 *
+	 * @since latest
+	 */
+	public static function is_user_using_two_factor( $user_id ) {
+		return User_Helper::is_user_using_two_factor( $user_id );
+	}
+
+	/**
+	 * Legacy compatibility - remove this when we stop supporting it - 6 months from now - 04.10.2022
+	 *
+	 * @param \WP_User $user - The WP user.
+	 *
+	 * @return string
+	 *
+	 * @since latest
+	 */
+	public static function get_available_providers_for_user( $user ) {
+		return User_Helper::get_enabled_method_for_user( $user );
 	}
 }
