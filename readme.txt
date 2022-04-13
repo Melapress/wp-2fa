@@ -4,7 +4,7 @@ Plugin URI: https://wp2fa.io
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
-Requires at least: 4.5
+Requires at least: 5.0
 Tested up to: 5.9.3
 Stable tag: 2.2.0
 Requires PHP: 7.0.0
@@ -33,26 +33,27 @@ Browse our list of [WordPress security plugins](https://www.wpwhitesecurity.com/
 
 * Free Two-factor authentication (2FA) for all users
 * Supports [multiple 2FA methods](https://wp2fa.io/features/multiple-2fa-methods-support/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description)
-* [Universal 2FA app support](https://wp2fa.io/features/universal-2fa-app-support/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description) - generate codes from Google Authenticator, Authy & any other 2FA app.
+* [Universal 2FA app support](https://wp2fa.io/features/universal-2fa-app-support/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description) - generate codes from Google Authenticator, Authy & any other 2FA app
 * Supports [2FA backup methods](https://wp2fa.io/features/alternative-2fa-backup-method-options/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin%20repos%20description)
 * [Very easy to use and simple to set up](https://wp2fa.io/features/easy-to-use-simple-setup-wizards/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description)
-* Use [2FA policies to enforce 2FA with a grace period](https://wp2fa.io/support/kb/configure-2fa-policies-enforce/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin%20repos%20description),
-* Or require users users to instantly setup 2FA upon logging in,
-* [Out of the box support for third party plugins](https://wp2fa.io/features/third-party-plugins-support/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WSAL&utm_content=plugin+repos+description) such as WooCommerce and other e-commerce & membership plugins,
+* Use [2FA policies to enforce 2FA with a grace period](https://wp2fa.io/support/kb/configure-2fa-policies-enforce/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin%20repos%20description)
+* Or require users users to instantly setup 2FA upon logging in
+* [Out of the box support for third party plugins](https://wp2fa.io/features/third-party-plugins-support/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WSAL&utm_content=plugin+repos+description) such as WooCommerce and other e-commerce & membership plugins
 * [No WordPress dashboard access required for users to set up 2FA](https://wp2fa.io/features/no-wordpress-dashboard-access-required/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WSAL&utm_content=plugin+repos+description)
-* Protection against automated password & dictionary attacks,
-* And many other [plugin features](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description)).
+* Protection against automated password & dictionary attacks
+* And many other [plugin features](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description))
 
 ### Extend the functionality of WP 2FA & automate more
 <strong>[Upgrade to WP 2FA Premium](https://wp2fa.io/pricing/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)</strong> to:
 
-* Add trusted devices - no need for 2FA code each time you log in,
-* Whitelabel all the 2FA pages - for a consistent user experience,
-* Give the users more 2FA methods to choose from and use,
-* Configure different 2FA policies for different user profiles,
-* More alternative 2FA backup methods,
-* Easily get an overview of users' 2FA setup with the reports,
-* And many other features.
+* 2FA over SMS, Push notification, WhatsApp and incoming call via [Authy integration](https://wp2fa.io/features/authy-2fa-integration/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
+* Add trusted devices - no need for 2FA code each time you log in
+* Whitelabel all the 2FA pages - for a consistent user experience
+* Give the users more 2FA methods to choose from and use
+* Configure different 2FA policies for different user profiles
+* More alternative 2FA backup methods
+* Easily get an overview of users' 2FA setup with the reports
+* And many other features
 
 Refer to the [features and benefits page](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) to learn more about the benefits of upgrading to WP 2FA Premium.
 
@@ -78,7 +79,8 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 
 #### Related Links and Documentation
 
-* [What is Two-factor authentication](https://www.wpwhitesecurity.com/two-factor-authentication-wordpress/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
+* [The benefits of using 2FA on WordPress](https://wp2fa.io/benefits-2fa-wordpress/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
+* [What is Two-factor authentication](https://wp2fa.io/what-is-2fa/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
 * [Why you need both 2FA & strong passwords](https://www.wpwhitesecurity.com/two-factor-authentication-strong-passwords-wordpress/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
 * [Setting up Google authenticator for WordPress 2FA](https://www.wpwhitesecurity.com/google-authenticator-app-wordpress-2fa/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
 * List of [supported 2FA apps](https://wp2fa.io/support/kb/configuring-2fa-apps/)
