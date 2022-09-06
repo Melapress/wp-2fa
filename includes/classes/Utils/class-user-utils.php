@@ -13,7 +13,6 @@ namespace WP2FA\Utils;
 
 use \WP2FA\Authenticator\Backup_Codes as Backup_Codes;
 use WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\User;
 use WP2FA\Admin\Helpers\User_Helper;
 
 /**
@@ -38,7 +37,7 @@ class User_Utils {
 	 *
 	 * @return array
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public static function determine_user_2fa_status( $user ) {
 
@@ -54,8 +53,8 @@ class User_Utils {
 
 		// Grab grace period UNIX time.
 		$grace_period_expired = User_Helper::get_grace_period( $user );
-		$is_user_excluded     = User::is_excluded( $user->ID );
-		$is_user_enforced     = User::is_enforced( $user->ID );
+		$is_user_excluded     = User_Helper::is_excluded( $user->ID );
+		$is_user_enforced     = User_Helper::is_enforced( $user->ID );
 		$is_user_locked       = User_Helper::is_user_locked( $user->ID );
 		$user_last_login      = get_user_meta( $user->ID, WP_2FA_PREFIX . 'login_date', true );
 
@@ -99,7 +98,7 @@ class User_Utils {
 
 		if ( $no_enforced_methods && empty( $enabled_methods ) && ! $is_user_excluded ) {
 			if ( empty( $user_last_login ) ) {
-				$user_type[] = 'no_determined_yet';
+				$user_type[] = User_Helper::USER_UNDETERMINED_STATUS;
 			} else {
 				$user_type[] = 'no_required_not_enabled';
 			}
@@ -111,7 +110,7 @@ class User_Utils {
 
 		if ( ! $no_enforced_methods && empty( $enabled_methods ) && ! $is_user_excluded && ! $is_user_enforced ) {
 			if ( empty( $user_last_login ) ) {
-				$user_type[] = 'no_determined_yet';
+				$user_type[] = User_Helper::USER_UNDETERMINED_STATUS;
 			} else {
 				$user_type[] = 'no_required_not_enabled';
 			}
@@ -149,7 +148,7 @@ class User_Utils {
 	 *
 	 * @return bool
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public static function in_array_all( $needles, $haystack ) {
 		return empty( array_diff( $needles, $haystack ) );
@@ -251,7 +250,7 @@ class User_Utils {
 			$select .= ' LIMIT ' . $batch_size . ' OFFSET ' . $offset . '';
 		}
 
-		return $wpdb->get_results( $select );
+		return $wpdb->get_results( $select ); // phpcs:ignore
 	}
 
 	/**
@@ -280,7 +279,7 @@ class User_Utils {
 			';
 		}
 
-		$users = $wpdb->get_results( $select );
+		$users = $wpdb->get_results( $select ); // phpcs:ignore
 
 		$users = array_map(
 			function ( $user ) {
@@ -351,13 +350,13 @@ class User_Utils {
 		if ( null === self::$statuses ) {
 			self::$statuses =
 			array(
-				'has_enabled_methods'     => __( 'Configured', 'wp-2fa' ),
-				'user_needs_to_setup_2fa' => __( 'Required but not configured', 'wp-2fa' ),
-				'no_required_has_enabled' => __( 'Configured (but not required)', 'wp-2fa' ),
-				'no_required_not_enabled' => __( 'Not required & not configured', 'wp-2fa' ),
-				'user_is_excluded'        => __( 'Not allowed', 'wp-2fa' ),
-				'user_is_locked'          => __( 'Locked', 'wp-2fa' ),
-				'no_determined_yet'       => __( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
+				'has_enabled_methods'                 => __( 'Configured', 'wp-2fa' ),
+				'user_needs_to_setup_2fa'             => __( 'Required but not configured', 'wp-2fa' ),
+				'no_required_has_enabled'             => __( 'Configured (but not required)', 'wp-2fa' ),
+				'no_required_not_enabled'             => __( 'Not required & not configured', 'wp-2fa' ),
+				'user_is_excluded'                    => __( 'Not allowed', 'wp-2fa' ),
+				'user_is_locked'                      => __( 'Locked', 'wp-2fa' ),
+				User_Helper::USER_UNDETERMINED_STATUS => __( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
 			);
 		}
 

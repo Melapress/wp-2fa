@@ -19,10 +19,11 @@
 
 namespace WP2FA\Authenticator;
 
+use Endroid\QrCode\QrCode;
+use WP2FA\Authenticator\Open_SSL;
+use Endroid\QrCode\Writer\SvgWriter;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Login_Attempts;
-use Endroid\QrCode\Writer\SvgWriter;
-use Endroid\QrCode\QrCode;
 
 /**
  * Authenticator class
@@ -59,6 +60,13 @@ class Authentication {
 	 * @var string
 	 */
 	private static $base_32_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+	/**
+	 * String with the decrypted key
+	 *
+	 * @var string
+	 */
+	private static $decrypted_key = '';
 
 	/**
 	 * Gemerate QR code
@@ -101,7 +109,7 @@ class Authentication {
 		$secret = Open_SSL::encrypt( self::base32_encode( $secret ) );
 
 		if ( Open_SSL::is_ssl_available() ) {
-			$secret = 'ssl_' . $secret;
+			$secret = 'wps_' . $secret;
 		}
 
 		return $secret;
@@ -146,6 +154,26 @@ class Authentication {
 		$key = (string) User_Helper::get_user_totp_key( $user_id );
 
 		$test = $key;
+
+		if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
+
+			/**
+			 * Old key detected - convert.
+			 */
+			$key = Open_SSL::decrypt_legacy( substr( $key, 4 ) );
+
+			User_Helper::remove_user_totp_key();
+
+			$secret = Open_SSL::encrypt( $key );
+
+			if ( Open_SSL::is_ssl_available() ) {
+				$secret = 'wps_' . $secret;
+			}
+
+			User_Helper::set_user_totp_key( $key, $user_id );
+
+			$test = $key = (string) User_Helper::get_user_totp_key( $user_id ); // phpcs:ignore
+		}
 
 		self::decrypt_key_if_needed( $test );
 
@@ -378,7 +406,8 @@ class Authentication {
 		$user_id      = $user->ID;
 		$hashed_token = self::get_user_token( $user_id );
 		// Bail if token is empty or it doesn't match.
-		if ( empty( $hashed_token ) || ( wp_hash( $token ) !== $hashed_token ) ) {
+		// This code is here just because people have no idea what is the difference between preaching and real life.
+		if ( empty( $hashed_token ) || ( ! hash_equals( wp_hash( $token ), $hashed_token ) ) ) {
 			self::get_login_attempts_instance()->increase_login_attempts( $user );
 			return false;
 		}
@@ -425,6 +454,8 @@ class Authentication {
 	 * @return string|boolean  User token or `false` if no token found.
 	 */
 	public static function get_user_token( $user_id ) {
+
+
 		$hashed_token = User_Helper::get_email_token_for_user( $user_id );
 
 		if ( ! empty( $hashed_token ) && is_string( $hashed_token ) ) {
@@ -517,12 +548,15 @@ class Authentication {
 	 * @since 2.0.0
 	 */
 	public static function decrypt_key_if_needed( string &$key ): string {
-
-		if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
-			$key = Open_SSL::decrypt( substr( $key, 4 ) );
+		if ( '' === trim( self::$decrypted_key ) ) {
+			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
+				$key = self::$decrypted_key = Open_SSL::decrypt( substr( $key, 4 ) ); // phpcs:ignore
+			} else {
+				self::$decrypted_key = $key;
+			}
 		}
 
-		return $key;
+		return ( $key = self::$decrypted_key ); // phpcs:ignore
 	}
 
 	/**

@@ -11,6 +11,7 @@
 
 namespace WP2FA\Admin\Controllers;
 
+use \WP2FA\Admin\Settings_Page;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User;
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -22,13 +23,6 @@ defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
  * WP2FA Settings controller
  */
 class Settings {
-
-	/**
-	 * The name of the WP2FA WP admin settings page
-	 *
-	 * @var string
-	 */
-	private static $settings_page_name = 'wp-2fa-policies';
 
 	/**
 	 * The link to the WP admin settings page
@@ -73,7 +67,7 @@ class Settings {
 	 *
 	 * @var array
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	private static $all_providers = array();
 
@@ -82,7 +76,7 @@ class Settings {
 	 *
 	 * @var array
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	private static $all_providers_for_roles = array();
 
@@ -94,9 +88,9 @@ class Settings {
 	public static function get_settings_page_link() {
 		if ( '' === self::$settings_page_link ) {
 			if ( WP_Helper::is_multisite() ) {
-				self::$settings_page_link = add_query_arg( 'page', self::$settings_page_name, network_admin_url( 'admin.php' ) );
+				self::$settings_page_link = add_query_arg( 'page', Settings_Page::TOP_MENU_SLUG, network_admin_url( 'admin.php' ) );
 			} else {
-				self::$settings_page_link = add_query_arg( 'page', self::$settings_page_name, admin_url( 'admin.php' ) );
+				self::$settings_page_link = add_query_arg( 'page', Settings_Page::TOP_MENU_SLUG, admin_url( 'admin.php' ) );
 			}
 		}
 
@@ -188,7 +182,7 @@ class Settings {
 		/**
 		 * No user specified - get the default settings
 		 */
-		if ( null === $user ) {
+		if ( null === $user || \WP_2FA_PREFIX . 'no-user' === $user ) {
 			return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value );
 		}
 
@@ -275,7 +269,7 @@ class Settings {
 	 *
 	 * @throws \Exception - if the role is wrong - throws an exception.
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public static function get_enabled_providers_for_role( string $role ) {
 
@@ -298,7 +292,7 @@ class Settings {
 	 *
 	 * @throws \Exception - If the provider is not registered in the plugin.
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public static function is_provider_enabled_for_role( string $role, string $provider ): bool {
 		self::get_providers();
@@ -321,7 +315,7 @@ class Settings {
 	 *
 	 * @return array
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public static function get_all_roles_providers() {
 		if ( empty( self::$all_providers_for_roles ) ) {
@@ -333,8 +327,8 @@ class Settings {
 				foreach ( $providers as $provider ) {
 					if ( 'backup_codes' === $provider ) {
 						self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( $provider . '_enabled', false, false, $role );
-					} elseif ( 'email-backup' === $provider ) {
-						self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable-' . $provider, false, false, $role );
+					} elseif ( 'backup_email' === $provider ) {
+						self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable-email-backup', false, false, $role );
 					} elseif ( 'oob' === $provider ) {
 						self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role );
 					} else {

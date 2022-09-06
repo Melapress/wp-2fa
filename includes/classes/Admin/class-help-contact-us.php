@@ -12,6 +12,7 @@
 
 namespace WP2FA\Admin;
 
+use \WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\WP_Helper;
 
 /**
@@ -24,14 +25,14 @@ class Help_Contact_Us {
 	/**
 	 * Create admin menu entry and settings page
 	 */
-	public function add_extra_menu_item() {
+	public static function add_extra_menu_item() {
 		add_submenu_page(
-			'wp-2fa-policies',
+			Settings_Page::TOP_MENU_SLUG,
 			esc_html__( 'Help & Contact Us', 'wp-2fa' ),
 			esc_html__( 'Help & Contact Us', 'wp-2fa' ),
 			'manage_options',
 			self::TOP_MENU_SLUG,
-			array( $this, 'render' ),
+			array( __CLASS__, 'render' ),
 			100
 		);
 	}
@@ -41,7 +42,7 @@ class Help_Contact_Us {
 	 *
 	 * @return void
 	 */
-	public function render() {
+	public static function render() {
 		?>
 		<div class="wrap help-wrap">
 			<div class="page-head">
@@ -57,11 +58,11 @@ class Help_Contact_Us {
 			</div>
 			<div class="wp2fa-help-section nav-tabs">
 				<?php
-					$this->sidebar();
+					self::sidebar();
 				if ( 'help' === $current_tab ) {
-					$this->help();
+					self::help();
 				} elseif ( 'system-info' === $current_tab ) {
-					$this->system_info();
+					self::system_info();
 				}
 				?>
 			</div>
@@ -74,7 +75,7 @@ class Help_Contact_Us {
 	 *
 	 * @return void
 	 */
-	public function help() {
+	public static function help() {
 		?>
 		<div class="wp2fa-help-main">
 			<!-- getting started -->
@@ -120,7 +121,7 @@ class Help_Contact_Us {
 	 *
 	 * @return void
 	 */
-	public function system_info() {
+	public static function system_info() {
 		?>
 		<div class="wp2fa-help-main">
 			<!-- getting started -->
@@ -128,7 +129,7 @@ class Help_Contact_Us {
 				<h2><?php esc_html_e( 'System information', 'wp-2fa' ); ?></h2>
 			</div>
 			<form method="post" dir="ltr">
-				<textarea readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="wsal-sysinfo"><?php echo $this->get_sysinfo(); // phpcs:ignore ?></textarea>
+				<textarea readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="wsal-sysinfo"><?php echo self::get_sysinfo(); // phpcs:ignore ?></textarea>
 				<p class="submit">
 					<input type="hidden" name="ppmwp-action" value="download_sysinfo" />
 					<?php submit_button( 'Download System Info File', 'primary', 'wp2fa-download-sysinfo', false ); ?>
@@ -169,7 +170,7 @@ class Help_Contact_Us {
 	 *
 	 * @return void
 	 */
-	public function sidebar() {
+	public static function sidebar() {
 		?>
 		<div class="our-wordpress-plugins side-bar">
 			<h3><?php esc_html_e( 'Our WordPress Plugins', 'wp-2fa' ); ?></h3>
@@ -293,7 +294,7 @@ class Help_Contact_Us {
 	 *
 	 * @return string
 	 */
-	public function get_sysinfo() {
+	public static function get_sysinfo() {
 		// System info.
 		global $wpdb;
 

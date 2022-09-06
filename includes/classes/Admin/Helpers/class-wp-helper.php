@@ -12,6 +12,8 @@
 
 namespace WP2FA\Admin\Helpers;
 
+use WP2FA\Admin\Helpers\User_Helper;
+
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 /**
@@ -22,7 +24,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 	/**
 	 * All the WP functionality must go trough this class
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	class WP_Helper {
 
@@ -31,7 +33,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @var array
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		private static $user_roles = array();
 
@@ -40,7 +42,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @var array
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		private static $user_roles_wp = array();
 
@@ -49,7 +51,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @var bool
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		private static $is_multisite = null;
 
@@ -65,7 +67,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return void
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		public static function init() {
 			if ( self::is_multisite() ) {
@@ -82,7 +84,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return boolean
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		public static function is_role_exists( string $role ): bool {
 			self::set_roles();
@@ -99,7 +101,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return array
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		public static function get_roles() {
 			self::set_roles();
@@ -112,7 +114,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return array
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		public static function get_roles_wp() {
 			if ( empty( self::$user_roles_wp ) ) {
@@ -128,7 +130,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return void
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		public static function show_critical_admin_notice() {
 			if ( User_Helper::is_admin() ) {
@@ -144,7 +146,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return boolean
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		public static function is_multisite() {
 			if ( null === self::$is_multisite ) {
@@ -172,11 +174,30 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
+		 * Calculating the signature.
+		 *
+		 * @param array $data - Array with data to create a signature for.
+		 *
+		 * @return string
+		 *
+		 * @since 2.2.2
+		 */
+		public static function calculate_api_signature( array $data ): string {
+			$now   = new \DateTime( 'now', new \DateTimeZone( 'UTC' ) );
+			$nonce = $now->getTimestamp();
+
+			$pk_hash               = hash( 'sha512', $data['license_key'] . '|' . $nonce );
+			$authentication_string = base64_encode( $pk_hash . '|' . $nonce );
+
+			return $authentication_string;
+		}
+
+		/**
 		 * Sets the internal variable with all the existing WP roles
 		 *
 		 * @return void
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		private static function set_roles() {
 			if ( empty( self::$user_roles ) ) {

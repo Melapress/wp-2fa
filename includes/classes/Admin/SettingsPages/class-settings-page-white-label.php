@@ -34,7 +34,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 */
 		public function render() {
 			settings_fields( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
-			$this->change_default_text_area();
+			$this->white_labelling_tabs_wrapper();
 			submit_button();
 		}
 
@@ -54,17 +54,62 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				return;
 			}
 
-			$output['default-text-code-page'] = WP2FA::get_wp2fa_setting( 'default-text-code-page', false, true );
+			$output['default-text-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', false, false );
 
 			if ( isset( $input['default-text-code-page'] ) && '' !== trim( $input['default-text-code-page'] ) ) {
 				$output['default-text-code-page'] = \wp_strip_all_tags( $input['default-text-code-page'] );
 			}
 
-			$output['default-backup-code-page'] = WP2FA::get_wp2fa_setting( 'default-backup-code-page', false, true );
+			$output['default-backup-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', false, false );
 
 			if ( isset( $input['default-backup-code-page'] ) && '' !== trim( $input['default-backup-code-page'] ) ) {
 				$output['default-backup-code-page'] = \wp_strip_all_tags( $input['default-backup-code-page'] );
 			}
+
+			if ( isset( $_REQUEST['_wp_http_referer'] ) ) {
+				$request_area      = wp_parse_url( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ); // phpcs:ignore
+				$request_area_path = strpos( $request_area['query'], 'white-label-section' );
+
+				// If we have the input POSTed, we are on the right page so grab it.
+				if ( isset( $input['enable_wizard_styling'] ) && '' !== trim( $input['enable_wizard_styling'] ) ) {
+					$output['enable_wizard_styling'] = \wp_strip_all_tags( $input['enable_wizard_styling'] );
+				} else {
+					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
+					if ( $request_area_path && ! strpos( $request_area['query'], 'welcome' ) ) {
+						$input['enable_wizard_styling']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
+						$output['enable_wizard_styling'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
+					} else {
+						$output['enable_wizard_styling'] = '';
+						$input['enable_wizard_styling']  = '';
+					}
+				}
+
+				// Same as above, but for the optional welcome.
+				if ( isset( $input['enable_welcome'] ) && '' !== trim( $input['enable_welcome'] ) ) {
+					$output['enable_welcome'] = \wp_strip_all_tags( $input['enable_welcome'] );
+				} else {
+					if ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
+						$input['enable_welcome']  = '';
+						$output['enable_welcome'] = '';
+					} else {
+						$input['enable_welcome']  = WP2FA::get_wp2fa_white_label_setting( 'enable_welcome', false );
+						$output['enable_welcome'] = WP2FA::get_wp2fa_white_label_setting( 'enable_welcome', false );
+					}
+				}
+
+				if ( isset( $input['enable_wizard_logo'] ) && '' !== trim( $input['enable_wizard_logo'] ) ) {
+					$output['enable_wizard_logo'] = \wp_strip_all_tags( $input['enable_wizard_logo'] );
+				} else {
+					if ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
+						$input['enable_wizard_logo']  = '';
+						$output['enable_wizard_logo'] = '';
+					} else {
+						$input['enable_wizard_logo']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_logo', false );
+						$output['enable_wizard_logo'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_logo', false );
+					}
+				}
+			}
+
 
 			// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
 			global $wp_settings_errors;
@@ -136,6 +181,24 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			}
 		}
 
+
+		/**
+		 * Wrapper which adds special tabbed navigation and content
+		 *
+		 * @return void
+		 *
+		 * @since 2.3.0
+		 */
+		private function white_labelling_tabs_wrapper() {
+			/**
+			 * Fires right before the white label settings tab HTML, handles tabbed nav.
+			 *
+			 * @since 2.3.0
+			 */
+			do_action( WP_2FA_PREFIX . 'white_labeling_tabbed_navigation' );
+				$this->change_default_text_area();
+		}
+
 		/**
 		 * Shows default settings input to the user
 		 *
@@ -151,10 +214,36 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			 */
 			do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_before_default_text' );
 			?>
+		
+		<?php
+		?>
+		<h3><?php esc_html_e( 'Change the styling of the user 2FA wizards?', 'wp-2fa' ); ?></h3>
+		<p class="description">
+			<?php esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
+		</p>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th><label for="enable_wizard_styling"><?php esc_html_e( 'Enable styling', 'wp-2fa' ); ?></label></th>
+					<td>
+						<fieldset>
+							<input type="checkbox" id="enable_wizard_styling" name="wp_2fa_white_label[enable_wizard_styling]" value="enable_wizard_styling"
+							<?php checked( 'enable_wizard_styling', WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ), true ); ?>
+							>
+							<?php esc_html_e( 'Enable our CSS within user wizards', 'wp-2fa' ); ?>
+						</fieldset>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<?php
+		?>
+
 		<h3><?php esc_html_e( 'Change the default text used in the 2FA code page?', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder.', 'wp-2fa' ); ?>
 		</p>
+
 		<table class="form-table">
 			<tbody>
 				<tr>
