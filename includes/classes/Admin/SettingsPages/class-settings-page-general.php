@@ -15,7 +15,6 @@ use \WP2FA\WP2FA as WP2FA;
 use \WP2FA\Utils\Debugging as Debugging;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
 
-
 /**
  * General settings tab
  */
@@ -289,7 +288,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 *
 		 * @return void
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		private static function no_method_exists() {
 			?>

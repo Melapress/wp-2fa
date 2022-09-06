@@ -278,6 +278,29 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		}
 
 		/**
+		 * Migration for version upto 2.3.0
+		 *
+		 * @return void
+		 */
+		protected static function migrate_up_to_230() {
+
+			$version = self::get_settings( self::$version_option_name );
+
+			if ( $version && version_compare( $version, '2.2.1', '<=' ) ) {
+				$settings = self::get_settings( self::$plugin_white_label_name );
+				
+				if ( isset( $settings['enable_wizard_styling'] ) ) {
+					$settings['enable_wizard_styling'] = false;
+				} else {
+					$settings = array();
+					$settings['enable_wizard_styling'] = false;
+				}
+
+				self::set_settings( self::$plugin_white_label_name, $settings );
+			}
+		}
+
+		/**
 		 * Returns the plugin settings by a given setting type
 		 *
 		 * @param mixed $setting_name - The setting which needs to be extracted.

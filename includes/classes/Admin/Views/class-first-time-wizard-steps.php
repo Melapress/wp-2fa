@@ -70,7 +70,7 @@ class First_Time_Wizard_Steps {
 								printf(
 									/* translators: link to the knowledge base website */
 									esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
-									'<a href="https://wp2fa.io/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( '2FA apps article on our knowledge base', 'wp-2fa' ) . '</a>'
+									'<a href="https://wp2fa.io/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
 								);
 								echo '</p>';
 							}
@@ -94,17 +94,6 @@ class First_Time_Wizard_Steps {
 								<?php checked( WP2FA::get_wp2fa_setting( 'enable_email' ), 'enable_email' ); ?>
 								>
 								<?php esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' ); ?>
-								<?php
-								if ( $setup_wizard ) {
-									echo '<p class="description">';
-								} else {
-									echo ' - ';
-								}
-								echo WP2FA::print_email_deliverability_message(); // phpcs:ignore
-								if ( $setup_wizard ) {
-									echo '</p>';
-								}
-								?>
 							<?php
 							?>
 							</label>

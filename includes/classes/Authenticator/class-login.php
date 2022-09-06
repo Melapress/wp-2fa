@@ -11,15 +11,15 @@
 
 namespace WP2FA\Authenticator;
 
-use \WP2FA\WP2FA as WP2FA;
-use \WP2FA\Authenticator\Backup_Codes as Backup_Codes;
-use \WP2FA\Authenticator\Authentication as Authentication;
-use \WP2FA\Admin\Setup_Wizard as Setup_Wizard;
 use WP2FA\Admin\User;
+use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use \WP2FA\Admin\Setup_Wizard as Setup_Wizard;
+use \WP2FA\Authenticator\Backup_Codes as Backup_Codes;
+use \WP2FA\Authenticator\Authentication as Authentication;
 
 /**
  * Class for handling logins.
@@ -82,10 +82,10 @@ class Login {
 
 		$user_status = User_Helper::get_2fa_status( $user );
 
-		if ( 'no_determined_yet' === $user_status ) {
+		if ( User_Helper::USER_UNDETERMINED_STATUS === $user_status ) {
 			User_Helper::remove_global_settings_hash_for_user( $user->ID );
 		}
-		update_user_meta( $user->ID, WP_2FA_PREFIX . 'login_date', time() );
+		User_Helper::set_meta( WP_2FA_PREFIX . 'login_date', time(), $user );
 
 		/**
 		 * User is not required to use the 2FA
@@ -106,7 +106,7 @@ class Login {
 		}
 
 		// leave if the user is not required to have 2FA enabled due to and exclusion rule.
-		if ( User::is_excluded( $user->ID ) ) {
+		if ( User_Helper::is_excluded( $user->ID ) ) {
 			return;
 		}
 
@@ -123,6 +123,11 @@ class Login {
 		// be blocked, this would have already happened in wp_authenticate).
 		$grace_policy = WP2FA::get_wp2fa_setting( 'grace-policy' );
 		if ( 'use-grace-period' === $grace_policy ) {
+			return;
+		}
+
+		$provider = User_Helper::get_enabled_method_for_user( $user );
+		if ( '' === trim( $provider ) ) {
 			return;
 		}
 
@@ -247,7 +252,7 @@ class Login {
 		// job).
 		$wp2fa_user->lock_user_account_if_needed();
 
-		if ( User_Helper::is_user_locked( $user->ID ) ) {
+		if ( User_Helper::is_user_locked( $user->ID ) && ! User_Helper::is_excluded( $user->ID ) ) {
 			return self::get_user_locked_error();
 		}
 
@@ -314,7 +319,26 @@ class Login {
 
 		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url(); //phpcs:ignore
 
+		if ( self::is_woocommerce_activated() ) {
+			$redirect_to = isset( $_REQUEST['redirect'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect'] ) ) : admin_url();
+		}
+
 		self::login_html( $user, $login_nonce['key'], $redirect_to );
+	}
+
+	/**
+	 * Checks if woocommerce is enabled.
+	 *
+	 * @return boolean
+	 *
+	 * @since 2.2.2
+	 */
+	public static function is_woocommerce_activated(): bool {
+		if ( class_exists( 'woocommerce' ) ) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -679,6 +703,10 @@ class Login {
 			$provider  = sanitize_textarea_field( wp_unslash( $_POST['provider'] ) ); // phpcs:ignore
 		}
 
+		if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user ), $provider ) ) {
+			wp_die( __( '<p> <strong>WP-2FA</strong>: Please contact the administrator for further assistance!</p>', 'wp-2fa' ) . esc_html__( 'Invalid provider.', 'wp-2fa' ) ); // phpcs:ignore
+		}
+
 		// If this is an email login, or if the user failed validation previously, lets send the code to the user.
 		if ( 'email' === $provider && true !== self::pre_process_email_authentication( $user ) ) {
 			$login_nonce = self::create_login_nonce( $user->ID );
@@ -872,17 +900,14 @@ class Login {
 		if ( ! empty( $_REQUEST['authcode'] ) ) {  //phpcs:ignore
 			$valid = Authentication::is_valid_authcode(
 				User::get_instance( ( $user ) ? $user : '' )->get_totp_key(),
-				sanitize_text_field( $_REQUEST['authcode'] ) // phpcs:ignore
+				sanitize_text_field( \wp_unslash( $_REQUEST['authcode'] ) )
 			);
 			if ( $valid ) {
 				Authentication::get_login_attempts_instance()->clear_login_attempts( $user );
 			} else {
 				Authentication::get_login_attempts_instance()->increase_login_attempts( $user );
 			}
-			return Authentication::is_valid_authcode(
-				User::get_instance( ( $user ) ? $user : '' )->get_totp_key(),
-				sanitize_text_field( $_REQUEST['authcode'] ) // phpcs:ignore
-			);
+			return $valid;
 		}
 
 		return false;
@@ -900,14 +925,7 @@ class Login {
 			return;
 		}
 
-		$has_token = Authentication::user_has_token( $user->ID );
-		if ( empty( $has_token ) || ! $has_token ) {
-			if ( Settings::get_role_or_default_setting( 'specify-email_hotp', $user, null, true ) ) {
-				Setup_Wizard::send_authentication_setup_email( $user->ID );
-			} elseif ( empty( $_REQUEST['wp-2fa-email-code-resend'] ) ) {  //phpcs:ignore
-				Setup_Wizard::send_authentication_setup_email( $user->ID, '' );
-			}
-		}
+		Setup_Wizard::send_authentication_setup_email( $user->ID );
 
 		require_once ABSPATH . '/wp-admin/includes/template.php';
 		?>
@@ -932,7 +950,7 @@ class Login {
 		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-email-code'] ) ) { //phpcs:ignore
 			return false;
 		}
-		return Authentication::validate_token( $user, $_REQUEST['wp-2fa-email-code'] ); // phpcs:ignore
+		return Authentication::validate_token( $user, \sanitize_text_field( \wp_unslash( $_REQUEST['wp-2fa-email-code'] ) ) );
 	}
 
 	/**
@@ -983,7 +1001,7 @@ class Login {
 		if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-backup-code'] ) ) { //phpcs:ignore
 			return false;
 		}
-		return Backup_Codes::validate_code( $user, sanitize_text_field( $_POST['wp-2fa-backup-code'] ) ); // phpcs:ignore
+		return Backup_Codes::validate_code( $user, \sanitize_text_field( \wp_unslash( $_REQUEST['wp-2fa-backup-code'] ) ) );
 	}
 
 	/**
@@ -993,7 +1011,7 @@ class Login {
 	 *
 	 * @return boolean
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public static function is_user_using_two_factor( $user_id ) {
 		return User_Helper::is_user_using_two_factor( $user_id );
@@ -1006,9 +1024,20 @@ class Login {
 	 *
 	 * @return string
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public static function get_available_providers_for_user( $user ) {
 		return User_Helper::get_enabled_method_for_user( $user );
+	}
+
+	/**
+	 * Removes GoDaddy style which causing the form elements to be shown
+	 *
+	 * @return void
+	 *
+	 * @since 2.2.0
+	 */
+	public static function dequeue_style() {
+		wp_dequeue_style( 'wpaas-sso-login' );
 	}
 }

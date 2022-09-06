@@ -11,19 +11,20 @@
 
 namespace WP2FA\Admin;
 
-use \WP2FA\WP2FA as WP2FA;
-use \WP2FA\Utils\User_Utils as User_Utils;
-use \WP2FA\Utils\Generate_Modal as Generate_Modal;
+use WP2FA\Admin\User;
 use \WP2FA\Core as Core;
-use \WP2FA\Authenticator\Authentication as Authentication;
-use \WP2FA\Admin\Settings_Page as Settings_Page;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
-use WP2FA\Admin\Views\Wizard_Steps;
-use WP2FA\Admin\Views\First_Time_Wizard_Steps;
-use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
+use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Views\Wizard_Steps;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use \WP2FA\Utils\User_Utils as User_Utils;
+use WP2FA\Admin\Views\First_Time_Wizard_Steps;
+use \WP2FA\Admin\Settings_Page as Settings_Page;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use \WP2FA\Utils\Generate_Modal as Generate_Modal;
+use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
+use \WP2FA\Authenticator\Authentication as Authentication;
 
 /**
  * Our class for creating a step by step wizard for easy configuration.
@@ -61,7 +62,7 @@ class Setup_Wizard {
 	 *
 	 * @return void
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	public function network_admin_menus() {
 		add_dashboard_page( 'index.php', '', 'read', 'wp-2fa-setup', '' );
@@ -257,7 +258,7 @@ class Setup_Wizard {
 		 *
 		 * @param int $data_array - The array with all the JS wizard settings.
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		$data_array = apply_filters( WP_2FA_PREFIX . 'js_wizard_settings', $data_array );
 		wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
@@ -299,7 +300,7 @@ class Setup_Wizard {
 				/**
 				 * Gives the ability for 3rd party scripts to add their own JS to the plugin setup page.
 				 *
-				 * @since latest
+				 * @since 2.2.0
 				 */
 				\do_action( WP_2FA_PREFIX . 'setup_page_scripts' );
 			?>
@@ -343,11 +344,11 @@ class Setup_Wizard {
 				'',
 				__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the ', 'wp-2fa' ) . ' <b>' . __( 'WP 2FA', 'wp-2fa' ) . '</b>' . __( ' entry in your WordPress dashboard menu.', 'wp-2fa' ),
 				array(
-					'<a href="#" id="close-settings" class="modal__btn modal__btn-primary button-primary" data-redirect-url="' . esc_url( $redirect ) . '">' . __( 'OK, close wizard', 'wp-2fa' ) . '</a>',
-					'<a href="#" class="modal__btn modal__btn-primary button-secondary" data-close-2fa-modal>' . __( 'Continue with wizard', 'wp-2fa' ) . '</a>',
+					'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . esc_url( $redirect ) . '">' . __( 'OK, close wizard', 'wp-2fa' ) . '</a>',
+					'<a href="#" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" data-close-2fa-modal>' . __( 'Continue with wizard', 'wp-2fa' ) . '</a>',
 				),
 				'',
-				'450px'
+				'580px'
 			);
 		?>
 		<?php
@@ -532,8 +533,8 @@ class Setup_Wizard {
 	public static function send_authentication_setup_email( $user_id, $nominated_email_address = 'nominated_email_address' ) {
 
 		// If we have a nonce posted, check it.
-		if ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
-			$nonce_check = wp_verify_nonce( sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'wp-2fa-send-setup-email' );
+		if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
+			$nonce_check = \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'wp-2fa-send-setup-email' );
 			if ( ! $nonce_check ) {
 				return false;
 			}
@@ -562,7 +563,9 @@ class Setup_Wizard {
 		}
 
 		// Generate a token and setup email.
-		$token = Authentication::generate_token( $user->ID );
+		$token  = Authentication::generate_token( $user->ID );
+
+
 		$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
 		$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
 

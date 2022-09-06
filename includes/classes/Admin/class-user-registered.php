@@ -11,8 +11,6 @@
 
 namespace WP2FA\Admin;
 
-use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Helpers\User_Helper;
 
 /**
@@ -21,20 +19,13 @@ use WP2FA\Admin\Helpers\User_Helper;
 class User_Registered {
 
 	/**
-	 * Class constructor
-	 */
-	public function __construct() {
-
-	}
-
-	/**
 	 * Apply 2FA Grace period
 	 *
 	 * @param  int $user_id User id.
 	 *
 	 * @return void
 	 */
-	public function apply_2fa_grace_period( $user_id ) {
+	public static function apply_2fa_grace_period( $user_id ) {
 		if ( User_Helper::is_user_method_in_role_enabled_methods( $user_id ) ) {
 			return;
 		} else {
@@ -52,7 +43,7 @@ class User_Registered {
 	 *
 	 * @return void
 	 */
-	public function check_user_upon_role_change( $user_id, $role, $old_roles ) {
-		$this->apply_2fa_grace_period( $user_id );
+	public static function check_user_upon_role_change( $user_id, $role, $old_roles ) {
+		self::apply_2fa_grace_period( $user_id );
 	}
 }

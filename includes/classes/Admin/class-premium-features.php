@@ -12,6 +12,7 @@
 
 namespace WP2FA\Admin;
 
+use \WP2FA\Admin\Settings_Page;
 /**
  * Handles contact the features page and content.
  */
@@ -22,14 +23,14 @@ class Premium_Features {
 	/**
 	 * Create admin menu entry and settings page
 	 */
-	public function add_extra_menu_item() {
+	public static function add_extra_menu_item() {
 		add_submenu_page(
-			'wp-2fa-policies',
+			Settings_Page::TOP_MENU_SLUG,
 			esc_html__( 'Premium Features', 'wp-2fa' ),
 			esc_html__( 'Premium Features ➤', 'wp-2fa' ),
 			'manage_options',
 			self::TOP_MENU_SLUG,
-			array( $this, 'render' ),
+			array( __CLASS__, 'render' ),
 			100
 		);
 	}
@@ -39,7 +40,7 @@ class Premium_Features {
      *
      * @return void
      */
-    public function add_settings_banner() {
+    public static function add_settings_banner() {
         $banner  = '<div id="wp-2fa-side-banner">';
         $banner .= '<img src="' . esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
         $banner .= '<p>' . esc_html__( 'Upgrade to Premium to:', 'wp-2fa' ) . '</p>';
@@ -61,7 +62,7 @@ class Premium_Features {
 	 *
 	 * @return void
 	 */
-	public function render() {
+	public static function render() {
 		?>
 		<style>
 			.features-wrap {
@@ -432,7 +433,8 @@ class Premium_Features {
      *
      * @return void
      */
-    public function pricing_new_tab_js() { ?>
+    public static function pricing_new_tab_js() {
+		?>
         <script type="text/javascript">
             jQuery( document ).ready( function() {
                 jQuery( '.wp-2fa.pricing' ).parent().attr( 'target', '_blank' );

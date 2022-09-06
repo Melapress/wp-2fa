@@ -12,6 +12,7 @@
 namespace WP2FA\Admin\Controllers;
 
 use WP2FA\WP2FA;
+use WP2FA\Admin\Controllers\Settings;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -23,7 +24,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 	/**
 	 * All the methods related functionality must be extracted from this class. Responsible only for global methods data, not the user method related stuff.
 	 *
-	 * @since latest
+	 * @since 2.2.0
 	 */
 	class Methods {
 
@@ -32,7 +33,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		 *
 		 * @var array
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		private static $enabled_methods = null;
 
@@ -72,7 +73,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		 *
 		 * @return array
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		public static function get_enabled_methods( $role = 'global' ): array {
 			if ( null === self::$enabled_methods || ! isset( self::$enabled_methods[ $role ] ) ) {
@@ -80,15 +81,18 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 				$providers                      = Settings::get_providers();
 
 				foreach ( $providers as $provider ) {
-					if ( 'backup_codes' === $provider ) {
-						// Backup codes is a secondary provider - ignore it.
-						continue;
-					} elseif ( 'email-backup' === $provider ) {
-						self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable-' . $provider, false, false, $role );
-					} elseif ( 'oob' === $provider ) {
-						self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role );
-					} else {
-						self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role );
+					if ( Settings::is_provider_enabled_for_role( $role, $provider ) ) {
+						if ( 'backup_codes' === $provider ) {
+							// Backup codes is a secondary provider - ignore it.
+							continue;
+						} elseif ( 'backup_email' === $provider ) {
+							// Backup email codes is a secondary provider - ignore it.
+							continue;
+						} elseif ( 'oob' === $provider ) {
+							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role );
+						} else {
+							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role );
+						}
 					}
 				}
 
@@ -103,28 +107,15 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		 *
 		 * @param string $role - Role to extract data for.
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 *
 		 * @return string
 		 */
 		public static function get_number_of_methods_text( $role = 'global' ) {
-			$methods_count = count( self::get_enabled_methods( $role )[ $role ] );
-
-			if ( \class_exists( 'NumberFormatter' ) ) {
-				$number_formatter = new \NumberFormatter( get_locale(), \NumberFormatter::SPELLOUT );
-				$methods_count    = $number_formatter->format( $methods_count );
-			}
-
-			return sprintf(
-			// translators: %s - the number of methods.
-				\_n(
-					'There is %s method available from which you can choose for 2FA:',
-					'There are %s methods available from which you can choose for 2FA:',
-					$methods_count,
-					'wp-2fa'
-				),
-				$methods_count
-			);
+			return esc_html__(
+                'There are {available_methods_count} methods available to choose from for 2FA:',
+                'wp-2fa'
+            );
 		}
 
 	}

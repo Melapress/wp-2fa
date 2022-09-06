@@ -11,6 +11,8 @@
 
 namespace WP2FA\Utils;
 
+use \WP2FA\WP2FA as WP2FA;
+
 /**
  * Utility class for creating modal popup markup.
  *
@@ -41,11 +43,13 @@ class Generate_Modal {
 			}
 		}
 
+		$styling_class = ( empty( WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ) ) ) ? 'default_styling' : 'enable_styling';
+
 		if ( ! empty( $should_modal_autoopen ) ) {
-			$modal_class = 'wp2fa-modal micromodal-slide is-open';
+			$modal_class = 'wp2fa-modal micromodal-slide is-open ' . $styling_class;
 			$hidden      = 'false';
 		} else {
-			$modal_class = 'wp2fa-modal micromodal-slide';
+			$modal_class = 'wp2fa-modal micromodal-slide ' . $styling_class;
 			$hidden      = 'true';
 		}
 
@@ -53,7 +57,7 @@ class Generate_Modal {
 
 		$modal = '
 	<div class="' . $modal_class . '" id="' . esc_attr( $modal_id ) . '" aria-hidden="' . esc_attr( $hidden ) . '">
-	  <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+	  <div class="modal__overlay" tabindex="-1">
 		<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-' . esc_attr( $modal_id ) . '-title" ' . $max_width_styles . '>
 			' . $title . '
 		  <main class="modal__content wp2fa-form-styles" id="modal-' . esc_attr( $modal_id ) . '-content">
