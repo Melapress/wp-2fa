@@ -11,7 +11,7 @@
 
 namespace WP2FA\Admin\Views;
 
-use \WP2FA\WP2FA;
+use WP2FA\WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
 
 if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
@@ -109,7 +109,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 		 *
 		 * @return array
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		private static function settings_array(): array {
 			$settings_tabs = array(

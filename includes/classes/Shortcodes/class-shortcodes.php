@@ -25,16 +25,16 @@ class Shortcodes {
 	/**
 	 * Constructor.
 	 */
-	public function __construct() {
-		add_shortcode( 'wp-2fa-setup-form', array( $this, 'user_setup_2fa_form' ) );
-		add_shortcode( 'wp-2fa-setup-notice', array( $this, 'user_setup_2fa_notice' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'register_2fa_shortcode_scripts' ) );
+	public static function init() {
+		add_shortcode( 'wp-2fa-setup-form', array( __CLASS__, 'user_setup_2fa_form' ) );
+		add_shortcode( 'wp-2fa-setup-notice', array( __CLASS__, 'user_setup_2fa_notice' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_2fa_shortcode_scripts' ) );
 	}
 
 	/**
 	 * Register scripts and styles.
 	 */
-	public function register_2fa_shortcode_scripts() {
+	public static function register_2fa_shortcode_scripts() {
 		// Add our front end stuff, which we only want to load when the shortcode is present.
 		wp_register_script( 'wp_2fa_frontend_scripts', Core\script_url( 'wp-2fa', 'admin' ), array( 'jquery', 'wp_2fa_micro_modals' ), WP_2FA_VERSION, true );
 		wp_register_script( 'wp_2fa_micro_modals', Core\script_url( 'micromodal', 'admin' ), array(), WP_2FA_VERSION, true );
@@ -54,12 +54,48 @@ class Shortcodes {
 		);
 		wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
 
+		$data_array = array(
+			'ajaxURL'        => admin_url( 'admin-ajax.php' ),
+			'nonce'          => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
+			'codesPreamble'  => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+			'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
+			'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
+			'invalidEmail'   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+		);
+
+		$role                        = array_key_first( WP2FA::wp_2fa_get_roles() );
+		$redirect_page               = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', 'current', $role );
+		$data_array['redirectToUrl'] = ( '' !== trim( $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
+		// Check and override if custom redirect page is selected and custom redirect is set.
+		if (
+			'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ||
+			'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
+			if (
+				'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role ) ) ||
+				'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
+				if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ) {
+					$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role );
+				} else {
+					$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
+				}
+			}
+		}
+
+		// Check for shortcode parameter - if one is present use it to redirect the user - highest priority.
+		if ( isset( $redirect_after ) && ! empty( $redirect_after ) ) {
+			$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . \urlencode( $redirect_after );
+		} elseif ( isset( $_GET['return'] ) && ! empty( $_GET['return'] ) ) {
+			$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . strip_tags( $_GET['return'] ); // phpcs:ignore
+		}
+
+		wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faWizardData', $data_array );
+
 		/**
 		 * Fires when the FE shortcode scripts are registered.
 		 *
 		 * @param bool $shortcodes - True if called from the short codes method.
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		\do_action( WP_2FA_PREFIX . 'shortcode_scripts', true );
 	}
@@ -71,7 +107,7 @@ class Shortcodes {
 	 *
 	 * @return string
 	 */
-	public function user_setup_2fa_form( $atts ) {
+	public static function user_setup_2fa_form( $atts ) {
 
 		/** Shortcode redirect_after is supported, with which the user can override all other settings */
 		extract( // phpcs:ignore
@@ -87,56 +123,6 @@ class Shortcodes {
 		if ( is_user_logged_in() ) {
 			wp_enqueue_script( 'wp_2fa_frontend_scripts' );
 			wp_enqueue_style( 'wp_2fa_styles' );
-
-			$data_array = array(
-				'ajaxURL'        => admin_url( 'admin-ajax.php' ),
-				'roles'          => WP2FA::wp_2fa_get_roles(),
-				'nonce'          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-				'codesPreamble'  => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-				'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
-				'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
-				'allDoneHeading' => esc_html__( 'All done.', 'wp-2fa' ),
-				'allDoneText'    => esc_html__( 'Your login just got more secure.', 'wp-2fa' ),
-				'closeWizard'    => esc_html__( 'Close Wizard', 'wp-2fa' ),
-			);
-			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
-
-			$data_array = array(
-				'ajaxURL'        => admin_url( 'admin-ajax.php' ),
-				'nonce'          => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
-				'codesPreamble'  => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-				'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
-				'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
-				'invalidEmail'   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
-			);
-
-			$role                        = array_key_first( WP2FA::wp_2fa_get_roles() );
-			$redirect_page               = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', 'current', $role );
-			$data_array['redirectToUrl'] = ( '' !== trim( $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
-			// Check and override if custom redirect page is selected and custom redirect is set.
-			if (
-				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ||
-				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
-				if (
-					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role ) ) ||
-					'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
-					if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ) {
-						$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role );
-					} else {
-						$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
-					}
-				}
-			}
-
-			// Check for shortcode parameter - if one is present use it to redirect the user - highest priority.
-			if ( isset( $redirect_after ) && ! empty( $redirect_after ) ) {
-
-				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . \urlencode( $redirect_after );
-			} elseif ( isset( $_GET['return'] ) && ! empty( $_GET['return'] ) ) {
-
-				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . strip_tags( \urlencode( $_GET['return'] ) ); // phpcs:ignore
-			}
-			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faWizardData', $data_array );
 
 			$forms = new User_Profile();
 			ob_start();
@@ -164,7 +150,7 @@ class Shortcodes {
 	 *
 	 * @return string
 	 */
-	public function user_setup_2fa_notice( $atts ) {
+	public static function user_setup_2fa_notice( $atts ) {
 		extract( // phpcs:ignore
 			shortcode_atts(
 				array(

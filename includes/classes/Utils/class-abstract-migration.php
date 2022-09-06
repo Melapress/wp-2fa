@@ -69,7 +69,7 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 		 *
 		 * @var string
 		 *
-		 * @since latest
+		 * @since 2.2.0
 		 */
 		protected static $const_name_of_plugin_version = '';
 
@@ -131,7 +131,7 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 			 *
 			 * @return void
 			 *
-			 * @since latest
+			 * @since 2.2.0
 			 */
 			if ( version_compare( static::get_stored_version(), \constant( static::$const_name_of_plugin_version ), '>' ) ) {
 				self::store_updated_version();

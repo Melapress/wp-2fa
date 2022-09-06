@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress
- * Version:     2.2.0
+ * Version:     2.3.0
  * Plugin URI:  https://wp2fa.io/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      WP White Security
@@ -35,13 +35,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use WP2FA\WP2FA;
+use WP2FA\Utils\Migration;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '2.2.0' );
+	define( 'WP_2FA_VERSION', '2.3.0' );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'WP_2FA_INC', WP_2FA_PATH . 'includes/' );
@@ -69,9 +72,9 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 		}
 
 		// run any required update routines.
-		\WP2FA\Utils\Migration::migrate();
+		Migration::migrate();
 
-		$wp2fa = \WP2FA\WP2FA::get_instance();
+		$wp2fa = WP2FA::get_instance();
 		$wp2fa->init();
 if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 	/**
@@ -86,6 +89,7 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 		if ( is_plugin_active( $premium_version_slug ) ) {
 			deactivate_plugins( $premium_version_slug, true );
 		}
+		check_ssl();
 	}
 
 	register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
@@ -106,3 +110,25 @@ add_action(
     10,
     2
 );
+
+if ( ! function_exists( 'check_ssl' ) ) {
+	/**
+	 * Checks if the required library is installed and cancels the process if not.
+	 *
+	 * @return void
+	 *
+	 * @since 2.2.0
+	 */
+	function check_ssl() {
+		if ( ! \WP2FA\Authenticator\Open_SSL::is_ssl_available() ) {
+			$html = '<div class="updated notice is-dismissible">
+			<p>' . esc_html__( 'This plugin requires OpenSSL. Contact your web host or website administrator so they can enable OpenSSL. Re-activate the plugin once the library has been enabled.', 'wp-2fa' )
+			. '</p>
+		</div>';
+
+			echo $html; // phpcs:ignore
+
+			exit();
+		}
+	}
+}

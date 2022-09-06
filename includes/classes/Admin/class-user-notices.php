@@ -11,6 +11,7 @@
 
 namespace WP2FA\Admin;
 
+use WP2FA\Admin\User;
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Utils\Date_Time_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -72,7 +73,7 @@ class User_Notices {
 			return;
 		}
 
-		$grace_expiry = $this->wp2fa_user->get_grace_period_expiration();
+		$grace_expiry = (int) User_Helper::get_user_expiry_date( $this->wp2fa_user->get_2fa_wp_user() );
 
 		$class = 'notice notice-info wp-2fa-nag';
 
@@ -82,9 +83,9 @@ class User_Notices {
 			$message = esc_html__( 'This website’s administrator requires you to enable 2FA authentication', 'wp-2fa' );
 		}
 
-		$is_nag_dismissed   = $this->wp2fa_user->get_dismissed_nag();
-		$is_nag_needed      = User::is_enforced( $this->wp2fa_user->get_2fa_wp_user()->ID );
-		$is_user_excluded   = User::is_excluded( $this->wp2fa_user->get_2fa_wp_user()->ID );
+		$is_nag_dismissed   = User_Helper::get_nag_status();
+		$is_nag_needed      = User_Helper::is_enforced( $this->wp2fa_user->get_2fa_wp_user()->ID );
+		$is_user_excluded   = User_Helper::is_excluded( $this->wp2fa_user->get_2fa_wp_user()->ID );
 		$enabled_methods    = User_Helper::get_enabled_method_for_user( $this->wp2fa_user->get_2fa_wp_user() );
 		$new_page_id        = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
 		$new_page_permalink = get_permalink( $new_page_id );
@@ -134,7 +135,7 @@ class User_Notices {
 
 			echo '<div class="' . esc_attr( $class ) . '"><p>' . esc_html( $message );
 			echo ' <a href="' . esc_url( Settings::get_setup_page_link() ) . '" class="button button-primary">' . esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
-			echo '  <a href="#" class="button button-secondary dismiss-user-reconfigure-nag">' . esc_html__( 'I\'ll do it later', 'wp-2fa' ) . '</a></p>';
+			echo '  <a href="#" class="button button-secondary wp-2fa-button-secondary dismiss-user-reconfigure-nag">' . esc_html__( 'I\'ll do it later', 'wp-2fa' ) . '</a></p>';
 			echo '</div>';
 		}
 	}
@@ -143,8 +144,7 @@ class User_Notices {
 	 * Dismiss notice and setup a user meta value so we know its been dismissed
 	 */
 	public function dismiss_nag() {
-		$this->ensure_user();
-		$this->wp2fa_user->set_dismissed_nag();
+		User_Helper::set_nag_status( true );
 	}
 
 	/**
@@ -155,8 +155,7 @@ class User_Notices {
 	 * @return void
 	 */
 	public function reset_nag( $user_id ) {
-		$this->wp2fa_user = User::get_instance( $user_id );
-		$this->wp2fa_user->delete_user_meta( 'wp_2fa_update_nag_dismissed' );
+		User_Helper::remove_nag_status( $user_id );
 	}
 
 	/**

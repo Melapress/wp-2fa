@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticIniteb0548488c9d0987325fc3ae65055245
+class ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f
 {
     public static $files = array (
         'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
@@ -17,6 +17,7 @@ class ComposerStaticIniteb0548488c9d0987325fc3ae65055245
         ),
         'W' => 
         array (
+            'WP2FA\\Extensions\\' => 17,
             'WP2FA\\' => 6,
         ),
         'S' => 
@@ -50,6 +51,10 @@ class ComposerStaticIniteb0548488c9d0987325fc3ae65055245
         'Zxing\\' => 
         array (
             0 => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib',
+        ),
+        'WP2FA\\Extensions\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/extensions',
         ),
         'WP2FA\\' => 
         array (
@@ -86,6 +91,8 @@ class ComposerStaticIniteb0548488c9d0987325fc3ae65055245
     );
 
     public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Stringable' => __DIR__ . '/..' . '/myclabs/php-enum/stubs/Stringable.php',
         'WP2FA\\Admin\\Controllers\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-login-attempts.php',
         'WP2FA\\Admin\\Controllers\\Methods' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-methods.php',
         'WP2FA\\Admin\\Controllers\\Settings' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-settings.php',
@@ -132,9 +139,9 @@ class ComposerStaticIniteb0548488c9d0987325fc3ae65055245
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticIniteb0548488c9d0987325fc3ae65055245::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticIniteb0548488c9d0987325fc3ae65055245::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticIniteb0548488c9d0987325fc3ae65055245::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f::$classMap;
 
         }, null, ClassLoader::class);
     }

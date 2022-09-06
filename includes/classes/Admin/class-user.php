@@ -12,15 +12,16 @@
 namespace WP2FA\Admin;
 
 use WP2FA\WP2FA;
-use WP2FA\Utils\User_Utils;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP_Session_Tokens;
 use WP2FA\Cron\Cron_Tasks;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Authenticator\Open_SSL;
-use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Admin\Controllers\Methods;
+use WP2FA\Authenticator\Authentication;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -97,30 +98,10 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 					// update necessary user attributes (user meta) based on changed settings; the enforcement check
 					// needs to run first as function "set_user_policies_and_grace" relies on having the correct values.
 					$this->check_methods_and_set_user();
-					$this->update_user_enforcement_state();
+					User_Helper::update_user_state( $this->user );
 					$this->set_user_policies_and_grace();
 				}
 			}
-		}
-
-		/**
-		 * Runs necessary checks and updates the user enforcement state metadata.
-		 *
-		 * @since 2.0.0
-		 */
-		private function update_user_enforcement_state() {
-			if ( ! isset( $this->user->ID ) ) {
-				return;
-			}
-
-			$enforcement_state = 'optional';
-			if ( self::run_user_exclusion_check( $this->user ) ) {
-				$enforcement_state = 'excluded';
-			} elseif ( self::run_user_enforcement_check( $this->user ) ) {
-				$enforcement_state = 'enforced';
-			}
-
-			$this->set_user_meta( WP_2FA_PREFIX . 'enforcement_state', $enforcement_state );
 		}
 
 		/**
@@ -131,7 +112,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @return bool True if the user is enforced based on current plugin settings.
 		 * @since 2.0.0
 		 */
-		private function run_user_enforcement_check( $user ) {
+		public static function run_user_enforcement_check( $user ) {
 			$user_roles     = $user->roles;
 			$current_policy = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
 			$enabled_method = User_Helper::get_enabled_method_for_user( $user );
@@ -276,7 +257,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @return bool True if the user is excluded based on current plugin settings.
 		 * @since 2.0.0
 		 */
-		private function run_user_exclusion_check( $user ) {
+		public static function run_user_exclusion_check( $user ) {
 			$user_roles     = $user->roles;
 			$user_excluded  = false;
 			$excluded_users = WP2FA::get_wp2fa_setting( 'excluded_users' );
@@ -332,29 +313,6 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		}
 
 		/**
-		 * Checks to see if the user is excluded.
-		 *
-		 * @param int $user_id User id.
-		 *
-		 * @return boolean Is user excluded or not.
-		 */
-		public static function is_excluded( $user_id ) {
-			return 'excluded' === get_user_meta( $user_id, WP_2FA_PREFIX . 'enforcement_state', true );
-		}
-
-		/**
-		 * Checks to see if user is enforced.
-		 *
-		 * @param int $user_id User id.
-		 *
-		 * @return boolean True if the user is enforced.
-		 * @since 1.6
-		 */
-		public static function is_enforced( $user_id ) {
-			return 'enforced' === get_user_meta( $user_id, WP_2FA_PREFIX . 'enforcement_state', true );
-		}
-
-		/**
 		 * Locks the user account if the grace period setting is configured and the user is currently out of their grace
 		 * period. It also takes care of sending the "account locked" email to the user if not already sent before.
 		 *
@@ -382,7 +340,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				return false;
 			}
 
-			if ( self::is_excluded( $user_id ) ) {
+			if ( User_Helper::is_excluded( $user_id ) ) {
 				return false;
 			}
 
@@ -442,7 +400,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				}
 
 				// Grab user session and kill it, preferably with fire.
-				$manager = \WP_Session_Tokens::get_instance( $user_id );
+				$manager = WP_Session_Tokens::get_instance( $user_id );
 				$manager->destroy_all();
 
 				return true;
@@ -483,19 +441,6 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		}
 
 		/**
-		 * Returns grace period for the user
-		 *
-		 * @return int - timestamp
-		 */
-		public function get_grace_period_expiration() {
-			if ( $this->is_user_set() ) {
-				return (int) User_Helper::get_user_expiry_date( $this->user );
-			}
-
-			return 0;
-		}
-
-		/**
 		 * Deletes user meta by given key
 		 *
 		 * @param string $meta_name - The meta key which should be deleted.
@@ -506,19 +451,6 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 			if ( $this->is_user_set() ) {
 				\delete_user_meta( $this->user->ID, $meta_name );
 			}
-		}
-
-		/**
-		 * Returns WP 2FA user is dismissed update nag
-		 *
-		 * @return bool
-		 */
-		public function get_dismissed_nag() {
-			if ( $this->is_user_set() ) {
-				return $this->user->get( WP_2FA_PREFIX . 'update_nag_dismissed' );
-			}
-
-			return false;
 		}
 
 		/**
@@ -547,8 +479,8 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 
 					User_Helper::set_user_totp_key( $this->totp_key, $this->user );
 				} else {
-					if ( Open_SSL::is_ssl_available() && false === \strpos( $this->totp_key, 'ssl_' ) ) {
-						$this->totp_key = 'ssl_' . Open_SSL::encrypt( $this->totp_key );
+					if ( Open_SSL::is_ssl_available() && false === \strpos( $this->totp_key, 'wps_' ) ) {
+						$this->totp_key = 'wps_' . Open_SSL::encrypt( $this->totp_key );
 						User_Helper::set_user_totp_key( $this->totp_key, $this->user );
 					}
 				}
@@ -568,6 +500,19 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		public function get_totp_decrypted(): string {
 			$key = $this->get_totp_key();
 			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
+
+				/**
+				 * Old key detected - convert.
+				 */
+				$key = Open_SSL::decrypt_legacy( substr( $key, 4 ) );
+
+				User_Helper::remove_user_totp_key();
+				$this->totp_key = '';
+
+				$key = $this->get_totp_key();
+			}
+
+			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
 				$key = Open_SSL::decrypt( substr( $key, 4 ) );
 
 				/**
@@ -588,17 +533,6 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		}
 
 		/**
-		 * Sets WP 2FA user dismissed update nag
-		 *
-		 * @return void
-		 */
-		public function set_dismissed_nag() {
-			if ( $this->is_user_set() ) {
-				$this->set_user_meta( WP_2FA_PREFIX . 'update_nag_dismissed', true );
-			}
-		}
-
-		/**
 		 * Check if user has enabled the proper method based on globally enabled methods
 		 * sets the flag that forces the user to reconfigure their 2FA method
 		 *
@@ -615,7 +549,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				$global_methods = Methods::get_available_2fa_methods();
 				if ( empty( \array_intersect( array( $enabled_methods_for_the_user ), $global_methods ) ) ) {
 					User_Helper::remove_enabled_method_for_user( $this->user );
-					if ( self::is_enforced( $this->user->ID ) ) {
+					if ( User_Helper::is_enforced( $this->user->ID ) ) {
 						User_Helper::set_user_needs_to_reconfigure_2fa( true, $this->user );
 					}
 				}
@@ -632,7 +566,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				return false;
 			}
 
-			return ( ! empty( User_Helper::get_user_needs_to_reconfigure_2fa( $this->user ) ) && ! $this->get_dismissed_nag() && empty( User_Helper::get_enabled_method_for_user( $this->user ) ) );
+			return ( ! empty( User_Helper::get_user_needs_to_reconfigure_2fa( $this->user ) ) && ! User_Helper::get_nag_status() && empty( User_Helper::get_enabled_method_for_user( $this->user ) ) );
 		}
 
 		/**
@@ -650,6 +584,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 
 		/**
 		 * Sets proper grace period and policies for the user based on currently stored settings
+		 * That method MUST be called only after User::check_methods_and_set_user();
 		 *
 		 * @return void
 		 */
@@ -659,7 +594,17 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 				return;
 			}
 
-			if ( self::is_enforced( $this->user->ID ) ) {
+			$enabled_methods_for_the_user = User_Helper::get_enabled_method_for_user( $this->user );
+			if ( ! empty( $enabled_methods_for_the_user ) ) {
+				User_Helper::remove_user_enforced_instantly( $this->user );
+				User_Helper::remove_user_expiry_date( $this->user );
+				User_Helper::remove_user_needs_to_reconfigure_2fa( $this->user );
+				User_Helper::set_user_status( $this->user );
+
+				return;
+			}
+
+			if ( User_Helper::is_enforced( $this->user->ID ) ) {
 				$grace_policy = Settings::get_role_or_default_setting( 'grace-policy', $this->user );
 
 				// Check if want to apply the custom period, or instant expiry.
@@ -667,6 +612,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 					$custom_grace_period_duration =
 					Settings::get_role_or_default_setting( 'grace-period', $this->user ) . ' ' . Settings::get_role_or_default_setting( 'grace-period-denominator', $this->user );
 					$grace_expiry                 = strtotime( $custom_grace_period_duration );
+					User_Helper::remove_user_enforced_instantly( $this->user );
 				} else {
 					$grace_expiry = time();
 				}
@@ -682,7 +628,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 			}
 
 			// update the 2FA status meta field.
-			self::set_user_status( $this->user );
+			User_Helper::set_user_status( $this->user );
 		}
 
 		/**
@@ -695,28 +641,6 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 */
 		public function set_user_meta( $meta_key, $value ) {
 			return \update_user_meta( $this->user->ID, $meta_key, $value );
-		}
-
-		/**
-		 * Figures out the correct 2FA status of a user and stores it against the user in DB. The method is static
-		 * because it is temporarily used in user listing to update user accounts created prior to version 1.7.0.
-		 *
-		 * @param \WP_User $user - The user which status should be set.
-		 *
-		 * @return string
-		 * @see \WP2FA\Admin\User_Listing
-		 * @since 1.7.0
-		 */
-		public static function set_user_status( \WP_User $user ) {
-			$status      = User_Utils::determine_user_2fa_status( $user );
-			$status_data = User_Utils::extract_statuses( $status );
-			if ( ! empty( $status_data ) ) {
-				User_Helper::set_2fa_status( $status_data['id'], $user );
-
-				return $status_data['label'];
-			}
-
-			return '';
 		}
 	}
 }

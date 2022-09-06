@@ -14,6 +14,7 @@ namespace WP2FA\Admin\SettingsPages;
 use \WP2FA\WP2FA as WP2FA;
 use \WP2FA\Utils\Generate_Modal as Generate_Modal;
 use \WP2FA\Utils\Debugging as Debugging;
+use \WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
 use WP2FA\Admin\Views\First_Time_Wizard_Steps;
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -67,15 +68,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$new_page_modal_content .= '</p>' . esc_html__( 'You are about to enforce 2FA instantly on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' ) . '</p>';
 
 				echo Generate_Modal::generate_modal( // phpcs:ignore
-                    'exclude-self-from-instant-2fa',
-                    false,
-                    $new_page_modal_content,
-                    array(
-						'<a href="#" class="modal__btn modal__btn-primary button-secondary" data-close-2fa-modal>' . __( 'Continue anyway', 'wp-2fa' ) . '</a>',
-						'<a href="#" class="modal__btn modal__btn-primary button-primary" data-close-2fa-modal data-user-login-name="' . esc_attr( $user->user_login ) . '">' . __( 'Exclude myself from 2FA policies', 'wp-2fa' ) . '</a>',
-                    ),
-                    false,
-                    '560px'
+					'exclude-self-from-instant-2fa',
+					false,
+					$new_page_modal_content,
+					array(
+						'<a href="#" class="wp-2fa-button-secondary button-secondary" data-close-2fa-modal>' . __( 'Continue anyway', 'wp-2fa' ) . '</a>',
+						'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal data-user-login-name="' . esc_attr( $user->user_login ) . '">' . __( 'Exclude myself from 2FA policies', 'wp-2fa' ) . '</a>',
+					),
+					false,
+					'560px'
 				);
 			}
 			?>
@@ -171,8 +172,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$new_page_modal_content .= '</p>';
 				$new_page_modal_content .= sprintf(
 				/* translators: %s: tag name. */
-                    esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ),
-                    '<strong>{2fa_settings_page_url}</strong>'
+					esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ),
+					'<strong>{2fa_settings_page_url}</strong>'
 				);
 				$new_page_modal_content .= '</p>';
 
@@ -181,10 +182,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					false,
 					$new_page_modal_content,
 					array(
-						'<a href="#" class="modal__btn modal__btn-primary button-primary" data-close-2fa-modal>' . __( 'OK', 'wp-2fa' ) . '</a>',
-                    ),
-                    true,
-                    '560px'
+						'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal>' . __( 'OK', 'wp-2fa' ) . '</a>',
+					),
+					true,
+					'560px'
 				);
 			}
 		}
@@ -227,10 +228,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 				if ( $no_methods_set ) {
 					add_settings_error(
-                        WP_2FA_POLICY_SETTINGS_NAME,
-                        esc_attr( 'enable_email_settings_error' ),
-                        esc_html__( 'At least one 2FA method should be enabled.', 'wp-2fa' ),
-                        'error'
+						WP_2FA_POLICY_SETTINGS_NAME,
+						esc_attr( 'enable_email_settings_error' ),
+						esc_html__( 'At least one 2FA method should be enabled.', 'wp-2fa' ),
+						'error'
 					);
 					$no_method_enabled = true;
 				}
@@ -336,10 +337,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			if ( isset( $input['grace-period'] ) ) {
 				if ( 0 === (int) $input['grace-period'] ) {
 					add_settings_error(
-                        WP_2FA_POLICY_SETTINGS_NAME,
-                        esc_attr( 'grace_settings_error' ),
-                        esc_html__( 'Grace period must be at least 1 day/hour', 'wp-2fa' ),
-                        'error'
+						WP_2FA_POLICY_SETTINGS_NAME,
+						esc_attr( 'grace_settings_error' ),
+						esc_html__( 'Grace period must be at least 1 day/hour', 'wp-2fa' ),
+						'error'
 					);
 					$output['grace-period'] = 1;
 				} else {
@@ -398,10 +399,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] && empty( $input['custom-user-page-url'] ) ) {
 				add_settings_error(
-                    WP_2FA_POLICY_SETTINGS_NAME,
-                    esc_attr( 'no_page_slug_provided' ),
-                    esc_html__( 'You must provide a new page slug.', 'wp-2fa' ),
-                    'error'
+					WP_2FA_POLICY_SETTINGS_NAME,
+					esc_attr( 'no_page_slug_provided' ),
+					esc_html__( 'You must provide a new page slug.', 'wp-2fa' ),
+					'error'
 				);
 			}
 
@@ -429,10 +430,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 				if ( 'certain-roles-only' === $input['enforcement-policy'] && empty( $input['enforced_roles'] ) && empty( $input['enforced_users'] ) ) {
 					add_settings_error(
-                        WP_2FA_POLICY_SETTINGS_NAME,
-                        esc_attr( 'enforced_roles_settings_error' ),
-                        esc_html__( 'You must specify at least one role or user', 'wp-2fa' ),
-                        'error'
+						WP_2FA_POLICY_SETTINGS_NAME,
+						esc_attr( 'enforced_roles_settings_error' ),
+						esc_html__( 'You must specify at least one role or user', 'wp-2fa' ),
+						'error'
 					);
 				}
 
@@ -521,13 +522,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 					// redirect back to our options page.
 					wp_safe_redirect(
-                        add_query_arg(
-                            array(
-								'page' => 'wp-2fa-policies',
+						add_query_arg(
+							array(
+								'page' => Settings_Page::TOP_MENU_SLUG,
 								'wp_2fa_network_settings_error' => urlencode_deep( $settings_errors[0]['message'] ),
-                            ),
-                            network_admin_url( 'admin.php' )
-                        )
+							),
+							network_admin_url( 'admin.php' )
+						)
 					);
 					exit;
 
@@ -536,13 +537,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 				// redirect back to our options page.
 				wp_safe_redirect(
-                    add_query_arg(
-                        array(
-							'page' => 'wp-2fa-policies',
+					add_query_arg(
+						array(
+							'page' => Settings_Page::TOP_MENU_SLUG,
 							'wp_2fa_network_settings_updated' => 'true',
-                        ),
-                        network_admin_url( 'admin.php' )
-                    )
+						),
+						network_admin_url( 'admin.php' )
+					)
 				);
 				exit;
 			}
