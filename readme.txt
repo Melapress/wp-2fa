@@ -7,7 +7,7 @@ Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authen
 Requires at least: 5.0
 Tested up to: 6.0.2
 Stable tag: 2.3.0
-Requires PHP: 7.0.0
+Requires PHP: 7.2
 
 Harden your website login page; add two-factor authentication (2FA) for all your users with this easy to use plugin.
 
