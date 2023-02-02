@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea
+class ComposerStaticInit14384788933beefcb30de18cf6bf3f37
 {
     public static $files = array (
         'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
@@ -160,9 +160,9 @@ class ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit14384788933beefcb30de18cf6bf3f37::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit14384788933beefcb30de18cf6bf3f37::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit14384788933beefcb30de18cf6bf3f37::$classMap;
 
         }, null, ClassLoader::class);
     }
