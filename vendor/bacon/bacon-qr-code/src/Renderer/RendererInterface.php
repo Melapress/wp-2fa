@@ -1,10 +1,9 @@
 <?php
-declare(strict_types = 1);
 
-namespace BaconQrCode\Renderer;
+declare (strict_types=1);
+namespace WP2FA_Vendor\BaconQrCode\Renderer;
 
-use BaconQrCode\Encoder\QrCode;
-
+use WP2FA_Vendor\BaconQrCode\Encoder\QrCode;
 interface RendererInterface
 {
     public function render(QrCode $qrCode) : string;

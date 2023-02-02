@@ -1,4 +1,5 @@
 <?php
+
 /*
 * Copyright 2007 ZXing authors
 *
@@ -14,8 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-namespace Zxing\Common;
+namespace WP2FA_Vendor\Zxing\Common;
 
 /**
  * <p>Encapsulates the result of detecting a barcode in an image. This includes the raw
@@ -26,17 +26,15 @@ namespace Zxing\Common;
  */
 class DetectorResult
 {
-	public function __construct(private $bits, private $points)
- {
- }
-
-	final public function getBits()
-	{
-		return $this->bits;
-	}
-
-	final public function getPoints()
-	{
-		return $this->points;
-	}
+    public function __construct(private $bits, private $points)
+    {
+    }
+    public final function getBits()
+    {
+        return $this->bits;
+    }
+    public final function getPoints()
+    {
+        return $this->points;
+    }
 }

@@ -1,10 +1,9 @@
 <?php
-declare(strict_types = 1);
 
-namespace BaconQrCode\Encoder;
+declare (strict_types=1);
+namespace WP2FA_Vendor\BaconQrCode\Encoder;
 
 use SplFixedArray;
-
 /**
  * Block pair.
  */
@@ -16,14 +15,12 @@ final class BlockPair
      * @var SplFixedArray<int>
      */
     private $dataBytes;
-
     /**
      * Error correction bytes in the block.
      *
      * @var SplFixedArray<int>
      */
     private $errorCorrectionBytes;
-
     /**
      * Creates a new block pair.
      *
@@ -35,7 +32,6 @@ final class BlockPair
         $this->dataBytes = $data;
         $this->errorCorrectionBytes = $errorCorrection;
     }
-
     /**
      * Gets the data bytes.
      *
@@ -45,7 +41,6 @@ final class BlockPair
     {
         return $this->dataBytes;
     }
-
     /**
      * Gets the error correction bytes.
      *

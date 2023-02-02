@@ -1,4 +1,5 @@
 <?php
+
 /*
 * Copyright 2007 ZXing authors
 *
@@ -14,8 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-namespace Zxing;
+namespace WP2FA_Vendor\Zxing;
 
 /**
  * Thrown when a barcode was successfully detected, but some aspect of
@@ -26,24 +26,22 @@ namespace Zxing;
  */
 final class FormatException extends ReaderException
 {
-	private static ?\Zxing\FormatException $instance = null;
-
-	public function __construct($cause = null)
-	{
-		if ($cause) {
-			parent::__construct($cause);
-		}
-	}
-
-	public static function getFormatInstance($cause = null)
-	{
-		if (!self::$instance) {
-			self::$instance = new FormatException();
-		}
-		if (self::$isStackTrace) {
-			return new FormatException($cause);
-		} else {
-			return self::$instance;
-		}
-	}
+    private static ?\WP2FA_Vendor\Zxing\FormatException $instance = null;
+    public function __construct($cause = null)
+    {
+        if ($cause) {
+            parent::__construct($cause);
+        }
+    }
+    public static function getFormatInstance($cause = null)
+    {
+        if (!self::$instance) {
+            self::$instance = new FormatException();
+        }
+        if (self::$isStackTrace) {
+            return new FormatException($cause);
+        } else {
+            return self::$instance;
+        }
+    }
 }

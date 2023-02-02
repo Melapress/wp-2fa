@@ -8,11 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace WP2FA_Vendor\Symfony\Component\PropertyAccess\Exception;
 
-namespace Symfony\Component\PropertyAccess\Exception;
-
-use Symfony\Component\PropertyAccess\PropertyPathInterface;
-
+use WP2FA_Vendor\Symfony\Component\PropertyAccess\PropertyPathInterface;
 /**
  * Thrown when a value does not match an expected type.
  *
@@ -26,14 +24,7 @@ class UnexpectedTypeException extends RuntimeException
      */
     public function __construct($value, PropertyPathInterface $path, int $pathIndex)
     {
-        $message = sprintf(
-            'PropertyAccessor requires a graph of objects or arrays to operate on, '.
-            'but it found type "%s" while trying to traverse path "%s" at property "%s".',
-            \gettype($value),
-            (string) $path,
-            $path->getElement($pathIndex)
-        );
-
+        $message = \sprintf('PropertyAccessor requires a graph of objects or arrays to operate on, ' . 'but it found type "%s" while trying to traverse path "%s" at property "%s".', \gettype($value), (string) $path, $path->getElement($pathIndex));
         parent::__construct($message);
     }
 }

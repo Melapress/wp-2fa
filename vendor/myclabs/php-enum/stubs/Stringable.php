@@ -1,6 +1,8 @@
 <?php
 
-if (\PHP_VERSION_ID < 80000 && !interface_exists('Stringable')) {
+namespace WP2FA_Vendor;
+
+if (\PHP_VERSION_ID < 80000 && !\interface_exists('Stringable')) {
     interface Stringable
     {
         /**

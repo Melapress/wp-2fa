@@ -8,8 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Symfony\Component\PropertyAccess;
+namespace WP2FA_Vendor\Symfony\Component\PropertyAccess;
 
 /**
  * Writes and reads values to/from an object/array graph.
@@ -48,7 +47,6 @@ interface PropertyAccessorInterface
      * @throws Exception\UnexpectedTypeException  If a value within the path is neither object nor array
      */
     public function setValue(&$objectOrArray, $propertyPath, $value);
-
     /**
      * Returns the value at the end of the property path of the object graph.
      *
@@ -81,7 +79,6 @@ interface PropertyAccessorInterface
      *                                            nor array
      */
     public function getValue($objectOrArray, $propertyPath);
-
     /**
      * Returns whether a value can be written at a given property path.
      *
@@ -96,7 +93,6 @@ interface PropertyAccessorInterface
      * @throws Exception\InvalidArgumentException If the property path is invalid
      */
     public function isWritable($objectOrArray, $propertyPath);
-
     /**
      * Returns whether a property path can be read from an object graph.
      *

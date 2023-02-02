@@ -1,4 +1,5 @@
 <?php
+
 /*
 * Copyright 2007 ZXing authors
 *
@@ -14,8 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-namespace Zxing\Common\Reedsolomon;
+namespace WP2FA_Vendor\Zxing\Common\Reedsolomon;
 
 /**
  * <p>Thrown when an exception occurs during Reed-Solomon decoding, such as when

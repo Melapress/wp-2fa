@@ -8,8 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Symfony\Component\PropertyAccess;
+namespace WP2FA_Vendor\Symfony\Component\PropertyAccess;
 
 /**
  * Traverses a property path and provides additional methods to find out
@@ -20,14 +19,11 @@ namespace Symfony\Component\PropertyAccess;
 class PropertyPathIterator extends \ArrayIterator implements PropertyPathIteratorInterface
 {
     protected $path;
-
     public function __construct(PropertyPathInterface $path)
     {
         parent::__construct($path->getElements());
-
         $this->path = $path;
     }
-
     /**
      * {@inheritdoc}
      */
@@ -35,7 +31,6 @@ class PropertyPathIterator extends \ArrayIterator implements PropertyPathIterato
     {
         return $this->path->isIndex($this->key());
     }
-
     /**
      * {@inheritdoc}
      */

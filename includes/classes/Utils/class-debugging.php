@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  * @since 1.4.2
@@ -33,16 +33,12 @@ class Debugging {
 	 * @return boolean
 	 */
 	private static function is_logging_enabled() {
-		if ( WP_DEBUG ) {
-			/**
-			 * Enables / Disables the logging for the plugin.
-			 *
-			 * @param bool $disabled - Default logging for the plugin.
-			 */
-			return apply_filters( WP_2FA_PREFIX . 'logging_enabled', false );
-		}
-
-		return false;
+		/**
+		 * Enables / Disables the logging for the plugin.
+		 *
+		 * @param bool $disabled - Default logging for the plugin.
+		 */
+		return apply_filters( WP_2FA_PREFIX . 'logging_enabled', false );
 	}
 
 	/**

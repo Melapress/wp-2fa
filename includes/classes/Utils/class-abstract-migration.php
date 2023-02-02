@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -54,7 +54,7 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 		protected static $stored_version = '';
 
 		/**
-		 * The name of the option from which we should extact version
+		 * The name of the option from which we should extract version
 		 * Note: version is expected in version format - 1.0.0; 1; 1.0; 1.0.0.0
 		 * Note: only numbers will be processed
 		 *

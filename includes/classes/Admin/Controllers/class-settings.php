@@ -4,16 +4,16 @@
  *
  * @package    wp2fa
  * @subpackage admin_controllers
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\Controllers;
 
-use \WP2FA\Admin\Settings_Page;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User;
+use \WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
 
@@ -105,7 +105,7 @@ class Settings {
 	public static function get_setup_page_link() {
 		if ( '' === self::$setup_page_link ) {
 			if ( WP_Helper::is_multisite() ) {
-				self::$setup_page_link = add_query_arg( 'show', self::$setup_page_name, network_admin_url( 'profile.php' ) );
+				self::$setup_page_link = add_query_arg( 'show', self::$setup_page_name, get_admin_url( get_current_blog_id(), 'profile.php' ) );
 			} else {
 				self::$setup_page_link = add_query_arg( 'show', self::$setup_page_name, admin_url( 'profile.php' ) );
 			}
@@ -117,7 +117,7 @@ class Settings {
 	/**
 	 * Extracts the custom settings page URL
 	 *
-	 * @param mixed $user - User for which to extract the setting, null, WP_User or user id - @see get_role_or_default_setting method of this class.
+	 * @param mixed $user - User for which to extract the setting, null, \WP_User or user id - @see get_role_or_default_setting method of this class.
 	 *
 	 * @return string
 	 */
@@ -277,9 +277,13 @@ class Settings {
 			self::get_all_roles_providers();
 
 			return self::$all_providers_for_roles[ $role ];
+		} else {
+			if ( '' === $role ) {
+				return array();
+			} else {
+				throw new \Exception( 'Role provided does not exists - "' . $role . '"' );
+			}
 		}
-
-		throw new \Exception( 'Role provided does not exists - "' . $role . '"' );
 	}
 
 	/**

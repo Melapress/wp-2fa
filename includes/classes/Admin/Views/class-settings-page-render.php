@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage views
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -123,7 +123,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 							network_admin_url( 'admin.php' )
 						)
 					),
-					'name'           => esc_html__( 'General plugin settings', 'wp-2fa' ),
+					'name'           => esc_html__( 'General settings', 'wp-2fa' ),
 					'default'        => true,
 					'description'    => sprintf(
 						'<p class="description">%1$s <a href="mailto:support@wpwhitesecurity.com">%2$s</a></p>',
@@ -144,7 +144,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 							network_admin_url( 'admin.php' )
 						)
 					),
-					'name'           => esc_html__( 'Email Settings & Templates', 'wp-2fa' ),
+					'name'           => esc_html__( 'Emails & templates', 'wp-2fa' ),
 					'default'        => false,
 					'description'    => sprintf(
 						'<p class="description">%1$s <a href="mailto:support@wpwhitesecurity.com">%2$s</a></p>',

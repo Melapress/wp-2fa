@@ -1,11 +1,10 @@
 <?php
-declare(strict_types = 1);
 
-namespace BaconQrCode\Common;
+declare (strict_types=1);
+namespace WP2FA_Vendor\BaconQrCode\Common;
 
-use BaconQrCode\Exception\InvalidArgumentException;
-use DASPRiD\Enum\AbstractEnum;
-
+use WP2FA_Vendor\BaconQrCode\Exception\InvalidArgumentException;
+use WP2FA_Vendor\DASPRiD\Enum\AbstractEnum;
 /**
  * Encapsulates a Character Set ECI, according to "Extended Channel Interpretations" 5.3.1.1 of ISO 18004.
  *
@@ -68,33 +67,30 @@ final class CharacterSetEci extends AbstractEnum
     protected const BIG5 = [[28]];
     protected const GB18030 = [[29], 'GB2312', 'EUC_CN', 'GBK'];
     protected const EUC_KR = [[30], 'EUC-KR'];
-
     /**
      * @var int[]
      */
     private $values;
-
     /**
      * @var string[]
      */
     private $otherEncodingNames;
-
     /**
      * @var array<int, self>|null
      */
     private static $valueToEci;
-
     /**
      * @var array<string, self>|null
      */
     private static $nameToEci;
-
+    /**
+     * @param int[] $values
+     */
     public function __construct(array $values, string ...$otherEncodingNames)
     {
         $this->values = $values;
         $this->otherEncodingNames = $otherEncodingNames;
     }
-
     /**
      * Returns the primary value.
      */
@@ -102,7 +98,6 @@ final class CharacterSetEci extends AbstractEnum
     {
         return $this->values[0];
     }
-
     /**
      * Gets character set ECI by value.
      *
@@ -115,16 +110,12 @@ final class CharacterSetEci extends AbstractEnum
         if ($value < 0 || $value >= 900) {
             throw new InvalidArgumentException('Value must be between 0 and 900');
         }
-
         $valueToEci = self::valueToEci();
-
-        if (! array_key_exists($value, $valueToEci)) {
+        if (!\array_key_exists($value, $valueToEci)) {
             return null;
         }
-
         return $valueToEci[$value];
     }
-
     /**
      * Returns character set ECI by name.
      *
@@ -133,48 +124,37 @@ final class CharacterSetEci extends AbstractEnum
     public static function getCharacterSetEciByName(string $name) : ?self
     {
         $nameToEci = self::nameToEci();
-        $name = strtolower($name);
-
-        if (! array_key_exists($name, $nameToEci)) {
+        $name = \strtolower($name);
+        if (!\array_key_exists($name, $nameToEci)) {
             return null;
         }
-
         return $nameToEci[$name];
     }
-
     private static function valueToEci() : array
     {
         if (null !== self::$valueToEci) {
             return self::$valueToEci;
         }
-
         self::$valueToEci = [];
-
         foreach (self::values() as $eci) {
             foreach ($eci->values as $value) {
                 self::$valueToEci[$value] = $eci;
             }
         }
-
         return self::$valueToEci;
     }
-
     private static function nameToEci() : array
     {
         if (null !== self::$nameToEci) {
             return self::$nameToEci;
         }
-
         self::$nameToEci = [];
-
         foreach (self::values() as $eci) {
-            self::$nameToEci[strtolower($eci->name())] = $eci;
-
+            self::$nameToEci[\strtolower($eci->name())] = $eci;
             foreach ($eci->otherEncodingNames as $name) {
-                self::$nameToEci[strtolower($name)] = $eci;
+                self::$nameToEci[\strtolower($name)] = $eci;
             }
         }
-
         return self::$nameToEci;
     }
 }

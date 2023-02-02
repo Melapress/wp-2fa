@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage views
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -12,11 +12,11 @@
 namespace WP2FA\Admin\Views;
 
 use WP2FA\WP2FA;
-use WP2FA\Utils\User_Utils;
-use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\User;
-use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Authenticator\Authentication;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -163,7 +163,7 @@ class Wizard_Steps {
 			<div class="option-pill">
 				<label for="basic">
 					<input id="basic" name="wp_2fa_enabled_methods" type="radio" value="totp" checked>
-						<?php esc_html_e( 'One-time code generated with your app of choice (most reliable and secure)', 'wp-2fa' ); ?><span class="wizard-tooltip" data-tooltip-content="data-totp-tooltip-content-wrapper">i</span>
+						<?php esc_html_e( 'One-time code via 2FA app', 'wp-2fa' ); ?><span class="wizard-tooltip" data-tooltip-content="data-totp-tooltip-content-wrapper">i</span>
 				</label>
 				<?php
 					echo '<p class="description tooltip-content-wrapper" data-totp-tooltip-content-wrapper>';
@@ -192,7 +192,7 @@ class Wizard_Steps {
 			<div class="option-pill">
 				<label for="geek">
 					<input id="geek" name="wp_2fa_enabled_methods" type="radio" value="email">
-				<?php esc_html_e( 'One-time code sent to you over email', 'wp-2fa' ); ?>
+				<?php esc_html_e( 'One-time code via email', 'wp-2fa' ); ?>
 				</label>
 			</div>
 			<?php
@@ -303,9 +303,8 @@ class Wizard_Steps {
 
 			<div class="radio-cells option-pill mb-0">
 				<ol class="wizard-custom-counter">
-					<li><?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_step_1', true ) ); ?><span class="wizard-tooltip" data-tooltip-content="data-totp-setup-tooltip-content-wrapper">i</span></li>
+					<li><?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_step_1', true ) ); ?><?php if ( ! empty( WP2FA::get_wp2fa_white_label_setting( 'show_help_text' ) ) ) { ?><span class="wizard-tooltip" data-tooltip-content="data-totp-setup-tooltip-content-wrapper">i</span><?php } ?></li>
 					<li><?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_step_2', true ) ); ?>
-					
 						<div class="app-key-wrapper">							
 							<input type="text" id="app-key-input" readonly value="<?php echo esc_html( self::get_user()->get_totp_decrypted() ); ?>" class="app-key">
 							<?php
@@ -322,14 +321,16 @@ class Wizard_Steps {
 			echo $close_div; // phpcs:ignore
 			echo $close_div; // phpcs:ignore
 			?>
+			<?php if ( ! empty( WP2FA::get_wp2fa_white_label_setting( 'show_help_text' ) ) ) : ?>
 			<div class="tooltip-content-wrapper" data-totp-setup-tooltip-content-wrapper>
 				<p class="description"><?php esc_html_e( 'Click on the icon of the app that you are using for a detailed guide on how to set it up.', 'wp-2fa' ); ?></p>
 				<div class="apps-wrapper">
-				<?php foreach ( Authentication::get_apps() as $app ) { ?>
-					<a href="https://www.wpwhitesecurity.com/support/kb/configuring-2fa-apps/#<?php echo $app['hash']; ?>" target="_blank" class="app-logo"><img src="<?php echo esc_url( WP_2FA_URL . 'dist/images/' . $app['logo'] ); // phpcs:ignore ?>"></a>
-				<?php } ?>
+					<?php foreach ( Authentication::get_apps() as $app ) { ?>
+						<a href="https://www.wpwhitesecurity.com/support/kb/configuring-2fa-apps/#<?php echo $app['hash']; ?>" target="_blank" class="app-logo"><img src="<?php echo esc_url( WP_2FA_URL . 'dist/images/' . $app['logo'] ); // phpcs:ignore ?>"></a>
+					<?php } ?>
+				</div>
 			</div>
-			</div>
+			<?php endif; ?>
 			<div class="wp2fa-setup-actions">
 				<button class="button wp-2fa-button-primary" name="next_step_setting" value="<?php esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" type="button"><?php esc_html_e( 'I\'m Ready', 'wp-2fa' ); ?></button>
 			</div>
@@ -340,7 +341,8 @@ class Wizard_Steps {
 			</div>
 			<fieldset>
 				<label for="2fa-totp-authcode">
-					<input type="tel" name="wp-2fa-totp-authcode" id="wp-2fa-totp-authcode" class="input" value="" size="20" pattern="[0-9]*" placeholder="<?php esc_html_e( 'Authentication Code', 'wp-2fa' ); ?>"/>
+					<?php esc_html_e( 'Authentication Code', 'wp-2fa' ); ?>
+					<input type="tel" name="wp-2fa-totp-authcode" id="wp-2fa-totp-authcode" class="input" value="" size="20" pattern="[0-9]*"/>
 				</label>
 				<div class="verification-response"></div>
 			</fieldset>
@@ -388,14 +390,24 @@ class Wizard_Steps {
 				<label for="use_custom_email">
 					<input type="radio" name="wp_2fa_email_address" id="use_custom_email" value="use_custom_email">
 					<span><?php esc_html_e( 'Use a different email address:', 'wp-2fa' ); ?></span>
-					<input type="email" name="custom-email-address" id="custom-email-address" class="input" value="" placeholder="<?php esc_html_e( 'Email address', 'wp-2fa' ); ?>"/>
+					<?php esc_html_e( 'Email address', 'wp-2fa' ); ?>
+					<input type="email" name="custom-email-address" id="custom-email-address" class="input" value=""/>
 				</label>
 			</div>
 				<?php
 			}
 			?>
 			</fieldset>
-			<p class="description"><?php esc_html_e( 'Note: you should be able to access the mailbox of the email address to complete the following step.', 'wp-2fa' ); ?></p>
+			<p class="description"><?php esc_html_e( 'To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator.', 'wp-2fa' ); ?></p><br>
+
+			<?php 
+				echo sprintf( '<b>%1$1s</b> %2$1s %3$1s', 
+					esc_html__( 'IMPORTANT: ', 'wp-2fa' ), 
+					esc_html__( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is ', 'wp-2fa' ), 
+					esc_attr( self::get_user()->get_2fa_wp_user()->user_email )
+				);
+			?>
+
 			<div class="wp2fa-setup-actions">
 				<button class="button button-primary wp-2fa-button-primary" name="next_step_setting_email_verify" value="<?php esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" data-trigger-setup-email data-user-id="<?php echo esc_attr( self::get_user()->get_2fa_wp_user()->ID ); ?>" data-nonce="<?php echo esc_attr( $setupnonce ); ?>" type="button"><?php esc_html_e( 'I\'m Ready', 'wp-2fa' ); ?></button>
 
@@ -408,7 +420,8 @@ class Wizard_Steps {
 			</div>
 			<fieldset>
 				<label for="2fa-email-authcode">
-					<input type="tel" name="wp-2fa-email-authcode" id="wp-2fa-email-authcode" class="input" value="" size="20" pattern="[0-9]*" placeholder="<?php esc_html_e( 'Authentication Code', 'wp-2fa' ); ?>"/>
+					<?php esc_html_e( 'Authentication Code', 'wp-2fa' ); ?>
+					<input type="tel" name="wp-2fa-email-authcode" id="wp-2fa-email-authcode" class="input" value="" size="20" pattern="[0-9]*"/>
 				</label>
 				<div class="verification-response"></div>
 			</fieldset>
@@ -638,7 +651,7 @@ class Wizard_Steps {
 				?>
 		<p><?php esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
 		<div class="wp2fa-setup-actions">
-			<a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary">
+			<a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-secondary">
 				<?php esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
 			</a>
 			<a href="<?php echo esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
@@ -837,7 +850,8 @@ class Wizard_Steps {
 	private static function get_qr_code(): string {
 
 		// Setup site information, used when generating our QR code.
-		$site_name = get_bloginfo( 'name', 'display' );
+		$site_name = site_url();
+		$site_name = trim( str_replace( array( 'http://', 'https://' ), '', $site_name ), '/' );
 		/**
 		 * Changing the title of the login screen for the TOTP method.
 		 *

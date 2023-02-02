@@ -1,7 +1,7 @@
 <?php
-declare(strict_types = 1);
 
-namespace BaconQrCode\Renderer\Path;
+declare (strict_types=1);
+namespace WP2FA_Vendor\BaconQrCode\Renderer\Path;
 
 interface OperationInterface
 {

@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage helpers
  * @since      2.2.0
- * @copyright  2022 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */

@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage short-codes
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -124,10 +124,9 @@ class Shortcodes {
 			wp_enqueue_script( 'wp_2fa_frontend_scripts' );
 			wp_enqueue_style( 'wp_2fa_styles' );
 
-			$forms = new User_Profile();
 			ob_start();
 			echo '<form id="your-profile" class="wp-2fa-configuration-form">';
-				$forms->inline_2fa_profile_form( 'output_shortcode', $show_preamble );
+			User_Profile::inline_2fa_profile_form( 'output_shortcode', $show_preamble );
 			echo '</form>';
 			$content = ob_get_contents();
 			ob_end_clean();
@@ -159,7 +158,9 @@ class Shortcodes {
 				$atts
 			)
 		);
-		$notice = new User_Notices();
+
+		// TODO: is that really necessary?
+		User_Notices::init();
 
 		if ( ! is_admin() && is_user_logged_in() ) {
 			wp_enqueue_script( 'wp_2fa_micro_modals' );
@@ -180,7 +181,7 @@ class Shortcodes {
 			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
 
 			ob_start();
-			$notice->user_setup_2fa_nag( 'output_shortcode', $configure_2fa_url );
+			User_Notices::user_setup_2fa_nag( 'output_shortcode', $configure_2fa_url );
 			$content = ob_get_contents();
 			ob_end_clean();
 

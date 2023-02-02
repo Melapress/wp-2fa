@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage views
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -14,6 +14,7 @@ namespace WP2FA\Admin\Views;
 use WP2FA\WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -37,7 +38,7 @@ class First_Time_Wizard_Steps {
 
 		ob_start();
 		?>
-		<h3><?php esc_html_e( 'Which two-factor authentication methods can your users use?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Which 2FA methods can your users use?', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'When you uncheck any of the below 2FA methods it won\'t be available for your users to use. You can always change this later on from the plugin\'s settings.', 'wp-2fa' ); ?>
 		</p>
@@ -62,14 +63,15 @@ class First_Time_Wizard_Steps {
 								<?php echo $data_role; // phpcs:ignore ?>
 								<?php checked( 'enable_totp', WP2FA::get_wp2fa_setting( 'enable_totp' ), true ); ?>
 								>
-								<?php esc_html_e( 'One-time code via 2FA App (TOTP) - ', 'wp-2fa' ); ?><a href="https://wp2fa.io/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank" rel=noopener><?php esc_html_e( 'complete list of supported 2FA apps.', 'wp-2fa' ); ?></a>
+								<?php esc_html_e( 'One-time code via 2FA App (TOTP)', 'wp-2fa' ); ?>
 							</label>
+
 							<?php
 							if ( $setup_wizard ) {
 								echo '<p class="description">';
 								printf(
 									/* translators: link to the knowledge base website */
-									esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
+									esc_html__( 'When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ),
 									'<a href="https://wp2fa.io/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
 								);
 								echo '</p>';
@@ -93,10 +95,18 @@ class First_Time_Wizard_Steps {
 								<?php echo $data_role; // phpcs:ignore ?>
 								<?php checked( WP2FA::get_wp2fa_setting( 'enable_email' ), 'enable_email' ); ?>
 								>
-								<?php esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' ); ?>
+								<?php esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
+								esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' ); 
+									echo '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>.';
+								?>
 							<?php
 							?>
 							</label>
+							<?php
+							if ( $setup_wizard ) {
+								echo '<p class="description">' . esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . esc_html__( 'Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' )  . '</p>';
+							}
+							?>
 							<?php if ( ! $setup_wizard ) { ?>
 							<div class="use-different-hotp-mail<?php echo \esc_attr( ( false === WP2FA::get_wp2fa_setting( 'enable_email' ) ? ' disabled' : '' ) ); ?>">
 								<p class="description" style="margin-bottom: 5px; font-style: normal;">
@@ -170,16 +180,6 @@ class First_Time_Wizard_Steps {
 								 * @since 2.0.0
 								 */
 								\do_action( WP_2FA_PREFIX . 'after_backup_methods_setup', $setup_wizard, $data_role, null );
-							} else {
-								?>
-								<input type="hidden" name="wp_2fa_policy[backup_codes_enabled]" value="yes">
-								<input type="hidden" name="wp_2fa_policy[enable-email-backup]" value="enable-email-backup">
-								<div class="method-wrapper"></div>
-								<div class="method-title"><em><?php esc_html_e( 'Secondary 2FA methods and other settings', 'wp-2fa' ); ?></em></div>
-								<p class="description" style="margin-bottom: 5px;"><br>
-									<?php esc_html_e( 'You can configure other 2FA method settings and the 2FA backup methods from the plugin settings later on.', 'wp-2fa' ); ?>
-								</p>
-								<?php
 							}
 							?>
 						</fieldset>
@@ -203,6 +203,47 @@ class First_Time_Wizard_Steps {
 		 * @since 2.0.0
 		 */
 		$output = apply_filters( WP_2FA_PREFIX . 'select_methods', $output, $setup_wizard );
+
+		echo $output; // phpcs:ignore
+	}
+
+	public static function backup_method( $setup_wizard = false ) {
+	
+		ob_start();
+		?>
+		<h3><?php esc_html_e( 'Which secondary 2FA methods can users use?', 'wp-2fa' ); ?></h3>
+		<p class="description">
+			<?php esc_html_e( 'A secondary 2FA method allows users to configure another 2FA method that can be used as a backup should the primary 2FA method fail. This can happen if, for example, a user forgets their smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ); ?>
+		</p>
+		<p class="description">
+			<?php esc_html_e( 'It is highly recommended to have a secondary 2FA method configured at all times. Below is a list of secondary 2FA methods available through this plugin:', 'wp-2fa' ); ?>
+		</p>
+
+		<br>
+
+		<fieldset>
+			<label for="backup-codes">
+				<input type="checkbox" id="backup-codes-global" name="wp_2fa_policy[backup_codes_enabled]" value="yes"
+				<?php checked( WP2FA::get_wp2fa_setting( 'backup_codes_enabled' ), 'yes' ); ?>
+				>
+				<?php esc_html_e( 'Backup codes', 'wp-2fa' ); ?>
+			</label>
+
+			<?php
+				echo '<p class="description">';
+				echo sprintf( '%1$1s <a href="https://wp2fa.io/support/kb/what-are-2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%2$1s</a> <br><br>%3$1s <a href="https://wp2fa.io/features/alternative-2fa-backup-method-options/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%4$1s</a>',
+				esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
+				esc_html__( 'More information', 'wp-2fa' ),
+				esc_html__( 'Additional secondary 2FA methods: upgrade to WP 2FA premium for', 'wp-2fa' ),
+				esc_html__( 'more secondary 2FA methods', 'wp-2fa' ) );
+				echo '</p>';
+			?>
+		</fieldset>
+		<?php
+		?>
+		<?php
+		$output = ob_get_clean();
+		$output = apply_filters( WP_2FA_PREFIX . 'backup_methods', $output, $setup_wizard );
 
 		echo $output; // phpcs:ignore
 	}

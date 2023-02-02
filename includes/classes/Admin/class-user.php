@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -13,7 +13,6 @@ namespace WP2FA\Admin;
 
 use WP2FA\WP2FA;
 use WP_Session_Tokens;
-use WP2FA\Cron\Cron_Tasks;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -67,7 +66,7 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function get_instance( $user = '' ) {
-			$user = self::determine_user( $user );
+			$user = User_Helper::get_user_object( $user );
 			if ( ! array_key_exists( $user->ID, self::$user_instances ) ) {
 				self::$user_instances[ $user->ID ] = new User( $user );
 			}
@@ -327,9 +326,9 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 			$settings = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME );
 			if ( ! is_array( $settings ) || ( isset( $settings['enforcement-policy'] ) && 'do-not-enforce' === $settings['enforcement-policy'] ) ) {
 				// 2FA is not enforced, make sure to clear any related user meta previously created
-				$this->delete_user_meta( WP_2FA_PREFIX . 'is_locked' );
+				User_Helper::remove_meta( WP_2FA_PREFIX . 'is_locked', $this->user );
 				User_Helper::remove_user_expiry_date( $this->user );
-				$this->delete_user_meta( WP_2FA_PREFIX . 'locked_account_notification' );
+				User_Helper::remove_meta( WP_2FA_PREFIX . 'locked_account_notification', $this->user );
 
 				return false;
 			}
@@ -394,8 +393,8 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 					// Send the email to alert the user, only if we have not done so before.
 					$account_notification = get_user_meta( $user_id, WP_2FA_PREFIX . 'locked_account_notification', true );
 					if ( ! $account_notification ) {
-						Cron_Tasks::send_expired_grace_email( $user_id );
-						$this->set_user_meta( WP_2FA_PREFIX . 'locked_account_notification', true );
+						User_Helper::send_expired_grace_email( $user_id );
+						User_Helper::set_meta( WP_2FA_PREFIX . 'locked_account_notification', true, $this->user );
 					}
 				}
 
@@ -441,32 +440,6 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 		}
 
 		/**
-		 * Deletes user meta by given key
-		 *
-		 * @param string $meta_name - The meta key which should be deleted.
-		 *
-		 * @return void
-		 */
-		public function delete_user_meta( string $meta_name ) {
-			if ( $this->is_user_set() ) {
-				\delete_user_meta( $this->user->ID, $meta_name );
-			}
-		}
-
-		/**
-		 * Retrieves user meta by specific key
-		 *
-		 * @param string $meta - The meta key to use for extracting.
-		 *
-		 * @return mixed
-		 */
-		public function get_user_meta( string $meta ) {
-			if ( $this->is_user_set() ) {
-				return $this->user->get( $meta );
-			}
-		}
-
-		/**
 		 * User totp key getter
 		 *
 		 * @return string
@@ -479,8 +452,8 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 
 					User_Helper::set_user_totp_key( $this->totp_key, $this->user );
 				} else {
-					if ( Open_SSL::is_ssl_available() && false === \strpos( $this->totp_key, 'wps_' ) ) {
-						$this->totp_key = 'wps_' . Open_SSL::encrypt( $this->totp_key );
+					if ( Open_SSL::is_ssl_available() && false === \strpos( $this->totp_key, Open_SSL::SECRET_KEY_PREFIX ) ) {
+						$this->totp_key = Open_SSL::SECRET_KEY_PREFIX . Open_SSL::encrypt( $this->totp_key );
 						User_Helper::set_user_totp_key( $this->totp_key, $this->user );
 					}
 				}
@@ -513,6 +486,26 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 			}
 
 			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
+
+				/**
+				 * Old key detected - convert.
+				 */
+				$key = Open_SSL::decrypt_wps( substr( $key, 4 ) );
+
+				User_Helper::remove_user_totp_key();
+
+				$secret = Open_SSL::encrypt( $key );
+
+				if ( Open_SSL::is_ssl_available() ) {
+					$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
+				}
+
+				User_Helper::set_user_totp_key( $secret, $this->user->ID );
+
+				$this->totp_key = $secret;
+			}
+
+			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
 				$key = Open_SSL::decrypt( substr( $key, 4 ) );
 
 				/**
@@ -629,18 +622,6 @@ if ( ! class_exists( '\WP2FA\Admin\User' ) ) {
 
 			// update the 2FA status meta field.
 			User_Helper::set_user_status( $this->user );
-		}
-
-		/**
-		 * Updates user meta with given value
-		 *
-		 * @param string $meta_key - The key to update.
-		 * @param string $value - The value to set.
-		 *
-		 * @return mixed
-		 */
-		public function set_user_meta( $meta_key, $value ) {
-			return \update_user_meta( $this->user->ID, $meta_key, $value );
 		}
 	}
 }

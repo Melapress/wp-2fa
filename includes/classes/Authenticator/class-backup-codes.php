@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage backup-codes
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -19,10 +19,10 @@
 
 namespace WP2FA\Authenticator;
 
-use \WP2FA\Authenticator\Authentication as Authentication;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Login_Attempts;
+use \WP2FA\Authenticator\Authentication as Authentication;
 
 /**
  * Backup code class, for handling backup code generation and such.

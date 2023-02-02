@@ -7,9 +7,9 @@
 
 namespace WP2FA\Core;
 
-use \WP2FA\Utils\User_Utils;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Utils\Settings_Utils as Settings_Utils;
 
 /**
  * Default setup routine
@@ -100,7 +100,7 @@ function deactivate() {
  * @return void
  */
 function uninstall() {
-	if ( ! empty( \WP2FA\WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
+	if ( ! empty( WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
 		// Delete settings from wp_options.
 		if ( WP_Helper::is_multisite() ) {
 			$network_id = get_current_network_id();
@@ -133,33 +133,19 @@ function uninstall() {
 			);
 		}
 
-		$users_args = array(
-			'fields' => array( 'ID' ),
+		global $wpdb;
+		$wpdb->query(
+			$wpdb->prepare(
+				"
+				DELETE FROM $wpdb->usermeta
+				WHERE 1
+				AND meta_key LIKE %s
+				",
+				array(
+					WP_2FA_PREFIX . 'wp_2fa_%',
+				)
+			)
 		);
-		if ( WP_Helper::is_multisite() ) {
-			$users_args['blog_id'] = 0;
-		}
-		$users = User_Utils::get_all_user_ids( 'query', $users_args );
-		if ( ! is_array( $users ) ) {
-			$users = explode( ',', $users );
-		}
-
-		foreach ( $users as $user_id ) {
-			global $wpdb;
-			$wpdb->query(
-                $wpdb->prepare(
-                    "
-				 DELETE FROM $wpdb->usermeta
-				 WHERE user_id = %d
-				 AND meta_key LIKE %s
-				 ",
-                    array(
-						$user_id,
-						'wp_2fa_%',
-                    )
-                )
-			);
-		}
 	}
 }
 
@@ -186,8 +172,7 @@ function script_url( $script, $context ) {
 		return new \WP_Error( 'invalid_enqueue_context', 'Invalid $context specified in WP2FA script loader.' );
 	}
 
-	return WP_2FA_URL . "dist/js/${script}.js";
-
+	return WP_2FA_URL . 'dist/js/' . $script . '.js';
 }
 
 /**
@@ -204,7 +189,7 @@ function style_url( $stylesheet, $context ) {
 		return new \WP_Error( 'invalid_enqueue_context', 'Invalid $context specified in WP2FA stylesheet loader.' );
 	}
 
-	return WP_2FA_URL . "dist/css/${stylesheet}.css";
+	return WP_2FA_URL . 'dist/css/' . $stylesheet . '.css';
 }
 
 /**
@@ -247,7 +232,7 @@ function admin_scripts() {
 	// Data array.
 	$data_array = array(
 		'ajaxURL'                        => admin_url( 'admin-ajax.php' ),
-		'roles'                          => \WP2FA\WP2FA::wp_2fa_get_roles(),
+		'roles'                          => WP2FA::wp_2fa_get_roles(),
 		'nonce'                          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
 		'codeValidatedHeading'           => esc_html__( 'Congratulations', 'wp-2fa' ),
 		'codeValidatedText'              => esc_html__( 'Your account just got more secure', 'wp-2fa' ),
@@ -338,4 +323,15 @@ function script_loader_tag( $tag, $handle ) {
 	}
 
 	return $tag;
+}
+
+/**
+ * Generates random string used to salt the key
+ *
+ * @return string
+ *
+ * @since 2.3.0
+ */
+function wp_salt(): string {
+	return WP2FA::get_secret_key();
 }

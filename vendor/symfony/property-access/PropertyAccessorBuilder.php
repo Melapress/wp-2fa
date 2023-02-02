@@ -8,11 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace WP2FA_Vendor\Symfony\Component\PropertyAccess;
 
-namespace Symfony\Component\PropertyAccess;
-
-use Psr\Cache\CacheItemPoolInterface;
-
+use WP2FA_Vendor\Psr\Cache\CacheItemPoolInterface;
 /**
  * A configurable builder to create a PropertyAccessor.
  *
@@ -20,15 +18,13 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class PropertyAccessorBuilder
 {
-    private $magicCall = false;
-    private $throwExceptionOnInvalidIndex = false;
-    private $throwExceptionOnInvalidPropertyPath = true;
-
+    private $magicCall = \false;
+    private $throwExceptionOnInvalidIndex = \false;
+    private $throwExceptionOnInvalidPropertyPath = \true;
     /**
      * @var CacheItemPoolInterface|null
      */
     private $cacheItemPool;
-
     /**
      * Enables the use of "__call" by the PropertyAccessor.
      *
@@ -36,11 +32,9 @@ class PropertyAccessorBuilder
      */
     public function enableMagicCall()
     {
-        $this->magicCall = true;
-
+        $this->magicCall = \true;
         return $this;
     }
-
     /**
      * Disables the use of "__call" by the PropertyAccessor.
      *
@@ -48,11 +42,9 @@ class PropertyAccessorBuilder
      */
     public function disableMagicCall()
     {
-        $this->magicCall = false;
-
+        $this->magicCall = \false;
         return $this;
     }
-
     /**
      * @return bool whether the use of "__call" by the PropertyAccessor is enabled
      */
@@ -60,7 +52,6 @@ class PropertyAccessorBuilder
     {
         return $this->magicCall;
     }
-
     /**
      * Enables exceptions when reading a non-existing index.
      *
@@ -71,11 +62,9 @@ class PropertyAccessorBuilder
      */
     public function enableExceptionOnInvalidIndex()
     {
-        $this->throwExceptionOnInvalidIndex = true;
-
+        $this->throwExceptionOnInvalidIndex = \true;
         return $this;
     }
-
     /**
      * Disables exceptions when reading a non-existing index.
      *
@@ -85,11 +74,9 @@ class PropertyAccessorBuilder
      */
     public function disableExceptionOnInvalidIndex()
     {
-        $this->throwExceptionOnInvalidIndex = false;
-
+        $this->throwExceptionOnInvalidIndex = \false;
         return $this;
     }
-
     /**
      * @return bool whether an exception is thrown or null is returned when reading a non-existing index
      */
@@ -97,7 +84,6 @@ class PropertyAccessorBuilder
     {
         return $this->throwExceptionOnInvalidIndex;
     }
-
     /**
      * Enables exceptions when reading a non-existing property.
      *
@@ -108,11 +94,9 @@ class PropertyAccessorBuilder
      */
     public function enableExceptionOnInvalidPropertyPath()
     {
-        $this->throwExceptionOnInvalidPropertyPath = true;
-
+        $this->throwExceptionOnInvalidPropertyPath = \true;
         return $this;
     }
-
     /**
      * Disables exceptions when reading a non-existing index.
      *
@@ -122,11 +106,9 @@ class PropertyAccessorBuilder
      */
     public function disableExceptionOnInvalidPropertyPath()
     {
-        $this->throwExceptionOnInvalidPropertyPath = false;
-
+        $this->throwExceptionOnInvalidPropertyPath = \false;
         return $this;
     }
-
     /**
      * @return bool whether an exception is thrown or null is returned when reading a non-existing property
      */
@@ -134,7 +116,6 @@ class PropertyAccessorBuilder
     {
         return $this->throwExceptionOnInvalidPropertyPath;
     }
-
     /**
      * Sets a cache system.
      *
@@ -143,10 +124,8 @@ class PropertyAccessorBuilder
     public function setCacheItemPool(CacheItemPoolInterface $cacheItemPool = null)
     {
         $this->cacheItemPool = $cacheItemPool;
-
         return $this;
     }
-
     /**
      * Gets the used cache system.
      *
@@ -156,7 +135,6 @@ class PropertyAccessorBuilder
     {
         return $this->cacheItemPool;
     }
-
     /**
      * Builds and returns a new PropertyAccessor object.
      *

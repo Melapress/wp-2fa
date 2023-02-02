@@ -8,8 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Symfony\Component\PropertyAccess;
+namespace WP2FA_Vendor\Symfony\Component\PropertyAccess;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
@@ -23,7 +22,6 @@ interface PropertyPathIteratorInterface extends \Iterator, \SeekableIterator
      * @return bool
      */
     public function isIndex();
-
     /**
      * Returns whether the current element in the property path is a property
      * name.

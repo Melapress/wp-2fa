@@ -3,7 +3,7 @@
  * Open SSL encrypt / decrypt class.
  *
  * @package   wp2fa
- * @copyright 2021 WP White Security
+ * @copyright 2023 WP White Security
  * @license   https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link      https://wordpress.org/plugins/wp-2fa/
  */
@@ -12,6 +12,8 @@ namespace WP2FA\Authenticator;
 
 use WP2FA\WP2FA;
 use WP2FA\Utils\Debugging;
+
+use function WP2FA\Core\wp_salt;
 
 /**
  * Open_SSL - Class for encryption and decryption of the string using open_ssl method
@@ -28,6 +30,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		const CIPHER_METHOD    = 'aes-256-ctr';
 		const BLOCK_BYTE_SIZE  = 16;
 		const DIGEST_ALGORITHM = 'SHA256';
+		const SECRET_KEY_PREFIX = 'lsc_';
 
 		/**
 		 * Internal cache var for the PHP ssl functions availability
@@ -49,15 +52,16 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		 */
 		public static function encrypt( string $text ): string {
 			Debugging::log( 'Encrypting a text: ' . $text );
+			Debugging::log( 'Will use the following salt: ' . wp_salt() );
 			if ( self::is_ssl_available() ) {
 				$iv   = self::secure_random( self::BLOCK_BYTE_SIZE );
-				$key  = \openssl_digest( \base64_decode( \wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
+				$key  = \openssl_digest( \base64_decode( wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
 				$text = \openssl_encrypt(
-                    $text,
-                    self::CIPHER_METHOD,
-                    $key,
-                    OPENSSL_RAW_DATA,
-                    $iv
+					$text,
+					self::CIPHER_METHOD,
+					$key,
+					OPENSSL_RAW_DATA,
+					$iv
 				);
 
 				$text = \base64_encode( $iv . $text ); //phpcs:ignore
@@ -78,11 +82,12 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		 */
 		public static function decrypt( string $text ): string {
 			Debugging::log( 'Decrypting a text: ' . $text );
+			Debugging::log( 'Will use the following salt: ' . wp_salt() );
 
 			if ( self::is_ssl_available() ) {
 				$decoded_base = \base64_decode( $text ); //phpcs:ignore
 
-				$key = \openssl_digest( \base64_decode( \wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
+				$key = \openssl_digest( \base64_decode( wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
 
 				$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
 
@@ -111,6 +116,35 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 				$decoded_base = \base64_decode( $text ); //phpcs:ignore
 
 				$key = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
+
+				$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
+
+				$iv             = \substr( $decoded_base, 0, $ivlen );
+				$ciphertext_raw = \substr( $decoded_base, $ivlen );
+				$text           = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
+			}
+			Debugging::log( 'Decrypted text: ' . $text );
+
+			return $text;
+		}
+
+		/**
+		 * Decrypts old wps_ secret strings
+		 *
+		 * @param string $text - The encrypted string.
+		 *
+		 * @return string
+		 *
+		 * @since 2.3.0
+		 */
+		public static function decrypt_wps( string $text ): string {
+			Debugging::log( 'Decrypting a text: ' . $text );
+			Debugging::log( 'Will use the following salt: ' . \wp_salt() );
+
+			if ( self::is_ssl_available() ) {
+				$decoded_base = \base64_decode( $text ); //phpcs:ignore
+
+				$key = \openssl_digest( \base64_decode( \wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
 
 				$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
 

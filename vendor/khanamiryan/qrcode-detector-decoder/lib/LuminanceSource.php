@@ -1,4 +1,5 @@
 <?php
+
 /*
 * Copyright 2009 ZXing authors
 *
@@ -14,8 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-namespace Zxing;
+namespace WP2FA_Vendor\Zxing;
 
 /**
  * The purpose of this class hierarchy is to abstract different bitmap implementations across
@@ -31,7 +31,6 @@ abstract class LuminanceSource
     public function __construct(private $width, private $height)
     {
     }
-
     /**
      * Fetches luminance data for the underlying bitmap. Values should be fetched using:
      * {@code int luminance = array[y * width + x] & 0xff}
@@ -40,32 +39,28 @@ abstract class LuminanceSource
      *         larger than width * height bytes on some platforms. Do not modify the contents
      *         of the result.
      */
-    abstract public function getMatrix();
-
+    public abstract function getMatrix();
     /**
      * @return float The width of the bitmap.
      */
-    final public function getWidth(): float
+    public final function getWidth() : float
     {
         return $this->width;
     }
-
     /**
      * @return float The height of the bitmap.
      */
-    final public function getHeight(): float
+    public final function getHeight() : float
     {
         return $this->height;
     }
-
     /**
      * @return bool Whether this subclass supports cropping.
      */
-    public function isCropSupported(): bool
+    public function isCropSupported() : bool
     {
-        return false;
+        return \false;
     }
-
     /**
      * Returns a new object with cropped image data. Implementations may keep a reference to the
      * original data rather than a copy. Only callable if isCropSupported() is true.
@@ -81,15 +76,13 @@ abstract class LuminanceSource
     {
         throw new \Exception("This luminance source does not support cropping.");
     }
-
     /**
      * @return bool Whether this subclass supports counter-clockwise rotation.
      */
-    public function isRotateSupported(): bool
+    public function isRotateSupported() : bool
     {
-        return false;
+        return \false;
     }
-
     /**
      * @return a wrapper of this {@code LuminanceSource} which inverts the luminances it returns -- black becomes
      *  white and vice versa, and each value becomes (255-value).
@@ -98,7 +91,6 @@ abstract class LuminanceSource
     // {
     // 	return new InvertedLuminanceSource($this);
     // }
-
     /**
      * Returns a new object with rotated image data by 90 degrees counterclockwise.
      * Only callable if {@link #isRotateSupported()} is true.
@@ -109,7 +101,6 @@ abstract class LuminanceSource
     {
         throw new \Exception("This luminance source does not support rotation by 90 degrees.");
     }
-
     /**
      * Returns a new object with rotated image data by 45 degrees counterclockwise.
      * Only callable if {@link #isRotateSupported()} is true.
@@ -120,33 +111,30 @@ abstract class LuminanceSource
     {
         throw new \Exception("This luminance source does not support rotation by 45 degrees.");
     }
-
-    final public function toString()
+    public final function toString()
     {
         $row = [];
         $result = '';
         for ($y = 0; $y < $this->height; $y++) {
             $row = $this->getRow($y, $row);
             for ($x = 0; $x < $this->width; $x++) {
-                $luminance = $row[$x] & 0xFF;
+                $luminance = $row[$x] & 0xff;
                 $c = '';
                 if ($luminance < 0x40) {
                     $c = '#';
                 } elseif ($luminance < 0x80) {
                     $c = '+';
-                } elseif ($luminance < 0xC0) {
+                } elseif ($luminance < 0xc0) {
                     $c = '.';
                 } else {
                     $c = ' ';
                 }
-                $result .= ($c);
+                $result .= $c;
             }
-            $result .= ('\n');
+            $result .= '\\n';
         }
-
         return $result;
     }
-
     /**
      * Fetches one row of luminance data from the underlying platform's bitmap. Values range from
      * 0 (black) to 255 (white). Because Java does not have an unsigned byte type, callers will have
@@ -161,5 +149,5 @@ abstract class LuminanceSource
      * @return array
      * An array containing the luminance data.
      */
-    abstract public function getRow($y, $row);
+    public abstract function getRow($y, $row);
 }

@@ -7,7 +7,7 @@ Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authen
 Requires at least: 5.0
 Tested up to: 6.0.2
 Stable tag: 2.3.0
-Requires PHP: 7.2
+Requires PHP: 7.2.0
 
 Harden your website login page; add two-factor authentication (2FA) for all your users with this easy to use plugin.
 
@@ -37,25 +37,27 @@ Browse our list of [WordPress security plugins](https://www.wpwhitesecurity.com/
 * Supports [2FA backup methods](https://wp2fa.io/features/alternative-2fa-backup-method-options/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin%20repos%20description)
 * [Very easy to use and simple to set up](https://wp2fa.io/features/easy-to-use-simple-setup-wizards/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description)
 * Use [2FA policies to enforce 2FA with a grace period](https://wp2fa.io/support/kb/configure-2fa-policies-enforce/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin%20repos%20description)
-* Or require users users to instantly setup 2FA upon logging in
+* Or require users to instantly setup 2FA upon logging in
 * [Out of the box support for third party plugins](https://wp2fa.io/features/third-party-plugins-support/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WSAL&utm_content=plugin+repos+description) such as WooCommerce and other e-commerce & membership plugins
 * [No WordPress dashboard access required for users to set up 2FA](https://wp2fa.io/features/no-wordpress-dashboard-access-required/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WSAL&utm_content=plugin+repos+description)
+* Fully editable email templates
 * Protection against automated password & dictionary attacks
-* And many other [plugin features](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description))
+* And many other [plugin features](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2fA&utm_content=plugin+repos+description)
 
 ### Extend the functionality of WP 2FA & automate more
 <strong>[Upgrade to WP 2FA Premium](https://wp2fa.io/pricing/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)</strong> to:
 
 * 2FA over SMS, Push notification, WhatsApp and incoming call via [Authy integration](https://wp2fa.io/features/authy-2fa-integration/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
 * Add trusted devices - no need for 2FA code each time you log in
-* Whitelabel all the 2FA pages - for a consistent user experience
+* [Whitelabel all the 2FA pages](https://wp2fa.io/features/white-label-2fa-pages/&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) - for a consistent user experience
+* Fully whitelabel-enabled user 2FA wizards; add your own the logo, upload custom CSS and also change the text
 * Give the users more 2FA methods to choose from and use
 * Configure different 2FA policies for different user profiles
 * More alternative 2FA backup methods
 * Easily get an overview of users' 2FA setup with the reports
 * And many other features
 
-Refer to the [features and benefits page](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) to learn more about the benefits of upgrading to WP 2FA Premium.
+Refer to the [2FA plugin features and benefits page](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) to learn more about the benefits of upgrading to WP 2FA Premium.
 
 ### Free and Premium Support
 
@@ -80,7 +82,7 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 #### Related Links and Documentation
 
 * [The benefits of using 2FA on WordPress](https://wp2fa.io/benefits-2fa-wordpress/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
-* [What is Two-factor authentication](https://wp2fa.io/what-is-2fa/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
+* [2FA - what is Two-factor authentication](https://wp2fa.io/2fa/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
 * [Why you need both 2FA & strong passwords](https://www.wpwhitesecurity.com/two-factor-authentication-strong-passwords-wordpress/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
 * [Setting up Google authenticator for WordPress 2FA](https://www.wpwhitesecurity.com/google-authenticator-app-wordpress-2fa/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
 * List of [supported 2FA apps](https://wp2fa.io/support/kb/configuring-2fa-apps/)
@@ -119,11 +121,15 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 Release notes: [More white labelling options & better licensing](https://wp2fa.io/wp-2fa-2-3-0/)
 
 * **New features**
+	* Fully responsive and fully customizable user 2FA wizards - refer to [2FA white labelling on WordPress](https://wp2fa.io/support/kb/customize-user-2fa-experience/) for more information.
+	* Added an optional Welcome Slide website owners can add to the user 2FA wizards to add own notes and business information, T&C etc.
 	* Added a new plugin setting so admins can disable the 2FA wizards styling.
+	* CSS importer in the plugin settings to allow administrators to import and apply their own CSS styling to the 2FA user wizards. 
 	
 * **Improvements**
 	* Several UI and styling improvements in the plugin's settings pages.
 	* User's 2FA configuration is removed when user is excluded.
+	* Licensing now only counts users that are using 2FA instead of users which can use 2FA - advantageous to the user.
 	* Applied improved and responsive styling to the user 2FA wizards. 
 	* Better out-of-the-box support for websites on which access to wp-login.php & wp-admin is blocked.
 	* Super administrators can now log in and use 2FA even if they do not have any role on any sub sites.
@@ -133,10 +139,12 @@ Release notes: [More white labelling options & better licensing](https://wp2fa.i
 	* Applied several updates to the "user 2FA status check" code for more reliable status reporting.
 	* Applied several maintenance and WP coding standards checks.
 	* Plugin bails out early instead of trying to process users with ID 0. 
+	* Addressed a number of licensing PHP notices and reduced memory usage and impact.
 	* Placeholders in plugin settings have been replaced by onces which allow you to see all the content without scrolling.
 	* Improved the process that extracts the user role on multisite networks resulting in improvement of how the plugin handles users with multiple roles.
 	* Rmoved the words "Google Authenticator" from all the wizards and using "2FA app" instead - [plugin supports multiple 2FA apps](https://wp2fa.io/support/kb/configuring-2fa-apps/).
 	* Fixed the "focus" in the user 2FA wizard so the cursor is always in the expected location - user does not have to click to select where to enter the verification code.
+	* Updated the plugin logo in the license activation screen.
 	
 * **Security Improvement**
 	* Plugin now uses the WordPress salts to store and encrypt 2FA data in the database.
@@ -144,10 +152,13 @@ Release notes: [More white labelling options & better licensing](https://wp2fa.i
 	
 	
 * **Bug fixes**
+	* Fixed: error when logging in by using one-time code over email as a secondary 2FA method.
+	* Fixed: broken licensing notification in WordPress plugins' page.
+	* Fixed: secondary 2FA email cannot be removed.
 	* Fixed: QR code not loading in user 2FA wizard in some edge cases on a multisite network.
 	* Fixed: the setting "Hide Remove 2FA button" was not properly reflecting the status on multisite networks.
 	* Fixed: grace period check cron called the wrong settings.
 	* Fixed: two emails are sent when a backup code over email is requested.
-	* Fixed: incorrect 2FA methods count was showing in the user wizard.
+	* Fixed: incorrect 2FA methods count was showin in the user wizard.
 
 Refer to the complete [plugin changelog](https://wp2fa.io/support/kb/wp-2fa-changelog/) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.
