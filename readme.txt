@@ -122,9 +122,14 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 Release notes: [2FA SMS via Twilio & one-click WooCommerce integration](https://wp2fa.io/wp-2fa-2-4-0/)
 
 * **New features**
+	* SMS 2FA via Twilio integration.
+	* One-click 2FA integration with WooCommerce customers portal.
 	* Setting to choose between locking a user or forcing the user to configure 2FA when the grace period is over.
+	* New option to reset list of 2FA trusted devices per user.	
 	
 * **Improvements**
+	* Several improvements to the whitelabelling settings, e.g. added an option to not display the default wizard help text.
+	* Licensing mechanism now fully supports non-production websites such as staging and dev environments; no license is required for these websites.
 	* Redirect user to sub-site on a multisite network after completing the 2FA setup.
 	* Made alternative 2FA backup methods available in first-install wizard to give them more prominance so users can use them. 
 	* Improved the UI (looks and feel) of the admin 2FA wizard.
@@ -133,16 +138,22 @@ Release notes: [2FA SMS via Twilio & one-click WooCommerce integration](https://
 	* Removed redundant cron job wp_2fa_check_grace_period_status.
 	* Better handling of users with no role on a multisite network (improved exception handling).
 	* Disable wizard styling button now also applies to front-end wizards.
+	* Added notifications in user profile page and admin pages when no more licenses are available.
 	* Added more help text in the 2FA install setup wizard to better assist administrators setting up the plugin.
+	* Improved licensing-related messages shown to website administrators.
+	* Better UX when the license limit is reached.
 	* Better interoperability with post-login redirect plugins.	
 	* Removed redundant code (it was no longer needed due to change and improvement in functionality).
 	
 * **Bug fixes**
 	* Fixed: edge case issue that caused the cron job that checks for grace periods to be inactive. 
 	* Fixed: plugin sends two emails when clicking the "Resend code" button.
-	* Added additional checks to ensure that all the "No 2FA method selected" scenarios are handled.
+	* Fixed: unable to change the account phone number after configuring Authy as primary 2FA method.
+	* Added additional checks toensure that all the "No 2FA method selected" scenarios are handled.
 	* Fixed a number of spelling mistakes in the plugin UI.
 	* Fixed: fatal error when plugin usind alongside the Events Calendar plugin.
 	* Addressed a number of PHP warnings in free edition.
+	* Fixed: not possible to configure backup 2FA methods when the primary method is Authy.
+	* Fixed: Plugin sends two emails when requesting a backup code over email.
 
 Refer to the complete [plugin changelog](https://wp2fa.io/support/kb/wp-2fa-changelog/) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.
