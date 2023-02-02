@@ -16,7 +16,7 @@
  * Domain Path: /languages/
  * License:     GPL v3
  * Requires at least: 5.0
- * Requires PHP: 7.0
+ * Requires PHP: 7.2
  * Network: true
  *
  * @package WP2FA
