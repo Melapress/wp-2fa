@@ -5,17 +5,17 @@ License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 5.0
-Tested up to: 6.0.2
-Stable tag: 2.3.0
+Tested up to: 6.1.1
+Stable tag: 2.4.0
 Requires PHP: 7.2.0
 
-Harden your website login page; add two-factor authentication (2FA) for all your users with this easy to use plugin.
+Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy to use plugin.
 
 == Description ==
 
 <strong>A FREE & EASY TO USE TWO-FACTOR AUTHENTICATION PLUGIN FOR WORDPRESS</strong><br />
 
-Add an extra layer of security to your WordPress website login page and its users. Enable [two-factor authentication (2FA)](https://wp2fa.io/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=all+plugins&utm_content=plugin+repos+description), the best protection against users using weak passwords, and automated password guessing and brute force attacks.
+Add an extra layer of security to your WordPress website login pages and its users. Enable [two-factor authentication (2FA)](https://wp2fa.io/wordpress-2fa/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=all+plugins&utm_content=plugin+repos+description), the best protection against users using weak passwords, and automated password guessing and brute force attacks.
 
 [youtube https://www.youtube.com/watch?v=vRlX_NNGeFo]
 
@@ -47,13 +47,13 @@ Browse our list of [WordPress security plugins](https://www.wpwhitesecurity.com/
 ### Extend the functionality of WP 2FA & automate more
 <strong>[Upgrade to WP 2FA Premium](https://wp2fa.io/pricing/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)</strong> to:
 
-* 2FA over SMS, Push notification, WhatsApp and incoming call via [Authy integration](https://wp2fa.io/features/authy-2fa-integration/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description)
+* More 2FA methods such as 2FA over SMS, Push notification and one-click login
 * Add trusted devices - no need for 2FA code each time you log in
 * [Whitelabel all the 2FA pages](https://wp2fa.io/features/white-label-2fa-pages/&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) - for a consistent user experience
-* Fully whitelabel-enabled user 2FA wizards; add your own the logo, upload custom CSS and also change the text
-* Give the users more 2FA methods to choose from and use
+* Fully whitelabel-enabled user 2FA wizards  & emails; add your own the logo, upload custom CSS and also change the text
+* Give the users more alternative 2FA methods to choose from and use so they are never locked out
+* Add 2FA to your WooCommerce user pages with just one-click
 * Configure different 2FA policies for different user profiles
-* More alternative 2FA backup methods
 * Easily get an overview of users' 2FA setup with the reports
 * And many other features
 
@@ -78,6 +78,7 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 * [WP Astra](https://wpastra.com/two-factor-authentication-wordpress/)
 * [MainWP](https://mainwp.com/how-to-use-the-wp-2fa-plugin-on-your-child-sites/)
 * [FixRunner](https://www.fixrunner.com/wordpress-two-factor-authentication/)
+* [Inmotion Hosting](https://www.inmotionhosting.com/support/edu/wordpress/plugins/wp-2fa/)
 
 #### Related Links and Documentation
 
@@ -116,49 +117,32 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 
 == Changelog ==
 
-= 2.3.0 (2022-09-01) =
+= 2.4.0 (2023-02-02) =
 
-Release notes: [More white labelling options & better licensing](https://wp2fa.io/wp-2fa-2-3-0/)
+Release notes: [2FA SMS via Twilio & one-click WooCommerce integration](https://wp2fa.io/wp-2fa-2-4-0/)
 
 * **New features**
-	* Fully responsive and fully customizable user 2FA wizards - refer to [2FA white labelling on WordPress](https://wp2fa.io/support/kb/customize-user-2fa-experience/) for more information.
-	* Added an optional Welcome Slide website owners can add to the user 2FA wizards to add own notes and business information, T&C etc.
-	* Added a new plugin setting so admins can disable the 2FA wizards styling.
-	* CSS importer in the plugin settings to allow administrators to import and apply their own CSS styling to the 2FA user wizards. 
+	* Setting to choose between locking a user or forcing the user to configure 2FA when the grace period is over.
 	
 * **Improvements**
-	* Several UI and styling improvements in the plugin's settings pages.
-	* User's 2FA configuration is removed when user is excluded.
-	* Licensing now only counts users that are using 2FA instead of users which can use 2FA - advantageous to the user.
-	* Applied improved and responsive styling to the user 2FA wizards. 
-	* Better out-of-the-box support for websites on which access to wp-login.php & wp-admin is blocked.
-	* Super administrators can now log in and use 2FA even if they do not have any role on any sub sites.
-	* Added support for websites hosted on Godaddy that also have the Sucuri plugin enabled (Sucuri plugin was breaking the 2FA code page).
-	* Better UX for when creating the front-end 2FA page settings.
-	* Updated the Freemius SDK to version 2.4.5 to support PHP 8.1.
-	* Applied several updates to the "user 2FA status check" code for more reliable status reporting.
-	* Applied several maintenance and WP coding standards checks.
-	* Plugin bails out early instead of trying to process users with ID 0. 
-	* Addressed a number of licensing PHP notices and reduced memory usage and impact.
-	* Placeholders in plugin settings have been replaced by onces which allow you to see all the content without scrolling.
-	* Improved the process that extracts the user role on multisite networks resulting in improvement of how the plugin handles users with multiple roles.
-	* Rmoved the words "Google Authenticator" from all the wizards and using "2FA app" instead - [plugin supports multiple 2FA apps](https://wp2fa.io/support/kb/configuring-2fa-apps/).
-	* Fixed the "focus" in the user 2FA wizard so the cursor is always in the expected location - user does not have to click to select where to enter the verification code.
-	* Updated the plugin logo in the license activation screen.
-	
-* **Security Improvement**
-	* Plugin now uses the WordPress salts to store and encrypt 2FA data in the database.
-	* Improved the comparison of authentication codes - ensuring the plugin is not vulnerable to time-based side-channel attacks.
-	
+	* Redirect user to sub-site on a multisite network after completing the 2FA setup.
+	* Made alternative 2FA backup methods available in first-install wizard to give them more prominance so users can use them. 
+	* Improved the UI (looks and feel) of the admin 2FA wizard.
+	* Plugin creates its own salts in the wp-config.php file to avoid conflicts with other plugins.
+	* Applied several improvements to the 2FA user wizard for better UX.
+	* Removed redundant cron job wp_2fa_check_grace_period_status.
+	* Better handling of users with no role on a multisite network (improved exception handling).
+	* Disable wizard styling button now also applies to front-end wizards.
+	* Added more help text in the 2FA install setup wizard to better assist administrators setting up the plugin.
+	* Better interoperability with post-login redirect plugins.	
+	* Removed redundant code (it was no longer needed due to change and improvement in functionality).
 	
 * **Bug fixes**
-	* Fixed: error when logging in by using one-time code over email as a secondary 2FA method.
-	* Fixed: broken licensing notification in WordPress plugins' page.
-	* Fixed: secondary 2FA email cannot be removed.
-	* Fixed: QR code not loading in user 2FA wizard in some edge cases on a multisite network.
-	* Fixed: the setting "Hide Remove 2FA button" was not properly reflecting the status on multisite networks.
-	* Fixed: grace period check cron called the wrong settings.
-	* Fixed: two emails are sent when a backup code over email is requested.
-	* Fixed: incorrect 2FA methods count was showin in the user wizard.
+	* Fixed: edge case issue that caused the cron job that checks for grace periods to be inactive. 
+	* Fixed: plugin sends two emails when clicking the "Resend code" button.
+	* Added additional checks to ensure that all the "No 2FA method selected" scenarios are handled.
+	* Fixed a number of spelling mistakes in the plugin UI.
+	* Fixed: fatal error when plugin usind alongside the Events Calendar plugin.
+	* Addressed a number of PHP warnings in free edition.
 
 Refer to the complete [plugin changelog](https://wp2fa.io/support/kb/wp-2fa-changelog/) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.
