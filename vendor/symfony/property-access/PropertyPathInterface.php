@@ -8,8 +8,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Symfony\Component\PropertyAccess;
+namespace WP2FA_Vendor\Symfony\Component\PropertyAccess;
 
 /**
  * A sequence of property names or array indices.
@@ -24,14 +23,12 @@ interface PropertyPathInterface extends \Traversable
      * @return string The path as string
      */
     public function __toString();
-
     /**
      * Returns the length of the property path, i.e. the number of elements.
      *
      * @return int The path length
      */
     public function getLength();
-
     /**
      * Returns the parent property path.
      *
@@ -43,14 +40,12 @@ interface PropertyPathInterface extends \Traversable
      * @return self|null The parent path or null
      */
     public function getParent();
-
     /**
      * Returns the elements of the property path as array.
      *
      * @return array An array of property/index names
      */
     public function getElements();
-
     /**
      * Returns the element at the given index in the property path.
      *
@@ -61,7 +56,6 @@ interface PropertyPathInterface extends \Traversable
      * @throws Exception\OutOfBoundsException If the offset is invalid
      */
     public function getElement(int $index);
-
     /**
      * Returns whether the element at the given index is a property.
      *
@@ -72,7 +66,6 @@ interface PropertyPathInterface extends \Traversable
      * @throws Exception\OutOfBoundsException If the offset is invalid
      */
     public function isProperty(int $index);
-
     /**
      * Returns whether the element at the given index is an array index.
      *

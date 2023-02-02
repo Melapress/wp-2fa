@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -36,7 +36,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		public function render() {
 			settings_fields( WP_2FA_SETTINGS_NAME );
 			self::no_method_exists();
-			self::grace_period_frequency();
 			self::limit_settings_access();
 			self::remove_data_upon_uninstall();
 			submit_button( null, 'primary', WP_2FA_SETTINGS_NAME . '[submit]' );
@@ -56,8 +55,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				return;
 			}
 
+			Debugging::log( 'The following settings will be processed (General): ' . "\n" . wp_json_encode( $input ) );
+
 			$simple_settings_we_can_loop = array(
-				'enable_grace_cron',
 				'enable_destroy_session',
 				'limit_access',
 				'delete_data_upon_uninstall',
@@ -74,7 +74,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			$simple_settings_we_can_loop = apply_filters( WP_2FA_PREFIX . 'loop_general_settings', $simple_settings_we_can_loop );
 
 			$settings_to_turn_into_bools = array(
-				'enable_grace_cron',
 				'enable_destroy_session',
 				'limit_access',
 				'delete_data_upon_uninstall',
@@ -107,9 +106,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				$wp_settings_errors = $errors; // phpcs:ignore
 			}
 
-			$log_content = __( 'Settings saving processes complete', 'wp-2fa' );
-			Debugging::log( $log_content );
-
 			/**
 			 * Filter the values we are about to store in the plugin settings.
 			 *
@@ -122,6 +118,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 
 			// We have overridden any defaults by now so can clear this.
 			Settings_Utils::delete_option( WP_2FA_PREFIX . 'default_settings_applied' );
+
+			Debugging::log( 'The following settings are being saved (General): ' . "\n" . wp_json_encode( $output ) );
 
 			return $output;
 		}
@@ -210,48 +208,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		}
 
 		/**
-		 * Grace period frequency
-		 *
-		 * @return void
-		 *
-		 * @since 2.0.0
-		 */
-		private static function grace_period_frequency() {
-			?>
-		<h3><?php esc_html_e( 'How often should the plugin check if a user\'s grace period is over?', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php esc_html_e( 'By default the plugin checks if a users grace periods to setup 2FA has passed when the user tries to login. If you would like the plugin to advise the user within an hour, enable the below option to add a cron job that runs every hour.', 'wp-2fa' ); ?>
-		</p>
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th><label for="grace-cron"><?php esc_html_e( 'Enable cron', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset>
-							<input type="checkbox" id="grace-cron" name="wp_2fa_settings[enable_grace_cron]" value="enable_grace_cron"
-							<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'enable_grace_cron' ), true ); ?>
-							>
-							<?php esc_html_e( 'Use cron job to check grace periods', 'wp-2fa' ); ?>
-						</fieldset>
-					</td>
-				</tr>
-				<tr class="disabled destory-session-setting">
-					<th><label for="destory-session"><?php esc_html_e( 'Destroy session', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset>
-							<input type="checkbox" id="destory-session" name="wp_2fa_settings[enable_destroy_session]" value="enable_destroy_session"
-							<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'enable_destroy_session' ), true ); ?>
-							>
-							<?php esc_html_e( 'Destroy user session when grace period expires?', 'wp-2fa' ); ?>
-						</fieldset>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-			<?php
-		}
-
-		/**
 		 * Limit settings setting
 		 *
 		 * @return void
@@ -297,7 +253,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				printf(
 					// translators: support email.
 					\esc_html__( 'Use this setting below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at %1$s.', 'wp-2fa' ),
-					'<a href="mailto:support@wpwhitesecurity.com">support@withesecurity.com</a>'
+					'<a href="mailto:support@wpwhitesecurity.com">support@wpwhitesecurity.com</a>'
                 );
 			?>
 		</p>

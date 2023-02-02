@@ -1,10 +1,9 @@
 <?php
-declare(strict_types = 1);
 
-namespace BaconQrCode\Renderer\RendererStyle;
+declare (strict_types=1);
+namespace WP2FA_Vendor\BaconQrCode\Renderer\RendererStyle;
 
-use DASPRiD\Enum\AbstractEnum;
-
+use WP2FA_Vendor\DASPRiD\Enum\AbstractEnum;
 /**
  * @method static self VERTICAL()
  * @method static self HORIZONTAL()

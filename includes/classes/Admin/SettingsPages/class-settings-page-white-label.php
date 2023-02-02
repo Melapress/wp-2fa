@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -54,6 +54,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				return;
 			}
 
+			Debugging::log( 'The following settings will be processed (White Label): ' . "\n" . wp_json_encode( $input ) );
+
 			$output['default-text-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', false, false );
 
 			if ( isset( $input['default-text-code-page'] ) && '' !== trim( $input['default-text-code-page'] ) ) {
@@ -75,12 +77,25 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					$output['enable_wizard_styling'] = \wp_strip_all_tags( $input['enable_wizard_styling'] );
 				} else {
 					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
-					if ( $request_area_path && ! strpos( $request_area['query'], 'welcome' ) ) {
+					if ( $request_area_path && ! strpos( $request_area['query'], 'custom-css' ) ) {
 						$input['enable_wizard_styling']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
 						$output['enable_wizard_styling'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
 					} else {
 						$output['enable_wizard_styling'] = '';
 						$input['enable_wizard_styling']  = '';
+					}
+				}
+
+				if ( isset( $input['show_help_text'] ) && '' !== trim( $input['show_help_text'] ) ) {
+					$output['show_help_text'] = \wp_strip_all_tags( $input['show_help_text'] );
+				} else {
+					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
+					if ( $request_area_path && ! strpos( $request_area['query'], 'method_selection' ) ) {
+						$input['show_help_text']  = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
+						$output['show_help_text'] = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
+					} else {
+						$output['show_help_text'] = '';
+						$input['show_help_text']  = '';
 					}
 				}
 
@@ -118,9 +133,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				$wp_settings_errors = $errors; // phpcs:ignore
 			}
 
-			$log_content = __( 'Settings saving processes complete', 'wp-2fa' );
-			Debugging::log( $log_content );
-
 			/**
 			 * Filter the values we are about to store in the plugin settings.
 			 *
@@ -130,6 +142,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			 * @since 2.0.0
 			 */
 			$output = apply_filters( WP_2FA_PREFIX . 'filter_output_content', $output, $input );
+
+			Debugging::log( 'The following settings are being saved (White Label): ' . "\n" . wp_json_encode( $output ) );
 
 			return $output;
 		}
@@ -215,8 +229,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_before_default_text' );
 			?>
 		
-		<?php
-		?>
+			<?php
+			/* @free:start */
+			?>
 		<h3><?php esc_html_e( 'Change the styling of the user 2FA wizards?', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
@@ -236,8 +251,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				</tr>
 			</tbody>
 		</table>
-		<?php
-		?>
+			<?php
+			/* @free:end */
+			?>
 
 		<h3><?php esc_html_e( 'Change the default text used in the 2FA code page?', 'wp-2fa' ); ?></h3>
 		<p class="description">

@@ -4,13 +4,14 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Utils;
 
+use WP2FA\Utils\Abstract_Migration;
 use \WP2FA\Utils\User_Utils as User_Utils;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
 
@@ -288,15 +289,29 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 
 			if ( $version && version_compare( $version, '2.2.1', '<=' ) ) {
 				$settings = self::get_settings( self::$plugin_white_label_name );
-				
+
 				if ( isset( $settings['enable_wizard_styling'] ) ) {
 					$settings['enable_wizard_styling'] = false;
 				} else {
-					$settings = array();
+					$settings                          = array();
 					$settings['enable_wizard_styling'] = false;
 				}
 
 				self::set_settings( self::$plugin_white_label_name, $settings );
+			}
+		}
+
+		/**
+		 * Migration for version upto 2.4.0
+		 *
+		 * @return void
+		 */
+		protected static function migrate_up_to_240() {
+
+			\delete_transient( 'wp_2fa_config_file_hash' );
+
+			if ( \wp_next_scheduled( 'wp_2fa_check_grace_period_status' ) ) {
+				\wp_clear_scheduled_hook( 'wp_2fa_check_grace_period_status' );
 			}
 		}
 

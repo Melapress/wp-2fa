@@ -1,96 +1,98 @@
 <?php
 /**
- * Responsible for the User's operations
+ * Responsible for the User's operations.
  *
  * @package    wp2fa
  * @subpackage helpers
+ *
  * @since      2.2.0
- * @copyright  2022 WP White Security
+ *
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       https://wordpress.org/plugins/wp-2fa/
+ *
+ * @see       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\Helpers;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
+use WP2FA\WP2FA;
 use WP2FA\Admin\User;
 use WP2FA\Utils\User_Utils;
-use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Controllers\Settings;
 
-/**
+/*
  * User's settings class
  */
 if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
-
 	/**
 	 * All the user related settings must go trough this class.
 	 *
 	 * @since 2.2.0
 	 */
 	class User_Helper {
-
 		/**
-		 * Secret TOTP key meta name
+		 * Secret TOTP key meta name.
 		 */
-		const SECRET_META_KEY = WP_2FA_PREFIX . 'totp_key';
+		public const SECRET_META_KEY = WP_2FA_PREFIX . 'totp_key';
 		/**
-		 * Enabled 2fa method for user meta name
+		 * Enabled 2fa method for user meta name.
 		 */
-		const ENABLED_METHODS_META_KEY = WP_2FA_PREFIX . 'enabled_methods';
+		public const ENABLED_METHODS_META_KEY = WP_2FA_PREFIX . 'enabled_methods';
 		/**
-		 * Email token for user meta name
+		 * Email token for user meta name.
 		 */
-		const TOKEN_META_KEY = WP_2FA_PREFIX . 'email_token';
+		public const TOKEN_META_KEY = WP_2FA_PREFIX . 'email_token';
 		/**
 		 * Global settings hash for user meta name
-		 * That is used to check if user needs to be re-checked / re-configured, if the settings of the plugin are changed, probably the user settings also need to be changed - that meta holds the key to check against
+		 * That is used to check if user needs to be re-checked / re-configured, if the settings of the plugin are changed, probably the user settings also need to be changed - that meta holds the key to check against.
 		 */
-		const USER_SETTINGS_HASH = WP_2FA_PREFIX . 'global_settings_hash';
+		public const USER_SETTINGS_HASH = WP_2FA_PREFIX . 'global_settings_hash';
 		/**
-		 * The meta name for the user 2FA status in the plugin
+		 * The meta name for the user 2FA status in the plugin.
 		 */
-		const USER_2FA_STATUS = WP_2FA_PREFIX . '2fa_status';
+		public const USER_2FA_STATUS = WP_2FA_PREFIX . '2fa_status';
 		/**
-		 * The user grace period expired meta key
+		 * The user grace period expired meta key.
 		 */
-		const USER_GRACE_KEY = WP_2FA_PREFIX . 'user_grace_period_expired';
+		public const USER_GRACE_KEY = WP_2FA_PREFIX . 'user_grace_period_expired';
 		/**
-		 * The user grace period expiry date meta key
+		 * The user grace period expiry date meta key.
 		 */
-		const USER_GRACE_EXPIRY_KEY = WP_2FA_PREFIX . 'grace_period_expiry';
+		public const USER_GRACE_EXPIRY_KEY = WP_2FA_PREFIX . 'grace_period_expiry';
 		/**
-		 * The user enforcement status
+		 * The user enforcement status.
 		 */
-		const USER_ENFORCED_INSTANTLY = WP_2FA_PREFIX . 'user_enforced_instantly';
+		public const USER_ENFORCED_INSTANTLY = WP_2FA_PREFIX . 'user_enforced_instantly';
 		/**
-		 * The user reconfigure 2fa status
+		 * The user reconfigure 2fa status.
 		 */
-		const USER_NEEDS_TO_RECONFIGURE_2FA = WP_2FA_PREFIX . 'user_needs_to_reconfigure_2fa';
+		public const USER_NEEDS_TO_RECONFIGURE_2FA = WP_2FA_PREFIX . 'user_needs_to_reconfigure_2fa';
 		/**
-		 * The user enforcement state
+		 * The user enforcement state.
 		 */
-		const USER_ENFORCEMENT_STATE = WP_2FA_PREFIX . 'enforcement_state';
+		public const USER_ENFORCEMENT_STATE = WP_2FA_PREFIX . 'enforcement_state';
 		/**
-		 * The user nag dismissed flag
+		 * The user nag dismissed flag.
 		 */
-		const USER_NAG_DISMISSED = WP_2FA_PREFIX . 'update_nag_dismissed';
+		public const USER_NAG_DISMISSED = WP_2FA_PREFIX . 'update_nag_dismissed';
 		/**
-		 * The default status of the user which has no status set yet
+		 * The default status of the user which has no status set yet.
 		 */
-		const USER_UNDETERMINED_STATUS = 'no_determined_yet';
+		public const USER_UNDETERMINED_STATUS = 'no_determined_yet';
 		/**
-		 * The default status of the user which has no status set yet
+		 * The default status of the user which has no status set yet.
 		 */
-		const USER_STATE_STATUSES = array(
+		public const USER_STATE_STATUSES = array(
 			'optional',
 			'excluded',
 			'enforced',
 		);
 
 		/**
-		 * The class user variable
+		 * The class user variable.
 		 *
 		 * @var \WP_User
 		 *
@@ -101,7 +103,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the enabled 2FA method for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -110,7 +112,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		public static function get_enabled_method_for_user( $user = null ) {
 			self::set_proper_user( $user );
 
-			/**
+			/*
 			 * Checks the enabled methods fo the user.
 			 *
 			 * @param mixed - Value of the method.
@@ -125,7 +127,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the enabled 2FA method for the user.
 		 *
 		 * @param string            $method - The name of the method to set.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user   - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -136,7 +138,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 
 			$set_method = self::set_meta( self::ENABLED_METHODS_META_KEY, $method );
 
-			/**
+			/*
 			 * Fires when the user method is set.
 			 *
 			 * @param string - The method set for the user.
@@ -152,7 +154,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the 2FA method for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -167,7 +169,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the email token for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -183,7 +185,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the email token for the user.
 		 *
 		 * @param string            $token - The token to set for the user.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user  - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -198,7 +200,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the email token for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -213,7 +215,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the global settings hash for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -229,7 +231,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the global settings hash for the user.
 		 *
 		 * @param string            $hash - The global settings hash to set for the user.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -244,7 +246,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the global settings hash for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -259,7 +261,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the current 2FA status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -282,7 +284,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the 2FA status for the user.
 		 *
 		 * @param string            $status - The name of the status to set.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user   - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -297,7 +299,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the 2FA status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -309,11 +311,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::remove_meta( self::USER_2FA_STATUS, self::$user );
 		}
 
-
 		/**
 		 * Returns the current nag status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -329,7 +330,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the nag status for the user.
 		 *
 		 * @param bool              $status - The name of the status to set.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user   - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -344,7 +345,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the nag status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -359,7 +360,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the current 2FA status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -375,7 +376,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the 2FA status for the user.
 		 *
 		 * @param string            $date - The period to set.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -390,7 +391,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the 2FA status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -405,7 +406,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the current 2FA enforcement status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -421,7 +422,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the 2FA enforcement status for the user.
 		 *
 		 * @param bool              $status - The status for user enforcement.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user   - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -436,7 +437,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the 2FA enforcement status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -451,7 +452,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the current 2FA needs to reconfigure status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -467,7 +468,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Sets the 2FA needs to reconfigure status for the user.
 		 *
 		 * @param bool              $status - The status for user enforcement.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user   - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -482,7 +483,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Removes the 2FA needs to reconfigure status for the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -498,7 +499,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Every meta call for the user must go through this method, so we can unify the code.
 		 *
 		 * @param string            $meta - The meta name that we should check.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -511,11 +512,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Every meta storing call for the user must go through this method
+		 * Every meta storing call for the user must go through this method.
 		 *
-		 * @param string            $meta - The meta name that we should check.
+		 * @param string            $meta  - The meta name that we should check.
 		 * @param mixed             $value - The value which should be stored.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user  - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -528,10 +529,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Removes meta for the given user
+		 * Removes meta for the given user.
 		 *
 		 * @param string            $meta - The name of the meta.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -561,7 +562,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns WP User object.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @return \WP_User
 		 *
@@ -574,9 +575,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Sets the user
+		 * Sets the user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @return void
 		 *
@@ -596,7 +597,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 					require ABSPATH . WPINC . '/pluggable.php';
 				}
 				self::$user = \get_user_by( 'id', $user );
-			} elseif ( is_string( $user ) ) {
+			} elseif ( is_string( $user ) && ! empty( trim( $user ) ) ) {
 				if ( isset( self::$user ) && $user === self::$user->ID ) {
 					return;
 				}
@@ -610,11 +611,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Returns the default role for the given user
+		 * Returns the default role for the given user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user.
-		 *
-		 * @return string
+		 * @param int|\WP_User|null $user - The WP user.
 		 *
 		 * @since 2.2.0
 		 */
@@ -625,13 +624,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				$blog_id = \get_current_blog_id();
 
 				if ( ! is_user_member_of_blog( self::$user->ID, $blog_id ) ) {
-
 					$user_blog_id = \get_active_blog_for_user( self::$user->ID );
 
-					if ( ! null === $user_blog_id ) {
-
+					if ( null !== $user_blog_id ) {
 						self::$user = new \WP_User(
-						// $user_id
+							// $user_id
 							self::$user->ID,
 							// $name | login, ignored if $user_id is set
 							'',
@@ -644,11 +641,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 
 			$role = reset( self::$user->roles );
 
-			/**
+			/*
 			 * The code looks like this for clearness only
 			 */
 			if ( \is_multisite() ) {
-				/**
+				/*
 				 * On multi site we can have user which has no assigned role, but it is superadmin.
 				 * If the check confirms that - assign the role of the administrator to the user in order not to break our code.
 				 *
@@ -657,7 +654,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				 * most probably administrator - so we will assign that role to the user.
 				 */
 				if ( false === $role && is_super_admin( self::$user->ID ) ) {
-
 					$wp_roles = WP_Helper::get_roles_wp();
 					foreach ( $wp_roles as $role_name => $wp_role ) {
 						$admin_role_set = get_role( $role_name )->capabilities;
@@ -674,11 +670,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Checks if the user method is within the selected methods for the given role
+		 * Checks if the user method is within the selected methods for the given role.
 		 *
-		 * @param null|int|\WP_User $user - The WP user.
-		 *
-		 * @return boolean
+		 * @param int|\WP_User|null $user - The WP user.
 		 *
 		 * @since 2.2.0
 		 */
@@ -695,7 +689,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Deletes the TOTP secret key for a user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @return void
 		 */
@@ -708,7 +702,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		/**
 		 * Returns the TOTP secret key for a user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @return string
 		 */
@@ -722,7 +716,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Updates the TOTP secret key for a user.
 		 *
 		 * @param string            $value - The value of the TOTP key.
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user  - The WP user that must be used.
 		 *
 		 * @return void
 		 *
@@ -735,9 +729,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Removes all the meta keys associated with the given user
+		 * Removes all the meta keys associated with the given user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user for which we have to remove the meta data.
+		 * @param int|\WP_User|null $user - The WP user for which we have to remove the meta data.
 		 *
 		 * @return void
 		 *
@@ -748,8 +742,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 
 			$user_meta_values = array_filter(
 				\get_user_meta( self::$user->ID ),
-				function( $key ) {
-					return strpos( $key, WP_2FA_PREFIX ) === 0;
+				function ( $key ) {
+					return 0 === strpos( $key, WP_2FA_PREFIX );
 				},
 				ARRAY_FILTER_USE_KEY
 			);
@@ -758,7 +752,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				self::remove_meta( $meta_name, $user );
 			}
 
-			/**
+			/*
 			 * Fires when the user method is removed.
 			 *
 			 * @param \WP_User $user - The user for which the method has been removed.
@@ -766,7 +760,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			 * @since 2.2.2
 			 */
 			\do_action( WP_2FA_PREFIX . 'method_has_been_removed', self::get_user() );
-
 		}
 
 		/**
@@ -774,7 +767,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 *
 		 * @since 2.2.0
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
+		 *
 		 * @return bool
 		 */
 		public static function is_user_using_two_factor( $user = null ) {
@@ -784,9 +778,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Gets the user grace period from meta
+		 * Gets the user grace period from meta.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @return mixed
 		 *
@@ -799,10 +793,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Sets the user grace period from meta
+		 * Sets the user grace period from meta.
 		 *
 		 * @param string            $value - The value of the meta key.
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user  - The WP user that must be used.
 		 *
 		 * @return mixed
 		 *
@@ -815,9 +809,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Sets the user grace period from meta
+		 * Sets the user grace period from meta.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @return void
 		 *
@@ -833,7 +827,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * Checks if the user is locked. It only checks a single user meta field to keep this as fast as possible. The
 		 * value of the field is updated elsewhere.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @return bool True if the user account is locked. False otherwise.
 		 *
@@ -844,11 +838,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Checks if the given user has administrator or super administrator privileges
+		 * Checks if the given user has administrator or super administrator privileges.
 		 *
-		 * @param null|int|\WP_User $user - The WP user that must be used.
-		 *
-		 * @return boolean
+		 * @param int|\WP_User|null $user - The WP user that must be used.
 		 *
 		 * @since 2.2.0
 		 */
@@ -860,13 +852,14 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			if ( ! $is_admin ) {
 				return false;
 			}
+
 			return true;
 		}
 
 		/**
-		 * Checks if user is excluded
+		 * Checks if user is excluded.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -875,13 +868,23 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		public static function is_excluded( $user = null ) {
 			$state = self::get_user_state( $user );
 
+			if ( 'excluded' !== $state ) {
+				$user_role = self::get_user_role( $user );
+
+				// User does not have role assigned, don't exclude them.
+				if ( '' === $user_role ) {
+					$state = 'excluded';
+					self::set_user_state( 'excluded', $state );
+				}
+			}
+
 			return 'excluded' === $state;
 		}
 
 		/**
 		 * Updates the user state based on the current plugin settings.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return string
 		 *
@@ -908,9 +911,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Checks if user is enforced
+		 * Checks if user is enforced.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return mixed
 		 *
@@ -923,9 +926,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Returns the current user state stored
+		 * Returns the current user state stored.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return string
 		 *
@@ -944,10 +947,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Returns the current user state stored
+		 * Returns the current user state stored.
 		 *
 		 * @param string            $state - The 2FA user state.
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user  - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -964,9 +967,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Removes 2FA meta for the given user
+		 * Removes 2FA meta for the given user.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *
@@ -985,6 +988,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * @param \WP_User $user - The user which status should be set.
 		 *
 		 * @return string
+		 *
 		 * @see \WP2FA\Admin\User_Listing
 		 * @since 1.7.0
 		 */
@@ -1001,9 +1005,33 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
+		 * Send email to setup authentication.
+		 *
+		 * @param [type] $user_id - The ID of the user.
+		 *
+		 * @return bool
+		 */
+		public static function send_expired_grace_email( $user_id ) {
+			// Bail if the user has not enabled this email.
+			if ( 'enable_account_locked_email' !== WP2FA::get_wp2fa_email_templates( 'send_account_locked_email' ) ) {
+				return false;
+			}
+
+			// Grab user data.
+			$user = get_userdata( $user_id );
+			// Grab user email.
+			$email = $user->user_email;
+
+			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_subject' ), $user_id ) );
+			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
+
+			return Settings_Page::send_email( $email, $subject, $message );
+		}
+
+		/**
 		 * Sets the local variable class based on the given parameter.
 		 *
-		 * @param null|int|\WP_User $user - The WP user we should extract the meta data for.
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
 		 *
 		 * @return void
 		 *

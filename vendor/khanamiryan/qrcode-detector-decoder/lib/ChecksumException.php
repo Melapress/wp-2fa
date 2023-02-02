@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2007 ZXing authors
  *
@@ -14,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-namespace Zxing;
+namespace WP2FA_Vendor\Zxing;
 
 /**
  * Thrown when a barcode was successfully detected and decoded, but
@@ -25,18 +25,16 @@ namespace Zxing;
  */
 final class ChecksumException extends ReaderException
 {
-	private static ?\Zxing\ChecksumException $instance = null;
-
-	public static function getChecksumInstance($cause = null)
-	{
-		if (self::$isStackTrace) {
-			return new ChecksumException($cause);
-		} else {
-			if (!self::$instance) {
-				self::$instance = new ChecksumException($cause);
-			}
-
-			return self::$instance;
-		}
-	}
+    private static ?\WP2FA_Vendor\Zxing\ChecksumException $instance = null;
+    public static function getChecksumInstance($cause = null)
+    {
+        if (self::$isStackTrace) {
+            return new ChecksumException($cause);
+        } else {
+            if (!self::$instance) {
+                self::$instance = new ChecksumException($cause);
+            }
+            return self::$instance;
+        }
+    }
 }

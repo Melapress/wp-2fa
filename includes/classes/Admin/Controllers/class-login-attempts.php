@@ -4,12 +4,14 @@
  *
  * @package    wp2fa
  * @subpackage admin_controllers
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\Controllers;
+
+use WP2FA\Admin\Helpers\User_Helper;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -74,7 +76,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 			if ( '' === $attempts ) {
 				$attempts = 0;
 			}
-			\update_user_meta( $user->ID, $this->meta_key, ++$attempts );
+			User_Helper::set_meta( $this->meta_key, ++$attempts, $user );
 		}
 
 		/**
@@ -87,7 +89,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 * @return integer
 		 */
 		public function get_login_attempts( \WP_User $user ): int {
-			return (int) \get_user_meta( $user->ID, $this->meta_key, true );
+			return (int) User_Helper::get_meta( $this->meta_key, $user );
 		}
 
 		/**
@@ -100,7 +102,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Login_Attempts' ) ) {
 		 * @return void
 		 */
 		public function clear_login_attempts( \WP_User $user ) {
-			\delete_user_meta( $user->ID, $this->meta_key );
+			User_Helper::remove_meta( $this->meta_key, $user );
 		}
 
 		/**

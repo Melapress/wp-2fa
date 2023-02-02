@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -15,6 +15,7 @@ namespace WP2FA\Admin;
 
 use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Extensions\TrustedDevices\Core;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -47,6 +48,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 			\add_filter( 'bulk_actions-users', array( __CLASS__, 'add_bulk_action' ), 10, 1 );
 			\add_filter( 'handle_bulk_actions-users', array( __CLASS__, 'handle_bulk_actions' ), 10, 3 );
 			\add_action( 'admin_notices', array( __CLASS__, 'show_admin_notice' ) );
+			\add_filter( 'user_row_actions', array( __CLASS__, 'add_users_hover' ), 10, 2 );
 		}
 
 		/**
@@ -66,7 +68,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 *
 		 * @param [type] $value - The value of the column.
 		 * @param string $column_name - The name of the column.
-		 * @param [type] $user_id - the ID of the user.
+		 * @param int    $user_id - the ID of the user.
 		 *
 		 * @return mixed
 		 */
@@ -134,7 +136,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 * @since 2.2.2
 		 */
 		public static function add_bulk_action( $bulk_actions ) {
-			$bulk_actions['remove-2fa'] = __( 'Remove 2fa', 'wp-2fa' );
+			$bulk_actions['remove-2fa']         = __( 'Remove 2FA', 'wp-2fa' );
+			$bulk_actions['remove-2fa-trusted'] = __( 'Reset list of 2FA trusted devices', 'wp-2fa' );
 
 			return $bulk_actions;
 		}
@@ -152,14 +155,54 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 */
 		public static function handle_bulk_actions( $redirect_url, $action, $user_ids ) {
 			if ( 'remove-2fa' === $action ) {
-				foreach ( $user_ids as $user_id ) {
+				if ( is_array( $user_ids ) ) {
+					foreach ( $user_ids as $user_id ) {
+						User_Helper::remove_2fa_for_user(
+							$user_id
+						);
+					}
+					$num_of_ids = count( $user_ids );
+				} else {
 					User_Helper::remove_2fa_for_user(
-						$user_id
+						$user_ids
 					);
+					$num_of_ids = 1;
 				}
-				$redirect_url = add_query_arg( '2fa-removed', count( $user_ids ), $redirect_url );
+				$redirect_url = add_query_arg( '2fa-removed', $num_of_ids, $redirect_url );
+			}
+
+			if ( class_exists( '\WP2FA\Extensions\TrustedDevices\Core' ) && 'remove-2fa-trusted' === $action ) {
+				if ( is_array( $user_ids ) ) {
+					Core::remove_trusted_devices_for_users(
+						$user_ids
+					);
+					$num_of_ids = count( $user_ids );
+				} else {
+					Core::remove_trusted_devices_for_users(
+						array( $user_ids )
+					);
+					$num_of_ids = 1;
+				}
+				$redirect_url = add_query_arg( '2fa-trusted-removed', $num_of_ids, $redirect_url );
 			}
 			return $redirect_url;
+		}
+
+		/**
+		 * Adds links to the on hover state of the users table row
+		 *
+		 * @param array    $actions - Array with all the actions for the current row.
+		 * @param \WP_User $user_object - The user object from the current row.
+		 *
+		 * @return array
+		 *
+		 * @since 2.4.0
+		 */
+		public static function add_users_hover( $actions, $user_object ): array {
+			if ( class_exists( '\WP2FA\Extensions\TrustedDevices\Core' ) ) {
+				$actions['remove-2fa-trusted'] = "<a class='resetpassword' href='" . \wp_nonce_url( "users.php?action=remove-2fa-trusted&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Reset list of 2FA trusted devices', 'wp-2fa' ) . '</a>';
+			}
+			return $actions;
 		}
 
 		/**
@@ -176,6 +219,16 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 					'<div id="message" class="updated notice is-dismissable"><p>' .
 					// translators: The number of the affected users.
 					esc_html__( 'Removed 2FA from %d users.', 'wp-2fa' ) .
+					'</p></div>',
+					(int) $num_changed
+				);
+			}
+			if ( ! empty( $_REQUEST['2fa-trusted-removed'] ) ) {
+				$num_changed = (int) $_REQUEST['2fa-trusted-removed'];
+				printf(
+					'<div id="message" class="updated notice is-dismissable"><p>' .
+					// translators: The number of the affected users.
+					esc_html__( 'Removed 2FA trusted devices from %d users.', 'wp-2fa' ) .
 					'</p></div>',
 					(int) $num_changed
 				);

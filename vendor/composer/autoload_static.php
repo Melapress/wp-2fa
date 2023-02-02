@@ -4,55 +4,67 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f
+class ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea
 {
     public static $files = array (
         'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'Z' => 
-        array (
-            'Zxing\\' => 6,
-        ),
         'W' => 
         array (
-            'WP2FA\\Extensions\\' => 17,
+            'WP2FA_Vendor\\Zxing\\' => 19,
+            'WP2FA_Vendor\\Twilio\\' => 20,
+            'WP2FA_Vendor\\Symfony\\Component\\PropertyAccess\\' => 46,
+            'WP2FA_Vendor\\Symfony\\Component\\Inflector\\' => 41,
+            'WP2FA_Vendor\\MyCLabs\\Enum\\' => 26,
+            'WP2FA_Vendor\\Firebase\\JWT\\' => 26,
+            'WP2FA_Vendor\\Endroid\\QrCode\\' => 28,
+            'WP2FA_Vendor\\DASPRiD\\Enum\\' => 26,
+            'WP2FA_Vendor\\BaconQrCode\\' => 25,
+            
             'WP2FA\\' => 6,
-        ),
-        'S' => 
-        array (
-            'Symfony\\Component\\PropertyAccess\\' => 33,
-            'Symfony\\Component\\Inflector\\' => 28,
-        ),
-        'M' => 
-        array (
-            'MyCLabs\\Enum\\' => 13,
-        ),
-        'F' => 
-        array (
-            'Firebase\\JWT\\' => 13,
-        ),
-        'E' => 
-        array (
-            'Endroid\\QrCode\\' => 15,
-        ),
-        'D' => 
-        array (
-            'DASPRiD\\Enum\\' => 13,
-        ),
-        'B' => 
-        array (
-            'BaconQrCode\\' => 12,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Zxing\\' => 
+        'WP2FA_Vendor\\Zxing\\' => 
         array (
             0 => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib',
         ),
-        'WP2FA\\Extensions\\' => 
+        'WP2FA_Vendor\\Twilio\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/twilio/sdk/src/Twilio',
+        ),
+        'WP2FA_Vendor\\Symfony\\Component\\PropertyAccess\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/property-access',
+        ),
+        'WP2FA_Vendor\\Symfony\\Component\\Inflector\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/inflector',
+        ),
+        'WP2FA_Vendor\\MyCLabs\\Enum\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
+        ),
+        'WP2FA_Vendor\\Firebase\\JWT\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
+        'WP2FA_Vendor\\Endroid\\QrCode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/endroid/qr-code/src',
+        ),
+        'WP2FA_Vendor\\DASPRiD\\Enum\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dasprid/enum/src',
+        ),
+        'WP2FA_Vendor\\BaconQrCode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
+        ),
+        
         array (
             0 => __DIR__ . '/../..' . '/extensions',
         ),
@@ -60,43 +72,17 @@ class ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f
         array (
             0 => __DIR__ . '/../..' . '/includes/classes',
         ),
-        'Symfony\\Component\\PropertyAccess\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/property-access',
-        ),
-        'Symfony\\Component\\Inflector\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/inflector',
-        ),
-        'MyCLabs\\Enum\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
-        ),
-        'Firebase\\JWT\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
-        ),
-        'Endroid\\QrCode\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/endroid/qr-code/src',
-        ),
-        'DASPRiD\\Enum\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/dasprid/enum/src',
-        ),
-        'BaconQrCode\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
-        ),
     );
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Stringable' => __DIR__ . '/..' . '/myclabs/php-enum/stubs/Stringable.php',
         'WP2FA\\Admin\\Controllers\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-login-attempts.php',
         'WP2FA\\Admin\\Controllers\\Methods' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-methods.php',
         'WP2FA\\Admin\\Controllers\\Settings' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-settings.php',
         'WP2FA\\Admin\\Help_Contact_Us' => __DIR__ . '/../..' . '/includes/classes/Admin/class-help-contact-us.php',
+        'WP2FA\\Admin\\Helpers\\Classes_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-classes-helper.php',
+        'WP2FA\\Admin\\Helpers\\File_Writer' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-file-writer.php',
+        'WP2FA\\Admin\\Helpers\\PHP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-php-helper.php',
         'WP2FA\\Admin\\Helpers\\User_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-user-helper.php',
         'WP2FA\\Admin\\Helpers\\WP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-wp-helper.php',
         'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
@@ -115,13 +101,47 @@ class ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f
         'WP2FA\\Admin\\Views\\First_Time_Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-first-time-wizard-steps.php',
         'WP2FA\\Admin\\Views\\Settings_Page_Render' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-settings-page-render.php',
         'WP2FA\\Admin\\Views\\Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-wizard-steps.php',
+        'WP2FA\\App\\Grace_Period' => __DIR__ . '/../..' . '/includes/classes/App/grace-period/class-grace-period.php',
         'WP2FA\\Authenticator\\Authentication' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-authentication.php',
         'WP2FA\\Authenticator\\BackupCodes' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-backupcodes.php',
         'WP2FA\\Authenticator\\Backup_Codes' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-backup-codes.php',
         'WP2FA\\Authenticator\\Login' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-login.php',
         'WP2FA\\Authenticator\\Open_SSL' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-open-ssl.php',
-        'WP2FA\\Cron\\Cron_Tasks' => __DIR__ . '/../..' . '/includes/classes/Cron/class-cron-tasks.php',
         'WP2FA\\Email_Template' => __DIR__ . '/../..' . '/includes/classes/class-email-template.php',
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         'WP2FA\\Shortcodes\\Shortcodes' => __DIR__ . '/../..' . '/includes/classes/Shortcodes/class-shortcodes.php',
         'WP2FA\\Utils\\Abstract_Migration' => __DIR__ . '/../..' . '/includes/classes/Utils/class-abstract-migration.php',
         'WP2FA\\Utils\\Date_Time_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-date-time-utils.php',
@@ -132,16 +152,17 @@ class ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f
         'WP2FA\\Utils\\Settings_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-settings-utils.php',
         'WP2FA\\Utils\\User_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-user-utils.php',
         'WP2FA\\WP2FA' => __DIR__ . '/../..' . '/includes/classes/class-wp2fa.php',
-        'WP_Async_Request' => __DIR__ . '/..' . '/deliciousbrains/wp-background-processing/classes/wp-async-request.php',
-        'WP_Background_Process' => __DIR__ . '/..' . '/deliciousbrains/wp-background-processing/classes/wp-background-process.php',
+        'WP2FA_Vendor\\Stringable' => __DIR__ . '/..' . '/myclabs/php-enum/stubs/Stringable.php',
+        'WP2FA_Vendor\\WP_Async_Request' => __DIR__ . '/..' . '/deliciousbrains/wp-background-processing/classes/wp-async-request.php',
+        'WP2FA_Vendor\\WP_Background_Process' => __DIR__ . '/..' . '/deliciousbrains/wp-background-processing/classes/wp-background-process.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit3b06a2dd4916854033f4aa14fb7e620f::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit0643ca18ba2cb760c6e7d52917c44eea::$classMap;
 
         }, null, ClassLoader::class);
     }

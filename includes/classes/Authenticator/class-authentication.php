@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage authentication
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -19,11 +19,11 @@
 
 namespace WP2FA\Authenticator;
 
-use Endroid\QrCode\QrCode;
 use WP2FA\Authenticator\Open_SSL;
-use Endroid\QrCode\Writer\SvgWriter;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA_Vendor\Endroid\QrCode\QrCode;
 use WP2FA\Admin\Controllers\Login_Attempts;
+use WP2FA_Vendor\Endroid\QrCode\Writer\SvgWriter;
 
 /**
  * Authenticator class
@@ -69,7 +69,7 @@ class Authentication {
 	private static $decrypted_key = '';
 
 	/**
-	 * Gemerate QR code
+	 * Generate QR code
 	 *
 	 * @param  string $name  Username.
 	 * @param  string $key   Auth key.
@@ -109,11 +109,31 @@ class Authentication {
 		$secret = Open_SSL::encrypt( self::base32_encode( $secret ) );
 
 		if ( Open_SSL::is_ssl_available() ) {
-			$secret = 'wps_' . $secret;
+			$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
 		}
 
 		return $secret;
 	}
+
+	/**
+	 * Generates salt for the site
+	 *
+	 * @return string
+	 *
+	 * @since 2.4.0
+	 *
+	 * @throws \RuntimeException - throw exception if the generated string has unexpected characters or not a string.
+	 */
+	public static function generate_salt(): string {
+		$secret = \wp_generate_password( 64, true, true );
+
+		if ( ! is_string( $secret ) || strlen( $secret ) !== 64 ) {
+			throw new \RuntimeException( 'Could not generate secret key.' );
+		}
+
+		return base64_encode( $secret );
+	}
+
 	/**
 	 * Returns a base32 encoded string.
 	 *
@@ -167,7 +187,28 @@ class Authentication {
 			$secret = Open_SSL::encrypt( $key );
 
 			if ( Open_SSL::is_ssl_available() ) {
-				$secret = 'wps_' . $secret;
+				$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
+			}
+
+			User_Helper::set_user_totp_key( $key, $user_id );
+
+			$test = $key = (string) User_Helper::get_user_totp_key( $user_id ); // phpcs:ignore
+		}
+
+		// We've tried tried to use WP core functionality, but that doesn't work - lets update.
+		if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
+
+			/**
+			 * Old key detected - convert.
+			 */
+			$key = Open_SSL::decrypt_wps( substr( $key, 4 ) );
+
+			User_Helper::remove_user_totp_key();
+
+			$secret = Open_SSL::encrypt( $key );
+
+			if ( Open_SSL::is_ssl_available() ) {
+				$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
 			}
 
 			User_Helper::set_user_totp_key( $key, $user_id );
@@ -180,6 +221,7 @@ class Authentication {
 		if ( ! self::is_valid_key( $test ) ) {
 			$key = self::generate_key();
 			User_Helper::set_user_totp_key( $key, $user_id );
+			self::$decrypted_key = '';
 		}
 
 		return $key;
@@ -389,7 +431,7 @@ class Authentication {
 	public static function generate_token( $user_id ) {
 		$token = self::get_code();
 
-		User_Helper::set_email_token_for_user( wp_hash( $token ), $user_id );
+		User_Helper::set_email_token_for_user( \wp_hash( $token ), $user_id );
 		return $token;
 	}
 
@@ -400,6 +442,7 @@ class Authentication {
 	 *
 	 * @param \WP_User $user User ID.
 	 * @param string   $token User token.
+	 *
 	 * @return boolean
 	 */
 	public static function validate_token( $user, $token ) {
@@ -416,6 +459,8 @@ class Authentication {
 		// Ensure that the token can't be re-used.
 		self::delete_token( $user_id );
 		self::get_login_attempts_instance()->clear_login_attempts( $user );
+
+		\delete_transient( 'wp2fa_code_login_' . $user_id );
 
 		return true;
 	}
@@ -549,7 +594,7 @@ class Authentication {
 	 */
 	public static function decrypt_key_if_needed( string &$key ): string {
 		if ( '' === trim( self::$decrypted_key ) ) {
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
+			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
 				$key = self::$decrypted_key = Open_SSL::decrypt( substr( $key, 4 ) ); // phpcs:ignore
 			} else {
 				self::$decrypted_key = $key;

@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -324,7 +324,6 @@ class User_Utils {
 	 */
 	public static function get_all_user_ids_and_login_names( $method, $users_args ) {
 		$user_data = self::get_all_users_data( $method, $users_args );
-		$user_item = array();
 
 		$users = array_map(
 			function ( $user ) {

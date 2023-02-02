@@ -1,7 +1,7 @@
 <?php
-declare(strict_types = 1);
 
-namespace BaconQrCode\Common;
+declare (strict_types=1);
+namespace WP2FA_Vendor\BaconQrCode\Common;
 
 /**
  * Encapsulates the parameters for one error-correction block in one symbol version.
@@ -17,20 +17,17 @@ final class EcBlock
      * @var int
      */
     private $count;
-
     /**
      * Number of data codewords.
      *
      * @var int
      */
     private $dataCodewords;
-
     public function __construct(int $count, int $dataCodewords)
     {
         $this->count = $count;
         $this->dataCodewords = $dataCodewords;
     }
-
     /**
      * Returns how many times the block is used.
      */
@@ -38,7 +35,6 @@ final class EcBlock
     {
         return $this->count;
     }
-
     /**
      * Returns the number of data codewords.
      */

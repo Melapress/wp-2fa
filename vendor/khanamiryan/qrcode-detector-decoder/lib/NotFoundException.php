@@ -1,4 +1,5 @@
 <?php
+
 /*
 * Copyright 2007 ZXing authors
 *
@@ -14,8 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-namespace Zxing;
+namespace WP2FA_Vendor\Zxing;
 
 /**
  * Thrown when a barcode was not found in the image. It might have been
@@ -25,14 +25,12 @@ namespace Zxing;
  */
 final class NotFoundException extends ReaderException
 {
-	private static ?\Zxing\NotFoundException $instance = null;
-
-	public static function getNotFoundInstance()
-	{
-		if (!self::$instance) {
-			self::$instance = new NotFoundException();
-		}
-
-		return self::$instance;
-	}
+    private static ?\WP2FA_Vendor\Zxing\NotFoundException $instance = null;
+    public static function getNotFoundInstance()
+    {
+        if (!self::$instance) {
+            self::$instance = new NotFoundException();
+        }
+        return self::$instance;
+    }
 }

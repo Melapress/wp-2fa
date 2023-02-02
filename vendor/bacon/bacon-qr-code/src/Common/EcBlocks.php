@@ -1,7 +1,7 @@
 <?php
-declare(strict_types = 1);
 
-namespace BaconQrCode\Common;
+declare (strict_types=1);
+namespace WP2FA_Vendor\BaconQrCode\Common;
 
 /**
  * Encapsulates a set of error-correction blocks in one symbol version.
@@ -18,20 +18,17 @@ final class EcBlocks
      * @var int
      */
     private $ecCodewordsPerBlock;
-
     /**
      * List of EC blocks.
      *
      * @var EcBlock[]
      */
     private $ecBlocks;
-
     public function __construct(int $ecCodewordsPerBlock, EcBlock ...$ecBlocks)
     {
         $this->ecCodewordsPerBlock = $ecCodewordsPerBlock;
         $this->ecBlocks = $ecBlocks;
     }
-
     /**
      * Returns the number of EC codewords per block.
      */
@@ -39,21 +36,17 @@ final class EcBlocks
     {
         return $this->ecCodewordsPerBlock;
     }
-
     /**
      * Returns the total number of EC block appearances.
      */
     public function getNumBlocks() : int
     {
         $total = 0;
-
         foreach ($this->ecBlocks as $ecBlock) {
             $total += $ecBlock->getCount();
         }
-
         return $total;
     }
-
     /**
      * Returns the total count of EC codewords.
      */
@@ -61,7 +54,6 @@ final class EcBlocks
     {
         return $this->ecCodewordsPerBlock * $this->getNumBlocks();
     }
-
     /**
      * Returns the EC blocks included in this collection.
      *

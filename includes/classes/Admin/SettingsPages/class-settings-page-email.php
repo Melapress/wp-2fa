@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -13,6 +13,7 @@ namespace WP2FA\Admin\SettingsPages;
 
 use WP2FA\Email_Template;
 use \WP2FA\WP2FA as WP2FA;
+use WP2FA\Utils\Debugging;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
 
@@ -34,10 +35,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		public function render() {
+		public static function render() {
 			settings_fields( WP_2FA_EMAIL_SETTINGS_NAME );
-			$this->email_from_settings();
-			$this->email_settings();
+			self::email_from_settings();
+			self::email_settings();
 			submit_button( esc_html__( 'Save email settings and templates', 'wp-2fa' ) );
 		}
 
@@ -50,21 +51,21 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 *
 		 * @SuppressWarnings(PHPMD.ExitExpressions)
 		 */
-		public function update_wp2fa_network_options() {
+		public static function update_wp2fa_network_options() {
 			if ( isset( $_POST['email_from_setting'] ) ) { // phpcs:ignore
-				$options = $this->validate_and_sanitize( wp_unslash( $_POST ) ); // phpcs:ignore
+				$options = self::validate_and_sanitize( wp_unslash( $_POST ) ); // phpcs:ignore
 
 				if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) || isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) { // phpcs:ignore
 					// redirect back to our options page.
 					wp_safe_redirect(
-                        add_query_arg(
-                            array(
+						add_query_arg(
+							array(
 								'page' => 'wp-2fa-settings',
 								'wp_2fa_network_settings_updated' => 'false',
 								'tab'  => 'email-settings',
-                            ),
-                            network_admin_url( 'admin.php' )
-                        )
+							),
+							network_admin_url( 'admin.php' )
+						)
 					);
 					exit;
 				}
@@ -74,14 +75,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 
 			// redirect back to our options page.
 			wp_safe_redirect(
-                add_query_arg(
-                    array(
+				add_query_arg(
+					array(
 						'page'                            => 'wp-2fa-settings',
 						'wp_2fa_network_settings_updated' => 'true',
 						'tab'                             => 'email-settings',
-                    ),
-                    network_admin_url( 'admin.php' )
-                )
+					),
+					network_admin_url( 'admin.php' )
+				)
 			);
 			exit;
 		}
@@ -93,7 +94,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		private function email_from_settings() {
+		private static function email_from_settings() {
 			?>
 		<h3><?php esc_html_e( 'Which email address should the plugin use as a from address?', 'wp-2fa' ); ?></h3>
 		<p class="description">
@@ -161,7 +162,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		public function get_email_notification_definitions() {
+		public static function get_email_notification_definitions() {
 			$result = array(
 				new Email_Template(
 					'login_code',
@@ -209,12 +210,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 *
 		 * @SuppressWarnings(PHPMD.ExitExpressions)
 		 */
-		public function validate_and_sanitize() {
+		public static function validate_and_sanitize() {
 
 			// Bail if user doesn't have permissions to be here.
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return;
 			}
+
+			Debugging::log( 'The following settings will be processed (E-mail): ' . "\n" . wp_json_encode( $_POST ) ); // phpcs:ignore
 
 			if ( empty( $_POST ) || ! isset( $_POST['_wpnonce'] ) || empty( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) || ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) ) { // phpcs:ignore
 				die( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
@@ -228,20 +231,20 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 
 			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) {
 				add_settings_error(
-                    WP_2FA_SETTINGS_NAME,
-                    esc_attr( 'email_from_settings_error' ),
-                    esc_html__( 'Please provide an email address', 'wp-2fa' ),
-                    'error'
+					WP_2FA_SETTINGS_NAME,
+					esc_attr( 'email_from_settings_error' ),
+					esc_html__( 'Please provide an email address', 'wp-2fa' ),
+					'error'
 				);
 				$output['custom_from_email_address'] = '';
 			}
 
 			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) ) {
 				add_settings_error(
-                    WP_2FA_SETTINGS_NAME,
-                    esc_attr( 'display_name_settings_error' ),
-                    esc_html__( 'Please provide a display name.', 'wp-2fa' ),
-                    'error'
+					WP_2FA_SETTINGS_NAME,
+					esc_attr( 'display_name_settings_error' ),
+					esc_html__( 'Please provide a display name.', 'wp-2fa' ),
+					'error'
 				);
 				$output['custom_from_email_address'] = '';
 			}
@@ -249,10 +252,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			if ( isset( $_POST['custom_from_email_address'] ) && ! empty( $_POST['custom_from_email_address'] ) ) {
 				if ( ! filter_var( wp_unslash( $_POST['custom_from_email_address'] ), FILTER_VALIDATE_EMAIL ) ) {
 					add_settings_error(
-                        WP_2FA_SETTINGS_NAME,
-                        esc_attr( 'email_invalid_settings_error' ),
-                        esc_html__( 'Please provide a valid email address. Your email address has not been updated.', 'wp-2fa' ),
-                        'error'
+						WP_2FA_SETTINGS_NAME,
+						esc_attr( 'email_invalid_settings_error' ),
+						esc_html__( 'Please provide a valid email address. Your email address has not been updated.', 'wp-2fa' ),
+						'error'
 					);
 				}
 				$output['custom_from_email_address'] = sanitize_email( wp_unslash( $_POST['custom_from_email_address'] ) );
@@ -263,10 +266,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) ), $matches );
 				if ( count( $matches ) > 0 ) {
 					add_settings_error(
-                        WP_2FA_SETTINGS_NAME,
-                        esc_attr( 'display_name_invalid_settings_error' ),
-                        esc_html__( 'Please only use alphanumeric text. Your display name has not been updated.', 'wp-2fa' ),
-                        'error'
+						WP_2FA_SETTINGS_NAME,
+						esc_attr( 'display_name_invalid_settings_error' ),
+						esc_html__( 'Please only use alphanumeric text. Your display name has not been updated.', 'wp-2fa' ),
+						'error'
 					);
 				} else {
 					$output['custom_from_display_name'] = sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) );
@@ -316,6 +319,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			 */
 			$output = apply_filters( WP_2FA_PREFIX . 'filter_output_email_template_content', $output );
 
+			Debugging::log( 'The following settings are being saved (E-mail): ' . "\n" . wp_json_encode( $output ) );
+
 			// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
 			global $wp_settings_errors;
 			if ( isset( $wp_settings_errors ) ) {
@@ -337,15 +342,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		private function email_settings() {
+		private static function email_settings() {
 			$custom_user_page_id        = Settings::check_setting_in_all_roles( 'custom-user-page-id' );
-			$email_template_definitions = $this->get_email_notification_definitions();
+			$email_template_definitions = self::get_email_notification_definitions();
 			?>
 		<h1><?php esc_html_e( 'Email Templates', 'wp-2fa' ); ?></h1>
 			<?php foreach ( $email_template_definitions as $email_template ) : ?>
 				<?php $template_id = $email_template->get_id(); ?>
 		<h3><?php echo esc_html( $email_template->get_title() ); ?></h3>
-		<p class="description"><?php echo $email_template->get_description(); // phpcs:ignore ?></p>warning
+		<p class="description"><?php echo $email_template->get_description(); // phpcs:ignore ?></p>
 		<table class="form-table">
 			<tbody>
 				<?php if ( $email_template->can_be_toggled() ) : ?>

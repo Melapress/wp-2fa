@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2021 WP White Security
+ * @copyright  2023 WP White Security
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -51,7 +51,16 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$main_user = get_current_user_id();
 			}
 
-			if ( class_exists( '\WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
+			/**
+			 * Used from user settings controller
+			 *
+			 * @param bool - Default at this point is false - no user settings.
+			 *
+			 * @since 2.4.0
+			 */
+			$roles_controller = \apply_filters( WP_2FA_PREFIX . 'roles_controller_exists', false );
+
+			if ( $roles_controller ) {
 				$roles = WP_Helper::get_roles();
 
 				foreach ( $roles as $role ) {
@@ -201,6 +210,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		 */
 		public function validate_and_sanitize( $input ) {
 
+			Debugging::log( 'The following settings will be processed (Policy): ' . "\n" . wp_json_encode( $input ) );
+
 			/**
 			 * Adds the ability to check the referer and act accordingly.
 			*
@@ -230,7 +241,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
 						esc_attr( 'enable_email_settings_error' ),
-						esc_html__( 'At least one 2FA method should be enabled.', 'wp-2fa' ),
+						esc_html__( 'No global 2FA methods enabled.', 'wp-2fa' ),
 						'error'
 					);
 					$no_method_enabled = true;
@@ -242,7 +253,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				'enable_email',
 				'backup_codes_enabled',
 				'grace-policy',
-				'enable_grace_cron',
 				'enable_destroy_session',
 				'2fa_settings_last_updated_by',
 				'limit_access',
@@ -264,7 +274,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			$simple_settings_we_can_loop = apply_filters( WP_2FA_PREFIX . 'loop_settings', $simple_settings_we_can_loop );
 
 			$settings_to_turn_into_bools = array(
-				'enable_grace_cron',
 				'enable_destroy_session',
 				'limit_access',
 				'hide_remove_button',
@@ -330,9 +339,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					$output[ $setting ] = array();
 				}
 			}
-
-			$log_content = __( 'The following setting are being saved: ', 'wp-2fa' ) . "\n" . wp_json_encode( $input ) . "\n";
-			Debugging::log( $log_content );
 
 			if ( isset( $input['grace-period'] ) ) {
 				if ( 0 === (int) $input['grace-period'] ) {
@@ -473,9 +479,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 */
 			do_action( WP_2FA_PREFIX . 'run_extra_settings_validation', $output );
 
-			$log_content = __( 'Settings saving processes complete', 'wp-2fa' );
-			Debugging::log( $log_content );
-
 			/**
 			 * Filter the values we are about to store in the plugin settings.
 			 *
@@ -495,6 +498,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			// WordPress saves the option to the database, but we still need to do some work when the settings are saved.
 			WP2FA::update_plugin_settings( $output, true );
+
+			Debugging::log( 'The following settings are being saved (Policy): ' . "\n" . wp_json_encode( $output ) );
 
 			// We have overridden any defaults by now so can clear this.
 			Settings_Utils::delete_option( WP_2FA_PREFIX . 'default_settings_applied' );

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2007 ZXing authors
  *
@@ -14,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-namespace Zxing\Qrcode\Detector;
+namespace WP2FA_Vendor\Zxing\Qrcode\Detector;
 
 /**
  * <p>Encapsulates information about finder patterns in an image, including the location of
@@ -25,29 +25,25 @@ namespace Zxing\Qrcode\Detector;
  */
 final class FinderPatternInfo
 {
-	private $bottomLeft;
-	private $topLeft;
-	private $topRight;
-
-	public function __construct($patternCenters)
-	{
-		$this->bottomLeft = $patternCenters[0];
-		$this->topLeft = $patternCenters[1];
-		$this->topRight = $patternCenters[2];
-	}
-
-	public function getBottomLeft()
-	{
-		return $this->bottomLeft;
-	}
-
-	public function getTopLeft()
-	{
-		return $this->topLeft;
-	}
-
-	public function getTopRight()
-	{
-		return $this->topRight;
-	}
+    private $bottomLeft;
+    private $topLeft;
+    private $topRight;
+    public function __construct($patternCenters)
+    {
+        $this->bottomLeft = $patternCenters[0];
+        $this->topLeft = $patternCenters[1];
+        $this->topRight = $patternCenters[2];
+    }
+    public function getBottomLeft()
+    {
+        return $this->bottomLeft;
+    }
+    public function getTopLeft()
+    {
+        return $this->topLeft;
+    }
+    public function getTopRight()
+    {
+        return $this->topRight;
+    }
 }
