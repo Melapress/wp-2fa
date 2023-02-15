@@ -246,11 +246,12 @@ function admin_scripts() {
 	wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
 
 	$data_array = array(
-		'ajaxURL'        => admin_url( 'admin-ajax.php' ),
-		'nonce'          => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
-		'codesPreamble'  => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-		'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
-		'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
+		'ajaxURL'         => admin_url( 'admin-ajax.php' ),
+		'nonce'           => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
+		'codesPreamble'   => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+		'readyText'       => esc_html__( 'I\'m ready', 'wp-2fa' ),
+		'codeReSentText'  => esc_html__( 'New code sent', 'wp-2fa' ),
+		'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
 	);
 	wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
 

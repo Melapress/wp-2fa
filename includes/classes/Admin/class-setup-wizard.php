@@ -116,7 +116,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 					'wizard_type' => 'welcome_wizard',
 				),
 				'settings_configuration' => array(
-					'name'        => esc_html__( 'Select 2FA Methods', 'wp-2fa' ),
+					'name'        => esc_html__( 'Configure 2FA methods & Policies', 'wp-2fa' ),
 					'content'     => array( __CLASS__, 'wp_2fa_step_global_2fa_methods' ),
 					'save'        => array( __CLASS__, 'wp_2fa_step_global_2fa_methods_save' ),
 					'wizard_type' => 'welcome_wizard',
@@ -238,10 +238,11 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 			// Data array.
 			$data_array = array(
-				'ajaxURL'      => admin_url( 'admin-ajax.php' ),
-				'roles'        => WP2FA::wp_2fa_get_roles(),
-				'nonce'        => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-				'invalidEmail' => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+				'ajaxURL'         => admin_url( 'admin-ajax.php' ),
+				'roles'           => WP2FA::wp_2fa_get_roles(),
+				'nonce'           => wp_create_nonce( 'wp-2fa-settings-nonce' ),
+				'invalidEmail   ' => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+				'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
 			);
 			wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
 
@@ -455,13 +456,13 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			?>
 		<form method="post" class="wp2fa-setup-form wp2fa-form-styles" autocomplete="off">
 			<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
-			<div class="step-setting-wrapper active" data-step-title="<?php esc_html_e( 'Choose 2FA methods', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper active" data-step-title="<?php esc_html_e( '2FA methods', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::select_method( true ); ?>
 				<div class="wp2fa-setup-actions">
 					<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
 				</div>
 			</div>
-			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Choose backup methods', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Alternative methods', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::backup_method( true ); ?>
 				<div class="wp2fa-setup-actions">
 					<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
@@ -470,7 +471,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( '2FA policy', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::enforcement_policy( true ); ?>
 				<div class="wp2fa-setup-actions">
-					<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+					<a class="button button-primary continue-wizard hidden" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+					<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php esc_html_e( 'All done', 'wp-2fa' ); ?></button>
 				</div>
 			</div>
 			<div class="step-setting-wrapper hidden" data-step-title="<?php esc_html_e( 'Exclude users', 'wp-2fa' ); ?>">
@@ -584,6 +586,61 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 			return Settings_Page::send_email( $email_address, $subject, $message );
 		}
+
+		/**
+		 * Send email with fresh code, or to setup email 2fa.
+		 *
+		 * @param int    $user_id User id we want to send the message to.
+		 * @param string $nominated_email_address - The user custom address to use (name of the meta key to check for).
+		 *
+		 * @return bool
+		 *
+		 * @SuppressWarnings(PHPMD.ExitExpression)
+		 */
+		public static function send_backup_codes_email( $user_id, $nominated_email_address = 'nominated_email_address' ) {
+
+			// If we have a nonce posted, check it.
+			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
+				$nonce_check = \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'wp-2fa-send-backup-codes-email-nonce' );
+				if ( ! $nonce_check ) {
+					return false;
+				}
+			}
+
+			if ( isset( $_POST['user_id'] ) ) {
+				$user = get_userdata( intval( $_POST['user_id'] ) );
+			} else {
+				$user = get_userdata( $user_id );
+			}
+
+			// Grab email address is its provided.
+			if ( isset( $_POST['email_address'] ) ) {
+				$email = sanitize_email( \wp_unslash( $_POST['email_address'] ) );
+			} else {
+				$email = sanitize_email( $user->user_email );
+			}
+
+			$enabled_email_address = '';
+			if ( ! empty( $nominated_email_address ) ) {
+				$enabled_email_address = get_user_meta( $user->ID, WP_2FA_PREFIX . $nominated_email_address, true );
+			}
+
+			$codes = substr( str_replace( '\\n', '<br>', \sanitize_text_field( \wp_unslash( $_POST['codes'] ) ) ), 1, -1 );
+
+			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_backup_codes_email_subject' ), $user->ID ) );
+			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_backup_codes_email_body' ), $user->ID ) );
+
+			$final_output = str_replace( '{backup_codes}', $codes, $message );
+
+			if ( ! empty( $enabled_email_address ) ) {
+				$email_address = $enabled_email_address;
+			} else {
+				$email_address = $user->user_email;
+			}
+
+			return Settings_Page::send_email( $email_address, $subject, $final_output );
+		}
+
 
 		/**
 		 * Send email to setup authentication

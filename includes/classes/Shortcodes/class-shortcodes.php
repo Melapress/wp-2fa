@@ -61,6 +61,7 @@ class Shortcodes {
 			'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
 			'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
 			'invalidEmail'   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+			'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
 		);
 
 		$role                        = array_key_first( WP2FA::wp_2fa_get_roles() );

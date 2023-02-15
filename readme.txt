@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 5.0
 Tested up to: 6.1.1
-Stable tag: 2.4.0
+Stable tag: 2.4.1
 Requires PHP: 7.2.0
 
 Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -111,49 +111,34 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 3. You can require users to enable 2FA and also give them a grace period to do so.
 4. Users can also use one-time codes via email as a two-factor authentication method.
 5. You can use policies to require users to instantly set up and use 2FA, so the next time they login they will be prompted with this.
-6. It is recommended for all users to also generate backup codes, in case they cannot access the primary device.
-7. In the user profile users only have a few 2FA options, so it is not confusing for them and everything is self explanatory.
-8. The plugin blocks the accounts of users who are required to have 2FA but fail to enable it within the grace period, so they do not jeopardize the security of your website.
+6. You can give users a grace period until they configure 2FA. You can also specify what should the plugin do once the grace period is over.
+7. It is recommended for all users to also generate backup codes, in case they cannot access the primary device.
+8. In the user profile users only have a few 2FA options, so it is not confusing for them and everything is self explanatory.
 
 == Changelog ==
 
-= 2.4.0 (2023-02-02) =
+= 2.4.1 (2023-02-16) =
 
-Release notes: [2FA SMS via Twilio & one-click WooCommerce integration](https://wp2fa.io/wp-2fa-2-4-0/)
+Release notes: [Addressed broken plugin updating issue](https://wp2fa.io/wp-2fa-2-4-1/)
 
 * **New features**
-	* SMS 2FA via Twilio integration.
-	* One-click 2FA integration with WooCommerce customers portal.
-	* Setting to choose between locking a user or forcing the user to configure 2FA when the grace period is over.
-	* New option to reset list of 2FA trusted devices per user.	
+	* New option to send newly generated backup codes via email with just a click.
 	
 * **Improvements**
-	* Several improvements to the whitelabelling settings, e.g. added an option to not display the default wizard help text.
-	* Licensing mechanism now fully supports non-production websites such as staging and dev environments; no license is required for these websites.
-	* Redirect user to sub-site on a multisite network after completing the 2FA setup.
-	* Made alternative 2FA backup methods available in first-install wizard to give them more prominance so users can use them. 
-	* Improved the UI (looks and feel) of the admin 2FA wizard.
-	* Plugin creates its own salts in the wp-config.php file to avoid conflicts with other plugins.
-	* Applied several improvements to the 2FA user wizard for better UX.
-	* Removed redundant cron job wp_2fa_check_grace_period_status.
-	* Better handling of users with no role on a multisite network (improved exception handling).
-	* Disable wizard styling button now also applies to front-end wizards.
-	* Added notifications in user profile page and admin pages when no more licenses are available.
-	* Added more help text in the 2FA install setup wizard to better assist administrators setting up the plugin.
-	* Improved licensing-related messages shown to website administrators.
-	* Better UX when the license limit is reached.
-	* Better interoperability with post-login redirect plugins.	
-	* Removed redundant code (it was no longer needed due to change and improvement in functionality).
+	* Added instructions on how to manually copy the private key to the wp-config.php file in the dashboard notification.
+	* Applied several changes to the licensing / quota check mechanism to ensure no user activity is blocked even when the quotas are reached or exceeded.
+	* Added additional checks for private key in wp-config.php file.
+	* Reviewed & improved the first-time install wizard's text and layout.
+	* Updated the text of the plugin feature matrix.
+	* Improved the build script to automatically remove all files not required by the plugin when installed.
+	* "Remove 2FA" button in user profile page is removed when 2FA is enforced on a user.
+	* Updated the CSS of the 2FA notification in the WooCommerce portal.
 	
 * **Bug fixes**
-	* Fixed: edge case issue that caused the cron job that checks for grace periods to be inactive. 
-	* Fixed: plugin sends two emails when clicking the "Resend code" button.
-	* Fixed: unable to change the account phone number after configuring Authy as primary 2FA method.
-	* Added additional checks toensure that all the "No 2FA method selected" scenarios are handled.
-	* Fixed a number of spelling mistakes in the plugin UI.
-	* Fixed: fatal error when plugin usind alongside the Events Calendar plugin.
-	* Addressed a number of PHP warnings in free edition.
-	* Fixed: not possible to configure backup 2FA methods when the primary method is Authy.
-	* Fixed: Plugin sends two emails when requesting a backup code over email.
+	* Fixed: users were not advised of plugin update and forced update was failing.
+	* Fixed: broken "Contact us" link in the support page.
+	* Fixed: "Settings saved" banner shown twice when changing WordPress settings -[Support thread](https://wordpress.org/support/topic/wp-2fa-causing-multiple-settings-saved-notices/)
+	* Fixed: a number of strings were missing in the translation file.
+	* Fixed: dropdown Menu Arrow is misplaced when the dropdown menu is opened.
 
 Refer to the complete [plugin changelog](https://wp2fa.io/support/kb/wp-2fa-changelog/) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.

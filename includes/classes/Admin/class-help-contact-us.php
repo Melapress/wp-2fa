@@ -109,7 +109,7 @@ class Help_Contact_Us {
 			<p><?php esc_html_e( 'Do you need assistance with the plugin? Have you noticed or encountered an issue while using WP 2FA, or do you just want to report something to us?', 'wp-2fa' ); ?></p>
 			<div class="btn">
 				<a href="<?php echo esc_url( 'https://wp2fa.io/support/submit-ticket/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ); ?>" class="button" target="_blank"><?php esc_html_e( 'Open support ticket', 'wp-2fa' ); ?></a>
-				<a href="<?php echo esc_url( 'https://www.wpwhitesecurity.com/contact-wp-white-security/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ); ?>" class="button" target="_blank"><?php esc_html_e( 'Contact us', 'wp-2fa' ); ?></a>
+				<a href="<?php echo esc_url( 'https://www.wpwhitesecurity.com/contact/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=help+page' ); ?>" class="button" target="_blank"><?php esc_html_e( 'Contact us', 'wp-2fa' ); ?></a>
 			</div>
 			<!-- End -->
 		</div>
