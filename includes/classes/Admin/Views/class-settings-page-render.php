@@ -25,7 +25,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 		/**
 		 * Render the settings
 		 */
-		public function render() {
+		public static function render() {
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return;
 			}
@@ -95,8 +95,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 					<br/>
 					<form id="wp-2fa-admin-settings" action='<?php echo esc_attr( $action ); ?>' method='post' autocomplete="off" >
 						<?php
-						$settings_show = new $settings[ $show_tab ]['class']();
-						$settings_show->{$settings[ $show_tab ]['method']}();
+						\call_user_func( array( $settings[ $show_tab ]['class'], $settings[ $show_tab ]['method'] ) );
 						?>
 					</form>
 			<?php } ?>

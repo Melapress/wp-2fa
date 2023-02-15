@@ -32,9 +32,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 *
 		 * @since 2.0.0
 		 */
-		public function render() {
+		public static function render() {
 			settings_fields( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
-			$this->white_labelling_tabs_wrapper();
+			self::white_labelling_tabs_wrapper();
 			submit_button();
 		}
 
@@ -161,7 +161,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 
 			if ( isset( $_POST[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ) {
 				check_admin_referer( 'wp_2fa_white_label-options' );
-				$options         = $this->validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ); // phpcs:ignore
+				$options         = self::validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ); // phpcs:ignore
 				$settings_errors = get_settings_errors( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
 
@@ -195,7 +195,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			}
 		}
 
-
 		/**
 		 * Wrapper which adds special tabbed navigation and content
 		 *
@@ -203,14 +202,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 *
 		 * @since 2.3.0
 		 */
-		private function white_labelling_tabs_wrapper() {
+		private static function white_labelling_tabs_wrapper() {
 			/**
 			 * Fires right before the white label settings tab HTML, handles tabbed nav.
 			 *
 			 * @since 2.3.0
 			 */
 			do_action( WP_2FA_PREFIX . 'white_labeling_tabbed_navigation' );
-				$this->change_default_text_area();
+				self::change_default_text_area();
 		}
 
 		/**
@@ -220,7 +219,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 *
 		 * @since 2.0.0
 		 */
-		private function change_default_text_area() {
+		private static function change_default_text_area() {
 			/**
 			 * Fires right before the white label settings tab HTML rendering.
 			 *

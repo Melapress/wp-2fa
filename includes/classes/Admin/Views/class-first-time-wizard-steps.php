@@ -211,12 +211,12 @@ class First_Time_Wizard_Steps {
 	
 		ob_start();
 		?>
-		<h3><?php esc_html_e( 'Which secondary 2FA methods can users use?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Which alternative 2FA methods can users use?', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'A secondary 2FA method allows users to configure another 2FA method that can be used as a backup should the primary 2FA method fail. This can happen if, for example, a user forgets their smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ); ?>
+			<?php esc_html_e( 'An alternative 2FA method allows users to configure another 2FA method that can be used as a backup should the primary 2FA method fail. This can happen if, for example, a user forgets their smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ); ?>
 		</p>
 		<p class="description">
-			<?php esc_html_e( 'It is highly recommended to have a secondary 2FA method configured at all times. Below is a list of secondary 2FA methods available through this plugin:', 'wp-2fa' ); ?>
+			<?php esc_html_e( 'It is highly recommended to have an alternative 2FA method configured at all times. Below is a list of alternative 2FA methods available through this plugin:', 'wp-2fa' ); ?>
 		</p>
 
 		<br>
@@ -231,12 +231,19 @@ class First_Time_Wizard_Steps {
 
 			<?php
 				echo '<p class="description">';
-				echo sprintf( '%1$1s <a href="https://wp2fa.io/support/kb/what-are-2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%2$1s</a> <br><br>%3$1s <a href="https://wp2fa.io/features/alternative-2fa-backup-method-options/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%4$1s</a>',
+				echo sprintf( '%1$1s <a href="https://wp2fa.io/support/kb/what-are-2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%2$1s</a> <br><br>',
 				esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
-				esc_html__( 'More information', 'wp-2fa' ),
-				esc_html__( 'Additional secondary 2FA methods: upgrade to WP 2FA premium for', 'wp-2fa' ),
-				esc_html__( 'more secondary 2FA methods', 'wp-2fa' ) );
+				esc_html__( 'More information', 'wp-2fa' ) );
 				echo '</p>';
+			?>
+
+			<?php
+				echo '<label>';
+				echo sprintf( '%1$1s <a href="https://wp2fa.io/features/alternative-2fa-backup-method-options/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%2$1s</a> %3$1s',
+				esc_html__( 'Upgrade to WP 2FA Premium for', 'wp-2fa' ),
+				esc_html__( 'more alternative 2FA methods', 'wp-2fa' ),
+				esc_html__( 'to give your users more options.', 'wp-2fa' ) );
+				echo '<label>';
 			?>
 		</fieldset>
 		<?php

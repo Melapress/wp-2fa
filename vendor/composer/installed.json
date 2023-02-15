@@ -627,17 +627,17 @@
         },
         {
             "name": "twilio\/sdk",
-            "version": "6.44.2",
-            "version_normalized": "6.44.2.0",
+            "version": "6.44.3",
+            "version_normalized": "6.44.3.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:twilio\/twilio-php.git",
-                "reference": "deec3203857387213825e2634c4eb4b56880877a"
+                "reference": "0e3e513d3c428f08bde195c579cbc0788415190f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/twilio\/twilio-php\/zipball\/deec3203857387213825e2634c4eb4b56880877a",
-                "reference": "deec3203857387213825e2634c4eb4b56880877a",
+                "url": "https:\/\/api.github.com\/repos\/twilio\/twilio-php\/zipball\/0e3e513d3c428f08bde195c579cbc0788415190f",
+                "reference": "0e3e513d3c428f08bde195c579cbc0788415190f",
                 "shasum": ""
             },
             "require": {
@@ -645,12 +645,12 @@
             },
             "require-dev": {
                 "guzzlehttp\/guzzle": "^6.3 || ^7.0",
-                "phpunit\/phpunit": ">=7.0"
+                "phpunit\/phpunit": ">=7.0 < 10"
             },
             "suggest": {
                 "guzzlehttp\/guzzle": "An HTTP client to execute the API requests"
             },
-            "time": "2023-01-25T19:34:30+00:00",
+            "time": "2023-02-08T20:09:20+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {

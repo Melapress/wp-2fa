@@ -152,31 +152,32 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 			} else {
 				$expire_action = Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', null, null, true );
 			}
-
 			?>
-			<p class="description" style="margin-top: 15px; margin-bottom: 8px;">
-				<?php echo \esc_html__( 'What should the plugin do with users who do not configure 2FA within the grace period?', 'wp-2fa' ); ?>
-			</p>
-			<fieldset>
-				<label for="configure-right-away<?php echo \esc_attr( $role_id ); ?>">
-					<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[grace-policy-after-expire-action]" 
-					id="configure-right-away<?php echo \esc_attr( $role_id ); ?>" 
-					<?php echo $data_role; // phpcs:ignore?> 
-					value="configure-right-away" <?php checked( $expire_action, 'configure-right-away' ); ?> class="js-nested">
-					<span><?php echo \esc_html__( 'Do not let them access the dashboard / user page once they log in until they configure 2FA', 'wp-2fa' ); ?></span>
-				</label>
+			<div class="sub-setting-indent">
+				<p class="description" style="margin-top: 15px; margin-bottom: 8px;">
+					<?php echo \esc_html__( 'What should the plugin do with users who do not configure 2FA within the grace period?', 'wp-2fa' ); ?>
+				</p>
+				<fieldset>
+					<label for="configure-right-away<?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 10px; display: inline-block;">
+						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[grace-policy-after-expire-action]" 
+						id="configure-right-away<?php echo \esc_attr( $role_id ); ?>" 
+						<?php echo $data_role; // phpcs:ignore?> 
+						value="configure-right-away" <?php checked( $expire_action, 'configure-right-away' ); ?> class="js-nested">
+						<span><?php echo \esc_html__( 'Do not let them access the dashboard / user page once they log in until they configure 2FA', 'wp-2fa' ); ?></span>
+					</label>
 
-				<br>
-				<div style="clear:both">
-				<label for="manual-block<?php echo \esc_attr( $role_id ); ?>">
-					<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[grace-policy-after-expire-action]" <?php checked( $expire_action, 'manual-block' ); ?> 
-					id="manual-block<?php echo \esc_attr( $role_id ); ?>"
-					<?php echo $data_role; // phpcs:ignore?> 
-					value="manual-block" class="js-nested">
-					<span><?php echo \esc_html__( 'Block the user (administrators have to manually unblock them)', 'wp-2fa' ); ?></span>
-				</label>
-				</div>
-			</fieldset>
+					<br>
+					<div style="clear:both">
+					<label for="manual-block<?php echo \esc_attr( $role_id ); ?>">
+						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[grace-policy-after-expire-action]" <?php checked( $expire_action, 'manual-block' ); ?> 
+						id="manual-block<?php echo \esc_attr( $role_id ); ?>"
+						<?php echo $data_role; // phpcs:ignore?> 
+						value="manual-block" class="js-nested">
+						<span><?php echo \esc_html__( 'Block the user (administrators have to manually unblock them)', 'wp-2fa' ); ?></span>
+					</label>
+					</div>
+				</fieldset>
+			</div>
 			<?php
 			$html_content = ob_get_contents();
 			ob_end_clean();

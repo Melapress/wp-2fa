@@ -33,7 +33,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		public function render() {
+		public static function render() {
 			settings_fields( WP_2FA_SETTINGS_NAME );
 			self::no_method_exists();
 			self::limit_settings_access();

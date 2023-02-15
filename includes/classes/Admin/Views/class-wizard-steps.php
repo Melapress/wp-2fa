@@ -578,6 +578,10 @@ class Wizard_Steps {
 				<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php esc_attr_e( 'Print', 'wp-2fa' ); ?>" data-trigger-print data-nonce="<?php echo esc_attr( $nonce ); ?>" data-user-id="<?php echo esc_attr( self::get_user()->get_2fa_wp_user()->display_name ); ?>" data-website-url="<?php echo esc_attr( get_home_url() ); ?>">
 					<?php esc_html_e( 'Print', 'wp-2fa' ); ?>
 				</button>
+
+				<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php esc_attr_e( 'Send me the codes via email', 'wp-2fa' ); ?>" data-trigger-backup-code-email data-nonce="<?php echo esc_attr( wp_create_nonce( 'wp-2fa-send-backup-codes-email-nonce' ) ); ?>" data-user-id="<?php echo esc_attr( self::get_user()->get_2fa_wp_user()->ID ); ?>" data-website-url="<?php echo esc_attr( get_home_url() ); ?>">
+					<?php esc_html_e( 'Send me the codes via email', 'wp-2fa' ); ?>
+				</button>
 				<?php
 				if ( ! empty( $redirect ) ) {
 					?>

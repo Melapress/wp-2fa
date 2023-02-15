@@ -15,6 +15,7 @@ use WP2FA\Admin\User;
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Utils\Date_Time_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 
@@ -115,13 +116,22 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 
 			// If the nag has not already been dismissed, and of course if the user is eligible, lets show them something.
 			if ( ! $is_nag_dismissed && $is_nag_needed && empty( $enabled_methods ) && ! $is_user_excluded && ! empty( $grace_expiry ) ) {
-				echo '<div class="' . esc_attr( $class ) . '">';
-				echo '<p>' . esc_html( $message );
-				echo ' <span class="grace-period-countdown">' . esc_attr( Date_Time_Utils::format_grace_period_expiration_string( null, $grace_expiry ) ) . '.</span><br>';
-				echo '<span>Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.</span>';
-				echo ' <a href="' . esc_url( $setup_url ) . '" class="button button-primary">' . esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
-				echo ' <a href="#" class="button button-secondary dismiss-user-configure-nag">' . esc_html__( 'Remind me on next login', 'wp-2fa' ) . '</a></p>';
-				echo '</div>';
+
+				$show = true;
+
+				if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
+					$show = User_Licensing::enable_2fa_user_setting( true );
+				}
+
+				if ( $show ) {
+					echo '<div class="' . esc_attr( $class ) . '">';
+					echo '<p>' . esc_html( $message );
+					echo ' <span class="grace-period-countdown">' . esc_attr( Date_Time_Utils::format_grace_period_expiration_string( null, $grace_expiry ) ) . '.</span><br>';
+					echo '<span>Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.</span>';
+					echo ' <a href="' . esc_url( $setup_url ) . '" class="button button-primary">' . esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
+					echo ' <a href="#" class="button button-secondary dismiss-user-configure-nag">' . esc_html__( 'Remind me on next login', 'wp-2fa' ) . '</a></p>';
+					echo '</div>';
+				}
 			} else {
 				self::user_reconfigure_2fa_nag();
 			}
