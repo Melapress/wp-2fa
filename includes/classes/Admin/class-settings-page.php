@@ -14,11 +14,9 @@ namespace WP2FA\Admin;
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Utils\User_Utils;
 use WP2FA\Utils\Settings_Utils;
-use WP2FA\Admin\Views\Settings_Page_Render;
 use WP2FA\Admin\SettingsPages\{
 	Settings_Page_Policies,
 	Settings_Page_General,
-	Settings_Page_White_Label,
 	Settings_Page_Email
 };
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -59,8 +57,6 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			);
 
 			$settings_policies    = new Settings_Page_Policies();
-			$settings_white_label = new Settings_Page_White_Label();
-			$settings_render      = new Settings_Page_Render();
 
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
@@ -78,7 +74,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
-				array( $settings_render, 'render' ),
+				array( \WP2FA\Admin\Views\Settings_Page_Render::class, 'render' ),
 				2
 			);
 
@@ -93,7 +89,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			register_setting(
 				WP_2FA_WHITE_LABEL_SETTINGS_NAME,
 				WP_2FA_WHITE_LABEL_SETTINGS_NAME,
-				array( $settings_white_label, 'validate_and_sanitize' )
+				array( \WP2FA\Admin\SettingsPages\Settings_Page_White_Label::class, 'validate_and_sanitize' )
 			);
 
 			// Register our settings page.
@@ -146,14 +142,13 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				1
 			);
 
-			$settings_render = new Settings_Page_Render();
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
 				esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
 				esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
-				array( $settings_render, 'render' ),
+				array( \WP2FA\Admin\Views\Settings_Page_Render::class, 'render' ),
 				2
 			);
 
@@ -467,9 +462,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			Settings_Page_General::update_wp2fa_network_options();
 
-			$settings_white_label = new Settings_Page_White_Label();
-
-			$settings_white_label->update_wp2fa_network_options();
+			\WP2FA\Admin\SettingsPages\Settings_Page_White_Label::update_wp2fa_network_options();
 
 			/**
 			 * Gives the ability for extensions to set their settings in the plugin.
@@ -543,50 +536,52 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function settings_saved_admin_notice() {
-			if ( isset( $_GET['settings-updated'] ) && 'true' === $_GET['settings-updated'] ) { // phpcs:ignore
-				$wp_settings_errors = get_settings_errors();
+			if ( isset( $_GET['page'] ) && 0 === strpos( $_GET['page'], 'wp-2fa-' ) ) {
+				if ( isset( $_GET['settings-updated'] ) && 'true' === $_GET['settings-updated'] ) {
+					$wp_settings_errors = get_settings_errors();
 
-				if ( count( $wp_settings_errors ) ) {
-					foreach ( $wp_settings_errors as $error ) {
+					if ( count( $wp_settings_errors ) ) {
+						foreach ( $wp_settings_errors as $error ) {
+							?>
+					<div class="notice notice-<?php echo \esc_attr( $error['type'] ); ?> is-dismissible">
+						<p><?php echo \esc_html( $error['message'] ); ?></p>
+						<button type="button" class="notice-dismiss">
+							<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+						</button>
+					</div>
+							<?php
+						}
+					} else {
 						?>
-			<div class="notice notice-<?php echo \esc_attr( $error['type'] ); ?> is-dismissible">
-				<p><?php echo \esc_html( $error['message'] ); ?></p>
-				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
-				</button>
-			</div>
+					<div class="notice notice-success is-dismissible">
+						<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
+						<button type="button" class="notice-dismiss">
+							<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+						</button>
+					</div>
 						<?php
 					}
-				} else {
+				}
+				if ( isset( $_GET['settings-updated'] ) && 'false' === $_GET['settings-updated'] ) {
 					?>
-			<div class="notice notice-success is-dismissible">
-				<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
-				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
-				</button>
-			</div>
+				<div class="notice notice-error is-dismissible">
+					<p><?php esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
+					<button type="button" class="notice-dismiss">
+						<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+					</button>
+				</div>
 					<?php
 				}
-			}
-			if ( isset( $_GET['settings-updated'] ) && 'false' === $_GET['settings-updated'] ) { // phpcs:ignore
-				?>
-			<div class="notice notice-error is-dismissible">
-				<p><?php esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
-				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
-				</button>
-			</div>
-				<?php
-			}
-			if ( isset( $_GET['settings_error'] ) ) { // phpcs:ignore
-				?>
-			<div class="notice notice-error is-dismissible">
-				<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( \wp_unslash( $_GET['settings_error'] ) ) ) ); // phpcs:ignore ?></p>
-				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
-				</button>
-			</div>
-				<?php
+				if ( isset( $_GET['settings_error'] ) ) {
+					?>
+				<div class="notice notice-error is-dismissible">
+					<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( \wp_unslash( $_GET['settings_error'] ) ) ) ); ?></p>
+					<button type="button" class="notice-dismiss">
+						<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+					</button>
+				</div>
+					<?php
+				}
 			}
 		}
 

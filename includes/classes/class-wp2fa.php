@@ -246,6 +246,7 @@ class WP2FA {
 		}
 		add_action( 'plugins_loaded', array( __CLASS__, 'add_wizard_actions' ), 10 );
 		add_action( 'wp_ajax_send_authentication_setup_email', array( '\WP2FA\Admin\Setup_Wizard', 'send_authentication_setup_email' ) );
+		add_action( 'wp_ajax_send_backup_codes_email', array( '\WP2FA\Admin\Setup_Wizard', 'send_backup_codes_email' ) );
 		add_action( 'wp_ajax_regenerate_authentication_key', array( '\WP2FA\Admin\Setup_Wizard', 'regenerate_authentication_key' ) );
 
 		// User_Notices.
@@ -533,6 +534,16 @@ class WP2FA {
 
 		$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://www.wpwhitesecurity.com/wordpress-plugins/wp-2fa/" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
 
+		// Create User backup codes Message.
+		$user_backup_codes_subject = __( '2FA backup codes for user {user_login_name} on {site_name}', 'wp-2fa' );
+		$user_backup_codes_body    = '';
+
+		$user_backup_codes_body .= '<p>' . __( 'Hello,', 'wp-2fa' ) . '</p><p>' . esc_html__( 'Below please find the 2FA backup codes for your user', 'wp-2fa' ) . ' <strong>{user_login_name}</strong> ' . esc_html__( 'on the website', 'wp-2fa' ) . ' <strong>{site_name}</strong>. ' . __( 'The website\'s URL is', 'wp-2fa' ) . ' {site_url} </p>';
+
+		$user_backup_codes_body .= '{backup_codes}';
+
+		$user_backup_codes_body .= '<p>' . __( 'Thank you for enabling 2FA on your account and helping us keeping the website secure.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://www.wpwhitesecurity.com/wordpress-plugins/wp-2fa/" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
+
 		// Array of defaults, now we have things setup above.
 		$default_settings = array(
 			'email_from_setting'                  => 'use-defaults',
@@ -544,6 +555,8 @@ class WP2FA {
 			'user_account_locked_email_body'      => $user_locked_body,
 			'user_account_unlocked_email_subject' => $user_unlocked_subject,
 			'user_account_unlocked_email_body'    => $user_unlocked_body,
+			'user_backup_codes_email_subject'     => $user_backup_codes_subject,
+			'user_backup_codes_email_body'        => $user_backup_codes_body,
 			'send_account_locked_email'           => 'enable_account_locked_email',
 			'send_account_unlocked_email'         => 'enable_account_unlocked_email',
 		);
@@ -842,6 +855,7 @@ class WP2FA {
 			'validate_authcode_via_ajax',
 			'heartbeat',
 			'regenerate_authentication_key',
+			'send_backup_codes_email',
 		);
 
 		/**
@@ -966,8 +980,13 @@ class WP2FA {
 	 * @since 2.4.0
 	 */
 	public static function wp_not_writable() {
+
+		if ( ! \defined( 'WP2FA_SECRET_IS_IN_DB' ) || true !== WP2FA_SECRET_IS_IN_DB ) {
+			return;
+		}
+
 		if ( ! File_Writer::can_write_to_file( File_Writer::get_wp_config_file_path() ) ) {
-			$whitelist_admin_pages = array( 
+			$whitelist_admin_pages = array(
 				'wp-2fa_page_wp-2fa-settings',
 				'toplevel_page_wp-2fa-policies',
 				'wp-2fa_page_wp-2fa-help-contact-us',
@@ -980,17 +999,24 @@ class WP2FA {
 			<div class="notice notice-warning" id="config-update-notice">
 				<?php
 				$message = sprintf(
-					'<p>%1$s <a href="mailto:support@wpwhitesecurity.com">%2$s</a><br>%3$s</p><br>',
-					esc_html__( 'WP 2FA needs to store the encryption key in the wp-config.php file for security reasons. However, it is unable to write the encryption key in the wp-config.php file. This is usually caused by restrictive permissions. Please allow the plugin / WordPress to write to the wp-config.php file, at least temporarily until the encryption key is saved in the file. Typically this can be done by changing the wp-config.php permissions to 755. If you have any questions please contact our', 'wp-2fa' ),
-					esc_html__( 'support team.', 'wp-2fa' ),
-					esc_html__( 'Note: if the plugin cannot write the encryption key to file it will store it in the database. This is not ideal in terms of security.
-					', 'wp-2fa' ),
+					'<p>%1$s <a href="https://wp2fa.io/support/kb/add-2fa-plugin-encryption-key-wp-config" noopener target="_blank">%2$s</a><br>%3$s</p>',
+					esc_html__( 'For security reasons WP 2FA needs to store the private key in the wp-config.php file. However, it is unable to. This can happen because of restrictive permissions, or the file is not in the default location. To fix this you can:', 'wp-2fa' ) . '<br><br>' .
+
+					esc_html__( 'Option A) allow the plugin to write to the wp-config.php file temporarily by changing the wp-config.php permissions to 755. Once ready, click the button to proceed.', 'wp-2fa' ) . '<br>' .
+
+					esc_html__( 'Option B) Add the encryption key to the wp-config.php file yourself by ', 'wp-2fa' ),
+					esc_html__( 'following these instructions.', 'wp-2fa' ) . '<br>',
+					esc_html__(
+						'Once you complete any of the above, please click the button below.
+					',
+						'wp-2fa'
+					),
 				)
 				?>
 				<?php echo $message; ?>
-				<button id="salt-update" type="button">
-					<span><?php esc_html_e( 'Write key to file now', 'wp-2fa' ); ?></span>
-				</button>
+				<p><button id="salt-update" type="button">
+					<span><?php esc_html_e( 'Write key to file now / Check for the key in file', 'wp-2fa' ); ?></span>
+				</button></p>
 			</div>
 				<script>
 				jQuery(document).ready(function($) {
