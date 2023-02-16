@@ -47,7 +47,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 *
 		 * @since 2.0.0
 		 */
-		public function validate_and_sanitize( $input ) {
+		public static function validate_and_sanitize( $input ) {
 
 			// Bail if user doesn't have permissions to be here.
 			if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['action'] ) && ! check_admin_referer( 'wp2fa-step-choose-method' ) ) {
@@ -157,7 +157,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 *
 		 * @SuppressWarnings(PHPMD.ExitExpressions)
 		 */
-		public function update_wp2fa_network_options() {
+		public static function update_wp2fa_network_options() {
 
 			if ( isset( $_POST[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ) {
 				check_admin_referer( 'wp_2fa_white_label-options' );

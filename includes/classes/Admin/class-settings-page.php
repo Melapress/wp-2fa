@@ -132,6 +132,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			);
 
 			$settings_policies = new Settings_Page_Policies();
+
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
 				esc_html__( '2FA Policies', 'wp-2fa' ),
