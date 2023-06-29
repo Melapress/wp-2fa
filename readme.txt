@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 5.0
 Tested up to: 6.1.1
-Stable tag: 2.4.1
+Stable tag: 2.4.2
 Requires PHP: 7.2.0
 
 Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -116,6 +116,15 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 8. In the user profile users only have a few 2FA options, so it is not confusing for them and everything is self explanatory.
 
 == Changelog ==
+
+= 2.4.2 (2023-07-05) =
+
+* **Bug fixes**
+	* Fixed issue which could cause setting up 2FA via SMS to fail once grace period has passed.
+	* Fixes issue which could cause a fatal error upon login.
+
+* **Security fix**
+	*  Updated Freemius SDK
 
 = 2.4.1 (2023-02-16) =
 

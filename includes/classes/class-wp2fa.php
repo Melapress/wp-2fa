@@ -856,6 +856,7 @@ class WP2FA {
 			'heartbeat',
 			'regenerate_authentication_key',
 			'send_backup_codes_email',
+			'register_user_twilio',
 		);
 
 		/**
