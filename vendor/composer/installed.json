@@ -59,24 +59,27 @@
         },
         {
             "name": "dasprid\/enum",
-            "version": "1.0.3",
-            "version_normalized": "1.0.3.0",
+            "version": "1.0.4",
+            "version_normalized": "1.0.4.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/DASPRiD\/Enum.git",
-                "reference": "5abf82f213618696dda8e3bf6f64dd042d8542b2"
+                "reference": "8e6b6ea76eabbf19ea2bf5b67b98e1860474012f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/DASPRiD\/Enum\/zipball\/5abf82f213618696dda8e3bf6f64dd042d8542b2",
-                "reference": "5abf82f213618696dda8e3bf6f64dd042d8542b2",
+                "url": "https:\/\/api.github.com\/repos\/DASPRiD\/Enum\/zipball\/8e6b6ea76eabbf19ea2bf5b67b98e1860474012f",
+                "reference": "8e6b6ea76eabbf19ea2bf5b67b98e1860474012f",
                 "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1 <9.0"
             },
             "require-dev": {
                 "phpunit\/phpunit": "^7 | ^8 | ^9",
-                "squizlabs\/php_codesniffer": "^3.4"
+                "squizlabs\/php_codesniffer": "*"
             },
-            "time": "2020-10-02T16:03:48+00:00",
+            "time": "2023-03-01T18:44:03+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -103,32 +106,39 @@
             ],
             "support": {
                 "issues": "https:\/\/github.com\/DASPRiD\/Enum\/issues",
-                "source": "https:\/\/github.com\/DASPRiD\/Enum\/tree\/1.0.3"
+                "source": "https:\/\/github.com\/DASPRiD\/Enum\/tree\/1.0.4"
             },
             "install-path": "..\/dasprid\/enum"
         },
         {
             "name": "deliciousbrains\/wp-background-processing",
-            "version": "1.0.2",
-            "version_normalized": "1.0.2.0",
+            "version": "1.1.0",
+            "version_normalized": "1.1.0.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/deliciousbrains\/wp-background-processing.git",
-                "reference": "2cbee1abd1b49e1133cd8f611df4d4fc5a8b9800"
+                "reference": "d5ef95cecba7f792ddca3e3bd70ebfb90dc4996d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/deliciousbrains\/wp-background-processing\/zipball\/2cbee1abd1b49e1133cd8f611df4d4fc5a8b9800",
-                "reference": "2cbee1abd1b49e1133cd8f611df4d4fc5a8b9800",
+                "url": "https:\/\/api.github.com\/repos\/deliciousbrains\/wp-background-processing\/zipball\/d5ef95cecba7f792ddca3e3bd70ebfb90dc4996d",
+                "reference": "d5ef95cecba7f792ddca3e3bd70ebfb90dc4996d",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.2"
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "phpcompatibility\/phpcompatibility-wp": "*",
+                "phpunit\/phpunit": "^8.0",
+                "spryker\/code-sniffer": "^0.17.18",
+                "wp-coding-standards\/wpcs": "^2.3",
+                "yoast\/phpunit-polyfills": "^1.0"
             },
             "suggest": {
                 "coenjacobs\/mozart": "Easily wrap this library with your own prefix, to prevent collisions when multiple plugins use this library"
             },
-            "time": "2020-07-31T07:00:11+00:00",
+            "time": "2023-04-18T12:32:25+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -149,7 +159,7 @@
             "description": "WP Background Processing can be used to fire off non-blocking asynchronous requests or as a background processing tool, allowing you to queue tasks.",
             "support": {
                 "issues": "https:\/\/github.com\/deliciousbrains\/wp-background-processing\/issues",
-                "source": "https:\/\/github.com\/deliciousbrains\/wp-background-processing\/tree\/master"
+                "source": "https:\/\/github.com\/deliciousbrains\/wp-background-processing\/tree\/1.1.0"
             },
             "install-path": "..\/deliciousbrains\/wp-background-processing"
         },
@@ -293,44 +303,14 @@
         },
         {
             "name": "freemius\/wordpress-sdk",
-            "version": "2.5.3",
-            "version_normalized": "2.5.3.0",
-            "source": {
-                "type": "git",
-                "url": "https:\/\/github.com\/Freemius\/wordpress-sdk.git",
-                "reference": "2e56d683dd7b30445940679ecb401d2aff746c9e"
-            },
+            "version": "2.5.10",
+            "version_normalized": "2.5.10.0",
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/Freemius\/wordpress-sdk\/zipball\/2e56d683dd7b30445940679ecb401d2aff746c9e",
-                "reference": "2e56d683dd7b30445940679ecb401d2aff746c9e",
-                "shasum": ""
+                "url": ".\/..\/wordpress-sdk-2.5.10.zip"
             },
-            "require": {
-                "php": ">=5.2"
-            },
-            "time": "2022-12-05T10:31:45+00:00",
             "type": "library",
             "installation-source": "dist",
-            "notification-url": "https:\/\/packagist.org\/downloads\/",
-            "license": [
-                "GPL-3.0-only"
-            ],
-            "description": "Freemius WordPress SDK",
-            "homepage": "https:\/\/freemius.com",
-            "keywords": [
-                "freemius",
-                "plugin",
-                "sdk",
-                "theme",
-                "wordpress",
-                "wordpress-plugin",
-                "wordpress-theme"
-            ],
-            "support": {
-                "issues": "https:\/\/github.com\/Freemius\/wordpress-sdk\/issues",
-                "source": "https:\/\/github.com\/Freemius\/wordpress-sdk\/tree\/2.5.3"
-            },
             "install-path": "..\/freemius\/wordpress-sdk"
         },
         {
@@ -627,17 +607,17 @@
         },
         {
             "name": "twilio\/sdk",
-            "version": "6.44.3",
-            "version_normalized": "6.44.3.0",
+            "version": "6.44.4",
+            "version_normalized": "6.44.4.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:twilio\/twilio-php.git",
-                "reference": "0e3e513d3c428f08bde195c579cbc0788415190f"
+                "reference": "08aad5f377e2245b9cd7508e7762d95e7392fa4d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/twilio\/twilio-php\/zipball\/0e3e513d3c428f08bde195c579cbc0788415190f",
-                "reference": "0e3e513d3c428f08bde195c579cbc0788415190f",
+                "url": "https:\/\/api.github.com\/repos\/twilio\/twilio-php\/zipball\/08aad5f377e2245b9cd7508e7762d95e7392fa4d",
+                "reference": "08aad5f377e2245b9cd7508e7762d95e7392fa4d",
                 "shasum": ""
             },
             "require": {
@@ -650,7 +630,7 @@
             "suggest": {
                 "guzzlehttp\/guzzle": "An HTTP client to execute the API requests"
             },
-            "time": "2023-02-08T20:09:20+00:00",
+            "time": "2023-02-22T19:59:53+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {

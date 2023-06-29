@@ -717,7 +717,14 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			// Validate TOTP.
 			if ( 'totp' === $provider && true !== self::validate_totp_authentication( $user ) ) {
-				do_action( 'wp_login_failed', $user->user_login );
+				do_action(
+					'wp_login_failed',
+					$user->user_login,
+					new \WP_Error(
+						'authentication_failed',
+						__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
+					)
+				);
 
 				$login_nonce = self::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
@@ -735,7 +742,15 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			// Backup Codes.
 			if ( 'backup_codes' === $provider && true !== self::validate_backup_codes( $user ) ) {
-				do_action( 'wp_login_failed', $user->user_login );
+				do_action(
+					'wp_login_failed',
+					$user->user_login,
+					new \WP_Error(
+						'authentication_failed',
+						__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
+					)
+				);
+
 				$login_nonce = self::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
 					wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
@@ -753,7 +768,14 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			// Validate Email.
 			if ( 'email' === $provider && true !== self::validate_email_authentication( $user ) ) {
-				do_action( 'wp_login_failed', $user->user_login );
+				do_action(
+					'wp_login_failed',
+					$user->user_login,
+					new \WP_Error(
+						'authentication_failed',
+						__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
+					)
+				);
 
 				$login_nonce = self::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {

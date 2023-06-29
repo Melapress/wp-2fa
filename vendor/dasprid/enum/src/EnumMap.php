@@ -75,6 +75,21 @@ final class EnumMap implements Serializable, IteratorAggregate
         $this->keyUniverse = $keyType::values();
         $this->values = \array_fill(0, \count($this->keyUniverse), null);
     }
+    public function __serialize() : array
+    {
+        $values = [];
+        foreach ($this->values as $ordinal => $value) {
+            if (null === $value) {
+                continue;
+            }
+            $values[$ordinal] = $this->unmaskNull($value);
+        }
+        return ['keyType' => $this->keyType, 'valueType' => $this->valueType, 'allowNullValues' => $this->allowNullValues, 'values' => $values];
+    }
+    public function __unserialize(array $data) : void
+    {
+        $this->unserialize(\serialize($data));
+    }
     /**
      * Checks whether the map types match the supplied ones.
      *
@@ -215,14 +230,7 @@ final class EnumMap implements Serializable, IteratorAggregate
     }
     public function serialize() : string
     {
-        $values = [];
-        foreach ($this->values as $ordinal => $value) {
-            if (null === $value) {
-                continue;
-            }
-            $values[$ordinal] = $this->unmaskNull($value);
-        }
-        return \serialize(['keyType' => $this->keyType, 'valueType' => $this->valueType, 'allowNullValues' => $this->allowNullValues, 'values' => $values]);
+        return \serialize($this->__serialize());
     }
     public function unserialize($serialized) : void
     {

@@ -2,16 +2,16 @@
 # This file is distributed under the GPL v3.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 2.4.1\n"
+"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 2.4.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-2fa\n"
 "Last-Translator: WP White Security <info@wpwhitesecurity.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-02-16T12:12:57+00:00\n"
+"POT-Creation-Date: 2023-06-29T11:04:19+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.6.0\n"
+"X-Generator: WP-CLI 2.7.1\n"
 "X-Domain: wp-2fa\n"
 
 #. Plugin Name of the plugin
@@ -66,86 +66,16 @@ msgstr ""
 msgid "Verify the Production API Key"
 msgstr ""
 
-#: extensions/authy/class-authy-render.php:119
-#: extensions/twilio/class-twilio-render.php:138
-msgid "The primary 2FA service that you are using is unavailable. Please click the button below to login using the secondary backup method."
-msgstr ""
-
-#: extensions/authy/class-authy-render.php:136
-msgid "If you are using the Authy app approve the OneTouch request to log in."
-msgstr ""
-
-#: extensions/authy/class-authy-render.php:138
-msgid "Waiting for approval from application..."
-msgstr ""
-
-#: extensions/authy/class-authy-render.php:140
-msgid "OR"
-msgstr ""
-
-#: extensions/authy/class-authy-render.php:142
-msgid "Manually enter the code from the mobile app."
-msgstr ""
-
 #: extensions/authy/class-authy-render.php:143
 #: extensions/email-backup/class-email-backup-render.php:141
 #: extensions/twilio/class-twilio-render.php:153
-#: includes/classes/Authenticator/class-login.php:943
-#: includes/classes/Authenticator/class-login.php:991
+#: includes/classes/Authenticator/class-login.php:965
+#: includes/classes/Authenticator/class-login.php:1013
 msgid "Verification Code:"
 msgstr ""
 
 #: extensions/authy/class-authy-user.php:84
 msgid "User creation failed"
-msgstr ""
-
-#: extensions/authy/class-authy-user.php:145
-#: extensions/authy/class-authy-user.php:222
-#: extensions/authy/class-authy-user.php:392
-#: extensions/authy/class-authy.php:387
-#: extensions/authy/class-authy.php:474
-#: extensions/authy/class-authy.php:715
-#: extensions/out-of-band/class-out-of-band.php:390
-#: extensions/twilio/class-twilio-user.php:146
-#: extensions/twilio/class-twilio-user.php:218
-#: extensions/twilio/class-twilio.php:154
-#: extensions/twilio/class-twilio.php:204
-#: extensions/twilio/class-twilio.php:755
-#: includes/classes/class-wp2fa.php:931
-msgid "Nonce checking failed"
-msgstr ""
-
-#: extensions/authy/class-authy-user.php:148
-#: extensions/authy/class-authy-user.php:225
-#: extensions/authy/class-authy-user.php:395
-#: extensions/authy/class-authy.php:390
-#: extensions/authy/class-authy.php:477
-#: extensions/authy/class-authy.php:718
-#: extensions/out-of-band/class-out-of-band.php:393
-#: extensions/twilio/class-twilio-user.php:149
-#: extensions/twilio/class-twilio-user.php:221
-#: extensions/twilio/class-twilio.php:157
-#: extensions/twilio/class-twilio.php:207
-#: extensions/twilio/class-twilio.php:758
-msgid "Nonce is not provided"
-msgstr ""
-
-#: extensions/authy/class-authy-user.php:151
-#: extensions/authy/class-authy-user.php:228
-#: extensions/authy/class-authy-user.php:398
-#: extensions/authy/class-authy-user.php:403
-#: extensions/authy/class-authy-user.php:408
-#: extensions/authy/class-authy.php:393
-#: extensions/authy/class-authy.php:480
-#: extensions/authy/class-authy.php:721
-#: extensions/twilio/class-twilio-user.php:152
-#: extensions/twilio/class-twilio-user.php:224
-#: extensions/twilio/class-twilio.php:160
-#: extensions/twilio/class-twilio.php:189
-#: extensions/twilio/class-twilio.php:210
-#: extensions/twilio/class-twilio.php:761
-#: includes/classes/Utils/class-user-utils.php:356
-msgid "Not allowed"
 msgstr ""
 
 #: extensions/authy/class-authy-user.php:238
@@ -222,37 +152,46 @@ msgstr ""
 msgid "support@wpwhitesecurity.com"
 msgstr ""
 
-#: extensions/authy/class-authy.php:618
-#: extensions/email-backup/class-email-backup.php:316
-#: extensions/twilio/class-twilio.php:698
-#: includes/classes/Authenticator/class-login.php:317
-#: includes/classes/Authenticator/class-login.php:714
-#: includes/classes/Authenticator/class-login.php:724
-#: includes/classes/Authenticator/class-login.php:741
-#: includes/classes/Authenticator/class-login.php:760
-msgid "Failed to create a login nonce."
-msgstr ""
-
-#: extensions/authy/class-authy.php:622
-#: extensions/email-backup/class-email-backup.php:320
-#: extensions/twilio/class-twilio.php:702
-msgid "One of the required parameters is missing."
+#: extensions/authy/class-authy.php:619
+#: extensions/email-backup/class-email-backup.php:317
+#: extensions/twilio/class-twilio.php:699
+#: includes/classes/Authenticator/class-login.php:725
+#: includes/classes/Authenticator/class-login.php:750
+#: includes/classes/Authenticator/class-login.php:776
+msgid "<strong>Error</strong>: User can not be authenticated."
 msgstr ""
 
 #: extensions/authy/class-authy.php:625
-#: extensions/email-backup/class-email-backup.php:326
+#: extensions/email-backup/class-email-backup.php:323
 #: extensions/twilio/class-twilio.php:705
-#: includes/classes/Authenticator/class-login.php:728
-#: includes/classes/Authenticator/class-login.php:767
+#: includes/classes/Authenticator/class-login.php:317
+#: includes/classes/Authenticator/class-login.php:714
+#: includes/classes/Authenticator/class-login.php:731
+#: includes/classes/Authenticator/class-login.php:756
+#: includes/classes/Authenticator/class-login.php:782
+msgid "Failed to create a login nonce."
+msgstr ""
+
+#: extensions/authy/class-authy.php:629
+#: extensions/email-backup/class-email-backup.php:327
+#: extensions/twilio/class-twilio.php:709
+msgid "One of the required parameters is missing."
+msgstr ""
+
+#: extensions/authy/class-authy.php:632
+#: extensions/email-backup/class-email-backup.php:333
+#: extensions/twilio/class-twilio.php:712
+#: includes/classes/Authenticator/class-login.php:735
+#: includes/classes/Authenticator/class-login.php:789
 msgid "ERROR: Invalid verification code."
 msgstr ""
 
 #. translators: hyperlink "contact our support team".
-#: extensions/authy/class-authy.php:661
+#: extensions/authy/class-authy.php:668
 msgid "The %1$s 2FA service is unavailable. Please check the configuration and the service's dashboard to restore functionality. If the problem persists, %2$s."
 msgstr ""
 
-#: extensions/authy/class-authy.php:666
+#: extensions/authy/class-authy.php:673
 msgid "contact our support team"
 msgstr ""
 
@@ -419,7 +358,6 @@ msgid "Allow user to specify the email address of choice"
 msgstr ""
 
 #: extensions/email-backup/class-email-backup-render.php:247
-#: extensions/email-backup/class-email-backup-render.php:306
 #: extensions/out-of-band/class-wizard-steps-oob.php:285
 #: extensions/role-settings/class-role-settings-render.php:262
 #: extensions/role-settings/class-role-settings-render.php:603
@@ -431,7 +369,6 @@ msgid "Yes"
 msgstr ""
 
 #: extensions/email-backup/class-email-backup-render.php:251
-#: extensions/email-backup/class-email-backup-render.php:307
 #: extensions/out-of-band/class-wizard-steps-oob.php:289
 #: extensions/role-settings/class-role-settings-render.php:266
 #: extensions/role-settings/class-role-settings-render.php:613
@@ -494,8 +431,8 @@ msgstr ""
 msgid "Nonce verification failed."
 msgstr ""
 
-#: extensions/email-backup/class-email-backup.php:324
-#: includes/classes/Authenticator/class-login.php:764
+#: extensions/email-backup/class-email-backup.php:331
+#: includes/classes/Authenticator/class-login.php:786
 msgid "A new code has been sent."
 msgstr ""
 
@@ -532,81 +469,18 @@ msgstr ""
 msgid "Custom 2FA menu label in account page"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:360
-msgid "Usage of this filter is deprecated."
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:407
-#: extensions/out-of-band/class-out-of-band.php:457
-msgid "User is not provided"
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:431
-msgid "Your 2FA setup code"
-msgstr ""
-
-#. translators: Test oob code.
-#: extensions/out-of-band/class-out-of-band.php:435
-msgid "Please enter this code to confirm the 2FA setup: %s."
-msgstr ""
-
 #: extensions/out-of-band/class-out-of-band.php:443
 msgid "this link"
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:525
-msgid "An email with a verification link has been sent to your email address. If you are using the same browser and device, please click on the link to verify the login. If you are not, please copy the link and paste it in the address bar above."
 msgstr ""
 
 #: extensions/out-of-band/class-out-of-band.php:576
 msgid "Your login confirmation link for {site_name}"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:579
-msgid "Someone from {user_ip_address} is trying to log in to {site_name}."
-msgstr ""
-
-#. translators: The login code
-#: extensions/out-of-band/class-out-of-band.php:583
-msgid "Verify the login by clicking %1$s. If this is not you, please ignore this email and contact your website administrator."
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:587
-msgid "Note: as a security precaution, the login verification link only works when the link is clicked from the same browser and device combination from where you are trying to log in. If this is not the same browser and device, please copy the link and manually paste it in the address bar of the browser which you are using to log in to the website."
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:588
-#: includes/classes/class-wp2fa.php:503
-#: includes/classes/class-wp2fa.php:521
-#: includes/classes/class-wp2fa.php:535
-#: includes/classes/class-wp2fa.php:545
-msgid "Email sent by"
-msgstr ""
-
 #: extensions/out-of-band/class-out-of-band.php:589
 #: includes/classes/class-wp2fa.php:504
 #: includes/classes/class-wp2fa.php:522
 msgid "WP 2FA plugin."
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:611
-#: includes/classes/Admin/class-user-profile.php:701
-msgid "No form"
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:622
-#: extensions/out-of-band/class-out-of-band.php:629
-#: includes/classes/Admin/class-user-profile.php:724
-msgid "Invalid Two Factor Authentication code."
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:627
-#: includes/classes/Admin/class-user-profile.php:736
-msgid "Please enter the code to finalize the 2FA setup."
-msgstr ""
-
-#: extensions/out-of-band/class-out-of-band.php:653
-msgid "No code is presented."
 msgstr ""
 
 #: extensions/out-of-band/class-out-of-band.php:791
@@ -705,10 +579,6 @@ msgstr ""
 msgid "In this page you will find a number of reports which allow you to get a better overview of the current state of 2FA on your website."
 msgstr ""
 
-#: extensions/reporting/class-core.php:177
-msgid "Reports data"
-msgstr ""
-
 #: extensions/reporting/class-core.php:180
 msgid "never"
 msgstr ""
@@ -754,20 +624,6 @@ msgstr ""
 
 #: extensions/reporting/class-user-status-report.php:36
 msgid "2FA users setup attribute"
-msgstr ""
-
-#. translators: Test oob code.
-#: extensions/role-settings/class-role-settings-controller.php:188
-msgid "Grace period must be at least 1 day/hour for role %s."
-msgstr ""
-
-#. translators: Test oob code.
-#: extensions/role-settings/class-role-settings-controller.php:218
-msgid "You must provide a new page slug for role %s."
-msgstr ""
-
-#: extensions/role-settings/class-role-settings-render.php:98
-msgid "Site-wide policies"
 msgstr ""
 
 #: extensions/role-settings/class-role-settings-render.php:171
@@ -1037,24 +893,12 @@ msgstr ""
 msgid "Verify the Twilio keys"
 msgstr ""
 
-#: extensions/twilio/class-twilio-render.php:152
-msgid "Enter manually the token from the mobile app or SMS."
-msgstr ""
-
-#: extensions/twilio/class-twilio-render.php:160
-msgid "Unfortunately there is a problem with Twilio configuration. Contact the Administrator for further assistance."
-msgstr ""
-
 #: extensions/twilio/class-twilio-user.php:96
 msgid "SMS sending failed"
 msgstr ""
 
 #: extensions/twilio/class-twilio-user.php:339
 msgid "2FA login code: "
-msgstr ""
-
-#: extensions/twilio/class-twilio.php:284
-msgid "Provided Twilio settings are invalid"
 msgstr ""
 
 #: extensions/twilio/class-twilio.php:387
@@ -1097,11 +941,6 @@ msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:65
 msgid "Log in"
-msgstr ""
-
-#. translators: support email.
-#: extensions/white-labeling/class-white-labeling-render.php:154
-msgid "Use the settings below to customize the looks of the 2FA code page so it meets your branding requirements. If you have any questions send us an email at %1$s."
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:160
@@ -2152,12 +1991,24 @@ msgstr ""
 msgid "Unlock user"
 msgstr ""
 
+#: includes/classes/Admin/class-user-profile.php:701
+msgid "No form"
+msgstr ""
+
+#: includes/classes/Admin/class-user-profile.php:724
+msgid "Invalid Two Factor Authentication code."
+msgstr ""
+
 #: includes/classes/Admin/class-user-profile.php:727
 msgid "Invalid Two Factor Authentication secret key."
 msgstr ""
 
 #: includes/classes/Admin/class-user-profile.php:733
 msgid "Invalid Email Authentication code."
+msgstr ""
+
+#: includes/classes/Admin/class-user-profile.php:736
+msgid "Please enter the code to finalize the 2FA setup."
 msgstr ""
 
 #: includes/classes/Admin/class-user-profile.php:754
@@ -2310,11 +2161,6 @@ msgstr ""
 
 #: includes/classes/Admin/SettingsPages/class-settings-page-general.php:233
 msgid "Hide settings from other administrators"
-msgstr ""
-
-#. translators: support email.
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:255
-msgid "Use this setting below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at %1$s."
 msgstr ""
 
 #: includes/classes/Admin/SettingsPages/class-settings-page-general.php:260
@@ -2722,18 +2568,6 @@ msgstr ""
 msgid "Configure backup 2FA method"
 msgstr ""
 
-#: includes/classes/App/grace-period/class-grace-period.php:158
-msgid "What should the plugin do with users who do not configure 2FA within the grace period?"
-msgstr ""
-
-#: includes/classes/App/grace-period/class-grace-period.php:166
-msgid "Do not let them access the dashboard / user page once they log in until they configure 2FA"
-msgstr ""
-
-#: includes/classes/App/grace-period/class-grace-period.php:176
-msgid "Block the user (administrators have to manually unblock them)"
-msgstr ""
-
 #. translators: %s: count
 #: includes/classes/Authenticator/class-backup-codes.php:162
 msgid "%s unused code remaining."
@@ -2796,15 +2630,15 @@ msgstr ""
 msgid "Invalid provider."
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:746
+#: includes/classes/Authenticator/class-login.php:761
 msgid "ERROR: Invalid backup code."
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:811
+#: includes/classes/Authenticator/class-login.php:833
 msgid "You have logged in successfully."
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:892
+#: includes/classes/Authenticator/class-login.php:914
 msgid "Authentication Code:"
 msgstr ""
 
@@ -3000,6 +2834,13 @@ msgstr ""
 msgid "Thank you."
 msgstr ""
 
+#: includes/classes/class-wp2fa.php:503
+#: includes/classes/class-wp2fa.php:521
+#: includes/classes/class-wp2fa.php:535
+#: includes/classes/class-wp2fa.php:545
+msgid "Email sent by"
+msgstr ""
+
 #: includes/classes/class-wp2fa.php:508
 msgid "Your user on {site_name} has been locked"
 msgstr ""
@@ -3072,41 +2913,29 @@ msgstr ""
 msgid "This email was sent by the WP 2FA plugin to test the email delivery."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:938
-msgid "Unable to write to wp-config.php"
-msgstr ""
-
-#: includes/classes/class-wp2fa.php:951
-msgid "wp-config.php successfully update, global setting deleted"
-msgstr ""
-
-#: includes/classes/class-wp2fa.php:960
-msgid "Unable to find global secret key"
-msgstr ""
-
-#: includes/classes/class-wp2fa.php:1003
+#: includes/classes/class-wp2fa.php:1004
 msgid "For security reasons WP 2FA needs to store the private key in the wp-config.php file. However, it is unable to. This can happen because of restrictive permissions, or the file is not in the default location. To fix this you can:"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1005
+#: includes/classes/class-wp2fa.php:1006
 msgid "Option A) allow the plugin to write to the wp-config.php file temporarily by changing the wp-config.php permissions to 755. Once ready, click the button to proceed."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1007
+#: includes/classes/class-wp2fa.php:1008
 msgid "Option B) Add the encryption key to the wp-config.php file yourself by "
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1008
+#: includes/classes/class-wp2fa.php:1009
 msgid "following these instructions."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1009
+#: includes/classes/class-wp2fa.php:1010
 msgid ""
 "Once you complete any of the above, please click the button below.\n"
 "\t\t\t\t\t"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1018
+#: includes/classes/class-wp2fa.php:1019
 msgid "Write key to file now / Check for the key in file"
 msgstr ""
 
@@ -3155,6 +2984,10 @@ msgstr ""
 
 #: includes/classes/Utils/class-user-utils.php:355
 msgid "Not required & not configured"
+msgstr ""
+
+#: includes/classes/Utils/class-user-utils.php:356
+msgid "Not allowed"
 msgstr ""
 
 #: includes/classes/Utils/class-user-utils.php:357
