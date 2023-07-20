@@ -5,15 +5,13 @@
  * @package    wp2fa
  * @subpackage grace-period
  * @since      2.0.0
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\App;
 
-use WP2FA\WP2FA;
-use WP2FA\Admin\User;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
@@ -53,16 +51,16 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		/**
 		 * Prevent account locking if allowed, depending on the plugin settings.
 		 *
-		 * @param boolean           $state - Current state of the checking.
-		 * @param \WP2FA\Admin\User $user - The User class.
+		 * @param boolean  $state - Current state of the checking.
+		 * @param \WP_User $user - The User class.
 		 *
 		 * @return bool
 		 *
 		 * @since 2.0.0
 		 */
-		public static function maybe_prevent_account_lock( bool $state, User $user ) {
-			if ( 'configure-right-away' === Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', $user->get_2fa_wp_user() ) ) {
-				User_Helper::set_user_enforced_instantly( true, $user->get_2fa_wp_user() );
+		public static function maybe_prevent_account_lock( bool $state, \WP_User $user ) {
+			if ( 'configure-right-away' === Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', $user ) ) {
+				User_Helper::set_user_enforced_instantly( true, $user );
 				return false;
 			}
 
@@ -146,7 +144,7 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		 */
 		private static function grace_options( string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ): string {
 			ob_start();
-			
+
 			if ( class_exists( 'WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
 				$expire_action = Role_Settings_Controller::get_setting( $role, 'grace-policy-after-expire-action', true );
 			} else {

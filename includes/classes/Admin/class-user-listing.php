@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -96,7 +96,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 * @param int $user_id - The id of the user for which the info should be extracted.
 		 *
 		 * @return string
-		 * @see WP2FA\Admin\User
+		 *
 		 * @since 1.7.0
 		 */
 		private static function get_user2fa_status( $user_id ) {

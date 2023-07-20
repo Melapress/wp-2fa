@@ -4,67 +4,73 @@
  *
  * @package    wp2fa
  * @subpackage admin
- * @copyright  2023 WP White Security
+ *
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       https://wordpress.org/plugins/wp-2fa/
+ *
+ * @see       https://wordpress.org/plugins/wp-2fa/
  * @since      2.0.0
  */
 
 namespace WP2FA\Admin;
 
-use \WP2FA\Admin\Settings_Page;
-/**
- * Handles contact the features page and content.
+/*
+ * Premium_Features class for the premium features show
+ *
+ * @since 2.4.0
  */
-class Premium_Features {
-
-	const TOP_MENU_SLUG = 'wp-2fa-premium-features';
-
+if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 	/**
-	 * Create admin menu entry and settings page
+	 * Handles contact the features page and content.
 	 */
-	public static function add_extra_menu_item() {
-		add_submenu_page(
-			Settings_Page::TOP_MENU_SLUG,
-			esc_html__( 'Premium Features', 'wp-2fa' ),
-			esc_html__( 'Premium Features ➤', 'wp-2fa' ),
-			'manage_options',
-			self::TOP_MENU_SLUG,
-			array( __CLASS__, 'render' ),
-			100
-		);
-	}
+	class Premium_Features {
+		public const TOP_MENU_SLUG = 'wp-2fa-premium-features';
 
-    /**
-     * Adds an upgrade banner to settings pages.
-     *
-     * @return void
-     */
-    public static function add_settings_banner() {
-        $banner  = '<div id="wp-2fa-side-banner">';
-        $banner .= '<img src="' . esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
-        $banner .= '<p>' . esc_html__( 'Upgrade to Premium & benefit:', 'wp-2fa' ) . '</p>';
-        $banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Login with 2FA via SMS, push notification or with a simple mouse click', 'wp-2fa' ) . '</li>';
-        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Add & manage trusted devices ("Remember this device" option)', 'wp-2fa' ) . '</li>';		
-        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Add alternative 2FA methods ensuring no user is ever locked out', 'wp-2fa' ) . '</li>';
-        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'One-click 2FA integration with WooCommerce', 'wp-2fa' ) . '</li>';
-        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Completely whitelabel the 2FA user experience including the 2FA code page, email & wizards text', 'wp-2fa' ) . '</li>';
-        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
-        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Many other features', 'wp-2fa' ) . '</li>';
-        $banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'No Ads!', 'wp-2fa' ) . '</li></ul>';
-        $banner .= '<a href="https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=sidebar+advert&utm_campaign=WP2FA&utm_content=get+trial" class="button button-primary" target="_blank">' . esc_html__( 'Get a Free 14-day trial', 'wp-2fa' ) . '</a> <a href="https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=sidebar+advert&utm_campaign=WP2FA&utm_content=upgrade+now" class="link" target="_blank">' . esc_html__( 'Upgrade now', 'wp-2fa' ) . '</a>';
-        $banner .= '</div>';
+		/**
+		 * Create admin menu entry and settings page.
+		 */
+		public static function add_extra_menu_item() {
+			add_submenu_page(
+				Settings_Page::TOP_MENU_SLUG,
+				esc_html__( 'Premium Features', 'wp-2fa' ),
+				esc_html__( 'Premium Features ➤', 'wp-2fa' ),
+				'manage_options',
+				self::TOP_MENU_SLUG,
+				array( __CLASS__, 'render' ),
+				100
+			);
+		}
 
-        echo $banner; // phpcs:ignore
-    }
+		/**
+		 * Adds an upgrade banner to settings pages.
+		 *
+		 * @return void
+		 */
+		public static function add_settings_banner() {
+			$banner  = '<div id="wp-2fa-side-banner">';
+			$banner .= '<img src="' . esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
+			$banner .= '<p>' . esc_html__( 'Upgrade to Premium & benefit:', 'wp-2fa' ) . '</p>';
+			$banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Login with 2FA via SMS, push notification or with a simple mouse click', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Add & manage trusted devices ("Remember this device" option)', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Add alternative 2FA methods ensuring no user is ever locked out', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'One-click 2FA integration with WooCommerce', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Completely whitelabel the 2FA user experience including the 2FA code page, email & wizards text', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Many other features', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'No Ads!', 'wp-2fa' ) . '</li></ul>';
+			$banner .= '<a href="https://melapress.com/wordpress-2fa/plugin-trial/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" class="button button-primary" target="_blank">' . esc_html__( 'Get a Free 14-day trial', 'wp-2fa' ) . '</a> <a href="https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" class="link" target="_blank">' . esc_html__( 'Upgrade now', 'wp-2fa' ) . '</a>';
+			$banner .= '</div>';
 
-	/**
-	 * Handles rendering the content.
-	 *
-	 * @return void
-	 */
-	public static function render() {
-		?>
+			echo $banner; // phpcs:ignore
+		}
+
+		/**
+		 * Handles rendering the content.
+		 *
+		 * @return void
+		 */
+		public static function render() {
+			?>
 		<style>
 			.features-wrap {
 				background: #fff;
@@ -79,7 +85,7 @@ class Premium_Features {
 
 			.features-wrap p {
 				font-size: 16px;
-   				line-height: 28px;
+					line-height: 28px;
 			}
 
 			.feature-list {
@@ -119,11 +125,11 @@ class Premium_Features {
 				background-color: #fff;
 			}
 
-            .premium-cta a.inverse {
+			.premium-cta a.inverse {
 				font-weight: 700;
 				text-decoration: none;
 				font-size: 16px;
-            }
+			}
 
 			.content-block {
 				margin-bottom: 26px;
@@ -179,24 +185,24 @@ class Premium_Features {
 			</div>
 			<div class="content-block">
 				<div class="logo-wrap">
-					<img class="wp2fa-logo" src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-2fa-color_opt.png" alt="">
+					<img class="wp2fa-logo" src="<?php echo WP_2FA_URL; // phpcs:ignore?>dist/images/wp-2fa-color_opt.png" alt="">
 				</div>
 				<div>
-                    <p><?php esc_html_e( 'WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and anyone who accesses your website, including you, secure and better protected than ever before.', 'wp-2fa' ); ?></p>
+					<p><?php esc_html_e( 'WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and anyone who accesses your website, including you, secure and better protected than ever before.', 'wp-2fa' ); ?></p>
 					<p><?php esc_html_e( 'Upgrade to WP 2FA Premium to add more secure authentication options and automate more, encouraging all your website users to utilize 2FA to its fullest extent and give your users more flexibility by allowing them to work from anywhere without compromising on security.', 'wp-2fa' ); ?></p>
 				</div>
 			</div>
 			<div class="content-block">
 				<p><strong><?php esc_html_e( 'Upgrade to Premium and start benefiting from value-added features such as:', 'wp-2fa' ); ?></strong></p>
 				<ul class="feature-list">
-                    <li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'More 2FA methods, including SMS, push notifications & one-click login', 'wp-2fa' ); ?></li>
-                    <li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Trusted devices: Allow users to add trusted devices so they do not have to manually enter the 2FA code each time they log in', 'wp-2fa' ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'More 2FA methods, including SMS, push notifications & one-click login', 'wp-2fa' ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Trusted devices: Allow users to add trusted devices so they do not have to manually enter the 2FA code each time they log in', 'wp-2fa' ); ?></li>
 					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'White labeling features: Gain increased trust by extending your business’ branding and tone of voice to all 2FA pages, wizards & emails', 'wp-2fa' ); ?></li>
 					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Refer to the features matrix below for a detailed list of all the premium features', 'wp-2fa' ); ?></li>
 				</ul>
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=get+trial+upgrade+page' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
-					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=upgrade+page+upgrade' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
+					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/plugin-trial/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
+					<a class="inverse" href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
 					<span style="text-align: center; display: block; margin-top: 11px;"><?php esc_html_e( '* No credit card or payment details required for the trial.', 'wp-2fa' ); ?></span>	
 				</div>		
 			</div>
@@ -260,7 +266,7 @@ class Premium_Features {
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
 							</td>
 						</tr>
-                        <tr class="c2">
+						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
 								<p class="c10"><span class="c5"><?php esc_html_e( '2FA login with push notification (Authy)', 'wp-2fa' ); ?></span></p>
 							</td>
@@ -271,7 +277,7 @@ class Premium_Features {
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
 							</td>
 						</tr>
-                        <tr class="c2">
+						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
 								<p class="c10"><span class="c5"><?php esc_html_e( '2FA Login with SMS (with Twilio)', 'wp-2fa' ); ?></span></p>
 							</td>
@@ -382,7 +388,7 @@ class Premium_Features {
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
 							</td>
 						</tr>
-                        <tr class="c2">
+						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
 								<p class="c10"><span class="c5"><?php esc_html_e( 'No Ads!', 'wp-2fa' ); ?></span></p>
 							</td>
@@ -397,8 +403,8 @@ class Premium_Features {
 				</table>
 
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=get+trial+upgrade+page' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
-					<a class="inverse" href="<?php echo esc_url( 'https://wp2fa.io/pricing/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=upgrade+page+upgrade' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
+					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/plugin-trial/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
+					<a class="inverse" href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
 					<span style="text-align: center; display: block; margin-top: 11px;"><?php esc_html_e( '* No credit card or payment details required for the trial.', 'wp-2fa' ); ?></span>	
 				</div>		
 			</div>
@@ -409,30 +415,31 @@ class Premium_Features {
 				$text = sprintf(
 					/* translators: 1: Link to our site 2: Link to our contact page */
 					esc_html__( 'Visit the WP 2FA %1$s for more information or %2$s  with any questions you might have. We look forward to hearing from you.', 'wp-2fa' ),
-					'<a target="_blank" href="' . esc_url( 'https://wp2fa.io' ) . '">' . esc_html__( 'plugin website', 'wp-2fa' ) . '</a>',
-					'<a target="_blank" href="' . esc_url( 'https://wp2fa.io/contact/' ) . '">' . esc_html__( 'contact us', 'wp-2fa' ) . '</a>'
+					'<a target="_blank" href="' . esc_url( 'https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ) . '">' . esc_html__( 'plugin website', 'wp-2fa' ) . '</a>',
+					'<a target="_blank" href="' . esc_url( 'https://melapress.com/contact/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ) . '">' . esc_html__( 'contact us', 'wp-2fa' ) . '</a>'
 				);
 
-				   echo $text; // phpcs:ignore Visit the WP 2FA plugin website for more information or contact us with any questions you might have. We look forward to hearing from you.
+			echo $text; // phpcs:ignore -- Visit the WP 2FA plugin website for more information or contact us with any questions you might have. We look forward to hearing from you.
 				?>
 				</p>
 			</div>
 		</div>		
-		<?php
-	}
+			<?php
+		}
 
-    /**
-     * Add "_blank" attr to pricing link to ensure it opens in new tab.
-     *
-     * @return void
-     */
-    public static function pricing_new_tab_js() {
-		?>
-        <script type="text/javascript">
-            jQuery( document ).ready( function() {
-                jQuery( '.wp-2fa.pricing' ).parent().attr( 'target', '_blank' );
-            });
-        </script>
-        <?php
-    }
+		/**
+		 * Add "_blank" attr to pricing link to ensure it opens in new tab.
+		 *
+		 * @return void
+		 */
+		public static function pricing_new_tab_js() {
+			?>
+		<script type="text/javascript">
+			jQuery( document ).ready( function() {
+				jQuery( '.wp-2fa.pricing' ).parent().attr( 'target', '_blank' );
+			});
+		</script>
+			<?php
+		}
+	}
 }

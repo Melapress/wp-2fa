@@ -7,7 +7,7 @@
  *
  * @since      2.4.0
  *
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! class_exists( 'WP2FA\Admin\Helpers\Classes_Helper' ) ) {
+if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 	/**
 	 * Responsible for the proper class loading.
 	 */

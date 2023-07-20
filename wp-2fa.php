@@ -1,17 +1,17 @@
 <?php
 /**
- * WP 2FA - Two-factor authentication for WordPress 
+ * WP 2FA - Two-factor authentication for WordPress .
  *
- * @copyright Copyright (C) 2013-2023, WP White Security - support@wpwhitesecurity.com
+ * @copyright Copyright (C) 2013-2023, Melapress - support@melapress.com
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     2.4.2
- * Plugin URI:  https://wp2fa.io/
+ * Version:     2.5.0
+ * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
- * Author:      WP White Security
- * Author URI:  https://www.wpwhitesecurity.com/
+ * Author:      Melapress
+ * Author URI:  https://melapress.com/
  * Text Domain: wp-2fa
  * Domain Path: /languages/
  * License:     GPL v3
@@ -38,16 +38,20 @@
  */
 
 use WP2FA\Admin\Helpers\File_Writer;
-use WP2FA\WP2FA;
 use WP2FA\Utils\Migration;
+use WP2FA\WP2FA;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
+	return;
+}
+
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '2.4.2' );
+	define( 'WP_2FA_VERSION', '2.5.0' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -61,8 +65,12 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 	define( 'WP_2FA_SETTINGS_NAME', WP_2FA_PREFIX . 'settings' );
 	define( 'WP_2FA_WHITE_LABEL_SETTINGS_NAME', WP_2FA_PREFIX . 'white_label' );
 	define( 'WP_2FA_EMAIL_SETTINGS_NAME', WP_2FA_PREFIX . 'email_settings' );
+
+	define( 'WP_2FA_PREFIX_PAGE', 'wp-2fa-' );
 }
 
+// phpcs:disable
+		// phpcs:enable
 		// Include files.
 		require_once WP_2FA_INC . 'functions/core.php';
 
@@ -79,6 +87,8 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 		Migration::migrate();
 
 		WP2FA::init();
+		// phpcs:disable
+// phpcs:enable
 
 if ( ! defined( File_Writer::SECRET_NAME ) ) {
 	define( File_Writer::SECRET_NAME, WP2FA::get_secret_key() );
@@ -86,7 +96,9 @@ if ( ! defined( File_Writer::SECRET_NAME ) ) {
 	define( 'WP2FA_SECRET_IS_IN_DB', true );
 }
 
+// phpcs:disable
 /* @free:start */
+// phpcs:enable
 if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 	/**
 	 * Takes care of deactivation of the premium plugin when the free plugin is activated.
@@ -105,9 +117,11 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 
 	register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
 }
+// phpcs:disable
 /* @free:end */
+// phpcs:enable
 
-/**
+/*
  * Clears the config cache from the DB
  *
  * @return void
@@ -116,7 +130,7 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
  */
 add_action(
 	'upgrader_process_complete',
-	function() {
+	function () {
 		delete_transient( 'wp_2fa_config_file_hash' );
 	},
 	10,
@@ -146,9 +160,10 @@ if ( ! function_exists( 'check_ssl' ) ) {
 }
 
 if ( \PHP_VERSION_ID < 80000 && ! \interface_exists( 'Stringable' ) ) {
-	interface Stringable {
-
+	interface Stringable { // phpcs:ignore
 		/**
+		 * Mockup function for PHP versions lower than 8.
+		 *
 		 * @return string
 		 */
 		public function __toString();

@@ -4,30 +4,31 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2023 WP White Security
+ *
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       https://wordpress.org/plugins/wp-2fa/
+ *
+ * @see       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\SettingsPages;
 
-use \WP2FA\WP2FA as WP2FA;
-use \WP2FA\Utils\Debugging as Debugging;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Utils\Debugging;
+use WP2FA\Utils\Settings_Utils;
+use WP2FA\WP2FA;
 
-/**
+/*
  * General settings tab
  */
 if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 	/**
-	 * Settings_Page_General - Class for handling general settings
+	 * Settings_Page_General - Class for handling general settings.
 	 *
 	 * @since 2.0.0
 	 */
 	class Settings_Page_General {
-
 		/**
-		 * Renders the settings
+		 * Renders the settings.
 		 *
 		 * @return void
 		 *
@@ -36,20 +37,20 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		public static function render() {
 			settings_fields( WP_2FA_SETTINGS_NAME );
 			self::no_method_exists();
+			self::disable_brute_force_settings();
 			self::limit_settings_access();
 			self::remove_data_upon_uninstall();
 			submit_button( null, 'primary', WP_2FA_SETTINGS_NAME . '[submit]' );
 		}
 
 		/**
-		 * Validate options before saving
+		 * Validate options before saving.
 		 *
 		 * @param array $input The settings array.
 		 *
 		 * @return array|void
 		 */
 		public static function validate_and_sanitize( $input ) {
-
 			// Bail if user doesn't have permissions to be here.
 			if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['action'] ) && ! check_admin_referer( 'wp2fa-step-choose-method' ) ) {
 				return;
@@ -60,6 +61,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			$simple_settings_we_can_loop = array(
 				'enable_destroy_session',
 				'limit_access',
+				'brute_force_disable',
 				'delete_data_upon_uninstall',
 				'method_invalid_setting',
 			);
@@ -76,6 +78,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			$settings_to_turn_into_bools = array(
 				'enable_destroy_session',
 				'limit_access',
+				'brute_force_disable',
 				'delete_data_upon_uninstall',
 			);
 
@@ -110,7 +113,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			 * Filter the values we are about to store in the plugin settings.
 			 *
 			 * @param array $output - The output array with all the data we will store in the settings.
-			 * @param array $input - The input array with all the data we received from the user.
+			 * @param array $input  - The input array with all the data we received from the user.
 			 *
 			 * @since 2.0.0
 			 */
@@ -125,52 +128,49 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		}
 
 		/**
-		 * Updates global settings network options
+		 * Updates global settings network options.
 		 *
 		 * @return void
 		 *
 		 * @SuppressWarnings(PHPMD.ExitExpressions)
 		 */
 		public static function update_wp2fa_network_options() {
-
 			if ( isset( $_POST[ WP_2FA_SETTINGS_NAME ] ) ) {
 				check_admin_referer( 'wp_2fa_settings-options' );
-				$options         = self::validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_SETTINGS_NAME ] ) ); // phpcs:ignore
+				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_SETTINGS_NAME])); // phpcs:ignore
 				$settings_errors = get_settings_errors( WP_2FA_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
-
 					// redirect back to our options page.
 					wp_safe_redirect(
-                        add_query_arg(
-                            array(
+						add_query_arg(
+							array(
 								'page' => 'wp-2fa-settings',
 								'wp_2fa_network_settings_error' => urlencode_deep( $settings_errors[0]['message'] ),
-                            ),
-                            network_admin_url( 'settings.php' )
-                        )
+							),
+							network_admin_url( 'settings.php' )
+						)
 					);
 					exit;
-
 				}
 				WP2FA::update_plugin_settings( $options, false, WP_2FA_SETTINGS_NAME );
 
 				// redirect back to our options page.
 				wp_safe_redirect(
-                    add_query_arg(
-                        array(
+					add_query_arg(
+						array(
 							'page' => 'wp-2fa-settings',
 							'tab'  => 'generic-settings',
 							'wp_2fa_network_settings_updated' => 'true',
-                        ),
-                        network_admin_url( 'admin.php' )
-                    )
+						),
+						network_admin_url( 'admin.php' )
+					)
 				);
 				exit;
 			}
 		}
 
 		/**
-		 * Limit settings setting
+		 * Limit settings setting.
 		 *
 		 * @return void
 		 *
@@ -208,7 +208,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		}
 
 		/**
-		 * Limit settings setting
+		 * Limit settings setting.
 		 *
 		 * @return void
 		 *
@@ -240,7 +240,38 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		}
 
 		/**
-		 * Rendering settings when there are no methods
+		 * Disable brute force setting.
+		 *
+		 * @return void
+		 *
+		 * @since 2.5.0
+		 */
+		private static function disable_brute_force_settings() {
+			?>
+		<br>
+		<h3><?php esc_html_e( 'Disable 2FA code brute force protection?', 'wp-2fa' ); ?></h3>
+		<p class="description">
+			<?php esc_html_e( 'When using email and SMS 2FA, the plugin sends the users a new one-time code whenever they enter the wrong code when logging in. This is a security enhancement, a sort of brute force protection. You can disable this feature from the below setting, however, it is not recommended.', 'wp-2fa' ); ?>
+		</p>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th><label for="brute_force_disable"><?php esc_html_e( 'Disable one-time code brute force protection', 'wp-2fa' ); ?></label></th>
+					<td>
+						<fieldset>
+							<input type="checkbox" id="brute_force_disable" name="wp_2fa_settings[brute_force_disable]" value="brute_force_disable"
+							<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ), true ); ?>
+							>
+						</fieldset>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+			<?php
+		}
+
+		/**
+		 * Rendering settings when there are no methods.
 		 *
 		 * @return void
 		 *
@@ -253,8 +284,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				printf(
 					// translators: support email.
 					\esc_html__( 'Use this setting below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at %1$s.', 'wp-2fa' ),
-					'<a href="mailto:support@wpwhitesecurity.com">support@wpwhitesecurity.com</a>'
-                );
+					'<a href="mailto:support@melapress.com">support@melapress.com</a>'
+				);
 			?>
 		</p>
 		<h3><?php esc_html_e( 'What should the plugin do if the 2FA method used during a user login is unavailable?', 'wp-2fa' ); ?></h3>

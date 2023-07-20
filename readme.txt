@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 5.0
 Tested up to: 6.1.1
-Stable tag: 2.4.2
+Stable tag: 2.5.0
 Requires PHP: 7.2.0
 
 Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -117,14 +117,58 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 
 == Changelog ==
 
-= 2.4.2 (2023-07-05) =
-
+= 2.5.0 (2023-07-20) =
+Release notes: [2FA for password resets, more branding options for the 2FA code page & much more](https://melapress.com/wordpress-2fa/releases/)
+* **New features**
+    * Require 2FA on user reset password.
+    * CSS editor for the 2FA code page, allowing users to also apply their CSS to the 2FA login page.
+    * Front-end 2FA support for multisite network - the plugin creates a front-end 2FA page for every subsite on the network.
+    * User licensing tab in the plugin settings, allowing admins to see the number of users and websites using user-activations.
+    
+* **Improvements**
+    * Disabled auto complete in the 2FA code placeholder.
+    * User private key is regenerated each time they start the 2FA setup process and they do not finish it.
+    * Backup code email template added to editable email templates.
+    * Email tags are populated even test emails.
+    * Updated the "user count" licensing logic on multisite networks - now the plugin counts the users on the network (more accurate).
+    * Full compatability with Flywheel's and WP Engine's seamless sign-on (no sign on is required).
+    * Revised and improved the text used in the 2FA SMS login process.
+    * Added all SMS 2FA text (used in wizards, login pages etc) to the whitelabelling options.
+    * Removed the 2FA plugin menu completely when access to the plugin is restricted to certain website admins.
+    * Added more strings to the Whitelabelling options.
+    * Removed a number of font files from the QR library since no text is used and it makes the plugin size smaller.
+    * Select2 library is now shipped directly with the plugin instead of it being downloaded from a CDN.
+    * Applied a number of performance improvements to the plugin - the loading mechanism is more efficient and determining when the plugin is needed and when not.
+    * Plugin no longer loads on the front-end part of the website - only on the shortcode page.
+    * Removed a number of JS and CSS scripts that were loading on the frontend and were made redundand.
+    * Full support for multsite networks using different domains for subsites - users are no longer required to access the network dashboad to set up 2FA.
+    * Improved the CSS in the whitelabelling settings so all the text in the 2FA code page can be edited, recoloured etc.
+    * Removed some code that was left in the plugin for backward compatability (no longer required at this stage).
+    * Removed all third party's admin notices from the plugin settings pages.
+    * The 2FA usage reports have also been improved so they report accurate numbers on a multsite network.
+    * Improved a number of error and users messages in the plugin.
+    * Updated the CSS of the backup codes wizard page to have the buttons all in one line.
+    * Plugin now automatically removes the extra space at the end of the one-time code if entered in the 2FA code prompt.
+    * Updated the CSS of the plugin's own admin notices so they fit better within the plugin's UI.
+    * Improved the text used in the wizards, especially the text used when setting up alternative 2FA methods.
+    * All plugin strings are now available on WPML.
+    * Plugin now displays the Twilio service error directly in the wizard when there are issues with the Twilio setup.
+    
 * **Bug fixes**
-	* Fixed issue which could cause setting up 2FA via SMS to fail once grace period has passed.
-	* Fixes issue which could cause a fatal error upon login.
-
-* **Security fix**
-	*  Updated Freemius SDK
+    * Fixed: Cannot change the users phone number on Twilio unless you reset the 2FA configuration.
+    * Fixed: In some edge cases admins were unable to access the plugin settings, instead they were shown the policies page.
+    * Fixed: WP 2FA disconnects ManageWP sessions.
+    * Fixed: Rest 2FA configuration button in user profile missing when the license quota is reached.
+    * Fixed: Premium plugin ads still showing when Premium edition is activated on a multisite network.
+    * Fixed: The 2FA code page styling was not being saved when only changing the 2FA button colour.
+    * Fixed: Number of PHP warnings are triggered when WP 2FA is installed alongside Melapress Login Security.
+    * Fixed: Expired license on multisite network leads to a blockage of logins.
+    * Fixed: "Remember this device for 0 days" string shows up on the login page after rebranding the page (whitelabelling).
+    * Fixed: On some cases the users were not prompted for 2FA in the /my-account page on WooCommerce.
+    * Fixed: Plugin's private key not stored in wp-config.php file after permissions are updated.
+    * Fixed: Subscribers are not asked to set up 2FA even when 2FA is enforced when registering on a multisite network without subsites.
+    * Fixed a number of PHP notices when running the plugin on a multisite network with a specific PHP version (older versions).
+    * Fixed: Users can't set up SMS 2FA (over Twilio) after the grace period expires.
 
 = 2.4.1 (2023-02-16) =
 

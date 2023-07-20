@@ -4,42 +4,43 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2023 WP White Security
+ *
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       https://wordpress.org/plugins/wp-2fa/
+ *
+ * @see       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\SettingsPages;
 
-use \WP2FA\WP2FA as WP2FA;
-use \WP2FA\Utils\Generate_Modal as Generate_Modal;
-use \WP2FA\Utils\Debugging as Debugging;
-use \WP2FA\Admin\Settings_Page;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
-use WP2FA\Admin\Views\First_Time_Wizard_Steps;
-use WP2FA\Admin\Helpers\WP_Helper;
-use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Settings_Page;
+use WP2FA\Admin\Views\First_Time_Wizard_Steps;
+use WP2FA\Utils\Debugging;
+use WP2FA\Utils\Generate_Modal;
+use WP2FA\Utils\Settings_Utils;
+use WP2FA\WP2FA;
 
-/**
+/*
  * Policies settings tab
  */
 if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 	/**
-	 * Settings_Page_Policies - Class for handling settings
+	 * Settings_Page_Policies - Class for handling settings.
 	 *
 	 * @since 2.0.0
 	 */
 	class Settings_Page_Policies {
-
 		/**
-		 * Renders the settings
+		 * Renders the settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		public function render() {
+		public static function render() {
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return;
 			}
@@ -52,14 +53,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			/**
-			 * Used from user settings controller
+			 * Used from user settings controller.
 			 *
 			 * @param bool - Default at this point is false - no user settings.
 			 *
 			 * @since 2.4.0
 			 */
 			$roles_controller = \apply_filters( WP_2FA_PREFIX . 'roles_controller_exists', false );
-
 			if ( $roles_controller ) {
 				$roles = WP_Helper::get_roles();
 
@@ -93,11 +93,11 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
 			<h2><?php esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
 			<hr>
-			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) : ?>
+			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) { ?>
 				<?php
 				echo esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
 				?>
-			<?php else : ?>
+			<?php } else { ?>
 				<?php
 					/**
 					 * Fires before the plugin settings rendering.
@@ -112,14 +112,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					} else {
 						$action = 'options.php';
 					}
-					if ( ! isset( $_REQUEST['tab'] ) || isset( $_REQUEST['tab'] ) && '2fa-settings' === $_REQUEST['tab'] ) :// phpcs:ignore
+					if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && '2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore
 						?>
 					<br/>
 						<?php
 						printf(
-							'<p class="description">%1$s <a href="mailto:support@wpwhitesecurity.com">%2$s</a></p>',
+							'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
 							esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
-							esc_html__( 'support@wpwhitesecurity.com', 'wp-2fa' )
+							esc_html__( 'support@melapress.com', 'wp-2fa' )
 						);
 						?>
 					<br/>
@@ -127,39 +127,42 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					<form id="wp-2fa-admin-settings" action='<?php echo esc_attr( $action ); ?>' method='post' autocomplete="off" data-2fa-total-users="<?php echo \esc_attr( $total_users['total_users'] ); ?>">
 						<?php
 							settings_fields( WP_2FA_POLICY_SETTINGS_NAME );
-							$this->select_method_setting();
-							$this->select_enforcement_policy_setting();
-							$this->excluded_roles_or_users_setting();
+						self::select_method_setting();
+						self::select_enforcement_policy_setting();
+						self::excluded_roles_or_users_setting();
 						if ( WP_Helper::is_multisite() ) {
-							$this->excluded_network_sites();
+							self::excluded_network_sites();
 						}
-							/**
-							 * Fires before grace period HTML rendering settings.
-							 *
-							 * @since 2.0.0
-							 */
-							do_action( WP_2FA_PREFIX . 'before_grace_period_settings' );
-							$this->grace_period_setting();
-							$this->user_redirect_after_wizard();
-							/**
-							 * Fires before user profile period HTML rendering settings.
-							 *
-							 * @since 2.0.0
-							 */
-							do_action( WP_2FA_PREFIX . 'before_user_profile_settings' );
-							$this->user_profile_settings();
-							$this->disable_2fa_removal_setting();
-							submit_button();
+
+						/**
+						 * Fires before grace period HTML rendering settings.
+						 *
+						 * @since 2.0.0
+						 */
+						do_action( WP_2FA_PREFIX . 'before_grace_period_settings' );
+
+						self::grace_period_setting();
+						self::user_redirect_after_wizard();
+
+						/**
+						 * Fires before user profile period HTML rendering settings.
+						 *
+						 * @since 2.0.0
+						 */
+						do_action( WP_2FA_PREFIX . 'before_user_profile_settings' );
+						self::user_profile_settings();
+						self::disable_2fa_removal_setting();
+						submit_button();
 						?>
 					</form>
-				<?php endif; ?>
-			<?php endif; ?>
+				<?php } ?>
+			<?php } ?>
 		</div>
 			<?php
 		}
 
 		/**
-		 * Creates new page for settings (FE only)
+		 * Creates new page for settings (FE only).
 		 *
 		 * @param string $role - The name of the role, empty for global.
 		 *
@@ -172,35 +175,41 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			// Check if new user page has been published.
 			if ( ! empty( get_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role ) ) ) {
 				delete_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role );
-				$new_page_id        = Settings::get_role_or_default_setting( 'custom-user-page-id', '', $role );
-				$new_page_permalink = get_permalink( $new_page_id );
+				$new_page_id = Settings::get_role_or_default_setting( 'custom-user-page-id', '', $role );
+				if ( empty( $new_page_id ) ) {
+					$new_page_id = Settings::get_custom_settings_page_id( $role );
+				}
 
-				$new_page_modal_content  = '<h3>' . esc_html__( 'The plugin created the 2FA settings page with the URL:', 'wp-2fa' ) . '</h3>';
-				$new_page_modal_content .= '<h4><a target="_blank" href="' . esc_url( $new_page_permalink ) . '">' . esc_url( $new_page_permalink ) . '</a></h4>';
-				$new_page_modal_content .= '<p>' . esc_html__( 'You can edit this page using the page editor, like you do with all other pages.', 'wp-2fa' );
-				$new_page_modal_content .= '</p>';
-				$new_page_modal_content .= sprintf(
-				/* translators: %s: tag name. */
-					esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ),
-					'<strong>{2fa_settings_page_url}</strong>'
-				);
-				$new_page_modal_content .= '</p>';
+				if ( $new_page_id > 0 ) {
+					$new_page_permalink = get_permalink( $new_page_id );
 
-				echo Generate_Modal::generate_modal( // phpcs:ignore
-					'new-page-created' . $role,
-					false,
-					$new_page_modal_content,
-					array(
-						'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal>' . __( 'OK', 'wp-2fa' ) . '</a>',
-					),
-					true,
-					'560px'
-				);
+					$new_page_modal_content  = '<h3>' . esc_html__( 'The plugin created the 2FA settings page with the URL:', 'wp-2fa' ) . '</h3>';
+					$new_page_modal_content .= '<h4><a target="_blank" href="' . esc_url( $new_page_permalink ) . '">' . esc_url( $new_page_permalink ) . '</a></h4>';
+					$new_page_modal_content .= '<p>' . esc_html__( 'You can edit this page using the page editor, like you do with all other pages.', 'wp-2fa' );
+					$new_page_modal_content .= '</p>';
+					$new_page_modal_content .= sprintf(
+					/* translators: %s: tag name. */
+						esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ),
+						'<strong>{2fa_settings_page_url}</strong>'
+					);
+					$new_page_modal_content .= '</p>';
+
+					echo Generate_Modal::generate_modal( // phpcs:ignore
+						'new-page-created' . $role,
+						false,
+						$new_page_modal_content,
+						array(
+							'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal>' . __( 'OK', 'wp-2fa' ) . '</a>',
+						),
+						true,
+						'560px'
+					);
+				}
 			}
 		}
 
 		/**
-		 * Validate options before saving
+		 * Validate options before saving.
 		 *
 		 * @param array $input The settings array.
 		 *
@@ -208,11 +217,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		public function validate_and_sanitize( $input ) {
-
+		public static function validate_and_sanitize( $input ) {
 			Debugging::log( 'The following settings will be processed (Policy): ' . "\n" . wp_json_encode( $input ) );
 
-			/**
+			/*
 			 * Adds the ability to check the referer and act accordingly.
 			*
 			* @since 2.0.0
@@ -226,9 +234,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			$no_method_enabled = false;
 			if ( ! isset( $input['enable_totp'] ) && ! isset( $input['enable_email'] ) && ! isset( $_POST['save_step'] ) ) {
-
 				/**
-				 * At this point, none of the default providers is set / activated. This filter allows additional providers to change the behaviour. Checking the input array for specific values (methods), and based on that we can raise error that none of the allowed methods has bees selected by the user, or dismiss the error otherwise.
+				 * At this point, none of the default providers is set / activated. This filter allows additional providers to change the behavior. Checking the input array for specific values (methods), and based on that we can raise error that none of the allowed methods has bees selected by the user, or dismiss the error otherwise.
 				 *
 				 * @param bool - Default at this point is true - no method is selected.
 				 * @param array $input - The input array with all the data.
@@ -262,10 +269,11 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				'superadmins-role-add',
 				'superadmins-role-exclude',
 				'specify-email_hotp',
+				'separate-multisite-page-url',
 			);
 
 			/**
-			 * Gives the ability to filter the settings array of the plugin
+			 * Gives the ability to filter the settings array of the plugin.
 			 *
 			 * @param array $settings - The array with all the default settings.
 			 *
@@ -320,17 +328,29 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			$output['included_sites'] = array();
-			if ( isset( $input['included_sites'] ) && is_array( $input['included_sites'] ) && ! empty( $input['included_sites'] ) ) {
-				foreach ( $input['included_sites'] as &$site ) {
-					if ( ! filter_var( $site, FILTER_VALIDATE_INT ) ) {
-						unset( $site );
-						continue;
-					}
+			if ( WP_Helper::is_multisite() ) {
+				if ( isset( $input['included_sites'] ) && is_array( $input['included_sites'] ) && ! empty( $input['included_sites'] ) ) {
+					foreach ( $input['included_sites'] as &$site ) {
+						if ( ! filter_var( $site, FILTER_VALIDATE_INT ) ) {
+							unset( $site );
 
-					$output['included_sites'][] = $site;
+							continue;
+						}
+
+						$output['included_sites'][] = $site;
+					}
+					unset( $site );
+				} elseif ( isset( $input['enforcement-policy'] ) && 'enforce-on-multisite' === $input['enforcement-policy'] && empty( $input['included_sites'] ) ) {
+
+					add_settings_error(
+						WP_2FA_POLICY_SETTINGS_NAME,
+						esc_attr( 'included_sites_settings_error' ),
+						esc_html__( 'You must specify at least one sub-site', 'wp-2fa' ),
+						'error'
+					);
+
 				}
 			}
-			unset( $site );
 
 			foreach ( $settings_to_turn_into_array as $setting ) {
 				if ( isset( $input[ $setting ] ) ) {
@@ -365,40 +385,49 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] ) && isset( $input['custom-user-page-url'] ) && ! empty( $input['custom-user-page-url'] ) ) {
 				if ( WP2FA::get_wp2fa_setting( 'custom-user-page-url' ) !== $input['custom-user-page-url'] ) {
-					if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
-						$updated_post = array(
-							'ID'        => WP2FA::get_wp2fa_setting( 'custom-user-page-id' ),
-							'post_name' => sanitize_title_with_dashes( $input['custom-user-page-url'] ),
-						);
-						wp_update_post( $updated_post );
+					// if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
+					// $updated_post = array(
+					// 'ID'        => WP2FA::get_wp2fa_setting( 'custom-user-page-id' ),
+					// 'post_name' => sanitize_title_with_dashes( $input['custom-user-page-url'] ),
+					// );
+					// wp_update_post( $updated_post );
+					// $output['custom-user-page-url'] = sanitize_title_with_dashes( $input['custom-user-page-url'] );
+					// $output['custom-user-page-id']  = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
+					// } else
+
+					if ( 'yes' === $input['create-custom-user-page'] && ! empty( $input['custom-user-page-url'] ) ) {
 						$output['custom-user-page-url'] = sanitize_title_with_dashes( $input['custom-user-page-url'] );
-						$output['custom-user-page-id']  = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
-					} elseif ( 'yes' === $input['create-custom-user-page'] && ! empty( $input['custom-user-page-url'] ) ) {
-						$output['custom-user-page-url'] = sanitize_title_with_dashes( $input['custom-user-page-url'] );
-						$create_page                    = $this->generate_custom_user_profile_page( $output['custom-user-page-url'] );
-						$output['custom-user-page-id']  = (int) $create_page;
+						if ( WP_Helper::is_multisite() && isset( $input['separate-multisite-page-url'] ) ) {
+							$sites = WP_Helper::get_multi_sites();
+
+							foreach ( $sites as $site ) {
+								$blog_id = $site->id;
+
+								\switch_to_blog( $blog_id );
+
+								self::generate_custom_user_profile_page( $output['custom-user-page-url'] );
+
+								\restore_current_blog();
+							}
+						} else {
+							self::generate_custom_user_profile_page( $output['custom-user-page-url'] );
+						}
 					}
 				} else {
 					$output['custom-user-page-url'] = sanitize_title_with_dashes( $input['custom-user-page-url'] );
 					$output['custom-user-page-id']  = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
 					if ( is_null( get_post( $output['custom-user-page-id'] ) ) ) {
-						$create_page                   = $this->generate_custom_user_profile_page( $output['custom-user-page-url'] );
+						$create_page                   = self::generate_custom_user_profile_page( $output['custom-user-page-url'] );
 						$output['custom-user-page-id'] = (int) $create_page;
-					} else {
-						$updated_post = array(
-							'ID'        => $output['custom-user-page-id'],
-							'post_name' => sanitize_title_with_dashes( $output['custom-user-page-url'] ),
-						);
-						wp_update_post( $updated_post );
 					}
 				}
 			}
 
 			if ( isset( $_REQUEST['page'] ) && 'wp-2fa-setup' !== $_REQUEST['page'] || isset( $_REQUEST[ WP_2FA_POLICY_SETTINGS_NAME ]['create-custom-user-page'] ) ) {
-
 				if ( isset( $input['create-custom-user-page'] ) && 'no' === $input['create-custom-user-page'] ) {
-					$output['custom-user-page-url'] = '';
-					$output['custom-user-page-id']  = '';
+					$output['custom-user-page-url']        = '';
+					$output['custom-user-page-id']         = '';
+					$output['separate-multisite-page-url'] = '';
 					wp_delete_post( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ), true );
 				}
 			}
@@ -422,7 +451,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			// Process main policy.
 			if ( isset( $input['enforcement-policy'] ) && in_array( $input['enforcement-policy'], array( 'all-users', 'certain-users-only', 'certain-roles-only', 'do-not-enforce', 'superadmins-only', 'superadmins-siteadmins-only', 'enforce-on-multisite' ), true ) ) {
-
 				// Clear enforced roles/users if setting has changed.
 				if ( 'all-users' === $input['enforcement-policy'] || 'do-not-enforce' === $input['enforcement-policy'] ) {
 					$input['enforced_users']        = array();
@@ -454,17 +482,17 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 							global $wpdb;
 							// @codingStandardsIgnoreStart
 							$wpdb->query(
-							$wpdb->prepare(
-								"
+								$wpdb->prepare(
+									"
 								DELETE FROM $wpdb->usermeta
 								WHERE user_id = %d
 								AND meta_key LIKE %s
 								",
-								array(
-									$user_to_wipe->ID,
-									'wp_2fa_%',
+									array(
+										$user_to_wipe->ID,
+										'wp_2fa_%',
+									)
 								)
-							)
 							);
 							// @codingStandardsIgnoreEnd
 						}
@@ -483,7 +511,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 * Filter the values we are about to store in the plugin settings.
 			 *
 			 * @param array $output - The output array with all the data we will store in the settings.
-			 * @param array $input - The input array with all the data we received from the user.
+			 * @param array $input  - The input array with all the data we received from the user.
 			 *
 			 * @since 2.0.0
 			 */
@@ -509,7 +537,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		}
 
 		/**
-		 * Updates global policy network options
+		 * Updates global policy network options.
 		 *
 		 * @return void
 		 *
@@ -517,14 +545,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		 *
 		 * @SuppressWarnings(PHPMD.ExitExpressions)
 		 */
-		public function update_wp2fa_network_options() {
-
+		public static function update_wp2fa_network_options() {
 			if ( isset( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) {
 				check_admin_referer( 'wp_2fa_policy-options' );
-				$options         = $this->validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ); // phpcs:ignore 
+				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_POLICY_SETTINGS_NAME])); // phpcs:ignore
 				$settings_errors = get_settings_errors( WP_2FA_POLICY_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
-
 					// redirect back to our options page.
 					wp_safe_redirect(
 						add_query_arg(
@@ -536,7 +562,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						)
 					);
 					exit;
-
 				}
 				WP2FA::update_plugin_settings( $options );
 
@@ -558,27 +583,22 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		 * Creates a new page with our shortcode present.
 		 *
 		 * @param string $page_slug - The page slug.
-		 * @param string $role - The name of the role for which the page has been created.
+		 * @param string $role      - The name of the role for which the page has been created.
 		 *
 		 * @return mixed
 		 *
 		 * @since 2.0.0
 		 */
-		public function generate_custom_user_profile_page( $page_slug, string $role = '' ) {
-			// Bail if user doesn't have permissions to be here.
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
-			}
-
+		public static function generate_custom_user_profile_page( $page_slug, string $role = '' ) {
 			// Check if a page with slug exists.
-			$page_exists = $this->get_post_by_post_name( $page_slug, 'page' );
+			$page_exists = self::get_post_by_post_name( $page_slug, 'page' );
 			if ( $page_exists ) {
 				// Seeing as the page exists, return its ID.
 				return $page_exists->ID;
 			}
 
 			$generated_by_message  = '<p>' . esc_html__( 'Page generated by', 'wp-2fa' );
-			$generated_by_message .= ' <a href="https://www.wpwhitesecurity.com/wordpress-plugins/wp-2fa/" target="_blank">' . esc_html__( 'WP 2FA Plugin', 'wp-2fa' ) . '</a>';
+			$generated_by_message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . esc_html__( 'WP 2FA Plugin', 'wp-2fa' ) . '</a>';
 			$generated_by_message .= '</p>';
 
 			$user      = wp_get_current_user();
@@ -598,21 +618,24 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$post_id = $result;
 				set_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role, true, 60 );
 				set_site_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role, true, 60 );
+
 				return $post_id;
 			}
+
+			return $result;
 		}
 
 		/**
 		 * Check if page with slug exists.
 		 *
-		 * @param string $slug - The post slug.
+		 * @param string $slug      - The post slug.
 		 * @param string $post_type - Post type.
 		 *
 		 * @return \WP_Post|bool
 		 *
 		 * @since 2.0.0
 		 */
-		public function get_post_by_post_name( $slug = '', $post_type = '' ) {
+		public static function get_post_by_post_name( $slug = '', $post_type = '' ) {
 			if ( ! $slug || ! $post_type ) {
 				return false;
 			}
@@ -627,35 +650,35 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		}
 
 		/**
-		 * General settings
+		 * General settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function select_method_setting() {
+		private static function select_method_setting() {
 			First_Time_Wizard_Steps::select_method( false );
 		}
 
 		/**
-		 * Policy settings
+		 * Policy settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function select_enforcement_policy_setting() {
+		private static function select_enforcement_policy_setting() {
 			First_Time_Wizard_Steps::enforcement_policy( false );
 		}
 
 		/**
-		 * User profile settings
+		 * User profile settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function user_profile_settings() {
+		private static function user_profile_settings() {
 			ob_start();
 			$create_page = WP2FA::get_wp2fa_setting( 'create-custom-user-page' );
 			?>
@@ -702,6 +725,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 								foreach ( $settings_errors as $error ) {
 									if ( 'no_page_slug_provided' === $error['code'] ) {
 										$has_error = true;
+
 										break;
 									}
 								}
@@ -713,7 +737,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 							<?php echo ( $has_error ) ? ' class="error"' : ''; ?>>
 						</fieldset>
 							<?php
-							if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
+							if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) && ! WP_Helper::is_multisite() ) ) {
 								$edit_post_link = get_edit_post_link( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) );
 								$view_post_link = get_permalink( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) );
 								?>
@@ -724,6 +748,22 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 							?>
 					</td>
 				</tr>
+				<?php if ( WP_Helper::is_multisite() ) { ?>
+					<tr class="custom-user-page-setting<?php echo ( 'yes' !== $create_page ) ? ' disabled' : ''; ?>">
+						<th><label for="separate-multisite-page-url"><?php esc_html_e( 'Create separate pages on multisite network', 'wp-2fa' ); ?></label></th>
+						<td>
+							<?php
+								$separate_multisite_page = WP2FA::get_wp2fa_setting( 'separate-multisite-page-url' );
+							?>
+							<fieldset>
+								<input type="checkbox" name="wp_2fa_policy[<?php echo \esc_attr( 'separate-multisite-page-url' ); ?>]" 
+								id="separate-multisite-page-url" 
+								value="separate-multisite-page-url" <?php checked( $separate_multisite_page, 'separate-multisite-page-url' ); ?> class="js-nested">
+								<label for="separate-multisite-page-url"><?php echo \esc_html__( 'Create User settings page separately for every site', 'wp-2fa' ); ?></label>
+							</fieldset>
+						</td>
+					</tr>
+					<?php } ?>
 				<tr class="custom-user-page-setting<?php echo ( 'yes' !== $create_page ) ? ' disabled' : ''; ?>">
 					<th colspan="2"><p class="description"><?php esc_html_e( 'Specify the page where you want to redirect your users to after they complete the 2FA setup. This will override the global redirect setting.', 'wp-2fa' ); ?></p></th>
 				</tr>
@@ -757,13 +797,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		}
 
 		/**
-		 * User profile settings
+		 * User profile settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function user_redirect_after_wizard() {
+		private static function user_redirect_after_wizard() {
 			ob_start();
 			?>
 		<h3><?php esc_html_e( 'Do you want to redirect the user to a specific page after completing the 2FA setup wizard?', 'wp-2fa' ); ?></h3>
@@ -799,13 +839,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		}
 
 		/**
-		 * Role and users exclusion settings
+		 * Role and users exclusion settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function excluded_roles_or_users_setting() {
+		private static function excluded_roles_or_users_setting() {
 			?>
 		<div id="exclusion_settings_wrapper">
 			<?php First_Time_Wizard_Steps::exclude_users(); ?>
@@ -814,30 +854,44 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		}
 
 		/**
-		 * Role and users exclusion settings
+		 * Role and users exclusion settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function excluded_network_sites() {
+		private static function excluded_network_sites() {
 			First_Time_Wizard_Steps::excluded_network_sites();
 		}
 
 		/**
-		 * Grace period settings
+		 * Grace period settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function grace_period_setting() {
+		private static function grace_period_setting() {
 			ob_start();
+
+			/**
+			 * Fires after the grace period. Gives the ability to change the parsed code.
+			 *
+			 * @param string $content - HTML content.
+			 * @param string $role - The name of the role.
+			 * @param string $name_prefix - Name prefix for the input name, includes the role name if provided.
+			 * @param string $data_role - Data attribute - used by the JS.
+			 * @param string $role_id - The role name, used to identify the inputs.
+			 *
+			 * @since 2.0.0
+			 */
+			echo \apply_filters( WP_2FA_PREFIX . 'before_grace_period_settings', '', '', 'wp_2fa_policy' );
+
 			?>
 		<br>
 		<h3><?php esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period?', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://wp2fa.io/support/kb/configure-grace-period-2fa/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank"><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+			<?php esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/configure-grace-period-2fa/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 		</p>
 
 		<table class="form-table">
@@ -866,13 +920,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		}
 
 		/**
-		 * Disable removal of 2FA settings
+		 * Disable removal of 2FA settings.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
-		private function disable_2fa_removal_setting() {
+		private static function disable_2fa_removal_setting() {
 			ob_start();
 			?>
 		<br>

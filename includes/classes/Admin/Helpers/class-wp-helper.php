@@ -1,33 +1,32 @@
 <?php
 /**
- * Responsible for the WP core functionalities
+ * Responsible for the WP core functionalities.
  *
  * @package    wp2fa
  * @subpackage helpers
+ *
  * @since      2.2.0
- * @copyright  2023 WP White Security
+ *
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
- * @link       https://wordpress.org/plugins/wp-2fa/
+ *
+ * @see       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\Helpers;
 
-use WP2FA\Admin\Helpers\User_Helper;
-
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
-/**
+/*
  * WP helper class
  */
 if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
-
 	/**
-	 * All the WP functionality must go trough this class
+	 * All the WP functionality must go trough this class.
 	 *
 	 * @since 2.2.0
 	 */
 	class WP_Helper {
-
 		/**
 		 * Hold the user roles as array - Human readable is used for key of the array, and the internal role name is the value.
 		 *
@@ -47,7 +46,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		private static $user_roles_wp = array();
 
 		/**
-		 * Keeps the value of the multisite install of the WP
+		 * Keeps the value of the multisite install of the WP.
 		 *
 		 * @var bool
 		 *
@@ -56,14 +55,14 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		private static $is_multisite = null;
 
 		/**
-		 * Holds array with all the sites in multisite WP installation
+		 * Holds array with all the sites in multisite WP installation.
 		 *
 		 * @var array
 		 */
 		private static $sites = array();
 
 		/**
-		 * Inits the class, and fires all the necessarily methods
+		 * Inits the class, and fires all the necessarily methods.
 		 *
 		 * @return void
 		 *
@@ -78,11 +77,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Checks if specific role exists
+		 * Checks if specific role exists.
 		 *
 		 * @param string $role - The name of the role to check.
-		 *
-		 * @return boolean
 		 *
 		 * @since 2.2.0
 		 */
@@ -97,7 +94,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Returns the currently available WP roles - the Human readable format is the key
+		 * Returns the currently available WP roles - the Human readable format is the key.
 		 *
 		 * @return array
 		 *
@@ -110,7 +107,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Returns the currently available WP roles
+		 * Returns the currently available WP roles.
 		 *
 		 * @return array
 		 *
@@ -126,7 +123,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Shows critical notices to the admin
+		 * Shows critical notices to the admin.
 		 *
 		 * @return void
 		 *
@@ -134,7 +131,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 */
 		public static function show_critical_admin_notice() {
 			if ( User_Helper::is_admin() ) {
-				/**
+				/*
 				 * Gives the ability to show notices to the admins
 				 */
 				\do_action( WP_2FA_PREFIX . 'critical_notice' );
@@ -144,7 +141,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		/**
 		 * Check is this is a multisite setup.
 		 *
-		 * @return boolean
+		 * @return bool
 		 *
 		 * @since 2.2.0
 		 */
@@ -152,18 +149,18 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			if ( null === self::$is_multisite ) {
 				self::$is_multisite = function_exists( 'is_multisite' ) && is_multisite();
 			}
+
 			return self::$is_multisite;
 		}
 
 		/**
-		 * Collects all the sites from multisite WP installation
+		 * Collects all the sites from multisite WP installation.
 		 *
-		 * @return array
+		 * @since 2.5.0
 		 */
 		public static function get_multi_sites(): array {
 			if ( self::is_multisite() ) {
 				if ( empty( self::$sites ) ) {
-
 					self::$sites = \get_sites();
 				}
 
@@ -178,8 +175,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @param array $data - Array with data to create a signature for.
 		 *
-		 * @return string
-		 *
 		 * @since 2.2.2
 		 */
 		public static function calculate_api_signature( array $data ): string {
@@ -193,7 +188,96 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Sets the internal variable with all the existing WP roles
+		 * Checks if that is the WP login page or not.
+		 *
+		 * @return bool
+		 *
+		 * @since 2.4.1
+		 */
+		public static function is_wp_login() {
+			$abs_path = str_replace( array( '\\', '/' ), DIRECTORY_SEPARATOR, ABSPATH );
+
+			if ( function_exists( 'is_account_page' ) && is_account_page() ) {
+				// The user is on the WooCommerce login page.
+
+				return true;
+			}
+
+			return ( in_array( $abs_path . 'wp-login.php', get_included_files() ) || in_array( $abs_path . 'wp-register.php', get_included_files() ) ) || ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) || '/wp-login.php' == $_SERVER['PHP_SELF'];
+		}
+
+		/**
+		 * Check whether we are on an admin and plugin page.
+		 *
+		 * @since 2.4.1
+		 *
+		 * @param array|string $slug ID(s) of a plugin page. Possible values: 'general', 'logs', 'about' or array of them.
+		 *
+		 * @return bool
+		 */
+		public static function is_admin_page( $slug = array() ) { // phpcs:ignore Generic.Metrics.NestingLevel.MaxExceeded
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$cur_page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
+			$check    = WP_2FA_PREFIX_PAGE;
+
+			return \is_admin() && ( false !== strpos( $cur_page, $check ) );
+		}
+
+		/**
+		 * Remove all non-WP Mail SMTP plugin notices from our plugin pages.
+		 *
+		 * @since 2.4.1
+		 */
+		public static function hide_unrelated_notices() {
+			// Bail if we're not on our screen or page.
+			if ( ! self::is_admin_page() ) {
+				return;
+			}
+
+			self::remove_unrelated_actions( 'user_admin_notices' );
+			self::remove_unrelated_actions( 'admin_notices' );
+			self::remove_unrelated_actions( 'all_admin_notices' );
+			self::remove_unrelated_actions( 'network_admin_notices' );
+		}
+
+		/**
+		 * Remove all non-WP Mail SMTP notices from the our plugin pages based on the provided action hook.
+		 *
+		 * @since 2.4.1
+		 *
+		 * @param string $action The name of the action.
+		 */
+		private static function remove_unrelated_actions( $action ) {
+			global $wp_filter;
+
+			if ( empty( $wp_filter[ $action ]->callbacks ) || ! is_array( $wp_filter[ $action ]->callbacks ) ) {
+				return;
+			}
+
+			foreach ( $wp_filter[ $action ]->callbacks as $priority => $hooks ) {
+				foreach ( $hooks as $name => $arr ) {
+					if (
+						( // Cover object method callback case.
+							is_array( $arr['function'] ) &&
+							isset( $arr['function'][0] ) &&
+							is_object( $arr['function'][0] ) &&
+							false !== strpos( ( get_class( $arr['function'][0] ) ), 'WP2FA' )
+						) ||
+						( // Cover class static method callback case.
+							! empty( $name ) &&
+							false !== strpos( ( $name ), 'WP2FA' )
+						)
+					) {
+						continue;
+					}
+
+					unset( $wp_filter[ $action ]->callbacks[ $priority ][ $name ] );
+				}
+			}
+		}
+
+		/**
+		 * Sets the internal variable with all the existing WP roles.
 		 *
 		 * @return void
 		 *

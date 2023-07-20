@@ -7,21 +7,27 @@
  *
  * @since      2.2.0
  *
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
  */
+
+declare(strict_types=1);
 
 namespace WP2FA\Admin\Helpers;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 use WP2FA\WP2FA;
-use WP2FA\Admin\User;
 use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Settings_Page;
+use WP2FA\Utils\Settings_Utils;
+use WP2FA\Authenticator\Open_SSL;
+use WP2FA\Freemius\User_Licensing;
+use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Authenticator\Authentication;
 
 /*
  * User's settings class
@@ -83,7 +89,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 */
 		public const USER_UNDETERMINED_STATUS = 'no_determined_yet';
 		/**
-		 * The default status of the user which has no status set yet.
+		 * The last login date for the user.
+		 */
+		public const USER_LOGIN_DATE = 'login_date';
+		/**
+		 * The reset password for the user is valid.
+		 */
+		public const USER_RESET_PASSWORD_VALID = 'reset_password_valid';
+		/**
+		 * The default user statuses.
 		 */
 		public const USER_STATE_STATUSES = array(
 			'optional',
@@ -99,6 +113,76 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		private static $user = null;
+
+		/**
+		 * All global excluded roles
+		 *
+		 * @var array
+		 *
+		 * @since 2.5.0
+		 */
+		private static $excluded_roles = null;
+
+		/**
+		 * All global excluded sites
+		 *
+		 * @var array
+		 *
+		 * @since 2.5.0
+		 */
+		private static $excluded_sites = null;
+
+		/**
+		 * All global excluded users
+		 *
+		 * @var array
+		 *
+		 * @since 2.5.0
+		 */
+		private static $excluded_users = null;
+
+		/**
+		 * All global included sites
+		 *
+		 * @var array
+		 *
+		 * @since 2.5.0
+		 */
+		private static $included_sites = null;
+
+		/**
+		 * All global enforced users
+		 *
+		 * @var array
+		 *
+		 * @since 2.5.0
+		 */
+		private static $enforced_users = null;
+
+		/**
+		 * All global enforced roles
+		 *
+		 * @var array
+		 *
+		 * @since 2.5.0
+		 */
+		private static $enforced_roles = null;
+
+		/**
+		 * Totp key assigned to user
+		 *
+		 * @var string
+		 */
+		private static $totp_key = '';
+
+		/**
+		 * Marks the status of the updating process
+		 *
+		 * @var boolean
+		 *
+		 * @since 2.4.1
+		 */
+		private static $update_started = false;
 
 		/**
 		 * Returns the enabled 2FA method for the user.
@@ -164,6 +248,22 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::set_proper_user( $user );
 
 			self::remove_meta( self::ENABLED_METHODS_META_KEY, self::$user );
+
+			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
+				$user_blog_id = 1;
+				if ( WP_Helper::is_multisite() ) {
+					$user_blog_id = \get_active_blog_for_user( self::$user->ID );
+				}
+				if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore
+					if ( WP_Helper::is_multisite() ) {
+						\switch_to_blog( $user_blog_id );
+					}
+					User_Licensing::method_has_been_set();
+					if ( WP_Helper::is_multisite() ) {
+						\switch_to_blog( $current_blog );
+					}
+				}
+			}
 		}
 
 		/**
@@ -210,6 +310,98 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::set_proper_user( $user );
 
 			self::remove_meta( self::TOKEN_META_KEY, self::$user );
+		}
+
+		/**
+		 * Returns the last login date for the user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.5.0
+		 */
+		public static function get_login_date_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			return self::get_meta( self::USER_RESET_PASSWORD_VALID );
+		}
+
+		/**
+		 * Sets  last login date for the user.
+		 *
+		 * @param bool              $valid - The reset password is valid user.
+		 * @param int|\WP_User|null $user  - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.5.0
+		 */
+		public static function set_reset_password_valid_for_user( bool $valid, $user = null ) {
+			self::set_proper_user( $user );
+
+			return self::set_meta( self::USER_RESET_PASSWORD_VALID, $valid );
+		}
+
+		/**
+		 * Removes  last login date  for the user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return void
+		 *
+		 * @since 2.5.0
+		 */
+		public static function remove_reset_password_valid_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			self::remove_meta( self::USER_RESET_PASSWORD_VALID, self::$user );
+		}
+
+		/**
+		 * Returns the last login date for the user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.5.0
+		 */
+		public static function get_reset_password_valid_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			return self::get_meta( self::USER_RESET_PASSWORD_VALID );
+		}
+
+		/**
+		 * Sets last login date for the user.
+		 *
+		 * @param int               $login_date - The login date to set for the user.
+		 * @param int|\WP_User|null $user  - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.5.0
+		 */
+		public static function set_login_date_for_user( int $login_date, $user = null ) {
+			self::set_proper_user( $user );
+
+			return self::set_meta( self::USER_LOGIN_DATE, $login_date );
+		}
+
+		/**
+		 * Removes  last login date  for the user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return void
+		 *
+		 * @since 2.5.0
+		 */
+		public static function remove_login_date_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			self::remove_meta( self::USER_LOGIN_DATE, self::$user );
 		}
 
 		/**
@@ -500,15 +692,16 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 *
 		 * @param string            $meta - The meta name that we should check.
 		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 * @param mixed             $default_value - The default value to be returned if meta is not presented.
 		 *
 		 * @return mixed
 		 *
 		 * @since 2.2.0
 		 */
-		public static function get_meta( string $meta, $user = null ) {
+		public static function get_meta( string $meta, $user = null, $default_value = true ) {
 			self::set_proper_user( $user );
 
-			return \get_user_meta( self::$user->ID, $meta, true );
+			return \get_user_meta( self::$user->ID, $meta, $default_value );
 		}
 
 		/**
@@ -569,6 +762,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function get_user_object( $user = null ) {
+			if ( null === $user && null !== self::$user ) {
+				return self::$user;
+			}
+
 			self::set_user( $user );
 
 			return self::$user;
@@ -590,15 +787,18 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				}
 				self::$user = $user;
 			} elseif ( false !== ( filter_var( $user, FILTER_VALIDATE_INT ) ) ) {
-				if ( isset( self::$user ) && $user === self::$user->ID ) {
+				if ( isset( self::$user ) && $user instanceof \WP_User && $user === self::$user->ID ) {
 					return;
 				}
 				if ( ! function_exists( 'get_user_by' ) ) {
 					require ABSPATH . WPINC . '/pluggable.php';
 				}
 				self::$user = \get_user_by( 'id', $user );
+				if ( \is_bool( self::$user ) ) {
+					self::$user = \wp_get_current_user();
+				}
 			} elseif ( is_string( $user ) && ! empty( trim( $user ) ) ) {
-				if ( isset( self::$user ) && $user === self::$user->ID ) {
+				if ( isset( self::$user ) && $user instanceof \WP_User && $user === self::$user->ID ) {
 					return;
 				}
 				if ( ! function_exists( 'get_user_by' ) ) {
@@ -606,6 +806,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				}
 				self::$user = \get_user_by( 'login', $user );
 			} else {
+				if ( ! function_exists( 'wp_get_current_user' ) ) {
+					require ABSPATH . WPINC . '/pluggable.php';
+					wp_cookie_constants();
+				}
 				self::$user = \wp_get_current_user();
 			}
 		}
@@ -619,6 +823,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 */
 		public static function get_user_role( $user = null ): string {
 			self::set_proper_user( $user );
+
+			if ( 0 === self::$user->ID || \is_bool( self::$user ) ) {
+				return '';
+			}
 
 			if ( \is_multisite() ) {
 				$blog_id = \get_current_blog_id();
@@ -670,6 +878,39 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
+		 * Returns the default blog_id for the given user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user.
+		 *
+		 * @since 2.5.0
+		 */
+		public static function get_user_default_blog( $user = null ): int {
+			self::set_proper_user( $user );
+
+			if ( 0 === self::$user->ID ) {
+				return 0;
+			}
+
+			if ( \is_multisite() ) {
+				$blog_id = \get_current_blog_id();
+
+				if ( ! is_user_member_of_blog( self::$user->ID, $blog_id ) ) {
+					$blog_id = \get_active_blog_for_user( self::$user->ID );
+
+					if ( $blog_id instanceof \WP_Site ) {
+						return $blog_id->id;
+					} else {
+						return 1;
+					}
+				}
+			} else {
+				return 1;
+			}
+
+			return (int) $blog_id;
+		}
+
+		/**
 		 * Checks if the user method is within the selected methods for the given role.
 		 *
 		 * @param int|\WP_User|null $user - The WP user.
@@ -697,6 +938,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::set_proper_user( $user );
 
 			self::remove_meta( self::SECRET_META_KEY, self::$user );
+
+			self::$totp_key = '';
 		}
 
 		/**
@@ -750,6 +993,23 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 
 			foreach ( array_keys( $user_meta_values ) as $meta_name ) {
 				self::remove_meta( $meta_name, $user );
+			}
+
+			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
+				if ( WP_Helper::is_multisite() ) {
+					$user_blog_id = \get_active_blog_for_user( self::$user->ID );
+				}
+				if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id->blog_id ) { // phpcs:ignore
+					if ( WP_Helper::is_multisite() ) {
+						wp2fa_freemius()->switch_to_blog($user_blog_id->blog_id);
+						//\switch_to_blog( $user_blog_id->blog_id );
+					}
+					User_Licensing::method_has_been_set();
+					if ( WP_Helper::is_multisite() ) {
+						wp2fa_freemius()->switch_to_blog($current_blog);
+						//\switch_to_blog( $current_blog );
+					}
+				}
 			}
 
 			/*
@@ -871,10 +1131,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			if ( 'excluded' !== $state ) {
 				$user_role = self::get_user_role( $user );
 
-				// User does not have role assigned, don't exclude them.
+				if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ) ) && is_super_admin( self::$user->ID ) ) {
+					$state = 'excluded';
+					self::set_user_state( $state, $user );
+				}
+
+				// User does not have role assigned, exclude them.
 				if ( '' === $user_role ) {
 					$state = 'excluded';
-					self::set_user_state( 'excluded', $state );
+					self::set_user_state( $state, $user );
 				}
 			}
 
@@ -894,9 +1159,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::set_proper_user( $user );
 
 			$enforcement_state = 'optional';
-			if ( User::run_user_exclusion_check( self::get_user() ) ) {
+			if ( self::run_user_exclusion_check( self::get_user() ) ) {
 				$enforcement_state = 'excluded';
-			} elseif ( User::run_user_enforcement_check( self::get_user() ) ) {
+			} elseif ( self::run_user_enforcement_check( self::get_user() ) ) {
 				$enforcement_state = 'enforced';
 			}
 
@@ -1029,6 +1294,821 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
+		 * User totp key getter
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return string
+		 */
+		public static function get_totp_key( $user = null ): string {
+			self::set_proper_user( $user );
+
+			if ( '' === trim( self::$totp_key ) ) {
+				self::$totp_key = Authentication::get_user_totp_key( self::get_user()->ID );
+				if ( empty( self::$totp_key ) ) {
+					self::$totp_key = Authentication::generate_key();
+
+					self::set_user_totp_key( self::$totp_key, self::get_user() );
+				} elseif ( Open_SSL::is_ssl_available() && false === \strpos( self::$totp_key, Open_SSL::SECRET_KEY_PREFIX ) ) {
+						self::$totp_key = Open_SSL::SECRET_KEY_PREFIX . Open_SSL::encrypt( self::$totp_key );
+						self::set_user_totp_key( self::$totp_key, self::get_user() );
+				}
+			}
+
+			return self::$totp_key;
+		}
+
+		/**
+		 * Returns the encoded TOTP when we need to show the actual code to the user
+		 * If for some reason the code is invalid it recreates it
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return string
+		 *
+		 * @since 2.0.0
+		 */
+		public static function get_totp_decrypted( $user = null ): string {
+			self::set_proper_user( $user );
+
+			$key = self::get_totp_key();
+			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
+
+				/**
+				 * Old key detected - convert.
+				 */
+				$key = Open_SSL::decrypt_legacy( substr( $key, 4 ) );
+
+				self::remove_user_totp_key();
+				self::$totp_key = '';
+
+				$key = self::get_totp_key();
+			}
+
+			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
+
+				/**
+				 * Old key detected - convert.
+				 */
+				$key = Open_SSL::decrypt_wps( substr( $key, 4 ) );
+
+				self::remove_user_totp_key();
+
+				$secret = Open_SSL::encrypt( $key );
+
+				if ( Open_SSL::is_ssl_available() ) {
+					$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
+				}
+
+				self::set_user_totp_key( $secret, self::get_user()->ID );
+
+				self::$totp_key = $secret;
+			}
+
+			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
+				$key = Open_SSL::decrypt( substr( $key, 4 ) );
+
+				/**
+				 * If for some reason the key is not valid, that means that we have to clear the stored TOTP for the user, and create new on
+				 * That could happen if the global stored secret (plugin level) is deleted.
+				 *
+				 * Lets check and if that is the case - create new one
+				 */
+				if ( ! Authentication::validate_base32_string( $key ) ) {
+					self::$totp_key = '';
+					self::remove_user_totp_key( self::get_user() );
+					$key = self::get_totp_key();
+					$key = Open_SSL::decrypt( substr( $key, 4 ) );
+				}
+			}
+
+			return $key;
+		}
+
+		/**
+		 * Checks if user needs to reconfigure the method
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return boolean
+		 */
+		public static function needs_to_reconfigure_method( $user = null ): bool {
+
+			self::set_proper_user( $user );
+
+			return ( ! empty( self::get_user_needs_to_reconfigure_2fa( self::get_user() ) ) && ! self::get_nag_status() && empty( self::get_enabled_method_for_user( self::get_user() ) ) );
+		}
+
+		/**
+		 * Locks the user account if the grace period setting is configured and the user is currently out of their grace
+		 * period. It also takes care of sending the "account locked" email to the user if not already sent before.
+		 *
+		 * @return bool True if the user account is locked. False otherwise.
+		 */
+		private static function lock_user_account_if_needed() {
+			$settings = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME );
+			if ( ! is_array( $settings ) || ( isset( $settings['enforcement-policy'] ) && 'do-not-enforce' === $settings['enforcement-policy'] ) ) {
+				// 2FA is not enforced, make sure to clear any related user meta previously created
+				self::remove_meta( WP_2FA_PREFIX . 'is_locked' );
+				self::remove_user_expiry_date();
+				self::remove_meta( WP_2FA_PREFIX . 'locked_account_notification' );
+
+				return false;
+			}
+
+			if ( self::is_excluded() ) {
+				return false;
+			}
+
+			$is_user_instantly_enforced = self::get_user_enforced_instantly();
+			if ( $is_user_instantly_enforced ) {
+				// no need to lock the account if the user is enforced to set 2FA up instantly.
+				return false;
+			}
+
+			// Do not lock if user has 2FA configured.
+			$has_enabled_method = self::get_2fa_status();
+			if ( 'has_enabled_methods' === $has_enabled_method ) {
+				return false;
+			}
+
+			$grace_period_expiry_time = self::get_user_expiry_date();
+			$grace_period_expired     = ( ! empty( $grace_period_expiry_time ) && $grace_period_expiry_time < time() );
+			if ( $grace_period_expired ) {
+
+				/**
+				 * Filter can be used to prevent locking of the user account when the grace period expires.
+				 *
+				 * @param boolean $should_be_locked Should account be locked? True by default.
+				 * @param \WP_User $user WP_User object.
+				 *
+				 * @return boolean True if the user account should be locked.
+				 * @since 2.0.0
+				 */
+				$should_be_locked = apply_filters( WP_2FA_PREFIX . 'should_account_be_locked_on_grace_period_expiration', true, self::get_user() );
+				if ( ! $should_be_locked ) {
+					return false;
+				}
+
+				// set "grace period expired" flag.
+				self::set_grace_period( true );
+
+				/**
+				 * Allow 3rd party developers to execute additional code when grace period expires (account is locked)
+				 *
+				 * @param \WP_User $user WP_User object.
+				 *
+				 * @since 2.0.0
+				 */
+				do_action( WP_2FA_PREFIX . 'after_grace_period_expired', self::get_user() );
+
+				/**
+				 * Filter can be used to disable the email notification about locked user account.
+				 *
+				 * @param boolean $can_send Can the email notification be sent? True by default.
+				 * @param \WP_User $user WP_User object.
+				 *
+				 * @return boolean True if the email notification can be sent.
+				 * @since 2.0.0
+				 */
+				$notify_user = apply_filters( WP_2FA_PREFIX . 'send_account_locked_notification', true, self::get_user() );
+				if ( $notify_user ) {
+					// Send the email to alert the user, only if we have not done so before.
+					$account_notification = get_user_meta( self::get_user()->ID, WP_2FA_PREFIX . 'locked_account_notification', true );
+					if ( ! $account_notification ) {
+						self::send_expired_grace_email( self::get_user()->ID );
+						self::set_meta( WP_2FA_PREFIX . 'locked_account_notification', true );
+					}
+				}
+
+				// Grab user session and kill it, preferably with fire.
+				$manager = \WP_Session_Tokens::get_instance( self::get_user()->ID );
+				$manager->destroy_all();
+
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Caches and returns the globally set excluded roles
+		 *
+		 * @return array
+		 *
+		 * @since 2.5.0
+		 */
+		private static function get_excluded_roles() {
+			if ( null === self::$excluded_roles ) {
+				self::$excluded_roles = WP2FA::get_wp2fa_setting( 'excluded_roles' );
+			}
+
+			return self::$excluded_roles;
+		}
+
+		/**
+		 * Caches and returns the globally set enforced users
+		 *
+		 * @return array
+		 *
+		 * @since 2.5.0
+		 */
+		private static function get_enforced_users() {
+			if ( null === self::$enforced_users ) {
+				self::$enforced_users = WP2FA::get_wp2fa_setting( 'enforced_users' );
+			}
+
+			return self::$enforced_users;
+		}
+
+		/**
+		 * Caches and returns the globally set excluded sites
+		 *
+		 * @return array
+		 *
+		 * @since 2.5.0
+		 */
+		private static function get_excluded_sites() {
+			if ( null === self::$excluded_sites ) {
+				self::$excluded_sites = WP2FA::get_wp2fa_setting( 'excluded_sites' );
+			}
+
+			return self::$excluded_sites;
+		}
+
+		/**
+		 * Caches and returns the globally set excluded users
+		 *
+		 * @return array
+		 *
+		 * @since 2.5.0
+		 */
+		private static function get_excluded_users() {
+			if ( null === self::$excluded_users ) {
+				self::$excluded_users = WP2FA::get_wp2fa_setting( 'excluded_users' );
+			}
+
+			return self::$excluded_users;
+		}
+
+		/**
+		 * Caches and returns the globally set included sites
+		 *
+		 * @return array
+		 *
+		 * @since 2.5.0
+		 */
+		private static function get_included_sites() {
+			if ( null === self::$included_sites ) {
+				self::$included_sites = WP2FA::get_wp2fa_setting( 'included_sites' );
+			}
+
+			return self::$included_sites;
+		}
+
+		/**
+		 * Caches and returns the globally set enforced roles
+		 *
+		 * @return array
+		 *
+		 * @since 2.5.0
+		 */
+		private static function get_enforced_roles() {
+			if ( null === self::$enforced_roles ) {
+				self::$enforced_roles = WP2FA::get_wp2fa_setting( 'enforced_roles' );
+			}
+
+			return self::$enforced_roles;
+		}
+
+		/**
+		 * Runs the necessary checks to figure out if the user is excluded based on current plugin settings.
+		 *
+		 * @param \WP_User $user User to evaluate.
+		 * @param array    $roles - Array with user roles.
+		 * @param string   $user_login - User login name.
+		 * @param int      $user_id - The id of the user.
+		 *
+		 * @return bool True if the user is excluded based on current plugin settings.
+		 * @since 2.0.0
+		 *
+		 * @since 2.5.0 added params $roles, $user_login, $user_id . $user is with highest priority
+		 */
+		public static function run_user_exclusion_check( $user = null, $roles = null, $user_login = null, $user_id = null ) {
+			if ( null !== $user ) {
+				$user_roles = $user->roles;
+				$user_login = $user->user_login;
+				$user_id    = $user->ID;
+			} else {
+				/**
+				 * Setting that inner class flag because if we are here that means reports are generated, and we dont need to update users meta but just to check what is currently there.
+				 */
+				self::$update_started = true;
+				$user_roles           = $roles;
+			}
+			$user_excluded  = false;
+			$excluded_users = self::get_excluded_users();
+			if ( ! empty( $excluded_users ) ) {
+
+				// Compare our roles with the users and see if we get a match.
+				$result = in_array( $user_login, $excluded_users, true );
+				if ( $result ) {
+					return true;
+				}
+			}
+
+			$excluded_roles = self::get_excluded_roles();
+			if ( ! empty( $excluded_roles ) ) {
+				$excluded_roles = array_map( 'strtolower', $excluded_roles );
+				// Compare our roles with the users and see if we get a match.
+				$result = array_intersect( $excluded_roles, $user_roles );
+				if ( ! empty( $result ) ) {
+					return true;
+				}
+			}
+
+			if ( WP_Helper::is_multisite() ) {
+				$excluded_sites = self::get_excluded_sites();
+				if ( ! empty( $excluded_sites ) && is_array( $excluded_sites ) ) {
+
+					foreach ( $excluded_sites as $site_id ) {
+						if ( is_user_member_of_blog( $user_id, $site_id ) ) {
+							// User is a member of the blog we are excluding from 2FA.
+							return true;
+						} else {
+							// User is NOT a member of the blog we are excluding.
+							$user_excluded = false;
+						}
+					}
+				}
+
+				$included_sites = self::get_included_sites();
+				if ( $included_sites && is_array( $included_sites ) ) {
+					foreach ( $included_sites as $site_id ) {
+						if ( is_user_member_of_blog( $user_id, $site_id ) ) {
+							$user_excluded = false;
+						}
+					}
+				}
+			}
+
+			return $user_excluded;
+		}
+
+		/**
+		 * Runs the necessary checks to figure out if the user is enforced based on current plugin settings.
+		 *
+		 * @param \WP_User $user User to evaluate.
+		 * @param array    $roles - Array with user roles.
+		 * @param string   $user_login - User login name.
+		 * @param int      $user_id - The id of the user.
+		 *
+		 * @return bool True if the user is enforced based on current plugin settings.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @since 2.5.0 added params $roles, $user_login, $user_id . $user is with highest priority
+		 */
+		public static function run_user_enforcement_check( $user = null, $roles = null, $user_login = null, $user_id = null ) {
+			if ( null !== $user ) {
+				$user_roles = $user->roles;
+				$user_login = $user->user_login;
+				$user_id    = $user->ID;
+			} else {
+				/**
+				 * Setting that inner class flag because if we are here that means reports are generated, and we dont need to update users meta but just to check what is currently there.
+				 */
+				self::$update_started = true;
+				$user_roles           = $roles;
+			}
+
+			$current_policy = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
+			$enabled_method = self::get_enabled_method_for_user( $user_id );
+			$user_eligible  = false;
+
+			if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ) ) && is_super_admin( $user_id ) ) {
+				return false;
+			}
+
+			// Let's check the policy settings and if the user has setup totp/email by checking for the usermeta.
+			if ( empty( $enabled_method ) && WP_Helper::is_multisite() && 'superadmins-only' === $current_policy ) {
+				return is_super_admin( $user_id );
+			} elseif ( empty( $enabled_method ) && WP_Helper::is_multisite() && 'superadmins-siteadmins-only' === $current_policy ) {
+				return self::is_admin( $user_id );
+			} elseif ( 'all-users' === $current_policy && empty( $enabled_method ) ) {
+
+				$excluded_users = self::get_excluded_users();
+				if ( ! empty( $excluded_users ) ) {
+					// Compare our roles with the users and see if we get a match.
+					$result = in_array( $user_login, $excluded_users, true );
+					if ( $result ) {
+						return false;
+					}
+
+					$user_eligible = true;
+				}
+
+				$excluded_roles = self::get_excluded_roles();
+				if ( ! empty( $excluded_roles ) ) {
+
+					if ( ! WP_Helper::is_multisite() ) {
+						// Compare our roles with the users and see if we get a match.
+						$result = array_intersect( $excluded_roles, $user_roles );
+
+						if ( ! empty( $result ) ) {
+							return false;
+						}
+					} else {
+						$users_caps = array();
+						$subsites   = get_sites();
+						// Check each site and add to our array so we know each users actual roles.
+						foreach ( $subsites as $subsite ) {
+							$subsite_id = get_object_vars( $subsite )['blog_id'];
+							global $wpdb;
+
+							if ( 1 === (int) $subsite_id ) {
+								$users_caps[] = get_user_meta( $user_id, $wpdb->base_prefix . 'capabilities', true );
+							} else {
+								$users_caps[] = get_user_meta( $user_id, $wpdb->base_prefix . $subsite_id . '_capabilities', true );
+							}
+						}
+
+						foreach ( $users_caps as $key => $value ) {
+							if ( ! empty( $value ) ) {
+								foreach ( $value as $key => $value ) {
+									$result = in_array( $key, $excluded_roles, true );
+								}
+							}
+						}
+						if ( ! empty( $result ) ) {
+							return false;
+						}
+					}
+				}
+
+				if ( true === $user_eligible || empty( $enabled_method ) ) {
+					return true;
+				}
+			} elseif ( ( 'certain-roles-only' === $current_policy || 'certain-users-only' === $current_policy ) && empty( $enabled_method ) ) {
+				$enforced_users = self::get_enforced_users();
+				if ( ! empty( $enforced_users ) ) {
+
+					// Compare our roles with the users and see if we get a match.
+					$result = in_array( $user_login, $enforced_users, true );
+					// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
+					if ( ! empty( $result ) ) {
+						return true;
+					}
+				}
+
+				$enforced_roles = self::get_enforced_roles();
+				if ( ! empty( $enforced_roles ) ) {
+					// Turn it into an array.
+					$enforced_roles_array = Settings_Page::extract_roles_from_input( $enforced_roles );
+
+					if ( ! WP_Helper::is_multisite() ) {
+						// Compare our roles with the users and see if we get a match.
+						$result = array_intersect( $enforced_roles_array, $user_roles );
+
+						// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
+						if ( ! empty( $result ) ) {
+							return true;
+						}
+					} else {
+						$users_caps = array();
+						$subsites   = get_sites();
+						// Check each site and add to our array so we know each users actual roles.
+						foreach ( $subsites as $subsite ) {
+							$subsite_id = get_object_vars( $subsite )['blog_id'];
+							if ( 1 === (int) $subsite_id ) {
+								$users_caps[] = get_user_meta( $user_id, 'wp_capabilities', true );
+							} else {
+								$users_caps[] = get_user_meta( $user_id, 'wp_' . $subsite_id . '_capabilities', true );
+							}
+						}
+
+						foreach ( $users_caps as $key => $value ) {
+							if ( ! empty( $value ) ) {
+								foreach ( $value as $key => $value ) {
+									$result = in_array( $key, $enforced_roles_array, true );
+								}
+							}
+						}
+						if ( ! empty( $result ) ) {
+							return true;
+						}
+					}
+				}
+
+				if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ) ) ) {
+					return is_super_admin( $user_id );
+				}
+			} /* elseif ( 'certain-users-only' === $current_policy && empty( $enabled_method ) ) {
+				$enforced_users = self::get_enforced_users();
+				if ( ! empty( $enforced_users ) ) {
+					// Compare our roles with the users and see if we get a match.
+					$result = in_array( $user_login, $enforced_users, true );
+					// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
+					if ( ! empty( $result ) ) {
+						return true;
+					}
+				}
+			} */ elseif ( 'enforce-on-multisite' === $current_policy ) {
+				$included_sites = self::get_included_sites();
+
+				foreach ( $included_sites as $site_id ) {
+					if ( is_user_member_of_blog( $user_id, $site_id ) ) {
+						return true;
+					}
+				}
+			} elseif ( 'all-users' === $current_policy && ! empty( $enabled_method ) ) {
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Runs the necessary checks to figure out if the user is enforced based on current plugin settings.
+		 *
+		 * @param \WP_User $user User to evaluate.
+		 * @param array    $roles - Array with user roles.
+		 * @param string   $user_login - User login name.
+		 * @param int      $user_id - The id of the user.
+		 *
+		 * @return bool True if the user is enforced based on current plugin settings.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @since 2.5.0 added params $roles, $user_login, $user_id . $user is with highest priority
+		 */
+		public static function is_user_enforced( $user = null, $roles = null, $user_login = null, $user_id = null ) {
+			if ( null !== $user ) {
+				$user_roles = $user->roles;
+				$user_login = $user->user_login;
+				$user_id    = $user->ID;
+			} else {
+				/**
+				 * Setting that inner class flag because if we are here that means reports are generated, and we dont need to update users meta but just to check what is currently there.
+				 */
+				self::$update_started = true;
+				$user_roles           = $roles;
+			}
+
+			$current_policy = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
+			$user_eligible  = false;
+
+			if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ) ) && is_super_admin( $user_id ) ) {
+				return false;
+			}
+
+			// Let's check the policy settings and if the user has setup totp/email by checking for the usermeta.
+			if ( WP_Helper::is_multisite() && 'superadmins-only' === $current_policy ) {
+				return is_super_admin( $user_id );
+			} elseif ( WP_Helper::is_multisite() && 'superadmins-siteadmins-only' === $current_policy ) {
+				return self::is_admin( $user_id );
+			} elseif ( 'all-users' === $current_policy ) {
+
+				$excluded_users = self::get_excluded_users();
+				if ( ! empty( $excluded_users ) ) {
+					// Compare our roles with the users and see if we get a match.
+					$result = in_array( $user_login, $excluded_users, true );
+					if ( $result ) {
+						return false;
+					}
+
+					$user_eligible = true;
+				}
+
+				$excluded_roles = self::get_excluded_roles();
+				if ( ! empty( $excluded_roles ) ) {
+
+					if ( ! WP_Helper::is_multisite() ) {
+						// Compare our roles with the users and see if we get a match.
+						$result = array_intersect( $excluded_roles, $user_roles );
+
+						if ( ! empty( $result ) ) {
+							return false;
+						}
+					} else {
+						$users_caps = array();
+						$subsites   = get_sites();
+						// Check each site and add to our array so we know each users actual roles.
+						foreach ( $subsites as $subsite ) {
+							$subsite_id = get_object_vars( $subsite )['blog_id'];
+							global $wpdb;
+
+							if ( 1 === (int) $subsite_id ) {
+								$users_caps[] = get_user_meta( $user_id, $wpdb->base_prefix . 'capabilities', true );
+							} else {
+								$users_caps[] = get_user_meta( $user_id, $wpdb->base_prefix . $subsite_id . '_capabilities', true );
+							}
+						}
+
+						foreach ( $users_caps as $key => $value ) {
+							if ( ! empty( $value ) ) {
+								foreach ( $value as $key => $value ) {
+									$result = in_array( $key, $excluded_roles, true );
+								}
+							}
+						}
+						if ( ! empty( $result ) ) {
+							return false;
+						}
+					}
+				}
+
+				if ( true === $user_eligible ) {
+					return true;
+				}
+			} elseif ( ( 'certain-roles-only' === $current_policy || 'certain-users-only' === $current_policy ) ) {
+				$enforced_users = self::get_enforced_users();
+				if ( ! empty( $enforced_users ) ) {
+
+					// Compare our roles with the users and see if we get a match.
+					$result = in_array( $user_login, $enforced_users, true );
+					// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
+					if ( ! empty( $result ) ) {
+						return true;
+					}
+				}
+
+				$enforced_roles = self::get_enforced_roles();
+				if ( ! empty( $enforced_roles ) ) {
+					// Turn it into an array.
+					$enforced_roles_array = Settings_Page::extract_roles_from_input( $enforced_roles );
+
+					if ( ! WP_Helper::is_multisite() ) {
+						// Compare our roles with the users and see if we get a match.
+						$result = array_intersect( $enforced_roles_array, $user_roles );
+
+						// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
+						if ( ! empty( $result ) ) {
+							return true;
+						}
+					} else {
+						$users_caps = array();
+						$subsites   = get_sites();
+						// Check each site and add to our array so we know each users actual roles.
+						foreach ( $subsites as $subsite ) {
+							$subsite_id = get_object_vars( $subsite )['blog_id'];
+							if ( 1 === (int) $subsite_id ) {
+								$users_caps[] = get_user_meta( $user_id, 'wp_capabilities', true );
+							} else {
+								$users_caps[] = get_user_meta( $user_id, 'wp_' . $subsite_id . '_capabilities', true );
+							}
+						}
+
+						foreach ( $users_caps as $key => $value ) {
+							if ( ! empty( $value ) ) {
+								foreach ( $value as $key => $value ) {
+									$result = in_array( $key, $enforced_roles_array, true );
+								}
+							}
+						}
+						if ( ! empty( $result ) ) {
+							return true;
+						}
+					}
+				}
+
+				if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ) ) ) {
+					return is_super_admin( $user_id );
+				}
+			} /* elseif ( 'certain-users-only' === $current_policy && empty( $enabled_method ) ) {
+				$enforced_users = self::get_enforced_users();
+				if ( ! empty( $enforced_users ) ) {
+					// Compare our roles with the users and see if we get a match.
+					$result = in_array( $user_login, $enforced_users, true );
+					// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
+					if ( ! empty( $result ) ) {
+						return true;
+					}
+				}
+			} */ elseif ( 'enforce-on-multisite' === $current_policy ) {
+				$included_sites = self::get_included_sites();
+
+				foreach ( $included_sites as $site_id ) {
+					if ( is_user_member_of_blog( $user_id, $site_id ) ) {
+						return true;
+					}
+				}
+			} elseif ( 'all-users' === $current_policy ) {
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Updates teh user metadata. Checks for changes in the global settings, and if it finds some, checks these against the given user metadata settings hash and updates the user metadata if necessary.
+		 *
+		 * @return void
+		 *
+		 * @since 2.4.1
+		 */
+		private static function update_meta_if_necessary() {
+			$global_settings_hash = Settings_Utils::get_option( WP_2FA_PREFIX . 'settings_hash' );
+			if ( ! empty( $global_settings_hash ) ) {
+				$stored_hash = self::get_global_settings_hash_for_user( self::get_user() );
+				if ( $global_settings_hash !== $stored_hash ) {
+					self::set_global_settings_hash_for_user( $global_settings_hash, self::get_user() );
+					// update necessary user attributes (user meta) based on changed settings; the enforcement check
+					// needs to run first as function "set_user_policies_and_grace" relies on having the correct values.
+					self::check_methods_and_set_user();
+					self::update_user_state( self::get_user() );
+					self::set_user_policies_and_grace();
+					self::remove_backup_methods( self::get_user() );
+				}
+				self::lock_user_account_if_needed();
+			}
+		}
+
+		/**
+		 * Sets the proper user policies and grace.
+		 *
+		 * @return void
+		 *
+		 * @since 2.4.1
+		 */
+		private static function set_user_policies_and_grace() {
+			$enabled_methods_for_the_user = self::get_enabled_method_for_user( self::get_user() );
+			if ( ! empty( $enabled_methods_for_the_user ) ) {
+				self::remove_user_enforced_instantly( self::get_user() );
+				self::remove_user_expiry_date( self::get_user() );
+				self::remove_user_needs_to_reconfigure_2fa( self::get_user() );
+				self::set_user_status( self::get_user() );
+
+				return;
+			}
+
+			if ( self::is_enforced( self::get_user()->ID ) ) {
+				$grace_policy = Settings::get_role_or_default_setting( 'grace-policy', self::get_user() );
+
+				// Check if want to apply the custom period, or instant expiry.
+				if ( 'use-grace-period' === $grace_policy ) {
+					$custom_grace_period_duration =
+					Settings::get_role_or_default_setting( 'grace-period', self::get_user() ) . ' ' . Settings::get_role_or_default_setting( 'grace-period-denominator', self::get_user() );
+					$grace_expiry                 = strtotime( $custom_grace_period_duration );
+					self::remove_user_enforced_instantly( self::get_user() );
+				} else {
+					$grace_expiry = time();
+				}
+
+				self::set_user_expiry_date( (string) $grace_expiry, self::get_user() );
+				if ( 'no-grace-period' === $grace_policy ) {
+					self::set_user_enforced_instantly( true, self::get_user() );
+				}
+			} else {
+				self::remove_user_enforced_instantly( self::get_user() );
+				self::remove_user_expiry_date( self::get_user() );
+				self::remove_user_needs_to_reconfigure_2fa( self::get_user() );
+			}
+
+			// update the 2FA status meta field.
+			self::set_user_status( self::get_user() );
+		}
+
+		/**
+		 * Checks the user methods and sets the user status.
+		 *
+		 * @return void
+		 *
+		 * @since 2.4.1
+		 */
+		private static function check_methods_and_set_user() {
+			if ( ! self::get_user_needs_to_reconfigure_2fa( self::get_user() ) ) {
+				$enabled_methods_for_the_user = self::get_enabled_method_for_user( self::get_user() );
+
+				if ( empty( $enabled_methods_for_the_user ) ) {
+					return;
+				}
+
+				$global_methods = Methods::get_available_2fa_methods();
+				if ( empty( \array_intersect( array( $enabled_methods_for_the_user ), $global_methods ) ) ) {
+					self::remove_enabled_method_for_user( self::get_user() );
+					if ( self::is_enforced( self::get_user()->ID ) ) {
+						self::set_user_needs_to_reconfigure_2fa( true, self::get_user() );
+					}
+				}
+			}
+		}
+
+		/**
+		 * Calls all the backup methods and gives them and option to remove their stored values.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return void
+		 *
+		 * @since 2.5.0
+		 */
+		private static function remove_backup_methods( $user = null ) {
+			self::set_proper_user( $user );
+			\do_action( WP_2FA_PREFIX . 'remove_backup_methods_for_user', self::get_user() );
+		}
+
+		/**
 		 * Sets the local variable class based on the given parameter.
 		 *
 		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
@@ -1042,6 +2122,12 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				self::set_user( $user );
 			} else {
 				self::get_user();
+			}
+
+			if ( false !== self::$user && 0 !== self::$user->ID && false === self::$update_started ) {
+				self::$update_started = true;
+
+				self::update_meta_if_necessary();
 			}
 		}
 	}

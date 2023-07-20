@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -163,6 +163,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function get_email_notification_definitions() {
+
+			$backup_codes = new Email_Template(
+				'user_backup_codes',
+				esc_html__( 'User backup codes email', 'wp-2fa' ),
+				esc_html__( 'This email can be sent a user once backup codes are generated.', 'wp-2fa' )
+			);
+			$backup_codes->set_can_be_toggled( false );
+
 			$result = array(
 				new Email_Template(
 					'login_code',
@@ -179,6 +187,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 					esc_html__( 'User account unlocked email', 'wp-2fa' ),
 					esc_html__( 'This is the email sent to a user when the user\'s account has been unlocked.', 'wp-2fa' )
 				),
+				new Email_Template(
+					'reset_password_code',
+					esc_html__( 'User reset password code email', 'wp-2fa' ),
+					esc_html__( 'This is the email sent to a user when a password reset is requested.', 'wp-2fa' )
+				),
+				$backup_codes,
 			);
 
 			/**
@@ -190,15 +204,17 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			 */
 			$result = apply_filters( WP_2FA_PREFIX . 'email_notification_definitions', $result );
 
-			if ( count( $result ) > 3 ) {
+			if ( count( $result ) > 5 ) {
 				$result[0]->set_can_be_toggled( false );
 				$result[1]->set_can_be_toggled( false );
 				$result[2]->set_email_content_id( 'user_account_locked' );
 				$result[3]->set_email_content_id( 'user_account_unlocked' );
+				$result[4]->set_can_be_toggled( false );
 			} else {
 				$result[0]->set_can_be_toggled( false );
 				$result[1]->set_email_content_id( 'user_account_locked' );
 				$result[2]->set_email_content_id( 'user_account_unlocked' );
+				$result[3]->set_can_be_toggled( false );
 			}
 			return $result;
 		}
@@ -310,6 +326,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				$output['send_account_unlocked_email'] = sanitize_text_field( wp_unslash( $_POST['send_account_unlocked_email'] ) );
 			}
 
+			if ( isset( $_POST['user_backup_codes_email_subject'] ) ) {
+				$output['user_backup_codes_email_subject'] = wp_kses_post( wp_unslash( $_POST['user_backup_codes_email_subject'] ) );
+			}
+
+			if ( isset( $_POST['user_backup_codes_email_body'] ) ) {
+				$output['user_backup_codes_email_body'] = wpautop( wp_kses_post( wp_unslash( $_POST['user_backup_codes_email_body'] ) ) );
+			}
+
 			/**
 			 * Filter the values we are about to store in the plugin settings.
 			 *
@@ -343,7 +367,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 * @since 2.0.0
 		 */
 		private static function email_settings() {
-			$custom_user_page_id        = Settings::check_setting_in_all_roles( 'custom-user-page-id' );
+			$custom_user_page_id = Settings::check_setting_in_all_roles( 'custom-user-page-id' );
+			if ( empty( $custom_user_page_id ) ) {
+				$custom_user_page_id = Settings::check_setting_in_all_roles( 'custom-user-page-url' );
+			}
 			$email_template_definitions = self::get_email_notification_definitions();
 			?>
 		<h1><?php esc_html_e( 'Email Templates', 'wp-2fa' ); ?></h1>

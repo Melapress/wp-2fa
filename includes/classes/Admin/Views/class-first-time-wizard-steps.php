@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage views
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -14,38 +14,38 @@ namespace WP2FA\Admin\Views;
 use WP2FA\WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
-/**
- * WP2FA First Wizard Settings view controller
- *
- * @since 1.7
- */
-class First_Time_Wizard_Steps {
-
+if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 	/**
-	 * Select method step
+	 * WP2FA First Wizard Settings view controller
 	 *
-	 * @since 1.7.0
-	 *
-	 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
-	 *
-	 * @return void
+	 * @since 1.7
 	 */
-	public static function select_method( $setup_wizard = false ) {
+	class First_Time_Wizard_Steps {
 
-		ob_start();
-		?>
+		/**
+		 * Select method step
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
+		 *
+		 * @return void
+		 */
+		public static function select_method( $setup_wizard = false ) {
+
+			ob_start();
+			?>
 		<h3><?php esc_html_e( 'Which 2FA methods can your users use?', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'When you uncheck any of the below 2FA methods it won\'t be available for your users to use. You can always change this later on from the plugin\'s settings.', 'wp-2fa' ); ?>
 		</p>
-		<?php
-		$data_role = 'data-role="global"';
-		if ( ! $setup_wizard ) {
-			?>
+			<?php
+			$data_role = 'data-role="global"';
+			if ( ! $setup_wizard ) {
+				?>
 		<table class="form-table">
 			<tbody>
 				<tr>
@@ -54,7 +54,7 @@ class First_Time_Wizard_Steps {
 				<tr>
 					<th><label for="2fa-method"><?php esc_html_e( 'Select the methods', 'wp-2fa' ); ?></label></th>
 					<td>
-		<?php } ?>
+			<?php } ?>
 						<fieldset id="2fa-method-select" class="2fa-method-select">
 							<div class="method-title"><em><?php esc_html_e( 'Primary 2FA methods:', 'wp-2fa' ); ?></em></div>
 							<br>
@@ -72,7 +72,7 @@ class First_Time_Wizard_Steps {
 								printf(
 									/* translators: link to the knowledge base website */
 									esc_html__( 'When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ),
-									'<a href="https://wp2fa.io/support/kb/configuring-2fa-apps/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
+									'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
 								);
 								echo '</p>';
 							}
@@ -95,38 +95,39 @@ class First_Time_Wizard_Steps {
 								<?php echo $data_role; // phpcs:ignore ?>
 								<?php checked( WP2FA::get_wp2fa_setting( 'enable_email' ), 'enable_email' ); ?>
 								>
-								<?php esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
-								esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' ); 
+								<?php
+								esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
+								esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' );
 									echo '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>.';
 								?>
-							<?php
-							?>
+								<?php
+								?>
 							</label>
-							<?php
-							if ( $setup_wizard ) {
-								echo '<p class="description">' . esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . esc_html__( 'Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' )  . '</p>';
-							}
-							?>
-							<?php if ( ! $setup_wizard ) { ?>
+								<?php
+								if ( $setup_wizard ) {
+									echo '<p class="description">' . esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . esc_html__( 'Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ) . '</p>';
+								}
+								?>
+								<?php if ( ! $setup_wizard ) { ?>
 							<div class="use-different-hotp-mail<?php echo \esc_attr( ( false === WP2FA::get_wp2fa_setting( 'enable_email' ) ? ' disabled' : '' ) ); ?>">
 								<p class="description" style="margin-bottom: 5px; font-style: normal;">
 									<?php esc_html_e( 'Allow user to specify the email address of choice', 'wp-2fa' ); ?>
 								</p>
 								<fieldset class="email-hotp-options">
-								<?php
-								$options = array(
-									'yes' => array(
-										'label' => esc_html__( 'Yes', 'wp-2fa' ),
-										'value' => 'specify-email_hotp',
-									),
-									'no'  => array(
-										'label' => esc_html__( 'No', 'wp-2fa' ),
-										'value' => '',
-									),
-								);
+									<?php
+									$options = array(
+										'yes' => array(
+											'label' => esc_html__( 'Yes', 'wp-2fa' ),
+											'value' => 'specify-email_hotp',
+										),
+										'no'  => array(
+											'label' => esc_html__( 'No', 'wp-2fa' ),
+											'value' => '',
+										),
+									);
 
-								foreach ( $options as $option_key => $option_settings ) {
-									?>
+									foreach ( $options as $option_key => $option_settings ) {
+										?>
 									<label for="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>">
 										<input type="radio" name="wp_2fa_policy[specify-email_hotp]" id="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>" value="<?php echo \esc_attr( $option_settings['value'] ); ?>" class="js-nested"
 											<?php checked( Settings::get_role_or_default_setting( 'specify-email_hotp', null ), $option_settings['value'] ); ?>
@@ -134,23 +135,23 @@ class First_Time_Wizard_Steps {
 										<span><?php echo $option_settings['label']; // phpcs:ignore ?></span>
 									</label>
 										<?php
-								}
-								?>
+									}
+									?>
 								</fieldset>
 							</div>
 							<?php } ?>
 							<br />
-							<?php
-							if ( ! $setup_wizard ) {
-								$class = '';
+								<?php
+								if ( ! $setup_wizard ) {
+									$class = '';
 
-								if ( '' === trim( Settings::get_role_or_default_setting( 'enable_totp', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_email', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_oob_email', null, null, true ) ) ) {
-									$class = 'disabled';
-								}
-								?>
+									if ( '' === trim( Settings::get_role_or_default_setting( 'enable_totp', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_email', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_oob_email', null, null, true ) ) ) {
+										$class = 'disabled';
+									}
+									?>
 								<div class="method-title"><em><?php esc_html_e( 'Secondary 2FA methods:', 'wp-2fa' ); ?></em></div>
 								<br>
-								<label for="backup-codes" class="wp-2fa-settings-wrapper <?php echo $class; // phpcs:ignore ?>">
+								<label for="backup-codes" class=" <?php echo $class; // phpcs:ignore ?>">
 									<input type="checkbox" class="<?php echo \esc_attr( $class ); ?>" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]" 
 									<?php echo $data_role; // phpcs:ignore ?>
 									value="yes"
@@ -169,48 +170,57 @@ class First_Time_Wizard_Steps {
 									}
 									?>
 								</label>
-								<?php
-								/**
-								 * Fires after the backup methods HTML rendering is finished.
-								 *
-								 * @param bool $wizard - Is that wizard ot standard setting.
-								 * @param string $data_role - The JS data attribute for the form inputs.
-								 * @param string $role - The name of the user role.
-								 *
-								 * @since 2.0.0
-								 */
-								\do_action( WP_2FA_PREFIX . 'after_backup_methods_setup', $setup_wizard, $data_role, null );
-							}
-							?>
+									<?php
+									/**
+									 * Fires after the backup methods HTML rendering is finished.
+									 *
+									 * @param bool $wizard - Is that wizard ot standard setting.
+									 * @param string $data_role - The JS data attribute for the form inputs.
+									 * @param string $role - The name of the user role.
+									 *
+									 * @since 2.0.0
+									 */
+									\do_action( WP_2FA_PREFIX . 'after_backup_methods_setup', $setup_wizard, $data_role, null );
+								}
+								?>
 						</fieldset>
-						<?php
-						if ( ! $setup_wizard ) {
-							?>
+							<?php
+							if ( ! $setup_wizard ) {
+								?>
 					</td>
 				</tr>
 			</tbody>
 		</table>
-						<?php } ?>
-		<?php
-		$output = ob_get_clean();
+							<?php } ?>
+			<?php
+			$output = ob_get_clean();
+
+			/**
+			 * At this point, none of the default providers is set / activated. This filter allows additional providers to change the behaviour. Checking the input array for specific values (methods), and based on that we can raise error that none of the allowed methods has bees selected by the user, or dismiss the error otherwise.
+			 *
+			 * @param string $output - Parsed HTML with the methods.
+			 * @param bool $setup_wizard - The type of the wizard (first time wizard / settings).
+			 *
+			 * @since 2.0.0
+			 */
+			$output = apply_filters( WP_2FA_PREFIX . 'select_methods', $output, $setup_wizard );
+
+			echo $output; // phpcs:ignore
+		}
 
 		/**
-		 * At this point, none of the default providers is set / activated. This filter allows additional providers to change the behaviour. Checking the input array for specific values (methods), and based on that we can raise error that none of the allowed methods has bees selected by the user, or dismiss the error otherwise.
+		 * Builds the backup methods html
 		 *
-		 * @param string $output - Parsed HTML with the methods.
-		 * @param bool $setup_wizard - The type of the wizard (first time wizard / settings).
+		 * @param boolean $setup_wizard - Is that call from the Wizard or not.
 		 *
-		 * @since 2.0.0
+		 * @return void
+		 *
+		 * @since 2.4.1
 		 */
-		$output = apply_filters( WP_2FA_PREFIX . 'select_methods', $output, $setup_wizard );
+		public static function backup_method( $setup_wizard = false ) {
 
-		echo $output; // phpcs:ignore
-	}
-
-	public static function backup_method( $setup_wizard = false ) {
-	
-		ob_start();
-		?>
+			ob_start();
+			?>
 		<h3><?php esc_html_e( 'Which alternative 2FA methods can users use?', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'An alternative 2FA method allows users to configure another 2FA method that can be used as a backup should the primary 2FA method fail. This can happen if, for example, a user forgets their smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ); ?>
@@ -231,44 +241,48 @@ class First_Time_Wizard_Steps {
 
 			<?php
 				echo '<p class="description">';
-				echo sprintf( '%1$1s <a href="https://wp2fa.io/support/kb/what-are-2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%2$1s</a> <br><br>',
-				esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
-				esc_html__( 'More information', 'wp-2fa' ) );
+				echo sprintf(
+					'%1$1s <a href="https://melapress.com/support/kb/wp-2fa-what-are-2fa-backup-codes/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> <br><br>',
+					esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
+					esc_html__( 'More information', 'wp-2fa' )
+				);
 				echo '</p>';
 			?>
 
 			<?php
 				echo '<label>';
-				echo sprintf( '%1$1s <a href="https://wp2fa.io/features/alternative-2fa-backup-method-options/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">%2$1s</a> %3$1s',
-				esc_html__( 'Upgrade to WP 2FA Premium for', 'wp-2fa' ),
-				esc_html__( 'more alternative 2FA methods', 'wp-2fa' ),
-				esc_html__( 'to give your users more options.', 'wp-2fa' ) );
+				echo sprintf(
+					'%1$1s <a href="https://melapress.com/wordpress-2fa/features/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> %3$1s',
+					esc_html__( 'Upgrade to WP 2FA Premium for', 'wp-2fa' ),
+					esc_html__( 'more alternative 2FA methods', 'wp-2fa' ),
+					esc_html__( 'to give your users more options.', 'wp-2fa' )
+				);
 				echo '<label>';
 			?>
 		</fieldset>
-		<?php
-		?>
-		<?php
-		$output = ob_get_clean();
-		$output = apply_filters( WP_2FA_PREFIX . 'backup_methods', $output, $setup_wizard );
+			<?php
+			?>
+			<?php
+			$output = ob_get_clean();
+			$output = apply_filters( WP_2FA_PREFIX . 'backup_methods', $output, $setup_wizard );
 
-		echo $output; // phpcs:ignore
-	}
+			echo $output; // phpcs:ignore
+		}
 
-	/**
-	 * Enforcement policy step
-	 *
-	 * @since 1.7.0
-	 *
-	 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
-	 *
-	 * @return void
-	 */
-	public static function enforcement_policy( $setup_wizard = false ) {
-		?>
+		/**
+		 * Enforcement policy step
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
+		 *
+		 * @return void
+		 */
+		public static function enforcement_policy( $setup_wizard = false ) {
+			?>
 		<h3 id="enforcement_settings"><?php esc_html_e( 'Do you want to enforce 2FA for some, or all the users? ', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. ', 'wp-2fa' ); ?> <a href="https://wp2fa.io/support/kb/configure-2fa-policies-enforce/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank" rel=noopener><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+			<?php esc_html_e( 'When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. ', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-policies-enforce/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel=noopener><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 		</p>
 			<?php
 			if ( ! $setup_wizard ) {
@@ -344,7 +358,7 @@ class First_Time_Wizard_Steps {
 										</select>
 									</p>
 								</div>
-									<?php if ( WP_Helper::is_multisite() ) { ?>
+										<?php if ( WP_Helper::is_multisite() ) { ?>
 								<p class="description">
 									<input type="checkbox" name="wp_2fa_policy[superadmins-role-add]" id="superadmins-role-add" value="yes" style="position: relative; top: -3px;" 
 											<?php checked( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ), 'yes' ); ?> />
@@ -352,7 +366,7 @@ class First_Time_Wizard_Steps {
 								</p>
 								<?php } ?>
 							</fieldset>
-					<?php if ( WP_Helper::is_multisite() ) { ?>
+						<?php if ( WP_Helper::is_multisite() ) { ?>
 							<div>
 								<label for="enforce-on-multisite" style="margin:.35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="enforce-on-multisite" value="enforce-on-multisite"
@@ -388,48 +402,48 @@ class First_Time_Wizard_Steps {
 							<div>
 								<label for="do-not-enforce" style="margin:.35em 0 .5em !important; display: block;">
 									<input type="radio" name="wp_2fa_policy[enforcement-policy]" id="do-not-enforce" value="do-not-enforce"
-									<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'do-not-enforce' ); ?>
+										<?php checked( WP2FA::get_wp2fa_setting( 'enforcement-policy' ), 'do-not-enforce' ); ?>
 									>
 									<span><?php esc_html_e( 'Do not enforce on any users', 'wp-2fa' ); ?></span>
 								</label>
 							</div>
 							<br/>
 						</fieldset>
-						<?php
-						if ( ! $setup_wizard ) {
-							?>
+							<?php
+							if ( ! $setup_wizard ) {
+								?>
 					</td>
 				</tr>
 			</tbody>
 		</table>
-							<?php
-						}
-	}
+								<?php
+							}
+		}
 
-	/**
-	 * Exclude users and groups
-	 *
-	 * @since 1.7.0
-	 *
-	 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
-	 *
-	 * @return void
-	 */
-	public static function exclude_users( $setup_wizard = false ) {
-		?>
+		/**
+		 * Exclude users and groups
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
+		 *
+		 * @return void
+		 */
+		public static function exclude_users( $setup_wizard = false ) {
+			?>
 		<h3><?php esc_html_e( 'Do you want to exclude any users or roles from 2FA? ', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'If you are enforcing 2FA on all users but for some reason you would like to exclude individual user(s) or users with a specific role, you can exclude them below', 'wp-2fa' ); ?>
 		</p>
-		<?php
-		if ( ! $setup_wizard ) {
-			?>
+			<?php
+			if ( ! $setup_wizard ) {
+				?>
 		<table class="form-table js-enforcement-policy-section">
 			<tbody>
 				<tr>
 					<th><label id="exclude-users" for="excluded-users-multi-select"><?php esc_html_e( 'Exclude the following users', 'wp-2fa' ); ?></label></th>
 					<td>
-		<?php } else { ?>
+			<?php } else { ?>
 					<label for="excluded-users-multi-select"><?php esc_html_e( 'Exclude the following users', 'wp-2fa' ); ?>
 		<?php } ?>
 						<fieldset>
@@ -445,9 +459,9 @@ class First_Time_Wizard_Steps {
 								?>
 								</select>
 							</div>
-						<?php
-						if ( ! $setup_wizard ) {
-							?>
+							<?php
+							if ( ! $setup_wizard ) {
+								?>
 
 							</td>
 					</tr>
@@ -455,7 +469,7 @@ class First_Time_Wizard_Steps {
 						<th><label for="excluded-roles-multi-select"><?php esc_html_e( 'Exclude the following roles', 'wp-2fa' ); ?></label></th>
 						<td>
 							<p>
-						<?php } else { ?>
+							<?php } else { ?>
 							<br>
 								<label for="excluded-roles-multi-select"><?php esc_html_e( 'Exclude the following roles', 'wp-2fa' ); ?></label>
 							<?php } ?>
@@ -475,7 +489,7 @@ class First_Time_Wizard_Steps {
 									?>
 									</select>
 							<br>
-							<?php if ( WP_Helper::is_multisite() ) { ?>
+								<?php if ( WP_Helper::is_multisite() ) { ?>
 							<div style="margin-top:10px;">
 								<input type="checkbox" name="wp_2fa_policy[superadmins-role-exclude]" id="superadmins-role-exclude" value="yes"
 									<?php checked( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ), 'yes' ); ?> />
@@ -483,41 +497,41 @@ class First_Time_Wizard_Steps {
 							</div>
 							<?php } ?>
 						</fieldset>
-						<?php
-						if ( ! $setup_wizard ) {
-							?>
+							<?php
+							if ( ! $setup_wizard ) {
+								?>
 					</td>
 				</tr>
 			</tbody>
 		</table>
-							<?php } ?>
-		<?php
-	}
+								<?php } ?>
+			<?php
+		}
 
-	/**
-	 * Which network sites to exclude (for multisite instal)
-	 *
-	 * @since 1.7.0
-	 *
-	 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
-	 *
-	 * @return void
-	 */
-	public static function excluded_network_sites( $setup_wizard = false ) {
-		?>
+		/**
+		 * Which network sites to exclude (for multisite instal)
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
+		 *
+		 * @return void
+		 */
+		public static function excluded_network_sites( $setup_wizard = false ) {
+			?>
 		<h3><?php esc_html_e( 'Do you want to exclude all the users of a site from 2FA? ', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'If you are enforcing 2FA on all users but for some reason you do not want to enforce it on a specific sub site, specify the sub site name below:', 'wp-2fa' ); ?>
 		</p>
-		<?php
-		if ( ! $setup_wizard ) {
-			?>
+			<?php
+			if ( ! $setup_wizard ) {
+				?>
 		<table class="form-table js-enforcement-policy-section">
 			<tbody>
 				<tr>
 					<th><label for="excluded-sites-multi-select"><?php esc_html_e( 'Exclude the following sites', 'wp-2fa' ); ?></label></th>
 					<td>
-		<?php } ?>
+			<?php } ?>
 						<fieldset>
 						<?php
 						if ( $setup_wizard ) {
@@ -546,40 +560,40 @@ class First_Time_Wizard_Steps {
 						</div>
 						<?php } ?>
 						</fieldset>
-						<?php
-						if ( ! $setup_wizard ) {
-							?>
+							<?php
+							if ( ! $setup_wizard ) {
+								?>
 					</td>
 				</tr>
 			</tbody>
 		</table>
-						<?php } ?>
-		<?php
-	}
-
-	/**
-	 * Set the grace period
-	 *
-	 * @since 1.7.0
-	 *
-	 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
-	 *
-	 * @return void
-	 */
-	public static function grace_period( $setup_wizard = false ) {
-		$grace_period = (int) WP2FA::get_wp2fa_setting( 'grace-period', true );
-		/**
-		 * Via that, you can change the grace period TTL.
-		 *
-		 * @param bool - Default at this point is true - no method is selected.
-		 */
-		$testing = apply_filters( WP_2FA_PREFIX . 'allow_grace_period_in_seconds', false );
-		if ( $testing ) {
-			$grace_max = 600;
-		} else {
-			$grace_max = 10;
+							<?php } ?>
+			<?php
 		}
-		?>
+
+		/**
+		 * Set the grace period
+		 *
+		 * @since 1.7.0
+		 *
+		 * @param boolean $setup_wizard - Boolean - is that first time wizard setup or settings page call.
+		 *
+		 * @return void
+		 */
+		public static function grace_period( $setup_wizard = false ) {
+			$grace_period = (int) WP2FA::get_wp2fa_setting( 'grace-period', true );
+			/**
+			 * Via that, you can change the grace period TTL.
+			 *
+			 * @param bool - Default at this point is true - no method is selected.
+			 */
+			$testing = apply_filters( WP_2FA_PREFIX . 'allow_grace_period_in_seconds', false );
+			if ( $testing ) {
+				$grace_max = 600;
+			} else {
+				$grace_max = 10;
+			}
+			?>
 		<fieldset class="contains-hidden-inputs">
 			<label for="no-grace-period" style="margin-bottom: 10px; display: block;">
 				<input type="radio" name="wp_2fa_policy[grace-policy]" id="no-grace-period" value="no-grace-period"
@@ -654,6 +668,7 @@ class First_Time_Wizard_Steps {
 			</fieldset>
 			<br/>
 		</fieldset>
-		<?php
+			<?php
+		}
 	}
 }

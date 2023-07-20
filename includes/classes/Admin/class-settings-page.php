@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -56,15 +56,13 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				81
 			);
 
-			$settings_policies    = new Settings_Page_Policies();
-
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
 				esc_html__( '2FA Policies', 'wp-2fa' ),
 				esc_html__( '2FA Policies', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
-				array( $settings_policies, 'render' ),
+				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'render' ),
 				1
 			);
 
@@ -74,7 +72,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
-				array( \WP2FA\Admin\Views\Settings_Page_Render::class, 'render' ),
+				array( \WP2FA\Admin\SettingsPages\Settings_Page_Render::class, 'render' ),
 				2
 			);
 
@@ -82,7 +80,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			register_setting(
 				WP_2FA_POLICY_SETTINGS_NAME,
 				WP_2FA_POLICY_SETTINGS_NAME,
-				array( $settings_policies, 'validate_and_sanitize' )
+				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'validate_and_sanitize' )
 			);
 
 			// Register our white label settings.
@@ -131,15 +129,13 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				81
 			);
 
-			$settings_policies = new Settings_Page_Policies();
-
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
 				esc_html__( '2FA Policies', 'wp-2fa' ),
 				esc_html__( '2FA Policies', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
-				array( $settings_policies, 'render' ),
+				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'render' ),
 				1
 			);
 
@@ -149,7 +145,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
-				array( \WP2FA\Admin\Views\Settings_Page_Render::class, 'render' ),
+				array( \WP2FA\Admin\SettingsPages\Settings_Page_Render::class, 'render' ),
 				2
 			);
 
@@ -291,7 +287,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 						)
 					)
 				);
-				User_Helper::set_user_expiry_date( $grace_expiry, intval( $get_array['user_id'] ) );
+				User_Helper::set_user_expiry_date( (string) $grace_expiry, intval( $get_array['user_id'] ) );
 				self::send_account_unlocked_email( intval( $get_array['user_id'] ) );
 				add_action( 'admin_notices', array( __CLASS__, 'user_unlocked_notice' ) );
 			}
@@ -385,7 +381,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		public static function add_plugin_action_links( $links ) {
 			// add link to the external free trial page in free version and also in premium version if license is not active.
 			if ( ! function_exists( 'wp2fa_freemius' ) || ! wp2fa_freemius()->has_active_valid_license() ) {
-				$trial_link = 'https://wp2fa.io/get-wp-2fa-premium-trial/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA';
+				$trial_link = 'https://melapress.com/wordpress-2fa/plugin-trial/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa';
 				$links      = array_merge(
 					array(
 						'<a style="font-weight:bold" href="' . $trial_link . '" target="_blank">' . __( 'Free 14-day Premium Trial', 'wp-2fa' ) . '</a>',
@@ -457,9 +453,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 */
 		public static function update_wp2fa_network_options() {
 
-			$settings_policies = new Settings_Page_Policies();
-
-			$settings_policies->update_wp2fa_network_options();
+			Settings_Page_Policies::update_wp2fa_network_options();
 
 			Settings_Page_General::update_wp2fa_network_options();
 
@@ -520,7 +514,17 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			if ( isset( $_GET['wp_2fa_network_settings_error'] ) ) { // phpcs:ignore
 				?>
 			<div class="notice notice-error is-dismissible">
-				<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( \wp_unslash( $_GET['wp_2fa_network_settings_error'] ) ) ) ); // phpcs:ignore ?></p>
+				<?php
+					$error = \wp_unslash( $_GET['wp_2fa_network_settings_error'] );
+
+				if ( true === \strpos( $error, 'http' ) ) {
+					?>
+				<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( $error ) ) ); ?></p>
+					<?php
+				} else {
+					?>
+				<p><?php echo \esc_attr( ( $error ) ); ?></p>
+				<?php } ?>
 				<button type="button" class="notice-dismiss">
 					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 				</button>
@@ -626,7 +630,6 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			// Fire our email.
 			return wp_mail( $recipient_email, $subject, $message, $headers );
-
 		}
 
 		/**

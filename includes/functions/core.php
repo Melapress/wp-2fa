@@ -34,7 +34,7 @@ function setup() {
 	 *
 	 * @since 2.0.0
 	 */
-  	do_action( WP_2FA_PREFIX . 'loaded' );
+	do_action( WP_2FA_PREFIX . 'loaded' );
 }
 
 /**
@@ -91,7 +91,6 @@ function activate() {
  * @return void
  */
 function deactivate() {
-
 }
 
 /**
@@ -254,7 +253,6 @@ function admin_scripts() {
 		'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
 	);
 	wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
-
 }
 
 /**
@@ -272,8 +270,8 @@ function enqueue_multi_select_scripts() {
  * @return void
  */
 function enqueue_select2_scripts() {
-	wp_enqueue_style( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css', array(), WP_2FA_VERSION );
-	wp_enqueue_script( 'select2', 'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js', array( 'jquery' ), WP_2FA_VERSION, false );
+	wp_enqueue_style( 'select2', style_url( 'select2.min', 'admin' ), array(), WP_2FA_VERSION );
+	wp_enqueue_script( 'select2', script_url( 'select2.min', 'admin' ), array( 'jquery' ), WP_2FA_VERSION, false );
 }
 
 /**
@@ -289,7 +287,6 @@ function admin_styles() {
 		array(),
 		WP_2FA_VERSION
 	);
-
 }
 
 /**
