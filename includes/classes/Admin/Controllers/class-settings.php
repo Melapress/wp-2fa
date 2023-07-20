@@ -4,18 +4,20 @@
  *
  * @package    wp2fa
  * @subpackage admin_controllers
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Admin\Controllers;
 
 use WP2FA\WP2FA;
-use WP2FA\Admin\User;
 use \WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -72,6 +74,15 @@ class Settings {
 	private static $all_providers = array();
 
 	/**
+	 * All available providers for the plugin with their translated names.
+	 *
+	 * @var array
+	 *
+	 * @since 2.5.0
+	 */
+	private static $all_providers_names_translated = array();
+
+	/**
 	 * All the available providers by user roles
 	 *
 	 * @var array
@@ -87,11 +98,7 @@ class Settings {
 	 */
 	public static function get_settings_page_link() {
 		if ( '' === self::$settings_page_link ) {
-			if ( WP_Helper::is_multisite() ) {
-				self::$settings_page_link = add_query_arg( 'page', Settings_Page::TOP_MENU_SLUG, network_admin_url( 'admin.php' ) );
-			} else {
-				self::$settings_page_link = add_query_arg( 'page', Settings_Page::TOP_MENU_SLUG, admin_url( 'admin.php' ) );
-			}
+			self::$settings_page_link = add_query_arg( 'page', Settings_Page::TOP_MENU_SLUG, network_admin_url( 'admin.php' ) );
 		}
 
 		return self::$settings_page_link;
@@ -179,31 +186,28 @@ class Settings {
 	 * @since 2.0.0
 	 */
 	public static function get_role_or_default_setting( string $setting_name, $user = null, $role = null, $get_default_on_empty = false, $get_default_value = false ) {
-		/**
-		 * No user specified - get the default settings
-		 */
-		if ( null === $user || \WP_2FA_PREFIX . 'no-user' === $user ) {
-			return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value );
-		}
-
-		/**
-		 * There is an User - extract the role
-		 */
-		if ( $user instanceof \WP_User || is_int( $user ) ) {
-			if ( null === $role ) {
-				$role = User_Helper::get_user_role( $user );
-			}
-			return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value, $role );
-		}
-
-		/**
-		 * Current user - lets extract the role
-		 */
 		if ( null === $role ) {
+			/**
+			 * No user specified - get the default settings
+			 */
+			if ( null === $user || \WP_2FA_PREFIX . 'no-user' === $user ) {
+				return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value );
+			}
+
+			/**
+			 * There is an User - extract the role
+			 */
+			if ( $user instanceof \WP_User || is_int( $user ) ) {
+				if ( null === $role ) {
+					$role = User_Helper::get_user_role( $user );
+				}
+				return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value, $role );
+			}
+
 			/**
 			 * No logged in current user, ergo no roles - fall back to defaults
 			 */
-			if ( 0 === User::get_instance()->get_2fa_wp_user()->ID ) {
+			if ( 0 === User_Helper::get_user_object()->ID ) {
 				return WP2FA::get_wp2fa_setting( $setting_name, $get_default_on_empty, $get_default_value );
 			}
 
@@ -277,12 +281,10 @@ class Settings {
 			self::get_all_roles_providers();
 
 			return self::$all_providers_for_roles[ $role ];
-		} else {
-			if ( '' === $role ) {
+		} elseif ( '' === $role ) {
 				return array();
-			} else {
-				throw new \Exception( 'Role provided does not exists - "' . $role . '"' );
-			}
+		} else {
+			throw new \Exception( 'Role provided does not exists - "' . $role . '"' );
 		}
 	}
 
@@ -347,6 +349,35 @@ class Settings {
 	}
 
 	/**
+	 * Returns an array with all providers and their translated name. Key is the method slug and value is the translated method name.
+	 *
+	 * @return array
+	 *
+	 * @since 2.5.0
+	 */
+	public static function get_providers_translate_names(): array {
+		if ( empty( self::$all_providers_names_translated ) ) {
+			self::$all_providers_names_translated = array(
+				'totp'         => esc_html__( 'TOTP (App)', 'wp-2fa' ),
+				'email'        => esc_html__( 'HOTP (Email)', 'wp-2fa' ),
+				'backup_codes' => esc_html__( 'Backup codes', 'wp-2fa' ),
+			);
+
+			/**
+			 * Filter the supplied providers.
+			 *
+			 * This lets third-parties either remove providers (such as Email), or
+			 * add their own providers (such as text message or Clef).
+			 *
+			 * @param array $provider array if available options.
+			 */
+			self::$all_providers_names_translated = apply_filters( WP_2FA_PREFIX . 'providers_translated_names', self::$all_providers_names_translated );
+		}
+
+		return self::$all_providers_names_translated;
+	}
+
+	/**
 	 * Grab list of all register providers in the plugin.
 	 *
 	 * @return array
@@ -371,5 +402,66 @@ class Settings {
 		}
 
 		return self::$all_providers;
+	}
+
+	/**
+	 * Returns the page ID stored in the given role or user, based on the multisite and page URL only.
+	 *
+	 * @param string       $role - The role name if any. Default fallback if not role no user is provided.
+	 * @param \WP_User|int $user - The user object or user id if any.
+	 *
+	 * @return int
+	 *
+	 * @since 2.5.0
+	 */
+	public static function get_custom_settings_page_id( $role = '', $user = '' ) {
+		if ( ! empty( $role ) ) {
+			$page_slug = self::get_role_or_default_setting( 'custom-user-page-url', '', $role );
+		} elseif ( ! empty( $user ) ) {
+			$page_slug = self::get_role_or_default_setting( 'custom-user-page-url', $user );
+		} else {
+			$page_slug = self::get_role_or_default_setting( 'custom-user-page-url', '', '' );
+		}
+
+		if ( ! empty( $role ) ) {
+			$separate_page = self::get_role_or_default_setting( 'separate-multisite-page-url', '', $role );
+		} elseif ( ! empty( $user ) ) {
+			$separate_page = self::get_role_or_default_setting( 'separate-multisite-page-url', $user );
+		} else {
+			$separate_page = self::get_role_or_default_setting( 'separate-multisite-page-url', '', '' );
+		}
+
+		$new_page_id = '';
+
+		// Lets check for multisite first and if that is the case - lets search for that page on the user's default blog.
+		if ( WP_Helper::is_multisite() && false !== $separate_page ) {
+			if ( ! empty( $user ) ) {
+				$blog_id = User_Helper::get_user_default_blog( $user );
+			} else {
+				$blog_id = \get_current_blog_id();
+			}
+
+			if ( 0 === $blog_id ) {
+				$new_page_id = '';
+			} else {
+				// Switch to the blog context.
+				\switch_to_blog( $blog_id );
+
+				$page_exists = Settings_Page_Policies::get_post_by_post_name( $page_slug, 'page' );
+				// Restore global context.
+				\restore_current_blog();
+
+				if ( false !== $page_exists ) {
+					$new_page_id = $page_exists->ID;
+				}
+			}
+		} else {
+			$page_exists = Settings_Page_Policies::get_post_by_post_name( $page_slug, 'page' );
+			if ( false !== $page_exists ) {
+				$new_page_id = $page_exists->ID;
+			}
+		}
+
+		return $new_page_id;
 	}
 }

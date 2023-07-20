@@ -111,59 +111,6 @@
             "install-path": "..\/dasprid\/enum"
         },
         {
-            "name": "deliciousbrains\/wp-background-processing",
-            "version": "1.1.0",
-            "version_normalized": "1.1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https:\/\/github.com\/deliciousbrains\/wp-background-processing.git",
-                "reference": "d5ef95cecba7f792ddca3e3bd70ebfb90dc4996d"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/deliciousbrains\/wp-background-processing\/zipball\/d5ef95cecba7f792ddca3e3bd70ebfb90dc4996d",
-                "reference": "d5ef95cecba7f792ddca3e3bd70ebfb90dc4996d",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.6"
-            },
-            "require-dev": {
-                "phpcompatibility\/phpcompatibility-wp": "*",
-                "phpunit\/phpunit": "^8.0",
-                "spryker\/code-sniffer": "^0.17.18",
-                "wp-coding-standards\/wpcs": "^2.3",
-                "yoast\/phpunit-polyfills": "^1.0"
-            },
-            "suggest": {
-                "coenjacobs\/mozart": "Easily wrap this library with your own prefix, to prevent collisions when multiple plugins use this library"
-            },
-            "time": "2023-04-18T12:32:25+00:00",
-            "type": "library",
-            "installation-source": "dist",
-            "autoload": {
-                "classmap": [
-                    "classes\/"
-                ]
-            },
-            "notification-url": "https:\/\/packagist.org\/downloads\/",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Delicious Brains",
-                    "email": "nom@deliciousbrains.com"
-                }
-            ],
-            "description": "WP Background Processing can be used to fire off non-blocking asynchronous requests or as a background processing tool, allowing you to queue tasks.",
-            "support": {
-                "issues": "https:\/\/github.com\/deliciousbrains\/wp-background-processing\/issues",
-                "source": "https:\/\/github.com\/deliciousbrains\/wp-background-processing\/tree\/1.1.0"
-            },
-            "install-path": "..\/deliciousbrains\/wp-background-processing"
-        },
-        {
             "name": "endroid\/qr-code",
             "version": "3.9.7",
             "version_normalized": "3.9.7.0",
@@ -303,14 +250,44 @@
         },
         {
             "name": "freemius\/wordpress-sdk",
-            "version": "2.5.10",
-            "version_normalized": "2.5.10.0",
+            "version": "2.5.8",
+            "version_normalized": "2.5.8.0",
+            "source": {
+                "type": "git",
+                "url": "https:\/\/github.com\/Freemius\/wordpress-sdk.git",
+                "reference": "bbbcf3d976a1fd90355037b163746fdca6c93a4c"
+            },
             "dist": {
                 "type": "zip",
-                "url": ".\/..\/wordpress-sdk-2.5.10.zip"
+                "url": "https:\/\/api.github.com\/repos\/Freemius\/wordpress-sdk\/zipball\/bbbcf3d976a1fd90355037b163746fdca6c93a4c",
+                "reference": "bbbcf3d976a1fd90355037b163746fdca6c93a4c",
+                "shasum": ""
             },
+            "require": {
+                "php": ">=5.2"
+            },
+            "time": "2023-05-15T06:17:55+00:00",
             "type": "library",
             "installation-source": "dist",
+            "notification-url": "https:\/\/packagist.org\/downloads\/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "description": "Freemius WordPress SDK",
+            "homepage": "https:\/\/freemius.com",
+            "keywords": [
+                "freemius",
+                "plugin",
+                "sdk",
+                "theme",
+                "wordpress",
+                "wordpress-plugin",
+                "wordpress-theme"
+            ],
+            "support": {
+                "issues": "https:\/\/github.com\/Freemius\/wordpress-sdk\/issues",
+                "source": "https:\/\/github.com\/Freemius\/wordpress-sdk\/tree\/2.5.8"
+            },
             "install-path": "..\/freemius\/wordpress-sdk"
         },
         {

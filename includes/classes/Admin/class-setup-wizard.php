@@ -4,14 +4,13 @@
  *
  * @package    wp2fa
  * @subpackage setup
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin;
 
-use WP2FA\Admin\User;
 use \WP2FA\Core as Core;
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -23,7 +22,7 @@ use WP2FA\Admin\Views\First_Time_Wizard_Steps;
 use \WP2FA\Admin\Settings_Page as Settings_Page;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
 use \WP2FA\Utils\Generate_Modal as Generate_Modal;
-use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
+use \WP2FA\Admin\SettingsPages\Settings_Page_Policies;
 use \WP2FA\Authenticator\Authentication as Authentication;
 
 /**
@@ -189,10 +188,10 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			if ( 'backup_codes' === self::$current_step && ! Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) {
 
 				$redirect_to_finish = add_query_arg(
-                    array(
+					array(
 						'current-step' => 'finish',
 						'all-set'      => 1,
-                    )
+					)
 				);
 				wp_safe_redirect( esc_url_raw( $redirect_to_finish ) );
 			}
@@ -201,17 +200,17 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			 * Enqueue Scripts.
 			 */
 			wp_enqueue_style(
-                'wp_2fa_setup_wizard',
-                Core\style_url( 'setup-wizard', 'admin' ),
-                array( 'select2' ),
-                WP_2FA_VERSION
+				'wp_2fa_setup_wizard',
+				Core\style_url( 'setup-wizard', 'admin' ),
+				array( 'select2' ),
+				WP_2FA_VERSION
 			);
 
 			wp_enqueue_style(
-                'wp_2fa_admin-style',
-                Core\style_url( 'admin-style', 'admin' ),
-                array(),
-                WP_2FA_VERSION
+				'wp_2fa_admin-style',
+				Core\style_url( 'admin-style', 'admin' ),
+				array(),
+				WP_2FA_VERSION
 			);
 
 			\WP2FA\Core\enqueue_select2_scripts();
@@ -221,19 +220,19 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			}
 
 			wp_enqueue_script(
-                'wp_2fa_admin',
-                Core\script_url( 'admin', 'admin' ),
-                array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'select2' ),
-                WP_2FA_VERSION,
-                true
+				'wp_2fa_admin',
+				Core\script_url( 'admin', 'admin' ),
+				array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'select2' ),
+				WP_2FA_VERSION,
+				true
 			);
 
 			wp_enqueue_script(
-                'wp_2fa_micromodal',
-                Core\script_url( 'micromodal', 'admin', 'select2' ),
-                array(),
-                WP_2FA_VERSION,
-                true
+				'wp_2fa_micromodal',
+				Core\script_url( 'micromodal', 'admin', 'select2' ),
+				array(),
+				WP_2FA_VERSION,
+				true
 			);
 
 			// Data array.
@@ -315,7 +314,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		</head>
 		<body class="wp2fa-setup wp-core-ui">
 			<div class="setup-wizard-wrapper wp-2fa-settings-wrapper wp2fa-form-styles">
-				<h1 id="wp2fa-logo"><a href="https://wpsecurityauditlog.com" target="_blank"><img style="max-width: 80px;" src="<?php echo esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>"></a></h1>
+				<h1 id="wp2fa-logo"><a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><img style="max-width: 80px;" src="<?php echo esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>"></a></h1>
 			<?php
 		}
 
@@ -432,8 +431,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		 * Step View: `Finish`
 		 */
 		private static function wp_2fa_step_finish() {
-			$wp2fa_user = User::get_instance();
-			User_Helper::remove_user_needs_to_reconfigure_2fa( $wp2fa_user->get_2fa_wp_user() );
+			User_Helper::remove_user_needs_to_reconfigure_2fa( User_Helper::get_user_object() );
 			Wizard_Steps::congratulations_step( true );
 		}
 
@@ -517,8 +515,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 			if ( ! WP_Helper::is_multisite() ) {
 				unregister_setting(
-                    WP_2FA_POLICY_SETTINGS_NAME,
-                    WP_2FA_POLICY_SETTINGS_NAME
+					WP_2FA_POLICY_SETTINGS_NAME,
+					WP_2FA_POLICY_SETTINGS_NAME
 				);
 			}
 			$settings_page      = new Settings_Page_Policies();
@@ -539,7 +537,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		 *
 		 * @SuppressWarnings(PHPMD.ExitExpression)
 		 */
-		public static function send_authentication_setup_email( $user_id, $nominated_email_address = 'nominated_email_address' ) {
+		public static function send_authentication_setup_email( $user_id, $nominated_email_address = 'nominated_email_address', $is_reset_protection = false ) {
 
 			// If we have a nonce posted, check it.
 			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
@@ -575,8 +573,16 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			$token = Authentication::generate_token( $user->ID );
 
 
-			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
-			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
+			if ( $is_reset_protection ) {
+				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'reset_password_code_email_subject' ), $user->ID ) );
+				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'reset_password_code_email_body' ), $user->ID, $token ) );
+			} else if ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
+				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
+				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_setup_email_body' ), $user->ID, $token ) );
+			} else {
+				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
+				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
+			}
 
 			if ( ! empty( $enabled_email_address ) ) {
 				$email_address = $enabled_email_address;
@@ -641,9 +647,12 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			return Settings_Page::send_email( $email_address, $subject, $final_output );
 		}
 
-
 		/**
-		 * Send email to setup authentication
+		 * Regenerates the TOTP key for the user
+		 *
+		 * @return void - JSON - object with "key" - stores the new key and "qr" - stores the new QR code.
+		 *
+		 * @since 2.5.0
 		 */
 		public static function regenerate_authentication_key() {
 			// Grab current user.
@@ -666,10 +675,10 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			$new_qr     = Authentication::get_google_qr_code( $totp_title, $key, $site_name );
 
 			wp_send_json_success(
-                array(
+				array(
 					'key' => Authentication::decrypt_key_if_needed( $key ),
 					'qr'  => $new_qr,
-                )
+				)
 			);
 		}
 

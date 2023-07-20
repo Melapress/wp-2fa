@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage helpers
  * @since      latest
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -82,7 +82,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 					$contents = implode( $line_ending, array_values( $contents ) );
 					self::write( $file, $contents );
 				}
-				self::write_wp_config( '/** WP 2FA plugin data encryption key. For more information please visit wp2fa.io */' . "\n" . 'define( \'' . self::SECRET_NAME . '\', \'' . $secret . '\' );' );
+				self::write_wp_config( '/** WP 2FA plugin data encryption key. For more information please visit melapress.com */' . "\n" . 'define( \'' . self::SECRET_NAME . '\', \'' . $secret . '\' );' );
 				return true;
 			}
 

@@ -4,15 +4,16 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin\SettingsPages;
 
-use \WP2FA\WP2FA as WP2FA;
+use \WP2FA\WP2FA;
 use WP2FA\Utils\Debugging;
+use WP2FA\Extensions\WhiteLabeling\White_Labeling_Render;
 
 /**
  * White labeling settings tab
@@ -59,7 +60,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			$output['default-text-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', false, false );
 
 			if ( isset( $input['default-text-code-page'] ) && '' !== trim( $input['default-text-code-page'] ) ) {
-				$output['default-text-code-page'] = \wp_strip_all_tags( $input['default-text-code-page'] );
+				$output['default-text-code-page'] = \wp_kses_post( $input['default-text-code-page'] );
 			}
 
 			$output['default-backup-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', false, false );
@@ -83,6 +84,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					} else {
 						$output['enable_wizard_styling'] = '';
 						$input['enable_wizard_styling']  = '';
+
 					}
 				}
 
@@ -102,29 +104,41 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				// Same as above, but for the optional welcome.
 				if ( isset( $input['enable_welcome'] ) && '' !== trim( $input['enable_welcome'] ) ) {
 					$output['enable_welcome'] = \wp_strip_all_tags( $input['enable_welcome'] );
-				} else {
-					if ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
+				} elseif ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
 						$input['enable_welcome']  = '';
 						$output['enable_welcome'] = '';
-					} else {
-						$input['enable_welcome']  = WP2FA::get_wp2fa_white_label_setting( 'enable_welcome', false );
-						$output['enable_welcome'] = WP2FA::get_wp2fa_white_label_setting( 'enable_welcome', false );
-					}
+				} else {
+					$input['enable_welcome']  = WP2FA::get_wp2fa_white_label_setting( 'enable_welcome', false );
+					$output['enable_welcome'] = WP2FA::get_wp2fa_white_label_setting( 'enable_welcome', false );
 				}
 
 				if ( isset( $input['enable_wizard_logo'] ) && '' !== trim( $input['enable_wizard_logo'] ) ) {
 					$output['enable_wizard_logo'] = \wp_strip_all_tags( $input['enable_wizard_logo'] );
-				} else {
-					if ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
+				} elseif ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
 						$input['enable_wizard_logo']  = '';
 						$output['enable_wizard_logo'] = '';
-					} else {
-						$input['enable_wizard_logo']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_logo', false );
-						$output['enable_wizard_logo'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_logo', false );
-					}
+				} else {
+					$input['enable_wizard_logo']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_logo', false );
+					$output['enable_wizard_logo'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_logo', false );
 				}
 			}
 
+
+			if ( isset( $input['login_custom_css'] ) && ! empty( $input['login_custom_css'] ) ) {
+				if ( preg_match( '#</?\w+#', $input['login_custom_css'] ) ) {
+					add_settings_error(
+						WP_2FA_SETTINGS_NAME,
+						esc_attr( 'markup_invalid_settings_error' ),
+						esc_html__( 'Markup is not allowed in Login area CSS.', 'wp-2fa' ),
+						'error'
+					);
+					$output['login_custom_css'] = WP2FA::get_wp2fa_white_label_setting( 'login_custom_css', false );
+					$input['login_custom_css']  = WP2FA::get_wp2fa_white_label_setting( 'login_custom_css', false );
+				} else {
+					$output['login_custom_css'] = \wp_strip_all_tags( $input['login_custom_css'] );
+					$input['login_custom_css']  = \wp_strip_all_tags( $input['login_custom_css'] );
+				}
+			}
 
 			// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
 			global $wp_settings_errors;
@@ -167,13 +181,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 
 					// redirect back to our options page.
 					wp_safe_redirect(
-                        add_query_arg(
-                            array(
+						add_query_arg(
+							array(
 								'page' => 'wp-2fa-settings',
 								'wp_2fa_network_settings_error' => urlencode_deep( $settings_errors[0]['message'] ),
-                            ),
-                            network_admin_url( 'settings.php' )
-                        )
+							),
+							network_admin_url( 'settings.php' )
+						)
 					);
 					exit;
 
@@ -182,14 +196,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 
 				// redirect back to our options page.
 				wp_safe_redirect(
-                    add_query_arg(
-                        array(
+					add_query_arg(
+						array(
 							'page' => 'wp-2fa-settings',
 							'tab'  => 'white-label-settings',
 							'wp_2fa_network_settings_updated' => 'true',
-                        ),
-                        network_admin_url( 'admin.php' )
-                    )
+						),
+						network_admin_url( 'admin.php' )
+					)
 				);
 				exit;
 			}
@@ -264,23 +278,34 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				<tr>
 					<th><label for="2fa-method"><?php esc_html_e( '2FA code page text', 'wp-2fa' ); ?></label></th>
 					<td>
-						<fieldset>
-						<label for="default-text-code-page">
+						<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
+							echo White_Labeling_Render::get_method_text_editor( 'default-text-code-page' ); // phpcs:ignore
+						} else { ?>
 							<textarea cols="70" rows="10" name="wp_2fa_white_label[default-text-code-page]" id="default-text-code-page"><?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ) ); ?></textarea>
-							<div><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
-						</label>
-						</fieldset>
+						<?php } ?>
+						<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 					</td>
 				</tr>
 				<tr>
 					<th><label for="backup-method"><?php esc_html_e( 'Backup code page text', 'wp-2fa' ); ?></label></th>
 					<td>
-						<fieldset>
-						<label for="default-backup-code-page">
+						<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
+							echo White_Labeling_Render::get_method_text_editor( 'default-backup-code-page' ); // phpcs:ignore
+						} else { ?>
 							<textarea cols="70" rows="10" name="wp_2fa_white_label[default-backup-code-page]" id="default-backup-code-page"><?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ) ); ?></textarea>
-							<div><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
-						</label>
-						</fieldset>
+						<?php } ?>
+						<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+					</td>
+				</tr>
+
+				<tr>
+					<th><label for="backup-method"><?php esc_html_e( 'Text for logged out users trying to access the 2FA configuration page', 'wp-2fa' ); ?></label></th>
+					<td>
+						<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
+							echo White_Labeling_Render::get_method_text_editor( 'login-to-view-area' ); // phpcs:ignore
+						} else { ?>
+							<textarea cols="70" rows="10" name="wp_2fa_white_label[login-to-view-area]" id="login-to-view-area"><?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', true ) ); ?></textarea>
+						<?php } ?>
 					</td>
 				</tr>
 				<?php

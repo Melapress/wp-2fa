@@ -4,17 +4,17 @@
  *
  * @package    wp2fa
  * @subpackage views
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
-namespace WP2FA\Admin\Views;
+namespace WP2FA\Admin\SettingsPages;
 
 use WP2FA\WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
 
-if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
+if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 	/**
 	 * Settings_Page_Render - Class for rendering the plugin settings settings
 	 *
@@ -30,18 +30,19 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 				return;
 			}
 
-			$user = wp_get_current_user();
+			$main_user       = get_current_user_id();
+			$current_user_id = $main_user;
+
 			if ( ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) ) ) {
 				$main_user = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
-			} else {
-				$main_user = get_current_user_id();
-			}
+			}	
 			?>
 
 		<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
 			<h2><?php esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
 			<hr>
-			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) { ?>
+			<br>			
+			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $current_user_id ) { ?>
 				<?php
 				echo esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
 				?>
@@ -125,9 +126,9 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 					'name'           => esc_html__( 'General settings', 'wp-2fa' ),
 					'default'        => true,
 					'description'    => sprintf(
-						'<p class="description">%1$s <a href="mailto:support@wpwhitesecurity.com">%2$s</a></p>',
+						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
 						esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
-						esc_html__( 'support@wpwhitesecurity.com', 'wp-2fa' )
+						esc_html__( 'support@melapress.com', 'wp-2fa' )
 					),
 					'class'          => 'WP2FA\Admin\SettingsPages\Settings_Page_General',
 					'method'         => 'render',
@@ -146,9 +147,9 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 					'name'           => esc_html__( 'Emails & templates', 'wp-2fa' ),
 					'default'        => false,
 					'description'    => sprintf(
-						'<p class="description">%1$s <a href="mailto:support@wpwhitesecurity.com">%2$s</a></p>',
+						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
 						esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
-						esc_html__( 'support@wpwhitesecurity.com', 'wp-2fa' )
+						esc_html__( 'support@melapress.com', 'wp-2fa' )
 					),
 					'class'          => 'WP2FA\Admin\SettingsPages\Settings_Page_Email',
 					'method'         => 'render',
@@ -167,9 +168,9 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Settings_Page_Render' ) ) {
 					'name'           => esc_html__( 'White labeling', 'wp-2fa' ),
 					'default'        => false,
 					'description'    => sprintf(
-						'<p class="description">%1$s <a href="mailto:support@wpwhitesecurity.com">%2$s</a></p>',
+						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
 						esc_html__( 'Use the settings below to configure the emails which are sent to users as part of the 2FA plugin. If you have any questions send us an email at', 'wp-2fa' ),
-						esc_html__( 'support@wpwhitesecurity.com', 'wp-2fa' )
+						esc_html__( 'support@melapress.com', 'wp-2fa' )
 					),
 					'class'          => 'WP2FA\Admin\SettingsPages\Settings_Page_White_Label',
 					'method'         => 'render',

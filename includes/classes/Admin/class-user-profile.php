@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2023 WP White Security
+ * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -13,6 +13,7 @@ namespace WP2FA\Admin;
 
 use \WP2FA\WP2FA as WP2FA;
 use WP2FA\Admin\Settings_Page;
+use WP2FA\Methods\Backup_Codes;
 use WP2FA\Utils\Generate_Modal;
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -20,10 +21,10 @@ use WP2FA\Admin\Views\Wizard_Steps;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Authenticator\Backup_Codes;
 use WP2FA\Authenticator\Authentication;
 use \WP2FA\Utils\User_Utils as User_Utils;
 use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Freemius\User_Licensing as User_Licensing;
 
 /**
  * User_Profile class responsible for the profile page operations
@@ -70,7 +71,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			$form_output     = '';
 			$form_content    = '';
-			$description     = esc_html__( 'Add two-factor authentication to strengthen the security of your user account.', 'wp-2fa' );
+			$description     = WP2FA::get_wp2fa_white_label_setting( 'user-profile-form-preamble-desc', true );
 			$show_form_table = true;
 			$page_url        = ( WP_Helper::is_multisite() ) ? 'index.php' : 'options-general.php';
 
@@ -166,7 +167,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						if ( $codes_remaining > 0 ) {
 							$form_content .= '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . esc_html__( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 						} elseif ( 0 === $codes_remaining ) {
-							$form_content .= '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
+							$form_content .= '<a class="learn_more_link" href="https://melapress.com/2fa-backup-codes/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 						}
 					}
 
@@ -200,26 +201,34 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						if ( self::can_user_remove_2fa( $user->ID ) ) {
 							$form_content .= '<a href="#" class="button button-primary remove-2fa ' . esc_attr__( $styling_class ) . '" onclick="MicroModal.show(\'confirm-remove-2fa\');">' . esc_html__( 'Remove 2FA', 'wp-2fa' ) . '</a>';
 						}
+
+						$form_content     .= '</td><tr><th class="backup-methods-label">';
+						$backup_codes_desc = '';
 						if ( Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) {
-							$form_content   .= '</td><tr><th class="backup-methods-label">';
 							$codes_remaining = Backup_Codes::codes_remaining_for_user( $user );
 							if ( $codes_remaining > 0 ) {
 								$backup_codes_desc = '<span class="description mt-5px">' . esc_attr( (int) $codes_remaining ) . ' ' . esc_html__( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 							} elseif ( 0 === $codes_remaining ) {
-								$backup_codes_desc = '<a class="learn_more_link" href="https://www.wpwhitesecurity.com/2fa-backup-codes/?utm_source=plugin&utm_medium=referral&utm_campaign=WP2FA&utm_content=settings+pages" target="_blank">' . esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
+								$backup_codes_desc = '<a class="learn_more_link" href="https://melapress.com/2fa-backup-codes/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 							}
 
-							$form_content .= Wizard_Steps::get_generate_codes_link() . $backup_codes_desc;
-
-							/**
-							 * Add an option for external providers to add their own user form buttons.
-							 *
-							 * @since 2.0.0
-							 */
-							$form_content = apply_filters( WP_2FA_PREFIX . 'additional_form_buttons', $form_content );
-
-							$form_content .= '</th></tr>';
+							if ( ! empty( $backup_codes_desc ) ) {
+								$backup_codes_desc = Wizard_Steps::get_backup_codes_link() . $backup_codes_desc;
+							}
 						}
+
+						/**
+						 * Add an option for external providers to add their own user form buttons.
+						 *
+						 * @since 2.0.0
+						 */
+						$backup_codes_desc = apply_filters( WP_2FA_PREFIX . 'additional_form_buttons', $backup_codes_desc );
+
+						if ( ! empty( $backup_codes_desc ) ) {
+							$form_content .= Wizard_Steps::get_generate_codes_label() . $backup_codes_desc;
+						}
+
+						$form_content .= '</th></tr>';
 					}
 				}
 
@@ -234,6 +243,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				User_Utils::in_array_all( array( 'user_needs_to_setup_2fa' ), $user_type ) ||
 				User_Utils::role_is_not( $show_if_user_is_not_in, $user_type )
 				) {
+					
 					$first_time_setup_url = Settings::get_setup_page_link();
 
 					/**
@@ -244,6 +254,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					 * @since 2.2.2
 					 */
 					$show_enable2fa = \apply_filters( WP_2FA_PREFIX . 'enable_2fa_user_setting', true );
+
 
 					/**
 					 * Gives the ability to change the user profile description message.
@@ -300,7 +311,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			}
 
 			if ( $show_preamble ) {
-				$form_output .= '<h2>' . esc_html__( 'Two-factor authentication settings', 'wp-2fa' ) . '</h2>';
+				$form_output .= '<h2>' . WP2FA::get_wp2fa_white_label_setting( 'user-profile-form-preamble-title', true ) . '</h2>';
 
 				if ( $description ) {
 					$form_output .= '<p class="description">' . $description . '</p>';
