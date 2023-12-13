@@ -58,7 +58,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Many other features', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'No Ads!', 'wp-2fa' ) . '</li></ul>';
-			$banner .= '<a href="https://melapress.com/wordpress-2fa/plugin-trial/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" class="button button-primary" target="_blank">' . esc_html__( 'Get a Free 14-day trial', 'wp-2fa' ) . '</a> <a href="https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" class="link" target="_blank">' . esc_html__( 'Upgrade now', 'wp-2fa' ) . '</a>';
+			$banner .= '<a href="https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" class="button button-primary" target="_blank">' . esc_html__( 'Upgrade to Premium', 'wp-2fa' ) . '</a>';
 			$banner .= '</div>';
 
 			echo $banner; // phpcs:ignore
@@ -201,9 +201,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Refer to the features matrix below for a detailed list of all the premium features', 'wp-2fa' ); ?></li>
 				</ul>
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/plugin-trial/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
-					<a class="inverse" href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
-					<span style="text-align: center; display: block; margin-top: 11px;"><?php esc_html_e( '* No credit card or payment details required for the trial.', 'wp-2fa' ); ?></span>	
+					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
 				</div>		
 			</div>
 			<div class="content-block">
@@ -403,9 +401,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 				</table>
 
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/plugin-trial/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Get the Free 14-day trial', 'wp-2fa' ); ?></a>
-					<a class="inverse" href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'UPGRADE NOW', 'wp-2fa' ); ?></a>
-					<span style="text-align: center; display: block; margin-top: 11px;"><?php esc_html_e( '* No credit card or payment details required for the trial.', 'wp-2fa' ); ?></span>	
+					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
 				</div>		
 			</div>
 

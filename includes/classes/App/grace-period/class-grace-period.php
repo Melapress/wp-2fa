@@ -61,6 +61,7 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		public static function maybe_prevent_account_lock( bool $state, \WP_User $user ) {
 			if ( 'configure-right-away' === Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', $user ) ) {
 				User_Helper::set_user_enforced_instantly( true, $user );
+
 				return false;
 			}
 
@@ -110,6 +111,7 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		 */
 		public static function is_set_up_immediately_set( \WP_User $user ) {
 			if ( 'configure-right-away' === Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', $user ) ) {
+
 				return true;
 			}
 
@@ -127,6 +129,7 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		 */
 		public static function add_default_settings( array $default_settings ) {
 			$default_settings['grace-policy-after-expire-action'] = 'configure-right-away';
+
 			return $default_settings;
 		}
 

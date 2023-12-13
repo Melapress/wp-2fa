@@ -9,12 +9,14 @@
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Shortcodes;
 
-use \WP2FA\WP2FA as WP2FA;
-use \WP2FA\Core as Core;
-use \WP2FA\Admin\User_Profile as User_Profile;
-use \WP2FA\Admin\User_Notices as User_Notices;
+use WP2FA\WP2FA;
+use WP2FA\Core;
+use WP2FA\Admin\User_Profile;
+use WP2FA\Admin\User_Notices;
 use WP2FA\Admin\Controllers\Settings;
 
 if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
@@ -67,14 +69,14 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 
 			$role                        = array_key_first( WP2FA::wp_2fa_get_roles() );
 			$redirect_page               = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', 'current', $role );
-			$data_array['redirectToUrl'] = ( '' !== trim( $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
+			$data_array['redirectToUrl'] = ( '' !== trim( (string) $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
 			// Check and override if custom redirect page is selected and custom redirect is set.
 			if (
 			'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ||
 			'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
 				if (
-				'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role ) ) ||
-				'' !== trim( Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
+				'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role ) ) ||
+				'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
 					if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ) {
 						$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role );
 					} else {

@@ -3,7 +3,7 @@
  * Responsible for the plugin login attempts
  *
  * @package    wp2fa
- * @subpackage admin_controllers
+ * @subpackage traits
  * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/

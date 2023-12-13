@@ -10,6 +10,8 @@
  * @since      2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Utils;
 
 if ( ! class_exists( '\WP2FA\Utils\Request_Utils' ) ) {
@@ -63,7 +65,7 @@ if ( ! class_exists( '\WP2FA\Utils\Request_Utils' ) ) {
 				return '';
 			}
 
-			return trim( $_SERVER['HTTP_USER_AGENT'] ); // phpcs:ignore
+			return trim( (string) $_SERVER['HTTP_USER_AGENT'] ); // phpcs:ignore
 		}
 	}
 }

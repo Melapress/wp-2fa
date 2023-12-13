@@ -10,6 +10,8 @@
  * @since 1.4.2
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Utils;
 
 if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {

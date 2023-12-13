@@ -8,6 +8,8 @@
  * @link      https://wordpress.org/plugins/wp-2fa/
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Authenticator;
 
 use WP2FA\WP2FA;

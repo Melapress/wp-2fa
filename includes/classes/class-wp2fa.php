@@ -14,7 +14,7 @@ use WP2FA\Admin\User_Listing;
 use WP2FA\Admin\User_Notices;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Request_Utils;
-use WP2FA\Methods\Backup_Codes;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Shortcodes\Shortcodes;
 use WP2FA\Utils\Date_Time_Utils;
 use WP2FA\Authenticator\Open_SSL;
@@ -26,10 +26,9 @@ use WP2FA\Admin\Helpers\File_Writer;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Helpers\Classes_Helper;
-use WP2FA\Admin\Views\Grace_Period_Notifications;
-use WP2FA\Utils\Settings_Utils;
-use WP2FA\Admin\SettingsPages\Settings_Page_Email;
+use WP2FA\Admin\Helpers\Methods_Helper;
 use WP2FA\Admin\Views\Password_Reset_2FA;
+use WP2FA\Admin\Views\Grace_Period_Notifications;
 
 if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 	/**
@@ -38,7 +37,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 	class WP2FA {
 
 		/**
-		 * Holds the global plugin secret key for storing the TOTP
+		 * Holds the global plugin secret key
 		 *
 		 * @var string
 		 *
@@ -71,9 +70,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 */
 		public static function get_default_settings() {
 			$default_settings = array(
-				'enable_totp'                          => 'enable_totp',
-				'enable_email'                         => 'enable_email',
-				'backup_codes_enabled'                 => 'yes',
 				'enforcement-policy'                   => 'do-not-enforce',
 				'excluded_users'                       => array(),
 				'excluded_roles'                       => array(),
@@ -105,7 +101,14 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'default-text-pw-reset-code-page'      => '<p>' . __( 'You have been sent a one-time code via email. Please enter the code below and then click Get New Password to proceed with the password reset.', 'wp-2fa' ) . '</p><br><p><strong>' . __( 'Note: If you have not received the code please click the button Resend Code. If you still do not get the code after pressing the button, please contact the website\'s administrator.', 'wp-2fa' ) . '</strong></p>',
 				'default-2fa-required-notice'          => '<p>' . __( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . __( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
 				'default-2fa-resetup-required-notice'  => '<p>' . __( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . __( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
-				'specify-email_hotp'                   => '',
+				'custom-text-authy-code-page-intro'    => __( 'If you are using the Authy app approve the OneTouch request to log in.', 'wp-2fa' ),
+				'custom-text-authy-code-page-awaiting' => __( 'Waiting for approval from application...', 'wp-2fa' ),
+				'custom-text-authy-code-page'          => __( 'Manually enter the code from the mobile app.', 'wp-2fa' ),
+				'custom-text-twilio-code-page'         => __( 'Enter the 2FA code you have received over SMS.', 'wp-2fa' ),
+				'custom-text-app-code-page'            => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
+				'custom-text-email-code-page'          => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
+
+
 				'default-backup-code-page'             => __( 'Enter a backup verification code.', 'wp-2fa' ),
 				'method_invalid_setting'               => 'login_block',
 				'enable_wizard_styling'                => 'enable_wizard_styling',
@@ -115,16 +118,9 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'welcome'                              => '',
 				'method_selection'                     => '<h3>' . __( 'Choose the 2FA method', 'wp-2fa' ) . '</h3>' . Methods::get_number_of_methods_text(),
 				'method_selection_single'              => '<h3>' . __( 'Choose the 2FA method', 'wp-2fa' ) . '</h3><p>' . __( 'Only the below 2FA method is allowed on this website:', 'wp-2fa' ) . '</p>',
-				'method_help_totp_intro'               => '<h3>' . __( 'Setting up TOTP', 'wp-2fa' ) . '</h3>',
-				'method_help_totp_step_1'              => __( 'Download and start the application of your choice', 'wp-2fa' ),
-				'method_help_totp_step_2'              => __( 'From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:', 'wp-2fa' ),
-				'method_help_totp_step_3'              => __( 'Click the "I\'m ready" button below when you complete the application setup process to proceed with the wizard.', 'wp-2fa' ),
-				'method_help_hotp_intro'               => '<h3>' . __( 'Setting up HOTP', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>',
 				'method_help_authy_intro'              => '<h3>' . __( 'Setting up Push notifications', 'wp-2fa' ) . '</h3><p>' . __( 'To enable push notifications enter the country and cellphone number in order to use it with this account.', 'wp-2fa' ) . '</p>',
 				'method_help_twilio_intro'             => '<h3>' . __( 'Setting up 2FA over SMS', 'wp-2fa' ) . '</h3><p>' . __( 'When you use 2FA over SMS to log in to this website you will receive your one-time code via an SMS on your cellphone. Therefore please enter the cellphone number of where you would like to receive the SMS below.', 'wp-2fa' ) . '</p>',
 				'method_help_oob_intro'                => '<h3>' . __( 'Setting up Link over email 2FA', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address to where the out-of-band link should be sent:', 'wp-2fa' ) . '</p>',
-				'method_verification_totp_pre'         => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code from your chosen authentication app to finalize the setup.', 'wp-2fa' ) . '</p>',
-				'method_verification_hotp_pre'         => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup', 'wp-2fa' ) . '</p>',
 				'method_verification_oob_pre'          => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup. Once the code is confirmed and 2FA is set up, you only have to verify a login by clicking on a link sent to you via email.', 'wp-2fa' ) . '</p>',
 				'method_verification_authy_pre'        => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the code from your Authy application with name {authy_name}', 'wp-2fa' ) . '</p>',
 				'method_verification_twilio_pre'       => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent via SMS to your phone to confirm your phone number.', 'wp-2fa' ) . '</p>',
@@ -135,8 +131,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'backup_codes_generated'               => '<h3>' . __( 'Backup codes generated', 'wp-2fa' ) . '</h3><p>' . __( 'Here are your backup codes:', 'wp-2fa' ) . '</p>',
 				'no_further_action'                    => '<h3>' . __( 'Congratulations! You are all set.', 'wp-2fa' ),
 				'2fa_required_intro'                   => '<h3>' . __( 'You are required to configure 2FA.', 'wp-2fa' ) . '</h3><p>' . __( 'In order to keep this site - and your details secure, this website’s administrator requires you to enable 2FA authentication to continue.', 'wp-2fa' ) . '</p><p>' . __( 'Two factor authentication ensures only you have access to your account by creating an added layer of security when logging in -', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel="noopener">' . __( 'Learn more', 'wp-2fa' ) . '</a></p>',
-				'totp_reconfigure_intro'               => '<h3>' . __( '{reconfigure_or_configure_capitalized} the 2FA App', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working.', 'wp-2fa' ) . '</p>',
-				'hotp_reconfigure_intro'               => '<h3>' . __( '{reconfigure_or_configure_capitalized} one-time code over email method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>',
 				'authy_reconfigure_intro'              => '<h3>' . __( '{reconfigure_or_configure_capitalized} push notification method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the phone where link should be send:', 'wp-2fa' ) . '</p>',
 				'authy_reconfigure_intro_unavailable'  => '<h3>' . __( '{reconfigure_or_configure_capitalized} push notification method', 'wp-2fa' ) . '</h3><p>' . __( 'The 2FA service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
 				'twilio_reconfigure_intro'             => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the phone where code should be send:', 'wp-2fa' ) . '</p>',
@@ -149,6 +143,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'backup_email_intro'                   => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Well done on configuring 2FA, your login has just got more secure. To make sure you never get locked out you are required to confirm your email address and use email as an alternative and backup 2FA method in case your primary method is unavailable. Please confirm your email address below', 'wp-2fa' ) . '</p>',
 				'user-profile-form-preamble-title'     => __( 'Two-factor authentication settings', 'wp-2fa' ),
 				'user-profile-form-preamble-desc'      => __( 'Add two-factor authentication to strengthen the security of your user account.', 'wp-2fa' ),
+				'use_custom_2fa_message'               => 'use-defaults',
 
 			);
 			/**
@@ -164,9 +159,15 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		}
 
 		/**
-		 * Fire up classes.
+		 * Inits the plugin related classes and settings
+		 *
+		 * @return void
+		 *
+		 * @since 2.6.0
 		 */
 		public static function init() {
+
+			Methods_Helper::init();
 
 			self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ]      = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() );
 			self::$plugin_settings[ WP_2FA_SETTINGS_NAME ]             = Settings_Utils::get_option( WP_2FA_SETTINGS_NAME, array() );
@@ -186,18 +187,11 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				Settings_Utils::delete_option( 'wizard_not_finished' );
 			}
 
-			// Activation/Deactivation.
-			register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
-			register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
-			// Register our uninstallation hook.
-			register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
-
 
 			WP_Helper::init();
 
 			// Bootstrap.
 			Core\setup();
-			Backup_Codes::init();
 
 			if ( is_admin() ) {
 				User_Listing::init();
@@ -224,12 +218,21 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		}
 
 		/**
-		 * Add our plugins actions.
+		 * Inits all the plugin hooks
+		 *
+		 * @return void
+		 *
+		 * @since 2.6.0
 		 */
 		public static function add_actions() {
 			// Plugin redirect on activation, only if we have no settings currently saved.
-			if ( ! isset( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) {
+			if ( ! isset( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || Settings_Utils::get_option( 'redirect_on_activate', false ) ) {
 				add_action( 'admin_init', array( __CLASS__, 'setup_redirect' ), 10 );
+
+				self::update_plugin_settings( self::get_default_settings() );
+			} elseif ( ! \is_array( Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) ) {
+					Settings_Utils::delete_option( WP_2FA_POLICY_SETTINGS_NAME );
+					self::update_plugin_settings( self::get_default_settings() );
 			}
 
 			// SettingsPage.
@@ -244,30 +247,23 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				add_action( 'admin_notices', array( '\WP2FA\Admin\Settings_Page', 'settings_saved_admin_notice' ) );
 				add_action( 'admin_notices', array( __CLASS__, 'wp_not_writable' ) );
 			}
-			\add_action( 'wp_ajax_nopriv_set_salt_key', array( __CLASS__, 'set_salt_key' ) );
-			\add_action( 'wp_ajax_set_salt_key', array( __CLASS__, 'set_salt_key' ) );
+			add_action( 'wp_ajax_wp2fa_dismiss_notice_mail_domain', array( '\WP2FA\Admin\Settings_Page', 'dismiss_notice_mail_domain' ) );
+			\add_action( 'wp_ajax_nopriv_set_salt_key', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'set_salt_key' ) );
+			\add_action( 'wp_ajax_set_salt_key', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'set_salt_key' ) );
 
-			add_action( 'wp_ajax_get_all_users', array( '\WP2FA\Admin\Settings_Page', 'get_all_users' ) );
-			add_action( 'wp_ajax_get_all_network_sites', array( '\WP2FA\Admin\Settings_Page', 'get_all_network_sites' ) );
-			add_action( 'wp_ajax_unlock_account', array( '\WP2FA\Admin\Settings_Page', 'unlock_account' ), 10, 1 );
-			add_action( 'admin_action_unlock_account', array( '\WP2FA\Admin\Settings_Page', 'unlock_account' ), 10, 1 );
-			add_action( 'admin_action_remove_user_2fa', array( '\WP2FA\Admin\Settings_Page', 'remove_user_2fa' ), 10, 1 );
-			add_action( 'wp_ajax_remove_user_2fa', array( '\WP2FA\Admin\Settings_Page', 'remove_user_2fa' ), 10, 1 );
+			add_action( 'wp_ajax_wp_2fa_get_all_users', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'get_all_users' ) );
+			add_action( 'wp_ajax_wp_2fa_get_all_roles', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'get_ajax_user_roles' ) );
+			add_action( 'wp_ajax_wp_2fa_get_all_network_sites', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'get_all_network_sites' ) );
+			add_action( 'wp_ajax_unlock_account', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'unlock_account' ), 10, 1 );
+			add_action( 'admin_action_unlock_account', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'unlock_account' ), 10, 1 );
+			add_action( 'admin_action_remove_user_2fa', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'remove_user_2fa' ), 10, 1 );
+			add_action( 'wp_ajax_remove_user_2fa', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'remove_user_2fa' ), 10, 1 );
 			add_action( 'admin_menu', array( '\WP2FA\Admin\Settings_Page', 'hide_settings' ), 999 );
 			add_action( 'plugin_action_links_' . WP_2FA_BASE, array( '\WP2FA\Admin\Settings_Page', 'add_plugin_action_links' ) );
 			add_filter( 'display_post_states', array( '\WP2FA\Admin\Settings_Page', 'add_display_post_states' ), 10, 2 );
-
-			// Setup_Wizard.
-			if ( WP_Helper::is_multisite() ) {
-				add_action( 'network_admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'network_admin_menus' ), 10 );
-				add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
-			} else {
-				add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
-			}
-			add_action( 'plugins_loaded', array( __CLASS__, 'add_wizard_actions' ), 10 );
 			add_action( 'wp_ajax_send_authentication_setup_email', array( '\WP2FA\Admin\Setup_Wizard', 'send_authentication_setup_email' ) );
-			add_action( 'wp_ajax_send_backup_codes_email', array( '\WP2FA\Admin\Setup_Wizard', 'send_backup_codes_email' ) );
-			add_action( 'wp_ajax_regenerate_authentication_key', array( '\WP2FA\Admin\Setup_Wizard', 'regenerate_authentication_key' ) );
+			add_action( 'wp_ajax_send_backup_codes_email', array( '\WP2FA\Methods\Backup_Codes', 'send_backup_codes_email' ) );
+			add_action( 'wp_ajax_regenerate_authentication_key', array( '\WP2FA\Methods\TOTP', 'regenerate_authentication_key' ) );
 
 			// User_Notices.
 			add_action( 'wp_ajax_dismiss_nag', array( '\WP2FA\Admin\User_Notices', 'dismiss_nag' ) );
@@ -288,7 +284,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				add_filter( 'ms_user_row_actions', array( '\WP2FA\Admin\User_Profile', 'user_2fa_row_actions' ), 10, 2 );
 			}
 			add_action( 'wp_ajax_validate_authcode_via_ajax', array( '\WP2FA\Admin\User_Profile', 'validate_authcode_via_ajax' ) );
-			add_action( 'wp_ajax_wp2fa_test_email', array( __CLASS__, 'handle_send_test_email_ajax' ) );
+			add_action( 'wp_ajax_wp2fa_test_email', array( '\WP2FA\Admin\Helpers\Ajax_Helper', 'handle_send_test_email_ajax' ) );
 
 			// Login.
 			add_action( 'wp_login', array( '\WP2FA\Authenticator\Login', 'wp_login' ), 20, 2 );
@@ -337,6 +333,8 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			add_action( 'admin_footer', array( '\WP2FA\Admin\User_Profile', 'dismiss_nag_notice' ) );
 
 			\add_action( WP_2FA_PREFIX . 'user_authenticated', array( __CLASS__, 'clear_user_after_login' ), 10, 1 );
+
+			\add_filter( 'mepr-auto-login', array( '\WP2FA\Authenticator\Login', 'mepr_login' ) );
 		}
 
 		/**
@@ -608,6 +606,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'login_code_email_body'               => $login_code_body,
 				'reset_password_code_email_subject'   => $reset_password_code_subject,
 				'reset_password_code_email_body'      => $reset_password_code_body,
+				'login_code_setup_email_subject'      => $login_code_subject,
 				'login_code_setup_email_body'         => $login_code_setup_body,
 				'user_account_locked_email_subject'   => $user_locked_subject,
 				'user_account_locked_email_body'      => $user_locked_body,
@@ -617,6 +616,8 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'user_backup_codes_email_body'        => $user_backup_codes_body,
 				'send_account_locked_email'           => 'enable_account_locked_email',
 				'send_account_unlocked_email'         => 'enable_account_unlocked_email',
+				'send_login_code_email'               => 'enable_send_login_code_email',
+				'send_reset_password_code_email'      => 'enable_send_reset_password_code_email',
 			);
 
 			/**
@@ -643,7 +644,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 */
 		public static function replace_email_strings( $input = '', $user_id = '', $token = '', $override_grace_period = '' ) {
 
-			$token = trim( $token );
+			$token = trim( (string) $token );
 
 			// Gather grace period.
 			$grace_period_string = '';
@@ -721,7 +722,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 */
 		public static function contextual_reconfigure_text( $input = '', $user_id = '', $method_to_check = '' ) {
 
-			if ( empty( trim( $input ) ) ) {
+			if ( empty( trim( (string) $input ) ) ) {
 				return $input;
 			}
 
@@ -760,7 +761,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 * @since 2.5.0
 		 */
 		public static function replace_remaining_grace_period( $input = '', $grace_expiry = -1 ) {
-			if ( empty( trim( $input ) ) || empty( trim( $grace_expiry ) ) ) {
+			if ( empty( trim( (string) $input ) ) || empty( trim( (string) $grace_expiry ) ) ) {
 				return $input;
 			}
 
@@ -824,6 +825,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
 				$redirect = User_Licensing::enable_2fa_user_setting( true );
 			}
+
 
 			if ( $redirect ) {
 				$is_user_instantly_enforced = User_Helper::get_user_enforced_instantly();
@@ -976,71 +978,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		}
 
 		/**
-		 * Handles AJAX calls for sending test emails.
-		 */
-		public static function handle_send_test_email_ajax() {
-
-			// check user permissions.
-			if ( ! current_user_can( 'manage_options' ) ) {
-				wp_send_json_error();
-			}
-
-			// check email id.
-			$email_id = isset( $_POST['email_id'] ) ? sanitize_text_field( \wp_unslash( $_POST['email_id'] ) ) : null;
-			if ( null === $email_id || false === $email_id ) {
-				wp_send_json_error();
-			}
-
-			// check nonce.
-			$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( \wp_unslash( $_POST['_wpnonce'] ) ) : null;
-			if ( null === $nonce || false === $nonce || ! wp_verify_nonce( $nonce, 'wp-2fa-email-test-' . $email_id ) ) {
-				wp_send_json_error();
-			}
-
-			$user_id = get_current_user_id();
-			// Grab user data.
-			$user = get_userdata( $user_id );
-			// Grab user email.
-			$email = $user->user_email;
-
-			if ( 'config_test' === $email_id ) {
-				$email_sent = Settings_Page::send_email(
-					$email,
-					esc_html__( 'Test email from WP 2FA', 'wp-2fa' ),
-					esc_html__( 'This email was sent by the WP 2FA plugin to test the email delivery.', 'wp-2fa' )
-				);
-				if ( $email_sent ) {
-					wp_send_json_success( 'Test email was successfully sent to <strong>' . $email . '</strong>' );
-				}
-
-				wp_send_json_error();
-			}
-
-			/**
-			 * All email templates
-			 *
-			 *  @var Email_Template[] $email_templates
-			 */
-			$email_templates = Settings_Page_Email::get_email_notification_definitions();
-			foreach ( $email_templates as $email_template ) {
-				if ( $email_id === $email_template->get_email_content_id() ) {
-					// send the test email.
-
-					// Setup the email contents.
-					$subject = wp_strip_all_tags( self::replace_email_strings( self::get_wp2fa_email_templates( $email_id . '_email_subject' ) ) );
-					$message = wpautop( self::replace_email_strings( self::get_wp2fa_email_templates( $email_id . '_email_body' ), $user_id ) );
-
-					$email_sent = Settings_Page::send_email( $email, $subject, $message );
-					if ( $email_sent ) {
-						wp_send_json_success( 'Test email <strong>' . $email_template->get_title() . '</strong> was successfully sent to <strong>' . $email . '</strong>' );
-					}
-
-					wp_send_json_error();
-				}
-			}
-		}
-
-		/**
 		 * Returns currently stored settings
 		 *
 		 * @return array
@@ -1116,7 +1053,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		}
 
 		/**
-		 * Getter for the TOTP secret key of the plugin for the current instance
+		 * Getter for the ecret key of the plugin for the current instance
 		 *
 		 * Note: that is legacy code and will be removed.
 		 *
@@ -1134,60 +1071,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			}
 
 			return self::$secret_key;
-		}
-
-		/**
-		 * Sets the salt key into the wp-config.php file via AJAX request.
-		 *
-		 * @return void
-		 *
-		 * @since 2.4.0
-		 */
-		public static function set_salt_key() {
-			if ( \wp_doing_ajax() ) {
-				if ( isset( $_REQUEST['_wpnonce'] ) ) {
-					$nonce_check = \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_REQUEST['_wpnonce'] ) ), 'wp-2fa-set-salt-nonce' );
-					if ( ! $nonce_check ) {
-						\wp_send_json_error( new \WP_Error( 500, \esc_html__( 'Nonce checking failed', 'wp-2fa' ) ), 400 );
-					} elseif ( \current_user_can( 'manage_options' ) ) {
-						if ( ! File_Writer::can_write_to_file( File_Writer::get_wp_config_file_path() ) ) {
-							\wp_send_json_error(
-								new \WP_Error(
-									500,
-									\esc_html__(
-										'Unable to write to wp-config.php',
-										'wp-2fa'
-									)
-								),
-								400
-							);
-						} else {
-							$secret_key = Settings_Utils::get_option( 'secret_key' );
-							if ( ! empty( $secret_key ) ) {
-								File_Writer::save_secret_key( $secret_key );
-								Settings_Utils::delete_option( 'secret_key' );
-								\wp_send_json_success(
-									\esc_html__(
-										'wp-config.php successfully update, global setting deleted',
-										'wp-2fa'
-									)
-								);
-							} else {
-								\wp_send_json_error(
-									new \WP_Error(
-										500,
-										\esc_html__(
-											'Unable to find global secret key',
-											'wp-2fa'
-										)
-									),
-									400
-								);
-							}
-						}
-					}
-				}
-			}
 		}
 
 		/**

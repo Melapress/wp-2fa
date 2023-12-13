@@ -12,9 +12,9 @@
 
 namespace WP2FA\Admin;
 
-use \WP2FA\Admin\Settings_Page;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\WP_Helper;
-use \WP2FA\WP2FA as WP2FA;
+use WP2FA\WP2FA;
 
 if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 
@@ -51,13 +51,13 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 
 			if ( ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) ) ) {
 				$main_user = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
-			}	
+			}
 			?>
-		<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $current_user_id ) : ?>
+			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $current_user_id ) : ?>
 			</br>
-			<?php
-			echo esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
-			?>
+				<?php
+				echo esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+				?>
 		<?php else : ?>
 			<div class="wrap help-wrap">
 				<h2><?php esc_html_e( 'Help', 'wp-2fa' ); ?></h2>
@@ -194,7 +194,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 				<li>
 					<div class="plugin-box">
 						<div class="plugin-img">
-							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-security-audit-log-img.jpg" alt="">
+							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-activity-log.jpeg" alt="">
 						</div>
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Keep a log of users and under the hood site activity.', 'wp-2fa' ); ?></p>
@@ -221,7 +221,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 				<li>
 					<div class="plugin-box">
 						<div class="plugin-img">
-							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-password-img.jpg" alt="">
+							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/login-security.jpeg" alt="">
 						</div>
 						<div class="plugin-desc">
 							<p><?php esc_html_e( 'Enforce strong password policies on WordPress.', 'wp-2fa' ); ?></p>

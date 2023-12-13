@@ -13,6 +13,9 @@ namespace WP2FA\Admin\Controllers;
 
 use WP2FA\WP2FA;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Extensions\EmailBackup\Email_Backup;
+use WP2FA\Extensions\OutOfBand\Out_Of_Band;
+use WP2FA\Methods\Backup_Codes;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -48,14 +51,6 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		public static function get_available_2fa_methods(): array {
 			$available_methods = array();
 
-			if ( ! empty( Settings::get_role_or_default_setting( 'enable_email', 'current' ) ) ) {
-				$available_methods[] = 'email';
-			}
-
-			if ( ! empty( Settings::get_role_or_default_setting( 'enable_totp', 'current' ) ) ) {
-				$available_methods[] = 'totp';
-			}
-
 			/**
 			 * Add an option for external providers to implement their own 2fa methods and set them as available.
 			 *
@@ -82,13 +77,13 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 
 				foreach ( $providers as $provider ) {
 					if ( Settings::is_provider_enabled_for_role( $role, $provider ) ) {
-						if ( 'backup_codes' === $provider ) {
+						if ( Backup_Codes::METHOD_NAME === $provider ) {
 							// Backup codes is a secondary provider - ignore it.
 							continue;
-						} elseif ( 'backup_email' === $provider ) {
+						} elseif ( \class_exists( 'WP2FA\Extensions\EmailBackup\Email_Backup', false ) && Email_Backup::METHOD_NAME === $provider ) {
 							// Backup email codes is a secondary provider - ignore it.
 							continue;
-						} elseif ( 'oob' === $provider ) {
+						} elseif ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $provider ) {
 							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role );
 						} else {
 							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role );

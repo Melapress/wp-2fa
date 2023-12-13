@@ -239,6 +239,11 @@
           if (event.keyCode === 27) this.closeModal(event); // esc
 
           if (event.keyCode === 9) this.retainFocus(event); // tab
+
+          if (event.keyCode === 13) { // enter
+            var modal = jQuery('#' + this.modal.id);
+            modal.find('.button:visible:first').click();
+          }
         }
       }, {
         key: "getFocusableNodes",

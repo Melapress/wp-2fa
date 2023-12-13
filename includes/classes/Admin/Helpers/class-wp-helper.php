@@ -241,6 +241,47 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
+		 * Creates a nonce for HTML field by given name.
+		 *
+		 * @param string $nonce_name -The name of the nonce to create.
+		 *
+		 * @return string
+		 *
+		 * @since 2.6.0
+		 */
+		public static function create_data_nonce( string $nonce_name ): string {
+			return ' data-nonce="' . \esc_attr( \wp_create_nonce( $nonce_name ) ) . '"';
+		}
+
+		/**
+		 * Extracts the domain part of the given string.
+		 *
+		 * @param string $url_to_check - The URL string to be checked.
+		 *
+		 * @return string
+		 *
+		 * @since 2.6.0
+		 */
+		public static function extract_domain( string $url_to_check ): string {
+			// get the full domain.
+			// $urlparts = parse_url( \site_url() );.
+
+			if ( false !== strpos( $url_to_check, '@' ) ) {
+				$domain = \explode( '@', $url_to_check )[1];
+
+				return $domain;
+			}
+			$urlparts = parse_url( $url_to_check );
+			$domain   = $urlparts ['host'];
+
+			// get the TLD and domain.
+			$domainparts = explode( '.', $domain );
+			$domain      = $domainparts[ count( $domainparts ) - 2 ] . '.' . $domainparts[ count( $domainparts ) - 1 ];
+
+			return $domain;
+		}
+
+		/**
 		 * Remove all non-WP Mail SMTP notices from the our plugin pages based on the provided action hook.
 		 *
 		 * @since 2.4.1

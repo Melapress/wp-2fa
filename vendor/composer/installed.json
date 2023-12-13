@@ -59,17 +59,17 @@
         },
         {
             "name": "dasprid\/enum",
-            "version": "1.0.4",
-            "version_normalized": "1.0.4.0",
+            "version": "1.0.5",
+            "version_normalized": "1.0.5.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/DASPRiD\/Enum.git",
-                "reference": "8e6b6ea76eabbf19ea2bf5b67b98e1860474012f"
+                "reference": "6faf451159fb8ba4126b925ed2d78acfce0dc016"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/DASPRiD\/Enum\/zipball\/8e6b6ea76eabbf19ea2bf5b67b98e1860474012f",
-                "reference": "8e6b6ea76eabbf19ea2bf5b67b98e1860474012f",
+                "url": "https:\/\/api.github.com\/repos\/DASPRiD\/Enum\/zipball\/6faf451159fb8ba4126b925ed2d78acfce0dc016",
+                "reference": "6faf451159fb8ba4126b925ed2d78acfce0dc016",
                 "shasum": ""
             },
             "require": {
@@ -79,7 +79,7 @@
                 "phpunit\/phpunit": "^7 | ^8 | ^9",
                 "squizlabs\/php_codesniffer": "*"
             },
-            "time": "2023-03-01T18:44:03+00:00",
+            "time": "2023-08-25T16:18:39+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -106,7 +106,7 @@
             ],
             "support": {
                 "issues": "https:\/\/github.com\/DASPRiD\/Enum\/issues",
-                "source": "https:\/\/github.com\/DASPRiD\/Enum\/tree\/1.0.4"
+                "source": "https:\/\/github.com\/DASPRiD\/Enum\/tree\/1.0.5"
             },
             "install-path": "..\/dasprid\/enum"
         },
@@ -250,23 +250,32 @@
         },
         {
             "name": "freemius\/wordpress-sdk",
-            "version": "2.5.8",
-            "version_normalized": "2.5.8.0",
+            "version": "2.6.0",
+            "version_normalized": "2.6.0.0",
             "source": {
                 "type": "git",
                 "url": "https:\/\/github.com\/Freemius\/wordpress-sdk.git",
-                "reference": "bbbcf3d976a1fd90355037b163746fdca6c93a4c"
+                "reference": "8a2bb8f6f45571ec1d05c23421568ca73704176c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/Freemius\/wordpress-sdk\/zipball\/bbbcf3d976a1fd90355037b163746fdca6c93a4c",
-                "reference": "bbbcf3d976a1fd90355037b163746fdca6c93a4c",
+                "url": "https:\/\/api.github.com\/repos\/Freemius\/wordpress-sdk\/zipball\/8a2bb8f6f45571ec1d05c23421568ca73704176c",
+                "reference": "8a2bb8f6f45571ec1d05c23421568ca73704176c",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.2"
+                "php": ">=5.6"
             },
-            "time": "2023-05-15T06:17:55+00:00",
+            "require-dev": {
+                "dealerdirect\/phpcodesniffer-composer-installer": "^1.0",
+                "phpcompatibility\/php-compatibility": "^9.3",
+                "phpcompatibility\/phpcompatibility-wp": "^2.1",
+                "phpstan\/extension-installer": "^1.3",
+                "squizlabs\/php_codesniffer": "^3.7",
+                "szepeviktor\/phpstan-wordpress": "^1.3",
+                "wp-coding-standards\/wpcs": "^2.3"
+            },
+            "time": "2023-10-30T10:56:28+00:00",
             "type": "library",
             "installation-source": "dist",
             "notification-url": "https:\/\/packagist.org\/downloads\/",
@@ -286,7 +295,7 @@
             ],
             "support": {
                 "issues": "https:\/\/github.com\/Freemius\/wordpress-sdk\/issues",
-                "source": "https:\/\/github.com\/Freemius\/wordpress-sdk\/tree\/2.5.8"
+                "source": "https:\/\/github.com\/Freemius\/wordpress-sdk\/tree\/2.6.0"
             },
             "install-path": "..\/freemius\/wordpress-sdk"
         },

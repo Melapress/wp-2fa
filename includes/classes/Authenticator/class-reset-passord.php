@@ -15,11 +15,12 @@ declare(strict_types=1);
 
 namespace WP2FA\Authenticator;
 
+use WP2FA\Methods\Email;
 use WP2FA\Authenticator\Login;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
 use WP2FA\Admin\Controllers\Settings;
-use \WP2FA\Admin\Views\Password_Reset_2FA;
+use WP2FA\Admin\Views\Password_Reset_2FA;
+use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
 
 /**
  * Responsible for user login process.
@@ -186,10 +187,10 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				exit;
 			}
 
-			$provider = 'email';
+			$provider = Email::METHOD_NAME;
 
 			// If this is an email login, or if the user failed validation previously, lets send the code to the user.
-			if ( 'email' === $provider && true !== Login::pre_process_email_authentication( $user ) ) {
+			if ( Email::METHOD_NAME === $provider && true !== Login::pre_process_email_authentication( $user ) ) {
 				$login_nonce = Login::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
 					wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
@@ -197,7 +198,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			}
 
 			// Validate Email.
-			if ( 'email' === $provider && true !== Login::validate_email_authentication( $user ) ) {
+			if ( Email::METHOD_NAME === $provider && true !== Login::validate_email_authentication( $user ) ) {
 				do_action(
 					'wp_login_failed',
 					$user->user_login,

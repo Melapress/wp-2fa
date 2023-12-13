@@ -11,19 +11,22 @@
 
 namespace WP2FA\Admin;
 
-use \WP2FA\Core as Core;
-use \WP2FA\WP2FA as WP2FA;
+use WP2FA\Methods\TOTP;
+use WP2FA\Core;
+use WP2FA\Methods\Email;
+use WP2FA\WP2FA;
+use WP2FA\Methods\Backup_Codes;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Wizard_Steps;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
-use \WP2FA\Utils\User_Utils as User_Utils;
+use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Views\First_Time_Wizard_Steps;
-use \WP2FA\Admin\Settings_Page as Settings_Page;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
-use \WP2FA\Utils\Generate_Modal as Generate_Modal;
-use \WP2FA\Admin\SettingsPages\Settings_Page_Policies;
-use \WP2FA\Authenticator\Authentication as Authentication;
+use WP2FA\Admin\Settings_Page;
+use WP2FA\Utils\Settings_Utils;
+use WP2FA\Utils\Generate_Modal;
+use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
+use WP2FA\Authenticator\Authentication;
 
 /**
  * Setup_Wizard class for the wizard steps setup
@@ -91,6 +94,10 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				$settings_saved = false;
 			}
 
+			if ( Settings_Utils::get_option( 'wizard_not_finished' ) ) {
+				$settings_saved = false;
+			}
+
 			/**
 			 * Wizard Steps.
 			 */
@@ -141,7 +148,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				$settings_saved = false;
 			}
 
-			// Ensure user has minimum capabitlies needed to be here.
+			// Ensure user has minimum capabilities needed to be here.
 			if ( in_array( 'can_read', $user_type, true ) && $settings_saved ) {
 
 				switch ( $wizard_type ) {
@@ -162,7 +169,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				}
 
 				// Remove 1st step if only one method is available.
-				if ( empty( WP2FA::get_wp2fa_setting( 'enable_totp' ) ) || empty( WP2FA::get_wp2fa_setting( 'enable_email' ) ) ) {
+				if ( empty( WP2FA::get_wp2fa_setting( TOTP::POLICY_SETTINGS_NAME ) ) || empty( WP2FA::get_wp2fa_setting( Email::POLICY_SETTINGS_NAME ) ) ) {
 					unset( $wizard_steps['choose_2fa_method'] );
 				}
 
@@ -185,7 +192,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			$current_step       = ( isset( $_GET['current-step'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['current-step'] ) ) : ''; // phpcs:ignore
 			self::$current_step = ! empty( $current_step ) ? $current_step : current( array_keys( self::$wizard_steps ) );
 
-			if ( 'backup_codes' === self::$current_step && ! Settings_Page::are_backup_codes_enabled( User_Helper::get_user_role( $user ) ) ) {
+			if ( Backup_Codes::METHOD_NAME === self::$current_step && ! Backup_Codes::are_backup_codes_enabled_for_role( User_Helper::get_user_role( $user ) ) ) {
 
 				$redirect_to_finish = add_query_arg(
 					array(
@@ -214,10 +221,6 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			);
 
 			\WP2FA\Core\enqueue_select2_scripts();
-
-			if ( \WP2FA\Admin\Helpers\WP_Helper::is_multisite() ) {
-				\WP2FA\Core\enqueue_multi_select_scripts();
-			}
 
 			wp_enqueue_script(
 				'wp_2fa_admin',
@@ -296,7 +299,6 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			<?php wp_print_scripts( 'wp_2fa_setup_wizard' ); ?>
 			<?php wp_print_scripts( 'wp_2fa_micromodal' ); ?>
 			<?php wp_print_scripts( 'wp_2fa_admin' ); ?>
-			<?php wp_print_scripts( 'multi-site-select' ); ?>
 			<?php
 				/**
 				 * Gives the ability for 3rd party scripts to add their own JS to the plugin setup page.
@@ -343,10 +345,10 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			echo Generate_Modal::generate_modal(
 				'notify-admin-settings-page',
 				'',
-				__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the ', 'wp-2fa' ) . ' <b>' . __( 'WP 2FA', 'wp-2fa' ) . '</b>' . __( ' entry in your WordPress dashboard menu.', 'wp-2fa' ),
+				__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the ', 'wp-2fa' ) . ' <b>' . __( 'WP 2FA', 'wp-2fa' ) . '</b>' . __( ' entry in your WordPress dashboard menu.', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				array(
-					'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . esc_url( $redirect ) . '">' . __( 'OK, close wizard', 'wp-2fa' ) . '</a>',
-					'<a href="#" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" data-close-2fa-modal>' . __( 'Continue with wizard', 'wp-2fa' ) . '</a>',
+					'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . esc_url( $redirect ) . '">' . __( 'OK, close wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					'<a href="#" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" data-close-2fa-modal>' . __( 'Continue with wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				),
 				'',
 				'580px'
@@ -452,7 +454,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		 */
 		private static function wp_2fa_step_global_2fa_methods() {
 			?>
-		<form method="post" class="wp2fa-setup-form wp2fa-form-styles" autocomplete="off">
+		<form method="post" class="wp2fa-setup-form wp2fa-form-styles wp2fa-first-time-wizard" autocomplete="off">
 			<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
 			<div class="step-setting-wrapper active" data-step-title="<?php esc_html_e( '2FA methods', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::select_method( true ); ?>
@@ -530,8 +532,9 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		/**
 		 * Send email with fresh code, or to setup email 2fa.
 		 *
-		 * @param int    $user_id User id we want to send the message to.
+		 * @param int    $user_id - User id we want to send the message to.
 		 * @param string $nominated_email_address - The user custom address to use (name of the meta key to check for).
+		 * @param bool   $is_reset_protection - That call is for reset code.
 		 *
 		 * @return bool
 		 *
@@ -543,6 +546,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
 				$nonce_check = \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'wp-2fa-send-setup-email' );
 				if ( ! $nonce_check ) {
+					\wp_send_json_error( new \WP_Error( 400, \esc_html__( 'Nonce checking failed', 'wp-2fa' ) ), 400 );
 					return false;
 				}
 			}
@@ -561,12 +565,18 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			}
 
 			if ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
-				update_user_meta( $user->ID, WP_2FA_PREFIX . 'nominated_email_address', $email );
+				User_Helper::set_nominated_email_for_user( $email, $user );
 			}
 
-			$enabled_email_address = '';
+			$email_address = '';
 			if ( ! empty( $nominated_email_address ) ) {
-				$enabled_email_address = get_user_meta( $user->ID, WP_2FA_PREFIX . $nominated_email_address, true );
+				if ( 'nominated_email_address' === $nominated_email_address ) {
+					$email_address = User_Helper::get_nominated_email_for_user( $user );
+				} elseif ( 'backup_email_address' === $nominated_email_address ) {
+					$email_address = User_Helper::get_backup_email_for_user( $user );
+				}
+			} else {
+				$email_address = $user->user_email;
 			}
 
 			// Generate a token and setup email.
@@ -576,110 +586,26 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			if ( $is_reset_protection ) {
 				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'reset_password_code_email_subject' ), $user->ID ) );
 				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'reset_password_code_email_body' ), $user->ID, $token ) );
-			} else if ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
-				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
+			} elseif ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
+				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_setup_email_subject' ), $user->ID ) );
 				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_setup_email_body' ), $user->ID, $token ) );
 			} else {
 				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
 				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
 			}
 
-			if ( ! empty( $enabled_email_address ) ) {
-				$email_address = $enabled_email_address;
-			} else {
-				$email_address = $user->user_email;
+			// If we have a nonce posted, check it.
+			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
+				$mail_sent = Settings_Page::send_email( $email_address, $subject, $message );
+				if ( ! $mail_sent ) {
+					\wp_send_json_error( new \WP_Error( 500, \esc_html__( 'Email sending failed', 'wp-2fa' ) ), 400 );
+					return false;
+				}
+
+				return $mail_sent;
 			}
 
 			return Settings_Page::send_email( $email_address, $subject, $message );
-		}
-
-		/**
-		 * Send email with fresh code, or to setup email 2fa.
-		 *
-		 * @param int    $user_id User id we want to send the message to.
-		 * @param string $nominated_email_address - The user custom address to use (name of the meta key to check for).
-		 *
-		 * @return bool
-		 *
-		 * @SuppressWarnings(PHPMD.ExitExpression)
-		 */
-		public static function send_backup_codes_email( $user_id, $nominated_email_address = 'nominated_email_address' ) {
-
-			// If we have a nonce posted, check it.
-			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
-				$nonce_check = \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'wp-2fa-send-backup-codes-email-nonce' );
-				if ( ! $nonce_check ) {
-					return false;
-				}
-			}
-
-			if ( isset( $_POST['user_id'] ) ) {
-				$user = get_userdata( intval( $_POST['user_id'] ) );
-			} else {
-				$user = get_userdata( $user_id );
-			}
-
-			// Grab email address is its provided.
-			if ( isset( $_POST['email_address'] ) ) {
-				$email = sanitize_email( \wp_unslash( $_POST['email_address'] ) );
-			} else {
-				$email = sanitize_email( $user->user_email );
-			}
-
-			$enabled_email_address = '';
-			if ( ! empty( $nominated_email_address ) ) {
-				$enabled_email_address = get_user_meta( $user->ID, WP_2FA_PREFIX . $nominated_email_address, true );
-			}
-
-			$codes = substr( str_replace( '\\n', '<br>', \sanitize_text_field( \wp_unslash( $_POST['codes'] ) ) ), 1, -1 );
-
-			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_backup_codes_email_subject' ), $user->ID ) );
-			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_backup_codes_email_body' ), $user->ID ) );
-
-			$final_output = str_replace( '{backup_codes}', $codes, $message );
-
-			if ( ! empty( $enabled_email_address ) ) {
-				$email_address = $enabled_email_address;
-			} else {
-				$email_address = $user->user_email;
-			}
-
-			return Settings_Page::send_email( $email_address, $subject, $final_output );
-		}
-
-		/**
-		 * Regenerates the TOTP key for the user
-		 *
-		 * @return void - JSON - object with "key" - stores the new key and "qr" - stores the new QR code.
-		 *
-		 * @since 2.5.0
-		 */
-		public static function regenerate_authentication_key() {
-			// Grab current user.
-			$user = wp_get_current_user();
-
-			$key = Authentication::generate_key();
-
-			$site_name = site_url();
-			$site_name = trim( str_replace( array( 'http://', 'https://' ), '', $site_name ), '/' );
-
-			/**
-			 * Changing the title of the login screen for the TOTP method.
-			 *
-			 * @param string $title - The default title.
-			 * @param \WP_User $user - The WP user.
-			 *
-			 * @since 2.0.0
-			 */
-			$totp_title = apply_filters( WP_2FA_PREFIX . 'totp_title', $site_name . ':' . $user->user_login, $user );
-			$new_qr     = Authentication::get_google_qr_code( $totp_title, $key, $site_name );
-
-			wp_send_json_success(
-				array(
-					'key' => Authentication::decrypt_key_if_needed( $key ),
-					'qr'  => $new_qr,
-				)
-			);
 		}
 
 		/**

@@ -9,6 +9,8 @@
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Utils;
 
 use WP2FA\Admin\Helpers\WP_Helper;
@@ -19,6 +21,7 @@ if ( ! class_exists( '\WP2FA\Utils\Settings_Utils' ) ) {
 	 * Utility class handling settings CRUD.
 	 *
 	 * @package WP2FA\Utils
+	 *
 	 * @since 1.7.0
 	 */
 	class Settings_Utils {
