@@ -9,9 +9,11 @@
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Utils;
 
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Utils\Settings_Utils;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -105,7 +107,7 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 
 				$migrate_methods = array_filter(
 					$method_as_version_numbers,
-					function( $method, $key ) use ( &$stored_version_as_number, &$target_version_as_number ) {
+					function ( $method, $key ) use ( &$stored_version_as_number, &$target_version_as_number ) {
 						if ( $target_version_as_number > $stored_version_as_number ) {
 							return ( in_array( $key, range( $stored_version_as_number, $target_version_as_number ), true ) );
 						}
@@ -145,8 +147,8 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 		 */
 		private static function get_stored_version() {
 
-			if ( '' === trim( static::$stored_version ) ) {
-				static::$stored_version = Settings_Utils::get_option( static::$version_option_name, '0.0.0' );
+			if ( '' === trim( (string) static::$stored_version ) ) {
+				static::$stored_version = (string) Settings_Utils::get_option( static::$version_option_name, '0.0.0' );
 			}
 
 			return static::$stored_version;
@@ -179,8 +181,8 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 		private static function normalize_version( string $version ) {
 			$version_as_number = (int) filter_var( $version, FILTER_SANITIZE_NUMBER_INT );
 
-			if ( self::$pad_length > strlen( $version_as_number ) ) {
-				$version_as_number = str_pad( $version_as_number, static::$pad_length, '0', STR_PAD_RIGHT );
+			if ( self::$pad_length > strlen( (string) $version_as_number ) ) {
+				$version_as_number = str_pad( (string) $version_as_number, static::$pad_length, '0', STR_PAD_RIGHT );
 			}
 
 			return $version_as_number;

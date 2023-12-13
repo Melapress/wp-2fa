@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf54a698a6146edbb0942ae719b355acb
+class ComposerStaticInit7308e0c95228d04f55d9943b5008262f
 {
     public static $files = array (
         'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
@@ -79,12 +79,15 @@ class ComposerStaticInitf54a698a6146edbb0942ae719b355acb
         'WP2FA\\Admin\\Controllers\\Methods' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-methods.php',
         'WP2FA\\Admin\\Controllers\\Settings' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-settings.php',
         'WP2FA\\Admin\\Help_Contact_Us' => __DIR__ . '/../..' . '/includes/classes/Admin/class-help-contact-us.php',
+        'WP2FA\\Admin\\Helpers\\Ajax_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-ajax-helper.php',
         'WP2FA\\Admin\\Helpers\\Classes_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-classes-helper.php',
         'WP2FA\\Admin\\Helpers\\File_Writer' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-file-writer.php',
+        'WP2FA\\Admin\\Helpers\\Methods_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-methods-helper.php',
         'WP2FA\\Admin\\Helpers\\PHP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-php-helper.php',
         'WP2FA\\Admin\\Helpers\\User_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-user-helper.php',
         'WP2FA\\Admin\\Helpers\\WP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-wp-helper.php',
         'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
+        'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
         'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_General' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-general.php',
@@ -142,7 +145,13 @@ class ComposerStaticInitf54a698a6146edbb0942ae719b355acb
         
         
         
+        
+        
         'WP2FA\\Methods\\Backup_Codes' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/class-backup-codes.php',
+        'WP2FA\\Methods\\Email' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/class-email.php',
+        'WP2FA\\Methods\\TOTP' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/class-totp.php',
+        'WP2FA\\Methods\\Wizards\\Email_Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/class-email-wizard-steps.php',
+        'WP2FA\\Methods\\Wizards\\TOTP_Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/class-totp-wizard-steps.php',
         'WP2FA\\Shortcodes\\Shortcodes' => __DIR__ . '/../..' . '/includes/classes/Shortcodes/class-shortcodes.php',
         'WP2FA\\Utils\\Abstract_Migration' => __DIR__ . '/../..' . '/includes/classes/Utils/class-abstract-migration.php',
         'WP2FA\\Utils\\Date_Time_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-date-time-utils.php',
@@ -159,9 +168,9 @@ class ComposerStaticInitf54a698a6146edbb0942ae719b355acb
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf54a698a6146edbb0942ae719b355acb::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf54a698a6146edbb0942ae719b355acb::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitf54a698a6146edbb0942ae719b355acb::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit7308e0c95228d04f55d9943b5008262f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit7308e0c95228d04f55d9943b5008262f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit7308e0c95228d04f55d9943b5008262f::$classMap;
 
         }, null, ClassLoader::class);
     }

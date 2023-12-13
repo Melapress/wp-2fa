@@ -1,10 +1,10 @@
 <?php
 /**
- * Responsible for the User's operations
+ * Responsible for the File writing operations
  *
  * @package    wp2fa
  * @subpackage helpers
- * @since      latest
+ * @since      2.4.0
  * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
@@ -15,18 +15,20 @@ namespace WP2FA\Admin\Helpers;
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 /**
- * User's settings class
+ * File writer settings class
  */
 if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 
 	/**
-	 * All the user related settings must go trough this class.
+	 * All the file operations must go trough this class.
 	 *
 	 * @since 2.4.0
 	 */
 	class File_Writer {
 
 		public const SECRET_NAME = 'WP2FA_ENCRYPT_KEY';
+
+		public const WP2FA_UPLOADS_DIR = 'wp-2fa-data';
 
 		/**
 		 * Saves a secret key in `wp-config.php`.
@@ -51,7 +53,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 
 			set_error_handler(
 				function ( $err_severity, $err_msg, $err_file, $err_line, array $err_context ) {
-					throw new \Error( $err_msg, 0, $err_severity, $err_file, $err_line );
+					throw new \Error( $err_msg, 0, $err_severity, $err_file, $err_line ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				},
 				E_WARNING
 			);
@@ -263,17 +265,18 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @since 2.4.0
 		 */
 		public static function add_file_listing_protection( string $dir ) {
-			$dir = rtrim( $dir, '/' );
+			$dir = rtrim( $dir, \DIRECTORY_SEPARATOR );
 
 			if ( ! is_dir( $dir ) ) {
 				return false;
 			}
 
-			if ( self::exists( "$dir/index.php" ) ) {
+			if ( self::exists( $dir . \DIRECTORY_SEPARATOR . 'index.php' ) ) {
 				return true;
 			}
 
-			return self::write( "$dir/index.php", "<?php\n// Silence is golden." );
+			return self::write( $dir . \DIRECTORY_SEPARATOR . '.htaccess', 'Deny from all' ) &&
+			self::write( $dir . \DIRECTORY_SEPARATOR . 'index.php', "<?php\n// Silence is golden." );
 		}
 
 		/**
@@ -375,6 +378,109 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			}
 
 			return false;
+		}
+
+		/**
+		 * Retrieves the full path to plugin's working directory. Returns a folder path with a trailing slash. It also
+		 * creates the folder unless the $skip_creation parameter is set to true.
+		 *
+		 * Default path is "{uploads folder}/self::WP2FA_UPLOADS_DIR/"
+		 *
+		 * @param string $path          Optional path relative to the working directory.
+		 * @param bool   $skip_creation If true, the folder will not be created.
+		 * @param bool   $ignore_site   If true, there will be no sub-site specific subfolder in multisite context.
+		 *
+		 * @return string|\WP_Error
+		 *
+		 * @since 2.6.0
+		 */
+		public static function get_upload_path( $path = '', $skip_creation = false, $ignore_site = false ) {
+			$result = '';
+
+			$upload_dir = wp_upload_dir( null, false );
+			if ( is_array( $upload_dir ) && array_key_exists( 'basedir', $upload_dir ) ) {
+				$result = $upload_dir['basedir'] . \DIRECTORY_SEPARATOR . self::WP2FA_UPLOADS_DIR . \DIRECTORY_SEPARATOR;
+			} elseif ( defined( 'WP_CONTENT_DIR' ) ) {
+				// Fallback in case there is a problem with filesystem.
+				$result = WP_CONTENT_DIR . \DIRECTORY_SEPARATOR . 'uploads' . \DIRECTORY_SEPARATOR . self::WP2FA_UPLOADS_DIR . \DIRECTORY_SEPARATOR;
+			}
+
+			if ( empty( $result ) ) {
+				// Empty result here means invalid custom path or a problem with WordPress (uploads folder issue or mission WP_CONTENT_DIR).
+				return new \WP_Error( '2fa_uplaods_dir_missing', __( 'The base of WSAL working directory cannot be determined. Custom path is invalid or there is some other issue with your WordPress installation.', 'wp-2fa' ) );
+			}
+
+			// Append site specific subfolder in multisite context.
+			if ( ! $ignore_site && WP_Helper::is_multisite() ) {
+				$site_id = \get_current_blog_id();
+				if ( $site_id > 0 ) {
+					$result .= 'sites' . \DIRECTORY_SEPARATOR . $site_id . \DIRECTORY_SEPARATOR;
+				}
+			}
+
+			// Append optional path passed as a parameter.
+			if ( $path && is_string( $path ) ) {
+				$result .= $path . \DIRECTORY_SEPARATOR;
+			}
+
+			if ( ! file_exists( $result ) ) {
+				if ( ! $skip_creation ) {
+					if ( ! \wp_mkdir_p( $result ) ) {
+						return new \WP_Error(
+							'mkdir_failed',
+							sprintf(
+								/* translators: %s: Directory path. */
+								__( 'Unable to create directory %s. Is its parent directory writable by the server?', 'wp-2fa' ),
+								esc_html( $result )
+							)
+						);
+					}
+				}
+
+				self::add_file_listing_protection( $result );
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Remove the supplied file.
+		 *
+		 * @param string $file - The name of the file and path.
+		 *
+		 * @return bool|WP_Error Boolean true on success or a WP_Error object if an error occurs.
+		 *
+		 * @since 2.6.0
+		 */
+		public static function remove( $file ) {
+			if ( ! self::exists( $file ) ) {
+				return true;
+			}
+
+			if ( ! PHP_Helper::is_callable( 'unlink' ) ) {
+				return new \WP_Error(
+					'wp-2fa',
+					// translators: the name of the file.
+					sprintf( __( 'The file %s could not be removed as the unlink() function is disabled. This is a system configuration issue.', 'wp-2fa' ), $file )
+				);
+			}
+
+			$result = @unlink( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink
+
+			@clearstatcache( true, $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+
+			if ( $result ) {
+				return true;
+			}
+
+			return new \WP_Error(
+				'wp-2fa',
+				sprintf(
+					// translators: the name of the file.
+					__( 'Unable to remove %s due to an unknown error.', 'wp-2fa' ),
+					$file
+				)
+			);
 		}
 
 		/**

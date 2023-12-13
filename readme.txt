@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 5.0
 Tested up to: 6.1.1
-Stable tag: 2.5.0
+Stable tag: 2.6.0
 Requires PHP: 7.2.0
 
 Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -52,9 +52,10 @@ Browse our list of [WordPress security plugins](https://www.wpwhitesecurity.com/
 * [Whitelabel all the 2FA pages](https://wp2fa.io/features/white-label-2fa-pages/&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) - for a consistent user experience
 * Fully whitelabel-enabled user 2FA wizards  & emails; add your own the logo, upload custom CSS and also change the text
 * Give the users more alternative 2FA methods to choose from and use so they are never locked out
-* Add 2FA to your WooCommerce user pages with just one-click
+* Add 2FA to your WooCommerce user dashboard with just one-click
 * Configure different 2FA policies for different user profiles
 * Easily get an overview of users' 2FA setup with the reports
+* Require 2FA on password resets
 * And many other features
 
 Refer to the [2FA plugin features and benefits page](https://wp2fa.io/features/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) to learn more about the benefits of upgrading to WP 2FA Premium.

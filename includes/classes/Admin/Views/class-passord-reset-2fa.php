@@ -129,7 +129,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 		public static function password_reset_setting( string $content, string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
 			?>
-		<h3><?php esc_html_e( 'Do you want to require 2FA when users reset their password?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Do you want to require 2FA when users reset their password', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'When you enable this setting users will be required to enter a one-time code sent to them via email when resetting the password.', 'wp-2fa' ); ?>
 		</p>
@@ -140,7 +140,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 					<th><label for="password-reset-2fa<?php echo \esc_attr( $role_id ); ?>"><?php esc_html_e( 'Password reset', 'wp-2fa' ); ?></label></th>
 					<td>
 					<fieldset class="contains-hidden-inputs">
-					<?php echo self::reset_settings( $role, $name_prefix, $data_role, $role_id ); ?>
+					<?php echo self::reset_settings( $role, $name_prefix, $data_role, $role_id ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</fieldset>
 					</td>
 				</tr>

@@ -85,7 +85,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			foreach ( $simple_settings_we_can_loop as $simple_setting ) {
 				if ( ! in_array( $simple_setting, $settings_to_turn_into_bools, true ) ) {
 					// Is item is not one of our possible settings we want to turn into a bool, process.
-					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( sanitize_text_field( $input[ $simple_setting ] ) ) : false;
+					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( (string) sanitize_text_field( $input[ $simple_setting ] ) ) : false;
 				} else {
 					// This item is one we treat as a bool, so process correctly.
 					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? true : false;
@@ -97,7 +97,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				if ( false === $policies ) {
 					$policies = WP2FA::get_default_settings();
 				}
-				$policies['2fa_settings_last_updated_by'] = (int) $input['2fa_settings_last_updated_by'];
+				$policies['2fa_settings_last_updated_by'] = (int) get_current_user_id();
 
 				WP2FA::update_plugin_settings( $policies );
 			}
@@ -179,7 +179,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		private static function remove_data_upon_uninstall() {
 			?>
 		<div class="danger-zone-wrapper">
-			<h3><?php esc_html_e( 'Do you want to delete the plugin data from the database upon uninstall?', 'wp-2fa' ); ?></h3>
+			<h3><?php esc_html_e( 'Do you want to delete the plugin data from the database upon uninstall', 'wp-2fa' ); ?></h3>
 			<p class="description">
 				<?php esc_html_e( 'The plugin saves its settings in the WordPress database. By default the plugin settings are kept in the database so if it is installed again, you do not have to reconfigure the plugin. Enable this setting to delete the plugin settings from the database upon uninstall.', 'wp-2fa' ); ?>
 			</p>
@@ -217,7 +217,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		private static function limit_settings_access() {
 			?>
 		<br>
-		<h3><?php esc_html_e( 'Limit 2FA settings access?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Limit 2FA settings access', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'Use this setting to hide this plugin configuration area from all other admins.', 'wp-2fa' ); ?>
 		</p>
@@ -249,7 +249,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		private static function disable_brute_force_settings() {
 			?>
 		<br>
-		<h3><?php esc_html_e( 'Disable 2FA code brute force protection?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Disable 2FA code brute force protection', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'When using email and SMS 2FA, the plugin sends the users a new one-time code whenever they enter the wrong code when logging in. This is a security enhancement, a sort of brute force protection. You can disable this feature from the below setting, however, it is not recommended.', 'wp-2fa' ); ?>
 		</p>
@@ -288,7 +288,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				);
 			?>
 		</p>
-		<h3><?php esc_html_e( 'What should the plugin do if the 2FA method used during a user login is unavailable?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'What should the plugin do if the 2FA method used during a user login is unavailable', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'There may be cases in which the 2FA service is unavailable when a user is trying to log in. For example, the service is unreachable or there are no credits to complete the action. In this case you can configure the plugin to either block the login process, or allow the user to log in without 2FA authentication.', 'wp-2fa' ); ?>
 		</p>

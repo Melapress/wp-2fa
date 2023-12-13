@@ -13,15 +13,17 @@
 
 namespace WP2FA\Admin\SettingsPages;
 
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Helpers\WP_Helper;
-use WP2FA\Admin\Settings_Page;
-use WP2FA\Admin\Views\First_Time_Wizard_Steps;
+use WP2FA\WP2FA;
+use WP2FA\Methods\TOTP;
+use WP2FA\Methods\Email;
 use WP2FA\Utils\Debugging;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Generate_Modal;
 use WP2FA\Utils\Settings_Utils;
-use WP2FA\WP2FA;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Views\First_Time_Wizard_Steps;
 
 /*
  * Policies settings tab
@@ -76,13 +78,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$new_page_modal_content  = '<h3>' . esc_html__( 'Exclude yourself?', 'wp-2fa' ) . '</h3>';
 				$new_page_modal_content .= '</p>' . esc_html__( 'You are about to enforce 2FA instantly on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' ) . '</p>';
 
-				echo Generate_Modal::generate_modal( // phpcs:ignore
+				echo Generate_Modal::generate_modal( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					'exclude-self-from-instant-2fa',
 					false,
-					$new_page_modal_content,
+					$new_page_modal_content, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					array(
-						'<a href="#" class="wp-2fa-button-secondary button-secondary" data-close-2fa-modal>' . __( 'Continue anyway', 'wp-2fa' ) . '</a>',
-						'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal data-user-login-name="' . esc_attr( $user->user_login ) . '">' . __( 'Exclude myself from 2FA policies', 'wp-2fa' ) . '</a>',
+						'<a href="#" class="wp-2fa-button-secondary button-secondary" data-close-2fa-modal>' . __( 'Continue anyway', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal data-user-login-name="' . esc_attr( $user->user_login ) . '">' . __( 'Exclude myself from 2FA policies', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					),
 					false,
 					'560px'
@@ -194,12 +196,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					);
 					$new_page_modal_content .= '</p>';
 
-					echo Generate_Modal::generate_modal( // phpcs:ignore
-						'new-page-created' . $role,
+					echo Generate_Modal::generate_modal( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'new-page-created' . $role, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						false,
-						$new_page_modal_content,
+						$new_page_modal_content, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						array(
-							'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal>' . __( 'OK', 'wp-2fa' ) . '</a>',
+							'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal>' . __( 'OK', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						),
 						true,
 						'560px'
@@ -233,7 +235,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			$no_method_enabled = false;
-			if ( ! isset( $input['enable_totp'] ) && ! isset( $input['enable_email'] ) && ! isset( $_POST['save_step'] ) ) {
+			if ( ! isset( $input[ TOTP::POLICY_SETTINGS_NAME ] ) && ! isset( $input[ Email::POLICY_SETTINGS_NAME ] ) && ! isset( $_POST['save_step'] ) ) {
 				/**
 				 * At this point, none of the default providers is set / activated. This filter allows additional providers to change the behavior. Checking the input array for specific values (methods), and based on that we can raise error that none of the allowed methods has bees selected by the user, or dismiss the error otherwise.
 				 *
@@ -256,9 +258,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			$simple_settings_we_can_loop = array(
-				'enable_totp',
-				'enable_email',
-				'backup_codes_enabled',
 				'grace-policy',
 				'enable_destroy_session',
 				'2fa_settings_last_updated_by',
@@ -268,7 +267,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				'redirect-user-custom-page-global',
 				'superadmins-role-add',
 				'superadmins-role-exclude',
-				'specify-email_hotp',
 				'separate-multisite-page-url',
 			);
 
@@ -298,7 +296,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			foreach ( $simple_settings_we_can_loop as $simple_setting ) {
 				if ( ! in_array( $simple_setting, $settings_to_turn_into_bools, true ) ) {
 					// Is item is not one of our possible settings we want to turn into a bool, process.
-					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( sanitize_text_field( $input[ $simple_setting ] ) ) : false;
+					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( (string) sanitize_text_field( $input[ $simple_setting ] ) ) : false;
 				} else {
 					// This item is one we treat as a bool, so process correctly.
 					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? true : false;
@@ -306,17 +304,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			if ( $no_method_enabled ) {
-				// No method is enabled, fall back to previous selected one - we don't want to break the logic.
-				$totp_enabled  = WP2FA::get_wp2fa_setting( 'enable_totp' );
-				$email_enabled = WP2FA::get_wp2fa_setting( 'enable_email' );
-
-				if ( $totp_enabled ) {
-					$output['enable_totp'] = $totp_enabled;
-				}
-				if ( $email_enabled ) {
-					$output['enable_email'] = $email_enabled;
-				}
-
 				/**
 				 * No methods are enabled - return the previous selection. Gives the ability for external providers to set the default values.
 				 *
@@ -385,15 +372,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] ) && isset( $input['custom-user-page-url'] ) && ! empty( $input['custom-user-page-url'] ) ) {
 				if ( WP2FA::get_wp2fa_setting( 'custom-user-page-url' ) !== $input['custom-user-page-url'] ) {
-					// if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
-					// $updated_post = array(
-					// 'ID'        => WP2FA::get_wp2fa_setting( 'custom-user-page-id' ),
-					// 'post_name' => sanitize_title_with_dashes( $input['custom-user-page-url'] ),
-					// );
-					// wp_update_post( $updated_post );
-					// $output['custom-user-page-url'] = sanitize_title_with_dashes( $input['custom-user-page-url'] );
-					// $output['custom-user-page-id']  = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
-					// } else
 
 					if ( 'yes' === $input['create-custom-user-page'] && ! empty( $input['custom-user-page-url'] ) ) {
 						$output['custom-user-page-url'] = sanitize_title_with_dashes( $input['custom-user-page-url'] );
@@ -469,6 +447,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						esc_html__( 'You must specify at least one role or user', 'wp-2fa' ),
 						'error'
 					);
+
+					$output['enforcement-policy'] = 'do-not-enforce';
 				}
 
 				// If any users are being excluded, delete any wp 2fa data.
@@ -524,6 +504,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$wp_settings_errors = $errors; // phpcs:ignore
 			}
 
+			/**
+			 * Allow extensions and 3rd party developers to change or check the settings array.
+			 *
+			 * @param array - Array with all the collected and validated data.
+			 *
+			 * @since 2.6.0
+			 */
+			do_action( WP_2FA_PREFIX . 'before_settings_save', $output );
+
 			// WordPress saves the option to the database, but we still need to do some work when the settings are saved.
 			WP2FA::update_plugin_settings( $output, true );
 
@@ -532,6 +521,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			// We have overridden any defaults by now so can clear this.
 			Settings_Utils::delete_option( WP_2FA_PREFIX . 'default_settings_applied' );
 			Settings_Utils::delete_option( 'wizard_not_finished' );
+
+			/**
+			 * Notify the extensions and 3rd party developers that the settings array is saved.
+			 *
+			 * @param array - Array with all the stored settings.
+			 *
+			 * @since 2.6.0
+			 */
+			do_action( WP_2FA_PREFIX . 'after_settings_save', Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() ) );
 
 			return $output;
 		}
@@ -760,6 +758,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 								id="separate-multisite-page-url" 
 								value="separate-multisite-page-url" <?php checked( $separate_multisite_page, 'separate-multisite-page-url' ); ?> class="js-nested">
 								<label for="separate-multisite-page-url"><?php echo \esc_html__( 'Create User settings page separately for every site', 'wp-2fa' ); ?></label>
+								<p class="description"><?php echo \esc_html__( 'When you enable this setting a page with the same slug is created on each site on the network, so the users of each sub site can use this page on their website to configure 2FA.', 'wp-2fa' ); ?></p>
 							</fieldset>
 						</td>
 					</tr>
@@ -806,7 +805,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		private static function user_redirect_after_wizard() {
 			ob_start();
 			?>
-		<h3><?php esc_html_e( 'Do you want to redirect the user to a specific page after completing the 2FA setup wizard?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Do you want to redirect the user to a specific page after completing the 2FA setup wizard', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'Specify a URL of a page where you want to redirect the users once they complete the 2FA setup wizard. Leave empty for default behaviour, in which users are redirected back to the page from where they launched the wizard.', 'wp-2fa' ); ?></a>
 		</p>
@@ -885,11 +884,11 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			echo \apply_filters( WP_2FA_PREFIX . 'before_grace_period_settings', '', '', 'wp_2fa_policy' );
+			echo \apply_filters( WP_2FA_PREFIX . 'before_grace_period_settings', '', '', 'wp_2fa_policy' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 			?>
 		<br>
-		<h3><?php esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/configure-grace-period-2fa/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 		</p>
@@ -930,7 +929,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			ob_start();
 			?>
 		<br>
-		<h3><?php esc_html_e( 'Should users be able to disable 2FA on their user profile?', 'wp-2fa' ); ?></h3>
+		<h3><?php esc_html_e( 'Should users be able to disable 2FA on their user profile', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'Users can configure and also disable 2FA on their profile by clicking the "Remove 2FA" button. Enable this setting to disable the Remove 2FA button so users cannot disable 2FA from their user profile.', 'wp-2fa' ); ?>
 		</p>

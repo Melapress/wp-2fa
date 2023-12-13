@@ -11,7 +11,7 @@
 
 namespace WP2FA\Admin\SettingsPages;
 
-use \WP2FA\WP2FA;
+use WP2FA\WP2FA;
 use WP2FA\Utils\Debugging;
 use WP2FA\Extensions\WhiteLabeling\White_Labeling_Render;
 
@@ -59,14 +59,51 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 
 			$output['default-text-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', false, false );
 
-			if ( isset( $input['default-text-code-page'] ) && '' !== trim( $input['default-text-code-page'] ) ) {
+			if ( isset( $input['default-text-code-page'] ) && '' !== trim( (string) $input['default-text-code-page'] ) ) {
 				$output['default-text-code-page'] = \wp_kses_post( $input['default-text-code-page'] );
 			}
 
 			$output['default-backup-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', false, false );
 
-			if ( isset( $input['default-backup-code-page'] ) && '' !== trim( $input['default-backup-code-page'] ) ) {
+			if ( isset( $input['default-backup-code-page'] ) && '' !== trim( (string) $input['default-backup-code-page'] ) ) {
 				$output['default-backup-code-page'] = \wp_strip_all_tags( $input['default-backup-code-page'] );
+			}
+
+			$output['use_custom_2fa_message'] = WP2FA::get_wp2fa_white_label_setting( 'use_custom_2fa_message', false, false );
+
+			if ( isset( $input['use_custom_2fa_message'] ) && '' !== trim( (string) $input['use_custom_2fa_message'] ) ) {
+				$output['use_custom_2fa_message'] = \wp_strip_all_tags( $input['use_custom_2fa_message'] );
+			}
+
+			$output['custom-text-app-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-app-code-page', false, false );
+			$output['custom-text-email-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-email-code-page', false, false );
+			$output['custom-text-authy-code-page-intro'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-intro', false, false );
+			$output['custom-text-authy-code-page-awaiting'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-awaiting', false, false );
+			$output['custom-text-authy-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page', false, false );
+			$output['custom-text-twilio-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-twilio-code-page', false, false );
+
+			if ( isset( $input['custom-text-app-code-page'] ) && '' !== trim( (string) $input['custom-text-app-code-page'] ) ) {
+				$output['custom-text-app-code-page'] = \wp_strip_all_tags( $input['custom-text-app-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-email-code-page'] ) && '' !== trim( (string) $input['custom-text-email-code-page'] ) ) {
+				$output['custom-text-email-code-page'] = \wp_strip_all_tags( $input['custom-text-email-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-authy-code-page'] ) && '' !== trim( (string) $input['custom-text-authy-code-page'] ) ) {
+				$output['custom-text-authy-code-page'] = \wp_strip_all_tags( $input['custom-text-authy-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-authy-code-page-intro'] ) && '' !== trim( (string) $input['custom-text-authy-code-page-intro'] ) ) {
+				$output['custom-text-authy-code-page-intro'] = \wp_strip_all_tags( $input['custom-text-authy-code-page-intro'] );
+			}
+
+			if ( isset( $input['custom-text-authy-code-page-awaiting'] ) && '' !== trim( (string) $input['custom-text-authy-code-page-awaiting'] ) ) {
+				$output['custom-text-authy-code-page-awaiting'] = \wp_strip_all_tags( $input['custom-text-authy-code-page-awaiting'] );
+			}
+
+			if ( isset( $input['custom-text-twilio-code-page'] ) && '' !== trim( (string) $input['custom-text-twilio-code-page'] ) ) {
+				$output['custom-text-twilio-code-page'] = \wp_strip_all_tags( $input['custom-text-twilio-code-page'] );
 			}
 
 			if ( isset( $_REQUEST['_wp_http_referer'] ) ) {
@@ -74,7 +111,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				$request_area_path = strpos( $request_area['query'], 'white-label-section' );
 
 				// If we have the input POSTed, we are on the right page so grab it.
-				if ( isset( $input['enable_wizard_styling'] ) && '' !== trim( $input['enable_wizard_styling'] ) ) {
+				if ( isset( $input['enable_wizard_styling'] ) && '' !== trim( (string) $input['enable_wizard_styling'] ) ) {
 					$output['enable_wizard_styling'] = \wp_strip_all_tags( $input['enable_wizard_styling'] );
 				} else {
 					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
@@ -84,11 +121,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					} else {
 						$output['enable_wizard_styling'] = '';
 						$input['enable_wizard_styling']  = '';
-
 					}
 				}
 
-				if ( isset( $input['show_help_text'] ) && '' !== trim( $input['show_help_text'] ) ) {
+				if ( isset( $input['show_help_text'] ) && '' !== trim( (string) $input['show_help_text'] ) ) {
 					$output['show_help_text'] = \wp_strip_all_tags( $input['show_help_text'] );
 				} else {
 					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
@@ -102,7 +138,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				}
 
 				// Same as above, but for the optional welcome.
-				if ( isset( $input['enable_welcome'] ) && '' !== trim( $input['enable_welcome'] ) ) {
+				if ( isset( $input['enable_welcome'] ) && '' !== trim( (string) $input['enable_welcome'] ) ) {
 					$output['enable_welcome'] = \wp_strip_all_tags( $input['enable_welcome'] );
 				} elseif ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
 						$input['enable_welcome']  = '';
@@ -112,7 +148,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					$output['enable_welcome'] = WP2FA::get_wp2fa_white_label_setting( 'enable_welcome', false );
 				}
 
-				if ( isset( $input['enable_wizard_logo'] ) && '' !== trim( $input['enable_wizard_logo'] ) ) {
+				if ( isset( $input['enable_wizard_logo'] ) && '' !== trim( (string) $input['enable_wizard_logo'] ) ) {
 					$output['enable_wizard_logo'] = \wp_strip_all_tags( $input['enable_wizard_logo'] );
 				} elseif ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
 						$input['enable_wizard_logo']  = '';
@@ -241,34 +277,86 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			 */
 			do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_before_default_text' );
 			?>
-		
-			<?php
-			/* @free:start */
-			?>
-		<h3><?php esc_html_e( 'Change the styling of the user 2FA wizards?', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
-		</p>
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th><label for="enable_wizard_styling"><?php esc_html_e( 'Enable styling', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset>
-							<input type="checkbox" id="enable_wizard_styling" name="wp_2fa_white_label[enable_wizard_styling]" value="enable_wizard_styling"
-							<?php checked( 'enable_wizard_styling', WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ), true ); ?>
-							>
-							<?php esc_html_e( 'Enable our CSS within user wizards', 'wp-2fa' ); ?>
-						</fieldset>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-			<?php
-			/* @free:end */
-			?>
 
-		<h3><?php esc_html_e( 'Change the default text used in the 2FA code page?', 'wp-2fa' ); ?></h3>
+			<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) { ?>
+				<h3><?php esc_html_e( '2FA code page text', 'wp-2fa' ); ?></h3>
+				<p class="description">
+					<?php esc_html_e( 'Use these settings to customize message shown to users upon login when a 2FA verification code is requested.', 'wp-2fa' ); ?>
+				</p>
+				<table class="form-table">
+					<tbody>
+						<tr>
+							<th><label for="2fa-method"><?php esc_html_e( 'Customize code page text', 'wp-2fa' ); ?></label>
+							</th>
+							<td>
+								<fieldset class="contains-hidden-inputs">
+									<label for="use-defaults">
+										<input type="radio" name="wp_2fa_white_label[use_custom_2fa_message]" id="use-defaults" value="use-defaults"
+										<?php checked( WP2FA::get_wp2fa_white_label_setting( 'use_custom_2fa_message' ), 'use-defaults' ); ?>
+										>
+									<span><?php esc_html_e( 'Show this generic message to all users regardless of the 2FA method they are using.', 'wp-2fa' ); ?></span>
+									</label>
+
+									<br/>
+									<label for="use-custom">
+										<input type="radio" name="wp_2fa_white_label[use_custom_2fa_message]" id="use-custom" value="use-custom"
+										<?php checked( WP2FA::get_wp2fa_white_label_setting( 'use_custom_2fa_message' ), 'use-custom' ); ?>
+										data-unhide-when-checked=".custom-from-inputs">
+										<span><?php esc_html_e( 'Show a message that is specific to the method that the user is using.', 'wp-2fa' ); ?></span>
+									</label>
+
+									<fieldset class="hidden custom-from-inputs">
+										<p class="description">
+											<?php esc_html_e( '2FA via app', 'wp-2fa' ); ?>
+										</p>
+										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-app-code-page' ); ?>
+										<br/>
+
+										<p class="description">
+											<?php esc_html_e( '2FA code over email', 'wp-2fa' ); ?>
+										</p>
+										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-email-code-page' ); ?>
+										<br/>
+
+										<p class="description">
+											<?php esc_html_e( '2FA link over email', 'wp-2fa' ); ?>
+										</p>
+										<?php echo White_Labeling_Render::get_method_text_editor( 'default-text-oob-page' ); ?>
+										<br/>
+
+										<p class="description">
+											<?php esc_html_e( '2FA code over SMS', 'wp-2fa' ); ?>
+										</p>
+										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-twilio-code-page' ); ?>
+										<br/>
+
+										<p class="description">
+											<?php esc_html_e( '2FA with Push Notification - Intro', 'wp-2fa' ); ?>
+										</p>
+										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-authy-code-page-intro' ); ?>
+										<br/>
+
+										<p class="description">
+											<?php esc_html_e( '2FA with Push Notification - Awaiting Response', 'wp-2fa' ); ?>
+										</p>
+										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-authy-code-page-awaiting' ); ?>
+										<br/>
+
+										<p class="description">
+											<?php esc_html_e( '2FA with Push Notification', 'wp-2fa' ); ?>
+										</p>
+										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-authy-code-page' ); ?>
+										<br/>
+									</fieldset>
+
+								</fieldset>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			<?php } ?>
+
+		<h3><?php esc_html_e( 'Change the default text used in the 2FA code page', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder.', 'wp-2fa' ); ?>
 		</p>
@@ -278,22 +366,24 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				<tr>
 					<th><label for="2fa-method"><?php esc_html_e( '2FA code page text', 'wp-2fa' ); ?></label></th>
 					<td>
-						<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
+						<?php
+						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
 							echo White_Labeling_Render::get_method_text_editor( 'default-text-code-page' ); // phpcs:ignore
-						} else { ?>
-							<textarea cols="70" rows="10" name="wp_2fa_white_label[default-text-code-page]" id="default-text-code-page"><?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ) ); ?></textarea>
-						<?php } ?>
+						} else {
+							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ), 'default-text-code-page' );	
+						} ?>
 						<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 					</td>
 				</tr>
 				<tr>
 					<th><label for="backup-method"><?php esc_html_e( 'Backup code page text', 'wp-2fa' ); ?></label></th>
 					<td>
-						<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
+						<?php
+						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
 							echo White_Labeling_Render::get_method_text_editor( 'default-backup-code-page' ); // phpcs:ignore
-						} else { ?>
-							<textarea cols="70" rows="10" name="wp_2fa_white_label[default-backup-code-page]" id="default-backup-code-page"><?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ) ); ?></textarea>
-						<?php } ?>
+						} else { 
+							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ), 'default-backup-code-page' );
+						} ?>
 						<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 					</td>
 				</tr>
@@ -301,13 +391,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				<tr>
 					<th><label for="backup-method"><?php esc_html_e( 'Text for logged out users trying to access the 2FA configuration page', 'wp-2fa' ); ?></label></th>
 					<td>
-						<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
+						<?php
+						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
 							echo White_Labeling_Render::get_method_text_editor( 'login-to-view-area' ); // phpcs:ignore
-						} else { ?>
-							<textarea cols="70" rows="10" name="wp_2fa_white_label[login-to-view-area]" id="login-to-view-area"><?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', true ) ); ?></textarea>
-						<?php } ?>
+						} else {
+							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', true ), 'login-to-view-area' );	
+						} ?>
 					</td>
 				</tr>
+
 				<?php
 				/**
 				 * Gives the ability for the 3rd party extensions to add additional white label settings
@@ -316,6 +408,33 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				?>
 			</tbody>
 		</table>
+
+		<?php
+		/* @free:start */
+		?>
+			<h3><?php esc_html_e( 'Change the styling of the user 2FA wizards', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
+			</p>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="enable_wizard_styling"><?php esc_html_e( 'Enable styling', 'wp-2fa' ); ?></label></th>
+						<td>
+							<fieldset>
+								<input type="checkbox" id="enable_wizard_styling" name="wp_2fa_white_label[enable_wizard_styling]" value="enable_wizard_styling"
+								<?php checked( 'enable_wizard_styling', WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ), true ); ?>
+								>
+								<?php esc_html_e( 'Enable our CSS within user wizards', 'wp-2fa' ); ?>
+							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		<?php
+		/* @free:end */
+		?>
+
 			<?php
 			/**
 			 * Fires after the white label settings tab is rendered.
@@ -323,6 +442,25 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			 * @since 2.0.0
 			 */
 			do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_after_default_text' );
+		}
+
+		/**
+		 * Simple function to create a neat text editor in free.
+		 *
+		 * @param string $content
+		 * @param string $requested_slide
+		 * @return void
+		 */
+		private static function create_standard_editor( $content, $requested_slide ) {
+			$settings = array(
+				'media_buttons' => false,
+				'editor_height' => 200,
+				'textarea_name' => 'wp_2fa_white_label[' . $requested_slide . ']',
+			);
+
+			if ( isset( $content ) ) {
+				wp_editor( $content, $requested_slide, $settings );
+			}
 		}
 	}
 }

@@ -23,11 +23,10 @@ use WP2FA\WP2FA;
 use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Settings_Utils;
-use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Authenticator\Authentication;
+use wpdb;
 
 /*
  * User's settings class
@@ -39,10 +38,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 	 * @since 2.2.0
 	 */
 	class User_Helper {
-		/**
-		 * Secret TOTP key meta name.
-		 */
-		public const SECRET_META_KEY = WP_2FA_PREFIX . 'totp_key';
 		/**
 		 * Enabled 2fa method for user meta name.
 		 */
@@ -96,6 +91,14 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * The reset password for the user is valid.
 		 */
 		public const USER_RESET_PASSWORD_VALID = 'reset_password_valid';
+		/**
+		 * The nominated global email address for the user.
+		 */
+		public const USER_NOMINATED_EMAIL = WP_2FA_PREFIX . 'nominated_email_address';
+		/**
+		 * The backup email address for the user - for backup methods when app is in use.
+		 */
+		public const USER_BACKUP_EMAIL = WP_2FA_PREFIX . 'backup_email_address';
 		/**
 		 * The default user statuses.
 		 */
@@ -169,13 +172,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		private static $enforced_roles = null;
 
 		/**
-		 * Totp key assigned to user
-		 *
-		 * @var string
-		 */
-		private static $totp_key = '';
-
-		/**
 		 * Marks the status of the updating process
 		 *
 		 * @var boolean
@@ -183,6 +179,30 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * @since 2.4.1
 		 */
 		private static $update_started = false;
+
+		/**
+		 * Returns the enable 2fa backup methods for the given user
+		 *
+		 * @param \WP_User] $user - The user which has to be checked.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.6.0
+		 */
+		public static function get_enabled_backup_methods_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			/*
+			 * Checks the enabled methods for the user.
+			 *
+			 * @param mixed - Value of the method.
+			 * @param array - Array of enabled methods for the user.
+			 * @param \WP_User - The user which must be checked.
+			 *
+			 * @since 2.6.0
+			 */
+			return apply_filters( WP_2FA_PREFIX . 'user_enabled_backup_methods', array(), $user );
+		}
 
 		/**
 		 * Returns the enabled 2FA method for the user.
@@ -197,14 +217,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::set_proper_user( $user );
 
 			/*
-			 * Checks the enabled methods fo the user.
+			 * Checks the enabled methods for the user.
 			 *
 			 * @param mixed - Value of the method.
+			 * @param string|null $user - Currently enabled method.
 			 * @param \WP_User - The user which must be checked.
 			 *
 			 * @since 2.0.0
 			 */
-			return apply_filters( WP_2FA_PREFIX . 'user_enabled_methods', self::get_meta( self::ENABLED_METHODS_META_KEY ) );
+			return apply_filters( WP_2FA_PREFIX . 'user_enabled_methods', self::get_meta( self::ENABLED_METHODS_META_KEY ), $user );
 		}
 
 		/**
@@ -219,6 +240,16 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 */
 		public static function set_enabled_method_for_user( string $method, $user = null ) {
 			self::set_proper_user( $user );
+
+			/*
+			 * Fires before the user method is set.
+			 *
+			 * @param string - Current user method.
+			 * @param \WP_User $user - The user for which the method has been set.
+			 *
+			 * @since 2.6.0
+			 */
+			\do_action( WP_2FA_PREFIX . 'before_method_been_set', self::get_enabled_method_for_user( self::get_user() ), self::get_user() );
 
 			$set_method = self::set_meta( self::ENABLED_METHODS_META_KEY, $method );
 
@@ -247,12 +278,31 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		public static function remove_enabled_method_for_user( $user = null ) {
 			self::set_proper_user( $user );
 
+			/*
+			 * Fires before the user method is removed.
+			 *
+			 * @param string - Current user method.
+			 * @param \WP_User $user - The user for which the method has been set.
+			 *
+			 * @since 2.6.0
+			 */
+			\do_action( WP_2FA_PREFIX . 'before_method_is_removed', self::get_enabled_method_for_user( self::get_user() ), self::get_user() );
+
 			self::remove_meta( self::ENABLED_METHODS_META_KEY, self::$user );
+
+			/*
+			 * Fires after the user method is removed.
+			 *
+			 * @param \WP_User $user - The user for which the method has been set.
+			 *
+			 * @since 2.6.0
+			 */
+			\do_action( WP_2FA_PREFIX . 'after_method_is_removed', self::get_user() );
 
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
 				$user_blog_id = 1;
 				if ( WP_Helper::is_multisite() ) {
-					$user_blog_id = \get_active_blog_for_user( self::$user->ID );
+					$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
 				}
 				if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore
 					if ( WP_Helper::is_multisite() ) {
@@ -462,7 +512,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		public static function get_2fa_status( $user = null ) {
 			self::set_proper_user( $user );
 
-			$status = self::get_meta( self::USER_2FA_STATUS );
+			$status = (string) self::get_meta( self::USER_2FA_STATUS );
 
 			if ( '' === trim( $status ) ) {
 				$status = self::USER_UNDETERMINED_STATUS;
@@ -797,7 +847,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				if ( \is_bool( self::$user ) ) {
 					self::$user = \wp_get_current_user();
 				}
-			} elseif ( is_string( $user ) && ! empty( trim( $user ) ) ) {
+			} elseif ( is_string( $user ) && ! empty( trim( (string) $user ) ) ) {
 				if ( isset( self::$user ) && $user instanceof \WP_User && $user === self::$user->ID ) {
 					return;
 				}
@@ -898,7 +948,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 					$blog_id = \get_active_blog_for_user( self::$user->ID );
 
 					if ( $blog_id instanceof \WP_Site ) {
-						return $blog_id->id;
+						return (int) $blog_id->blog_id;
 					} else {
 						return 1;
 					}
@@ -928,50 +978,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
-		 * Deletes the TOTP secret key for a user.
-		 *
-		 * @param int|\WP_User|null $user - The WP user that must be used.
-		 *
-		 * @return void
-		 */
-		public static function remove_user_totp_key( $user = null ) {
-			self::set_proper_user( $user );
-
-			self::remove_meta( self::SECRET_META_KEY, self::$user );
-
-			self::$totp_key = '';
-		}
-
-		/**
-		 * Returns the TOTP secret key for a user.
-		 *
-		 * @param int|\WP_User|null $user - The WP user that must be used.
-		 *
-		 * @return string
-		 */
-		public static function get_user_totp_key( $user = null ) {
-			self::set_proper_user( $user );
-
-			return self::get_meta( self::SECRET_META_KEY, self::$user );
-		}
-
-		/**
-		 * Updates the TOTP secret key for a user.
-		 *
-		 * @param string            $value - The value of the TOTP key.
-		 * @param int|\WP_User|null $user  - The WP user that must be used.
-		 *
-		 * @return void
-		 *
-		 * @since 2.2.0
-		 */
-		public static function set_user_totp_key( string $value, $user = null ) {
-			self::set_proper_user( $user );
-
-			self::set_meta( self::SECRET_META_KEY, $value, self::$user );
-		}
-
-		/**
 		 * Removes all the meta keys associated with the given user.
 		 *
 		 * @param int|\WP_User|null $user - The WP user for which we have to remove the meta data.
@@ -996,18 +1002,19 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			}
 
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
+				$user_blog_id = 1;
 				if ( WP_Helper::is_multisite() ) {
-					$user_blog_id = \get_active_blog_for_user( self::$user->ID );
+					$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
 				}
-				if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id->blog_id ) { // phpcs:ignore
+				if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
 					if ( WP_Helper::is_multisite() ) {
-						wp2fa_freemius()->switch_to_blog($user_blog_id->blog_id);
-						//\switch_to_blog( $user_blog_id->blog_id );
+						wp2fa_freemius()->switch_to_blog( $user_blog_id );
+						// \switch_to_blog( $user_blog_id->blog_id );
 					}
 					User_Licensing::method_has_been_set();
 					if ( WP_Helper::is_multisite() ) {
-						wp2fa_freemius()->switch_to_blog($current_blog);
-						//\switch_to_blog( $current_blog );
+						wp2fa_freemius()->switch_to_blog( $current_blog );
+						// \switch_to_blog( $current_blog );
 					}
 				}
 			}
@@ -1134,6 +1141,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ) ) && is_super_admin( self::$user->ID ) ) {
 					$state = 'excluded';
 					self::set_user_state( $state, $user );
+					self::remove_enabled_method_for_user( $user );
 				}
 
 				// User does not have role assigned, exclude them.
@@ -1291,98 +1299,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
 
 			return Settings_Page::send_email( $email, $subject, $message );
-		}
-
-		/**
-		 * User totp key getter
-		 *
-		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
-		 *
-		 * @return string
-		 */
-		public static function get_totp_key( $user = null ): string {
-			self::set_proper_user( $user );
-
-			if ( '' === trim( self::$totp_key ) ) {
-				self::$totp_key = Authentication::get_user_totp_key( self::get_user()->ID );
-				if ( empty( self::$totp_key ) ) {
-					self::$totp_key = Authentication::generate_key();
-
-					self::set_user_totp_key( self::$totp_key, self::get_user() );
-				} elseif ( Open_SSL::is_ssl_available() && false === \strpos( self::$totp_key, Open_SSL::SECRET_KEY_PREFIX ) ) {
-						self::$totp_key = Open_SSL::SECRET_KEY_PREFIX . Open_SSL::encrypt( self::$totp_key );
-						self::set_user_totp_key( self::$totp_key, self::get_user() );
-				}
-			}
-
-			return self::$totp_key;
-		}
-
-		/**
-		 * Returns the encoded TOTP when we need to show the actual code to the user
-		 * If for some reason the code is invalid it recreates it
-		 *
-		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
-		 *
-		 * @return string
-		 *
-		 * @since 2.0.0
-		 */
-		public static function get_totp_decrypted( $user = null ): string {
-			self::set_proper_user( $user );
-
-			$key = self::get_totp_key();
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
-
-				/**
-				 * Old key detected - convert.
-				 */
-				$key = Open_SSL::decrypt_legacy( substr( $key, 4 ) );
-
-				self::remove_user_totp_key();
-				self::$totp_key = '';
-
-				$key = self::get_totp_key();
-			}
-
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
-
-				/**
-				 * Old key detected - convert.
-				 */
-				$key = Open_SSL::decrypt_wps( substr( $key, 4 ) );
-
-				self::remove_user_totp_key();
-
-				$secret = Open_SSL::encrypt( $key );
-
-				if ( Open_SSL::is_ssl_available() ) {
-					$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
-				}
-
-				self::set_user_totp_key( $secret, self::get_user()->ID );
-
-				self::$totp_key = $secret;
-			}
-
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
-				$key = Open_SSL::decrypt( substr( $key, 4 ) );
-
-				/**
-				 * If for some reason the key is not valid, that means that we have to clear the stored TOTP for the user, and create new on
-				 * That could happen if the global stored secret (plugin level) is deleted.
-				 *
-				 * Lets check and if that is the case - create new one
-				 */
-				if ( ! Authentication::validate_base32_string( $key ) ) {
-					self::$totp_key = '';
-					self::remove_user_totp_key( self::get_user() );
-					$key = self::get_totp_key();
-					$key = Open_SSL::decrypt( substr( $key, 4 ) );
-				}
-			}
-
-			return $key;
 		}
 
 		/**
@@ -1780,40 +1696,34 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 						// Check each site and add to our array so we know each users actual roles.
 						foreach ( $subsites as $subsite ) {
 							$subsite_id = get_object_vars( $subsite )['blog_id'];
+
+							global $wpdb;
+
 							if ( 1 === (int) $subsite_id ) {
-								$users_caps[] = get_user_meta( $user_id, 'wp_capabilities', true );
+								$users_caps[] = get_user_meta( $user_id, $wpdb->prefix . 'capabilities', true );
 							} else {
-								$users_caps[] = get_user_meta( $user_id, 'wp_' . $subsite_id . '_capabilities', true );
+								$users_caps[] = get_user_meta( $user_id, $wpdb->prefix . $subsite_id . '_capabilities', true );
 							}
 						}
 
-						foreach ( $users_caps as $key => $value ) {
-							if ( ! empty( $value ) ) {
-								foreach ( $value as $key => $value ) {
-									$result = in_array( $key, $enforced_roles_array, true );
+						foreach ( $users_caps as $role_in_site ) {
+							if ( ! empty( $role_in_site ) ) {
+								foreach ( array_keys( $role_in_site ) as $role ) {
+									if ( in_array( $role, $enforced_roles_array, true ) ) {
+										// User is enforced somewhere.
+										return true;
+									}
 								}
 							}
 						}
-						if ( ! empty( $result ) ) {
-							return true;
-						}
+						return false;
 					}
 				}
 
 				if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ) ) ) {
 					return is_super_admin( $user_id );
 				}
-			} /* elseif ( 'certain-users-only' === $current_policy && empty( $enabled_method ) ) {
-				$enforced_users = self::get_enforced_users();
-				if ( ! empty( $enforced_users ) ) {
-					// Compare our roles with the users and see if we get a match.
-					$result = in_array( $user_login, $enforced_users, true );
-					// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
-					if ( ! empty( $result ) ) {
-						return true;
-					}
-				}
-			} */ elseif ( 'enforce-on-multisite' === $current_policy ) {
+			} elseif ( 'enforce-on-multisite' === $current_policy ) {
 				$included_sites = self::get_included_sites();
 
 				foreach ( $included_sites as $site_id ) {
@@ -1952,10 +1862,13 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 						// Check each site and add to our array so we know each users actual roles.
 						foreach ( $subsites as $subsite ) {
 							$subsite_id = get_object_vars( $subsite )['blog_id'];
+
+							global $wpdb;
+
 							if ( 1 === (int) $subsite_id ) {
-								$users_caps[] = get_user_meta( $user_id, 'wp_capabilities', true );
+								$users_caps[] = get_user_meta( $user_id, $wpdb->prefix . 'capabilities', true );
 							} else {
-								$users_caps[] = get_user_meta( $user_id, 'wp_' . $subsite_id . '_capabilities', true );
+								$users_caps[] = get_user_meta( $user_id, $wpdb->prefix . $subsite_id . '_capabilities', true );
 							}
 						}
 
@@ -1975,17 +1888,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-add' ) ) ) {
 					return is_super_admin( $user_id );
 				}
-			} /* elseif ( 'certain-users-only' === $current_policy && empty( $enabled_method ) ) {
-				$enforced_users = self::get_enforced_users();
-				if ( ! empty( $enforced_users ) ) {
-					// Compare our roles with the users and see if we get a match.
-					$result = in_array( $user_login, $enforced_users, true );
-					// The user is one of the chosen roles we are forcing 2FA onto, so lets show the nag.
-					if ( ! empty( $result ) ) {
-						return true;
-					}
-				}
-			} */ elseif ( 'enforce-on-multisite' === $current_policy ) {
+			} elseif ( 'enforce-on-multisite' === $current_policy ) {
 				$included_sites = self::get_included_sites();
 
 				foreach ( $included_sites as $site_id ) {
@@ -1998,6 +1901,137 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			}
 
 			return false;
+		}
+
+		/**
+		 * Returns the nominated email for user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.6.0
+		 */
+		public static function get_nominated_email_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			$email = self::get_meta( self::USER_NOMINATED_EMAIL );
+
+			if ( empty( $email ) || ! isset( $email ) ) {
+				$email = self::get_user()->user_email;
+			}
+
+			return $email;
+		}
+
+		/**
+		 * Sets the nominated email for the user. If the email is the same as the current user email from the WP - the meta is not populated.
+		 *
+		 * @param string            $email - The token to set for the user.
+		 * @param int|\WP_User|null $user  - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.6.0
+		 */
+		public static function set_nominated_email_for_user( string $email, $user = null ) {
+			self::set_proper_user( $user );
+
+			$email = \sanitize_email( \wp_unslash( $email ) );
+
+			if ( ! empty( $email ) ) {
+				if ( self::get_user()->user_email !== $email ) {
+					return self::set_meta( self::USER_NOMINATED_EMAIL, $email );
+				} else {
+					self::remove_nominated_email_for_user( $user );
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Removes the nominated email for the user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return void
+		 *
+		 * @since 2.6.0
+		 */
+		public static function remove_nominated_email_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			self::remove_meta( self::USER_NOMINATED_EMAIL, self::$user );
+		}
+
+
+		/**
+		 * Returns the backup email for user. If the data stored in meta is = 'wp_mail' that means that the user email should be extracted from the WP BE.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.6.0
+		 */
+		public static function get_backup_email_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			$email = self::get_meta( self::USER_BACKUP_EMAIL );
+
+			if ( empty( $email ) || ! isset( $email ) ) {
+				$email = self::get_user()->user_email;
+			}
+
+			if ( isset( $email ) && 'wp_mail' === $email ) {
+				$email = self::get_user()->user_email;
+			}
+
+			return $email;
+		}
+
+		/**
+		 * Sets the backup email for the user. If the email is the same as the current user email from the WP - the meta is not populated.
+		 *
+		 * @param string            $email - The token to set for the user.
+		 * @param int|\WP_User|null $user  - The WP user we should extract the meta data for.
+		 *
+		 * @return mixed
+		 *
+		 * @since 2.6.0
+		 */
+		public static function set_backup_email_for_user( string $email, $user = null ) {
+			self::set_proper_user( $user );
+
+			$email = \sanitize_email( \wp_unslash( $email ) );
+
+			if ( ! empty( $email ) ) {
+				if ( self::get_user()->user_email !== $email ) {
+					return self::set_meta( self::USER_BACKUP_EMAIL, $email );
+				} elseif ( self::get_user()->user_email === $email ) {
+					return self::set_meta( self::USER_BACKUP_EMAIL, 'wp_mail' );
+				} else {
+					self::remove_backup_email_for_user( $user );
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Removes the backup email for the user.
+		 *
+		 * @param int|\WP_User|null $user - The WP user we should extract the meta data for.
+		 *
+		 * @return void
+		 *
+		 * @since 2.6.0
+		 */
+		public static function remove_backup_email_for_user( $user = null ) {
+			self::set_proper_user( $user );
+
+			self::remove_meta( self::USER_BACKUP_EMAIL, self::$user );
 		}
 
 		/**

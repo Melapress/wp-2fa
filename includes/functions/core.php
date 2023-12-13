@@ -9,7 +9,7 @@ namespace WP2FA\Core;
 
 use WP2FA\WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Utils\Settings_Utils;
 
 /**
  * Default setup routine
@@ -17,7 +17,7 @@ use WP2FA\Utils\Settings_Utils as Settings_Utils;
  * @return void
  */
 function setup() {
-	$n = function( $function ) {
+	$n = function ( $function ) {
 		return __NAMESPACE__ . "\\$function";
 	};
 
@@ -99,6 +99,7 @@ function deactivate() {
  * @return void
  */
 function uninstall() {
+	WP2FA::init();
 	if ( ! empty( WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
 		// Delete settings from wp_options.
 		if ( WP_Helper::is_multisite() ) {
@@ -224,10 +225,6 @@ function admin_scripts() {
 
 	enqueue_select2_scripts();
 
-	if ( WP_Helper::is_multisite() ) {
-		enqueue_multi_select_scripts();
-	}
-
 	// Data array.
 	$data_array = array(
 		'ajaxURL'                        => admin_url( 'admin-ajax.php' ),
@@ -253,15 +250,6 @@ function admin_scripts() {
 		'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
 	);
 	wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
-}
-
-/**
- * Enqueue multi select for multinetwork WP
- *
- * @return void
- */
-function enqueue_multi_select_scripts() {
-	wp_enqueue_script( 'multi-site-select', script_url( 'multi-site-select', 'admin' ), array( 'jquery', 'select2' ), WP_2FA_VERSION, false );
 }
 
 /**

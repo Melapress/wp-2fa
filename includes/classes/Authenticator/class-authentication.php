@@ -17,12 +17,14 @@
  * @package WP2FA
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Authenticator;
 
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Methods\Traits\Login_Attempts;
 use WP2FA_Vendor\Endroid\QrCode\QrCode;
+use WP2FA\Admin\Methods\Traits\Login_Attempts;
 use WP2FA_Vendor\Endroid\QrCode\Writer\SvgWriter;
 
 if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
@@ -151,7 +153,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 			$binary_string = '';
 
 			foreach ( str_split( $string ) as $character ) {
-				$binary_string .= str_pad( base_convert( ord( $character ), 10, 2 ), 8, '0', STR_PAD_LEFT );
+				$binary_string .= str_pad( base_convert( (string) ord( $character ), 10, 2 ), 8, '0', STR_PAD_LEFT );
 			}
 
 			$five_bit_sections = str_split( $binary_string, 5 );
@@ -165,68 +167,14 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		}
 
 		/**
-		 * Get the TOTP secret key for a user.
+		 * Clears the value of the decrypted key
 		 *
-		 * @param  int $user_id User ID.
+		 * @return void
 		 *
-		 * @return string
+		 * @since 2.6.0
 		 */
-		public static function get_user_totp_key( $user_id ) {
-
-			$key = (string) User_Helper::get_user_totp_key( $user_id );
-
-			$test = $key;
-
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
-
-				/**
-				 * Old key detected - convert.
-				 */
-				$key = Open_SSL::decrypt_legacy( substr( $key, 4 ) );
-
-				User_Helper::remove_user_totp_key();
-
-				$secret = Open_SSL::encrypt( $key );
-
-				if ( Open_SSL::is_ssl_available() ) {
-					$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
-				}
-
-				User_Helper::set_user_totp_key( $key, $user_id );
-
-				$test = $key = (string) User_Helper::get_user_totp_key( $user_id ); // phpcs:ignore
-			}
-
-			// We've tried tried to use WP core functionality, but that doesn't work - lets update.
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
-
-				/**
-				 * Old key detected - convert.
-				 */
-				$key = Open_SSL::decrypt_wps( substr( $key, 4 ) );
-
-				User_Helper::remove_user_totp_key();
-
-				$secret = Open_SSL::encrypt( $key );
-
-				if ( Open_SSL::is_ssl_available() ) {
-					$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
-				}
-
-				User_Helper::set_user_totp_key( $key, $user_id );
-
-				$test = $key = (string) User_Helper::get_user_totp_key( $user_id ); // phpcs:ignore
-			}
-
-			self::decrypt_key_if_needed( $test );
-
-			if ( ! self::is_valid_key( $test ) ) {
-				$key = self::generate_key();
-				User_Helper::set_user_totp_key( $key, $user_id );
-				self::$decrypted_key = '';
-			}
-
-			return $key;
+		public static function clear_decrypted_key() {
+			self::$decrypted_key = '';
 		}
 
 		/**
@@ -315,7 +263,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 				( ord( $hash[ $offset + 3 ] ) & 0xff )
 			) % pow( 10, $digits );
 
-			return str_pad( $code, $digits, '0', STR_PAD_LEFT );
+			return str_pad( (string) $code, $digits, '0', STR_PAD_LEFT );
 		}
 
 		/**
@@ -462,7 +410,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 			self::delete_token( $user_id );
 			self::clear_login_attempts( $user );
 
-			\delete_transient( 'wp2fa_code_login_' . $user_id );
+			\delete_transient( 'wp_2fa_code_login_' . $user_id );
 
 			return true;
 		}
@@ -595,7 +543,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function decrypt_key_if_needed( string &$key ): string {
-			if ( '' === trim( self::$decrypted_key ) ) {
+			if ( '' === trim( (string) self::$decrypted_key ) ) {
 				if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
 					$key = self::$decrypted_key = Open_SSL::decrypt( substr( $key, 4 ) ); // phpcs:ignore
 				} else {

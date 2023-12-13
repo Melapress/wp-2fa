@@ -35,7 +35,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 
 			if ( ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) ) ) {
 				$main_user = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
-			}	
+			}
 			?>
 
 		<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
