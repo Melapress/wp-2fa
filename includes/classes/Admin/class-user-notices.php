@@ -11,15 +11,16 @@
 
 namespace WP2FA\Admin;
 
-use \WP2FA\WP2FA as WP2FA;
-use WP2FA\Utils\Date_Time_Utils;
+use WP2FA\WP2FA;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Freemius\User_Licensing;
+use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
+use WP2FA\Extensions\Integrations\Plugins\Woocommerce;
+use WP2FA\Extensions\Integrations\WP2FA_Integrations;
 use WP2FA\Extensions\WhiteLabeling\White_Labeling_Render;
-use WP2FA\Admin\Controllers\Methods;
 
 /**
  * User_Notices class with user notification filters
@@ -134,7 +135,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 
 				if ( $show ) {
 					echo '<div class="' . esc_attr( $class ) . '">';
-					echo wpautop( wp_kses_post( WP2FA::replace_remaining_grace_period( $message, (int) $grace_expiry ) ) );
+					echo wpautop( wp_kses_post( WP2FA::replace_remaining_grace_period( $message, (int) $grace_expiry ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo ' <a href="' . esc_url( $setup_url ) . '" class="button button-primary">' . esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
 					echo ' <a href="#" class="button button-secondary dismiss-user-configure-nag">' . esc_html__( 'Remind me on next login', 'wp-2fa' ) . '</a></p>';
 					echo '</div>';

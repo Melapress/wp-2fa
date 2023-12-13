@@ -4,6 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage views
+ * @since      1.7.0
  * @copyright  2023 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
@@ -12,8 +13,10 @@
 namespace WP2FA\Admin\Views;
 
 use WP2FA\WP2FA;
+use WP2FA\Methods\Backup_Codes;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Methods\TOTP;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -38,45 +41,25 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 
 			ob_start();
 			?>
-		<h3><?php esc_html_e( 'Which 2FA methods can your users use?', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php esc_html_e( 'When you uncheck any of the below 2FA methods it won\'t be available for your users to use. You can always change this later on from the plugin\'s settings.', 'wp-2fa' ); ?>
-		</p>
-			<?php
-			$data_role = 'data-role="global"';
-			if ( ! $setup_wizard ) {
-				?>
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th colspan="2"><?php esc_html_e( 'Which of the below 2FA methods can users use?', 'wp-2fa' ); ?></th>
-				</tr>
-				<tr>
-					<th><label for="2fa-method"><?php esc_html_e( 'Select the methods', 'wp-2fa' ); ?></label></th>
-					<td>
-			<?php } ?>
-						<fieldset id="2fa-method-select" class="2fa-method-select">
-							<div class="method-title"><em><?php esc_html_e( 'Primary 2FA methods:', 'wp-2fa' ); ?></em></div>
-							<br>
-							<label for="totp">
-								<input type="checkbox" id="totp" name="wp_2fa_policy[enable_totp]" value="enable_totp"
-								<?php echo $data_role; // phpcs:ignore ?>
-								<?php checked( 'enable_totp', WP2FA::get_wp2fa_setting( 'enable_totp' ), true ); ?>
-								>
-								<?php esc_html_e( 'One-time code via 2FA App (TOTP)', 'wp-2fa' ); ?>
-							</label>
-
-							<?php
-							if ( $setup_wizard ) {
-								echo '<p class="description">';
-								printf(
-									/* translators: link to the knowledge base website */
-									esc_html__( 'When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ),
-									'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
-								);
-								echo '</p>';
-							}
-							?>
+			<h3><?php esc_html_e( 'Which 2FA methods can your users use?', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php esc_html_e( 'When you uncheck any of the below 2FA methods it won\'t be available for your users to use. You can always change this later on from the plugin\'s settings.', 'wp-2fa' ); ?>
+			</p>
+				<?php
+				$data_role = 'data-role="global"';
+				if ( ! $setup_wizard ) {
+					?>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th colspan="2"><?php esc_html_e( 'Which of the below 2FA methods can users use?', 'wp-2fa' ); ?></th>
+					</tr>
+					<tr>
+						<th><label for="2fa-method"><?php esc_html_e( 'Select the methods', 'wp-2fa' ); ?></label></th>
+						<td>
+				<?php } ?>
+						<fieldset id="2fa-method-select" class="wp-2fa-method-select">
+							<p class="method-title" style="padding-bottom: 20px;"><em><?php esc_html_e( 'Primary 2FA methods:', 'wp-2fa' ); ?></em></p>
 							<?php
 							/**
 							 * Fired right after the TOTP method HTML rendering.
@@ -87,65 +70,14 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 							 *
 							 * @since 2.0.0
 							 */
-							\do_action( WP_2FA_PREFIX . 'after_totp_setup', $setup_wizard, $data_role, null );
+							\do_action( WP_2FA_PREFIX . 'methods_setup', $setup_wizard, $data_role, null );
 							?>
-							<br/>
-							<label for="hotp">
-								<input type="checkbox" id="hotp" name="wp_2fa_policy[enable_email]" value="enable_email"
-								<?php echo $data_role; // phpcs:ignore ?>
-								<?php checked( WP2FA::get_wp2fa_setting( 'enable_email' ), 'enable_email' ); ?>
-								>
-								<?php
-								esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
-								esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' );
-									echo '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>.';
-								?>
-								<?php
-								?>
-							</label>
-								<?php
-								if ( $setup_wizard ) {
-									echo '<p class="description">' . esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . esc_html__( 'Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ) . '</p>';
-								}
-								?>
-								<?php if ( ! $setup_wizard ) { ?>
-							<div class="use-different-hotp-mail<?php echo \esc_attr( ( false === WP2FA::get_wp2fa_setting( 'enable_email' ) ? ' disabled' : '' ) ); ?>">
-								<p class="description" style="margin-bottom: 5px; font-style: normal;">
-									<?php esc_html_e( 'Allow user to specify the email address of choice', 'wp-2fa' ); ?>
-								</p>
-								<fieldset class="email-hotp-options">
-									<?php
-									$options = array(
-										'yes' => array(
-											'label' => esc_html__( 'Yes', 'wp-2fa' ),
-											'value' => 'specify-email_hotp',
-										),
-										'no'  => array(
-											'label' => esc_html__( 'No', 'wp-2fa' ),
-											'value' => '',
-										),
-									);
-
-									foreach ( $options as $option_key => $option_settings ) {
-										?>
-									<label for="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>">
-										<input type="radio" name="wp_2fa_policy[specify-email_hotp]" id="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>" value="<?php echo \esc_attr( $option_settings['value'] ); ?>" class="js-nested"
-											<?php checked( Settings::get_role_or_default_setting( 'specify-email_hotp', null ), $option_settings['value'] ); ?>
-										>
-										<span><?php echo $option_settings['label']; // phpcs:ignore ?></span>
-									</label>
-										<?php
-									}
-									?>
-								</fieldset>
-							</div>
-							<?php } ?>
 							<br />
 								<?php
 								if ( ! $setup_wizard ) {
 									$class = '';
 
-									if ( '' === trim( Settings::get_role_or_default_setting( 'enable_totp', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_email', null, null, true ) ) && '' === trim( Settings::get_role_or_default_setting( 'enable_oob_email', null, null, true ) ) ) {
+									if ( '' === trim( (string) Settings::get_role_or_default_setting( TOTP::POLICY_SETTINGS_NAME, null, null, true ) ) && '' === trim( (string) Settings::get_role_or_default_setting( 'enable_email', null, null, true ) ) && '' === trim( (string) Settings::get_role_or_default_setting( 'enable_oob_email', null, null, true ) ) ) {
 										$class = 'disabled';
 									}
 									?>
@@ -155,7 +87,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 									<input type="checkbox" class="<?php echo \esc_attr( $class ); ?>" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]" 
 									<?php echo $data_role; // phpcs:ignore ?>
 									value="yes"
-									<?php checked( WP2FA::get_wp2fa_setting( 'backup_codes_enabled' ), 'yes' ); ?>
+									<?php checked( WP2FA::get_wp2fa_setting( Backup_Codes::get_settings_name() ), Backup_Codes::get_settings_default_value() ); ?>
 									>
 									<?php
 									esc_html_e( 'Backup codes', 'wp-2fa' );
@@ -187,16 +119,16 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 							<?php
 							if ( ! $setup_wizard ) {
 								?>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-							<?php } ?>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<?php } ?>
 			<?php
 			$output = ob_get_clean();
 
 			/**
-			 * At this point, none of the default providers is set / activated. This filter allows additional providers to change the behaviour. Checking the input array for specific values (methods), and based on that we can raise error that none of the allowed methods has bees selected by the user, or dismiss the error otherwise.
+			 * At this point, none of the default providers is set / activated. This filter allows additional providers to change the behavior. Checking the input array for specific values (methods), and based on that we can raise error that none of the allowed methods has bees selected by the user, or dismiss the error otherwise.
 			 *
 			 * @param string $output - Parsed HTML with the methods.
 			 * @param bool $setup_wizard - The type of the wizard (first time wizard / settings).
@@ -221,46 +153,46 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 
 			ob_start();
 			?>
-		<h3><?php esc_html_e( 'Which alternative 2FA methods can users use?', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php esc_html_e( 'An alternative 2FA method allows users to configure another 2FA method that can be used as a backup should the primary 2FA method fail. This can happen if, for example, a user forgets their smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ); ?>
-		</p>
-		<p class="description">
-			<?php esc_html_e( 'It is highly recommended to have an alternative 2FA method configured at all times. Below is a list of alternative 2FA methods available through this plugin:', 'wp-2fa' ); ?>
-		</p>
+			<h3><?php esc_html_e( 'Which alternative 2FA methods can users use?', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php esc_html_e( 'An alternative 2FA method allows users to configure another 2FA method that can be used as a backup should the primary 2FA method fail. This can happen if, for example, a user forgets their smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ); ?>
+			</p>
+			<p class="description">
+				<?php esc_html_e( 'It is highly recommended to have an alternative 2FA method configured at all times. Below is a list of alternative 2FA methods available through this plugin:', 'wp-2fa' ); ?>
+			</p>
 
-		<br>
+			<br>
 
-		<fieldset>
-			<label for="backup-codes">
-				<input type="checkbox" id="backup-codes-global" name="wp_2fa_policy[backup_codes_enabled]" value="yes"
-				<?php checked( WP2FA::get_wp2fa_setting( 'backup_codes_enabled' ), 'yes' ); ?>
-				>
-				<?php esc_html_e( 'Backup codes', 'wp-2fa' ); ?>
-			</label>
+			<fieldset>
+				<label for="backup-codes">
+					<input type="checkbox" id="backup-codes-global" name="wp_2fa_policy[backup_codes_enabled]" value="yes"
+					<?php checked( WP2FA::get_wp2fa_setting( Backup_Codes::get_settings_name() ), Backup_Codes::get_settings_default_value() ); ?>
+					>
+					<?php esc_html_e( 'Backup codes', 'wp-2fa' ); ?>
+				</label>
 
-			<?php
-				echo '<p class="description">';
-				echo sprintf(
-					'%1$1s <a href="https://melapress.com/support/kb/wp-2fa-what-are-2fa-backup-codes/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> <br><br>',
-					esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
-					esc_html__( 'More information', 'wp-2fa' )
-				);
-				echo '</p>';
-			?>
+				<?php
+					echo '<p class="description">';
+					printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'%1$1s <a href="https://melapress.com/support/kb/wp-2fa-what-are-2fa-backup-codes/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> <br><br>',
+						esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
+						esc_html__( 'More information', 'wp-2fa' )
+					);
+					echo '</p>';
+				?>
 
-			<?php
-				echo '<label>';
-				echo sprintf(
-					'%1$1s <a href="https://melapress.com/wordpress-2fa/features/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> %3$1s',
-					esc_html__( 'Upgrade to WP 2FA Premium for', 'wp-2fa' ),
-					esc_html__( 'more alternative 2FA methods', 'wp-2fa' ),
-					esc_html__( 'to give your users more options.', 'wp-2fa' )
-				);
-				echo '<label>';
-			?>
-		</fieldset>
-			<?php
+				<?php
+					echo '<label>';
+					printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'%1$1s <a href="https://melapress.com/wordpress-2fa/features/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> %3$1s',
+						esc_html__( 'Upgrade to WP 2FA Premium for', 'wp-2fa' ),
+						esc_html__( 'more alternative 2FA methods', 'wp-2fa' ),
+						esc_html__( 'to give your users more options.', 'wp-2fa' )
+					);
+					echo '<label>';
+				?>
+			</fieldset>
+				<?php
 			?>
 			<?php
 			$output = ob_get_clean();
@@ -376,7 +308,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 								</label>
 								<fieldset class="hidden all-sites">
 									<p>
-										<label for="slim-multi-select"><?php esc_html_e( 'Sites :', 'wp-2fa' ); ?></label> <select multiple="multiple" id="slim-multi-select" name="wp_2fa_policy[included_sites][]" style="display:none; width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
+										<label for="enforced-sites-multi-select"><?php esc_html_e( 'Sites :', 'wp-2fa' ); ?></label> <select multiple="multiple" id="enforced-sites-multi-select" name="wp_2fa_policy[included_sites][]" style="display:none; width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 											<?php
 											$selected_sites = WP2FA::get_wp2fa_setting( 'included_sites' );
 											foreach ( WP_Helper::get_multi_sites() as $site ) {

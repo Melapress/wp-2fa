@@ -9,11 +9,13 @@
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
+declare(strict_types=1);
+
 namespace WP2FA\Utils;
 
 use WP2FA\Utils\Abstract_Migration;
-use \WP2FA\Utils\User_Utils as User_Utils;
-use WP2FA\Utils\Settings_Utils as Settings_Utils;
+use WP2FA\Utils\User_Utils;
+use WP2FA\Utils\Settings_Utils;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
