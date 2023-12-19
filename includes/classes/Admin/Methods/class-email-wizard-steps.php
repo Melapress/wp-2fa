@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage methods-wizard
  * @since      2.6.0
- * @copyright  2023 Melapress
+ * @copyright  %%YEAR%% Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -235,7 +235,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 											$use_role_setting = \WP_2FA_PREFIX . 'no-user';
 										}
 
-										checked( Settings::get_role_or_default_setting( 'specify-email_hotp', $use_role_setting, $role, true, true ), $option_settings['value'] );
+										checked( Settings::get_role_or_default_setting( 'specify-email_hotp', $use_role_setting, $role, true, false ), $option_settings['value'] );
 										?>
 									<?php } ?>
 									>
