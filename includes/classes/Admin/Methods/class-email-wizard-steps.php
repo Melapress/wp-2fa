@@ -235,7 +235,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 											$use_role_setting = \WP_2FA_PREFIX . 'no-user';
 										}
 
-										checked( Settings::get_role_or_default_setting( 'specify-email_hotp', $use_role_setting, $role, true, true ), $option_settings['value'] );
+										checked( Settings::get_role_or_default_setting( 'specify-email_hotp', $use_role_setting, $role, true, false ), $option_settings['value'] );
 										?>
 									<?php } ?>
 									>

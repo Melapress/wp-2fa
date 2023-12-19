@@ -178,7 +178,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			/** We need to exclude all the possible ways, that logic to be executed by some WP request which could come from cron job or AJAX call, which will break the wizard (by storing the settings for the plugin) before it is completed by the user. We also have to check if the user is still processing first time wizard ($_GET parameter), and if the wizard has been finished already (wp_2fa_wizard_not_finished)  */
 			if ( Settings_Utils::get_option( 'wizard_not_finished' ) && ! isset( $_GET['is_initial_setup'] ) && ! wp_doing_ajax() && ! defined( 'DOING_CRON' ) ) {
 
-				if ( ! Settings_Utils::get_option( WP_2FA_SETTINGS_NAME ) ) {
+				if ( ! Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) {
 					self::update_plugin_settings( self::get_default_settings() );
 				}
 
@@ -226,10 +226,12 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 */
 		public static function add_actions() {
 			// Plugin redirect on activation, only if we have no settings currently saved.
-			if ( ! isset( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || Settings_Utils::get_option( 'redirect_on_activate', false ) ) {
+			if ( ( ! isset( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) && Settings_Utils::get_option( 'redirect_on_activate', false ) ) {
 				add_action( 'admin_init', array( __CLASS__, 'setup_redirect' ), 10 );
 
-				self::update_plugin_settings( self::get_default_settings() );
+				if ( ! isset( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) {
+					self::update_plugin_settings( self::get_default_settings() );
+				}
 			} elseif ( ! \is_array( Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) ) {
 					Settings_Utils::delete_option( WP_2FA_POLICY_SETTINGS_NAME );
 					self::update_plugin_settings( self::get_default_settings() );

@@ -138,7 +138,7 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 */
 		public static function add_default_settings( array $default_settings ) {
 			$default_settings[ self::POLICY_SETTINGS_NAME ] = self::POLICY_SETTINGS_NAME;
-			$default_settings['specify-email_hotp']           = '';
+			$default_settings['specify-email_hotp']           = 'specify-email_hotp';
 			$default_settings['method_help_hotp_intro']       = '<h3>' . __( 'Setting up HOTP', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
 			$default_settings['method_verification_hotp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup', 'wp-2fa' ) . '</p>';
 			$default_settings['hotp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} one-time code over email method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
