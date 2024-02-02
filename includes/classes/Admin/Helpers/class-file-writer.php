@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage helpers
  * @since      2.4.0
- * @copyright  2023 Melapress
+ * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -316,11 +316,29 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @return string Full path to the wp-config.php file or a blank string if modifications for the file are disabled.
 		 */
 		public static function get_wp_config_file_path() {
+
 			if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
+
+				/** The config file resides in ABSPATH */
 				$path = ABSPATH . 'wp-config.php';
+
+			} elseif ( @file_exists( dirname( ABSPATH ) . '/wp-config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/wp-settings.php' ) ) {
+
+				/** The config file resides one level above ABSPATH */
+				$path = dirname( ABSPATH ) . '/wp-config.php';
+
 			} else {
 				$path = '';
 			}
+
+			/**
+			 * Gives the ability to manually change the path to the config file.
+			 *
+			 * @param string - The current value for WP config file path.
+			 *
+			 * @since 2.6.2
+			 */
+			$path = \apply_filters( WP_2FA_PREFIX . 'config_file_path', (string) $path );
 
 			return $path;
 		}

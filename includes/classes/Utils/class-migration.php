@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2023 Melapress
+ * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -315,6 +315,16 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 			if ( \wp_next_scheduled( 'wp_2fa_check_grace_period_status' ) ) {
 				\wp_clear_scheduled_hook( 'wp_2fa_check_grace_period_status' );
 			}
+		}
+
+		/**
+		 * Migration for version upto 2.6.2
+		 *
+		 * @return void
+		 */
+		protected static function migrate_up_to_262() {
+
+			self::migrate_up_to_240();
 		}
 
 		/**

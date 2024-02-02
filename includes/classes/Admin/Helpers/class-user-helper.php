@@ -7,7 +7,7 @@
  *
  * @since      2.2.0
  *
- * @copyright  2023 Melapress
+ * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -19,14 +19,15 @@ namespace WP2FA\Admin\Helpers;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
+use wpdb;
 use WP2FA\WP2FA;
 use WP2FA\Utils\User_Utils;
+use WP2FA\Extensions_Loader;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Controllers\Settings;
-use wpdb;
 
 /*
  * User's settings class
@@ -300,17 +301,19 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			\do_action( WP_2FA_PREFIX . 'after_method_is_removed', self::get_user() );
 
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
-				$user_blog_id = 1;
-				if ( WP_Helper::is_multisite() ) {
-					$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
-				}
-				if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore
+				if ( Extensions_Loader::use_proxytron() ) {
+					$user_blog_id = 1;
 					if ( WP_Helper::is_multisite() ) {
-						\switch_to_blog( $user_blog_id );
+						$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
 					}
-					User_Licensing::method_has_been_set();
-					if ( WP_Helper::is_multisite() ) {
-						\switch_to_blog( $current_blog );
+					if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore
+						if ( WP_Helper::is_multisite() ) {
+							\switch_to_blog( $user_blog_id );
+						}
+						User_Licensing::method_has_been_set();
+						if ( WP_Helper::is_multisite() ) {
+							\switch_to_blog( $current_blog );
+						}
 					}
 				}
 			}
@@ -1002,19 +1005,21 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			}
 
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
-				$user_blog_id = 1;
-				if ( WP_Helper::is_multisite() ) {
-					$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
-				}
-				if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
+				if ( Extensions_Loader::use_proxytron() ) {
+					$user_blog_id = 1;
 					if ( WP_Helper::is_multisite() ) {
-						wp2fa_freemius()->switch_to_blog( $user_blog_id );
-						// \switch_to_blog( $user_blog_id->blog_id );
+						$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
 					}
-					User_Licensing::method_has_been_set();
-					if ( WP_Helper::is_multisite() ) {
-						wp2fa_freemius()->switch_to_blog( $current_blog );
-						// \switch_to_blog( $current_blog );
+					if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
+						if ( WP_Helper::is_multisite() ) {
+							wp2fa_freemius()->switch_to_blog( $user_blog_id );
+							// \switch_to_blog( $user_blog_id->blog_id );
+						}
+						User_Licensing::method_has_been_set();
+						if ( WP_Helper::is_multisite() ) {
+							wp2fa_freemius()->switch_to_blog( $current_blog );
+							// \switch_to_blog( $current_blog );
+						}
 					}
 				}
 			}
