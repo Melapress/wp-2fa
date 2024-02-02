@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2023 Melapress
+ * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -13,7 +13,9 @@ namespace WP2FA\Admin;
 
 use WP2FA\WP2FA;
 use WP2FA\Methods\TOTP;
+use WP2FA\Methods\Email;
 use WP2FA\Utils\User_Utils;
+use WP2FA\Extensions_Loader;
 use WP2FA\Methods\Backup_Codes;
 use WP2FA\Utils\Generate_Modal;
 use WP2FA\Utils\Settings_Utils;
@@ -26,7 +28,6 @@ use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Extensions\OutOfBand\Out_Of_Band;
-use WP2FA\Methods\Email;
 
 /**
  * User_Profile class responsible for the profile page operations

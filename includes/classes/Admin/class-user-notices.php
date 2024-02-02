@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2023 Melapress
+ * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -12,14 +12,15 @@
 namespace WP2FA\Admin;
 
 use WP2FA\WP2FA;
+use WP2FA\Extensions_Loader;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
-use WP2FA\Extensions\Integrations\Plugins\Woocommerce;
 use WP2FA\Extensions\Integrations\WP2FA_Integrations;
+use WP2FA\Extensions\Integrations\Plugins\Woocommerce;
 use WP2FA\Extensions\WhiteLabeling\White_Labeling_Render;
 
 /**
@@ -130,7 +131,9 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 				$show = true;
 
 				if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
-					$show = User_Licensing::enable_2fa_user_setting( true );
+					if ( Extensions_Loader::use_proxytron() ) {
+						$show = User_Licensing::enable_2fa_user_setting( true );
+					}
 				}
 
 				if ( $show ) {
