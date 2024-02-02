@@ -3,7 +3,7 @@
  * Main plugin class.
  *
  * @package    wp2fa
- * @copyright  2023 Melapress
+ * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -107,7 +107,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'custom-text-twilio-code-page'         => __( 'Enter the 2FA code you have received over SMS.', 'wp-2fa' ),
 				'custom-text-app-code-page'            => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
 				'custom-text-email-code-page'          => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
-
 
 				'default-backup-code-page'             => __( 'Enter a backup verification code.', 'wp-2fa' ),
 				'method_invalid_setting'               => 'login_block',
@@ -474,7 +473,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			}
 
 			if ( $apply_defaults ) {
-				return $default_settings[ $setting_name ];
+				return isset( $default_settings[ $setting_name ] ) ? $default_settings[ $setting_name ] : false;
 			} elseif ( ! isset( $wp2fa_setting[ $setting_name ] ) ) {
 				if ( true === $get_default_on_empty ) {
 					if ( isset( $default_settings[ $setting_name ] ) ) {
@@ -825,7 +824,9 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			$redirect = true;
 
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
-				$redirect = User_Licensing::enable_2fa_user_setting( true );
+				if ( Extensions_Loader::use_proxytron() ) {
+					$redirect = User_Licensing::enable_2fa_user_setting( true );
+				}
 			}
 
 

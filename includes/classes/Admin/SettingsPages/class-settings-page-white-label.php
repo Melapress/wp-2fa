@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2023 Melapress
+ * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -115,9 +115,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					$output['enable_wizard_styling'] = \wp_strip_all_tags( $input['enable_wizard_styling'] );
 				} else {
 					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
-					if ( $request_area_path && ! strpos( $request_area['query'], 'custom-css' ) ) {
+					if ( $request_area_path && ! strpos( $request_area['query'], 'custom-css' ) || ! $request_area_path ) {
 						$input['enable_wizard_styling']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
 						$output['enable_wizard_styling'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
+						/* @free:start */
+						// Free edition does have setting, so allow for it to be disabled.
+						$output['enable_wizard_styling'] = '';
+						$input['enable_wizard_styling']  = '';
+						/* @free:end */
 					} else {
 						$output['enable_wizard_styling'] = '';
 						$input['enable_wizard_styling']  = '';
