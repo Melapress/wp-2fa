@@ -66,7 +66,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 				<div class="nav-tab-wrapper">
 					<?php
 						// Get current tab.
-						$current_tab = isset( $_GET['tab'] ) ? \wp_unslash( $_GET['tab'] ) : 'help'; // phpcs:ignore
+						$current_tab = isset( $_GET['tab'] ) ? \sanitize_text_field( \wp_unslash( $_GET['tab'] ) ) : 'help'; // phpcs:ignore
 					?>
 					<a href="<?php echo esc_url( remove_query_arg( 'tab' ) ); ?>" class="nav-tab<?php echo 'help' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'Help', 'wp-2fa' ); ?></a>
 					<a href="<?php echo esc_url( add_query_arg( 'tab', 'system-info' ) ); ?>" class="nav-tab<?php echo 'system-info' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'System info', 'wp-2fa' ); ?></a>

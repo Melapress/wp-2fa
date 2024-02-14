@@ -262,7 +262,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 * These are used instead of add_settings_error which in a network site. Used to show if settings have been updated or failed.
 		 */
 		public static function settings_saved_network_admin_notice() {
-			if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'true' === $_GET['wp_2fa_network_settings_updated'] ) { // phpcs:ignore
+			if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'true' === $_GET['wp_2fa_network_settings_updated'] ) {
 				?>
 			<div class="notice notice-success is-dismissible">
 				<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
@@ -277,8 +277,9 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			<div class="notice notice-error is-dismissible">
 				<?php
 				if ( isset( $_GET['wp_2fa_network_settings_custom_error_message'] ) ) { // phpcs:ignore
+					$error = \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_network_settings_custom_error_message'] ) );
 					?>
-					<p><?php echo \wp_unslash( $_GET['wp_2fa_network_settings_custom_error_message'] ); // phpcs:ignore ?></p>
+					<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( $error ) ) ); ?></p>
 					<button type="button" class="notice-dismiss">
 						<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 					</button>

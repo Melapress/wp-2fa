@@ -283,84 +283,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_before_default_text' );
 			?>
 
-			<?php if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) { ?>
-				<h3><?php esc_html_e( '2FA code page text', 'wp-2fa' ); ?></h3>
-				<p class="description">
-					<?php esc_html_e( 'Use these settings to customize message shown to users upon login when a 2FA verification code is requested.', 'wp-2fa' ); ?>
-				</p>
-				<table class="form-table">
-					<tbody>
-						<tr>
-							<th><label for="2fa-method"><?php esc_html_e( 'Customize code page text', 'wp-2fa' ); ?></label>
-							</th>
-							<td>
-								<fieldset class="contains-hidden-inputs">
-									<label for="use-defaults">
-										<input type="radio" name="wp_2fa_white_label[use_custom_2fa_message]" id="use-defaults" value="use-defaults"
-										<?php checked( WP2FA::get_wp2fa_white_label_setting( 'use_custom_2fa_message' ), 'use-defaults' ); ?>
-										>
-									<span><?php esc_html_e( 'Show this generic message to all users regardless of the 2FA method they are using.', 'wp-2fa' ); ?></span>
-									</label>
-
-									<br/>
-									<label for="use-custom">
-										<input type="radio" name="wp_2fa_white_label[use_custom_2fa_message]" id="use-custom" value="use-custom"
-										<?php checked( WP2FA::get_wp2fa_white_label_setting( 'use_custom_2fa_message' ), 'use-custom' ); ?>
-										data-unhide-when-checked=".custom-from-inputs">
-										<span><?php esc_html_e( 'Show a message that is specific to the method that the user is using.', 'wp-2fa' ); ?></span>
-									</label>
-
-									<fieldset class="hidden custom-from-inputs">
-										<p class="description">
-											<?php esc_html_e( '2FA via app', 'wp-2fa' ); ?>
-										</p>
-										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-app-code-page' ); ?>
-										<br/>
-
-										<p class="description">
-											<?php esc_html_e( '2FA code over email', 'wp-2fa' ); ?>
-										</p>
-										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-email-code-page' ); ?>
-										<br/>
-
-										<p class="description">
-											<?php esc_html_e( '2FA link over email', 'wp-2fa' ); ?>
-										</p>
-										<?php echo White_Labeling_Render::get_method_text_editor( 'default-text-oob-page' ); ?>
-										<br/>
-
-										<p class="description">
-											<?php esc_html_e( '2FA code over SMS', 'wp-2fa' ); ?>
-										</p>
-										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-twilio-code-page' ); ?>
-										<br/>
-
-										<p class="description">
-											<?php esc_html_e( '2FA with Push Notification - Intro', 'wp-2fa' ); ?>
-										</p>
-										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-authy-code-page-intro' ); ?>
-										<br/>
-
-										<p class="description">
-											<?php esc_html_e( '2FA with Push Notification - Awaiting Response', 'wp-2fa' ); ?>
-										</p>
-										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-authy-code-page-awaiting' ); ?>
-										<br/>
-
-										<p class="description">
-											<?php esc_html_e( '2FA with Push Notification', 'wp-2fa' ); ?>
-										</p>
-										<?php echo White_Labeling_Render::get_method_text_editor( 'custom-text-authy-code-page' ); ?>
-										<br/>
-									</fieldset>
-
-								</fieldset>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			<?php } ?>
-
 		<h3><?php esc_html_e( 'Change the default text used in the 2FA code page', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php esc_html_e( 'This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder.', 'wp-2fa' ); ?>
@@ -413,10 +335,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				?>
 			</tbody>
 		</table>
-
-		<?php
-		/* @free:start */
-		?>
 			<h3><?php esc_html_e( 'Change the styling of the user 2FA wizards', 'wp-2fa' ); ?></h3>
 			<p class="description">
 				<?php esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
@@ -436,9 +354,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					</tr>
 				</tbody>
 			</table>
-		<?php
-		/* @free:end */
-		?>
 
 			<?php
 			/**

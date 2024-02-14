@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 5.0
 Tested up to: 6.4.2
-Stable tag: 2.6.2
+Stable tag: 2.6.3
 Requires PHP: 7.2.0
 
 Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy to use plugin.
@@ -118,63 +118,16 @@ For any other queries, feedback, or if you simply want to get in touch with us p
 
 == Changelog ==
 
-= 2.6.0 (2023-12-14) =
+= 2.6.2 (2024-02-07) =
 
-Release notes: [QR Code viewer, plugin settings export/import tool, and much more](https://melapress.com/wordpress-2fa/releases/)
-
-* **New features**
-	* Order of 2FA methods can be changed via all new drag & drop functionality in settings.
-	* Plugin settings export/import functionality.
-	* QR code viewer - users can now see the QR code used to set up TOTP, allowing them to add their user 2FA setup on multiple devices.
-	* New setting to show generic message VS method specific message in the 2FA code page.
-	
-* **Security fixes**
-	* Fixed an Insecure direct object through which a subscriber-level attacker can email arbitrary users on the site - reported by Ulyses Saicha.
-	* Fixed a Cross-site request forgery which makes it possible for unauthenticated attackers to send emails with arbitrary content to registered users via a forged request and can trick a users into clicking on a link - reported by Ulyses Saicha.
-	
-* **Improvements**
-	* Added "from-email address" checks + notifications to help improve email deliverability (and user configuration).
-	* Reports can now report data on sites with tens of thousands of users without timing out.
-	* 2FA code confirmation email used during setup now available as a template - admins can now edit it.
-	* The 2FA methods names are available in the white labelling options, allowing admins to change them as well.
-	* Updated plugin code so it is compatible with WP Activity Log (in preparation for activity logs for WP 2FA).
-	* Changed the text fields placeholders in the White labeling section of the free edition to the standard WordPress editor.
-	* Improved support for Memberpress plugin - now the plugin has out-of-the-box support for Memberpress.
-	* Added JSON errors and improved JS for handling emails (required to report back email problems to user).
-	* Added user ID extraction in the settings store logic for more efficiency.
-	* Added the {backup_codes} template tag to the email templates.
-	* 2FA user setup information now shown in user profile page.
-	* Added the Cancel button to all modals (accessibility improvement).
-	* Return key can be used now as a click (accessibility improvement).
-	* 2FA methods names now also available in white labelling options.
-	* Made more strings available in the translation files.
-	* Standardized more components in the UI, such as drop down menu's, placeholders etc.
-	* Removed pluggable.php (WordPress core file) from the plugin.
-	* Added more UI checks in the 2FA policies section to improve UX.
-	* Added more "days" options to trusted devices. Admins can now choose from 7, 15, 30, 45, 60 and 90.
-	* "Allow user to login without 2FA" option was not working when Twilio was unavailable.
-	* Added "trusted device" period check to avoid showing "0 days" in some edge cases in the 2FA code page.
-	* Added more sanitaziation checks to placeholders in the install wizard to improve the UX.
-	* Updated the Help page with new plugin icons and branding.
-	* Added more checks in the 2FA policies configuration so the same role or user cannot be included and excluded at the same time.
-	* Unified / centralized all nonce code - now we have just one mothed used to generate / manage nonce when needed.
-	* Improved the text and help text in the plugin.
-	* Improved support for WP Engine's Smart plugin manager.
-	* Updated the License.txt file with the latest version.
+ * **Improvements**
+	 * Added support for the new plans & pricing (February 2024 update).
+	 * Added support for wp-config.php file in non-default location.
+	 * Upgraded the Freemius SDK to 2.6.2.
 	
 * **Bug fixes**
-	* Fixed: fatal error when using Advanced Custom Fields Pro + WP 2FA and enforce 2FA on users.
-	* Fixed: user's email address not updated after user set 2FA and changed the email address.
-	* Fixed: User's 2FA email address not updated when the WordPress user email address is changed.
-	* Fixed: "Settings saved" prompt only goes away on refresh, cannot be closed by clicking the close "x" icon.
-	* Fixed: users on multisite who already authenticated via 2FA asked for 2FA code when switching between subsites.
-	* Fixed: in some edge cases, the super admin of a multisite network cannot remove own 2FA configuration or reconfigure.
-	* Fixed: in certain setups users are shown 2FA enforcement message when 2FA is enforced and they log in via a trusted device.
-	* Fixed: a number of PHP warnings.
-	* Fixed: fatal error accessing website via InstaWP's magic login feature.
-	* Fixed: Email template for "User reset password code email" not being properly saved once edited.
-	* The WP 2FA's custom CSS feature can now be disabled on multisites.
-	* Fixed: Front end 2FA page URL on 2FA notice "configure 2FA now" button was not updated dynamically once changed.
-	* Fixed: Some edge case scenarios on multi sites  where "Subscriber" was not enforced 2FA on first-time log in.
+	* Fixed a number of PHP warnings generated when switching to custom "From" email address in the plugin settings.
+	* Fixed: Wizard's CSS resets to default after changing some white labelling options.
+	* User still not forced to configure 2FA after removed from the exclusion list.
 
 Refer to the complete [plugin changelog](https://melapress.com/support/kb/wp-2fa-plugin-changelog/) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.
