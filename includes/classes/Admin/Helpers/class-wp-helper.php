@@ -216,8 +216,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 * @return bool
 		 */
 		public static function is_admin_page( $slug = array() ) { // phpcs:ignore Generic.Metrics.NestingLevel.MaxExceeded
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$cur_page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
+
+			$cur_page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$check    = WP_2FA_PREFIX_PAGE;
 
 			return \is_admin() && ( false !== strpos( $cur_page, $check ) );

@@ -89,7 +89,7 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 			if ( isset( $redirect_after ) && ! empty( $redirect_after ) ) {
 				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . \urlencode( $redirect_after );
 			} elseif ( isset( $_GET['return'] ) && ! empty( $_GET['return'] ) ) {
-				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . strip_tags( $_GET['return'] ); // phpcs:ignore
+				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . strip_tags( \wp_unslash( $_GET['return'] ) ); // phpcs:ignore
 			}
 
 			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faWizardData', $data_array );

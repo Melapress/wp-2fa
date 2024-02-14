@@ -50,10 +50,10 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
 				$user_id = (int) $_GET['user_id']; // phpcs:ignore
-				$user    = get_user_by( 'id', $user_id );
+				$user    = \get_user_by( 'id', $user_id );
 			} else {
 				// Get current user, we're going to need this regardless.
-				$user = wp_get_current_user();
+				$user = \wp_get_current_user();
 			}
 
 			if ( ! is_a( $user, '\WP_User' ) ) {
@@ -543,13 +543,13 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
 				$user_id = (int) $_GET['user_id']; // phpcs:ignore
-				$user    = get_user_by( 'id', $user_id );
+				$user    = \get_user_by( 'id', $user_id );
 			} else {
-				$user = wp_get_current_user();
+				$user = \wp_get_current_user();
 			}
 
 			// Get current user, we going to need this regardless.
-			$current_user = wp_get_current_user();
+			$current_user = \wp_get_current_user();
 
 			if ( \is_multisite() ) {
 				if ( '' === trim( (string) \WP2FA\Admin\Helpers\User_Helper::get_user_role( $user ) ) ) {

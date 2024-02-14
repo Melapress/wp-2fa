@@ -307,6 +307,8 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			/** This action is documented in wp-login.php */
 			do_action( 'login_footer' );
 			?>
+
+		</div>
 		<div class="clear"></div>
 			<?php wp_print_scripts( 'jquery' ); ?>
 		<script>
@@ -595,24 +597,24 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			// Filter $_GET array for security.
 			$get_array = filter_input_array( INPUT_GET );
 			$auth_id   = (int) $get_array['wp-auth-id'];
-			$user      = get_userdata( $auth_id );
+			$user      = \get_userdata( $auth_id );
 			if ( ! $user ) {
 				return;
 			}
 
-			$nonce = sanitize_text_field( $get_array['wp-auth-nonce'] );
+			$nonce = \sanitize_text_field( $get_array['wp-auth-nonce'] );
 			if ( true !== self::verify_login_nonce( $user->ID, $nonce ) ) {
 				wp_safe_redirect( get_bloginfo( 'url' ) );
 				exit;
 			}
 
 			if ( ! isset( $get_array['provider'] ) ) {
-				wp_die( esc_html__( 'Cheatin&#8217; uh?', 'wp-2fa' ), 403 );
+				\wp_die( \esc_html__( 'Cheatin&#8217; uh?', 'wp-2fa' ), 403 );
 			} else {
-				$provider = sanitize_textarea_field( wp_unslash( $_GET['provider'] ) ); //phpcs:ignore
+				$provider = \sanitize_textarea_field( \wp_unslash( $_GET['provider'] ) ); //phpcs:ignore
 			}
 
-			self::login_html( $user, $nonce, esc_url_raw( wp_unslash( $get_array['redirect_to'] ) ), '', $provider );
+			self::login_html( $user, $nonce, \esc_url_raw( \wp_unslash( $get_array['redirect_to'] ) ), '', $provider );
 
 			exit;
 		}
