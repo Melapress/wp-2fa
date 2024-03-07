@@ -53,8 +53,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function encrypt( string $text ): string {
-			Debugging::log( 'Encrypting a text: ' . $text );
-			Debugging::log( 'Will use the following salt: ' . wp_salt() );
 			if ( self::is_ssl_available() ) {
 				$iv   = self::secure_random( self::BLOCK_BYTE_SIZE );
 				$key  = \openssl_digest( \base64_decode( wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
@@ -68,7 +66,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 
 				$text = \base64_encode( $iv . $text ); //phpcs:ignore
 			}
-			Debugging::log( 'Encrypted text: ' . $text );
 
 			return $text;
 		}
