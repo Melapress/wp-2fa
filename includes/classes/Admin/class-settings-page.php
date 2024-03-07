@@ -410,11 +410,35 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			if ( 'use-custom-email' === WP2FA::get_wp2fa_email_templates( 'email_from_setting' ) ) {
 				$headers .= 'From: ' . WP2FA::get_wp2fa_email_templates( 'custom_from_display_name' ) . ' <' . WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) . '>' . "\r\n";
 			} else {
-				$headers .= 'From: ' . get_bloginfo( 'name' ) . ' <' . get_bloginfo( 'admin_email' ) . '>' . "\r\n";
+
+				$headers .= 'From: wp2fa <' . self::get_default_email_address() . '>' . "\r\n";
+				// $headers .= 'From: ' . get_bloginfo( 'name' ) . ' <' . get_bloginfo( 'admin_email' ) . '>' . "\r\n";
 			}
 
 			// Fire our email.
 			return wp_mail( $recipient_email, $subject, $message, $headers );
+		}
+
+		/**
+		 * Builds and returns the default email address used for the "from" email address when email is send
+		 *
+		 * @return string
+		 *
+		 * @since 2.6.4
+		 */
+		public static function get_default_email_address(): string {
+			$sitename   = wp_parse_url( network_home_url(), PHP_URL_HOST );
+			$from_email = 'wp2fa@';
+
+			if ( null !== $sitename ) {
+				if ( str_starts_with( $sitename, 'www.' ) ) {
+					$sitename = substr( $sitename, 4 );
+				}
+
+				$from_email .= $sitename;
+			}
+
+			return $from_email;
 		}
 
 		/**
@@ -462,17 +486,12 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		public static function check_email() {
 			$is_dismissed = (bool) Settings_Utils::get_option( 'dismiss_notice_mail_domain', false );
 			if ( ! $is_dismissed ) {
-				$admin_email = \get_option( 'admin_email' );
-
+				$admin_email = null;
 				if ( 'use-custom-email' === WP2FA::get_wp2fa_email_templates( 'email_from_setting' ) ) {
 					$admin_email = WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' );
 				}
-				$site_url    = \get_site_url();
 
-				$email_domain = WP_Helper::extract_domain( $admin_email );
-				$site_domain  = WP_Helper::extract_domain( $site_url );
-
-				if ( $email_domain !== $site_domain ) {
+				if ( '' === trim( (string) $admin_email ) ) {
 					$email_settings_url = esc_url(
 						add_query_arg(
 							array(
@@ -483,17 +502,17 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 						)
 					);
 					?>
-				<div class="notice notice-error">
-					<p><?php esc_html_e( 'By default, the plugin uses the Administrator\'s email address as configured in WordPress settings as the "from address" when sending emails with the 2FA code for users to log in. This email address is currently configured as: ', 'wp-2fa' ); ?><b><?php echo $admin_email; ?>.</b></p>
-					<p>
-						<a href="<?php echo \esc_url( $email_settings_url ); ?>"><?php esc_html_e( 'Configure email address now', 'wp-2fa' ); ?></a>
-						<a href="#" class="2fa-email-notice" style="margin-left:10px;">
-							<?php esc_html_e( 'Use the Administrator\'s email address.', 'wp-2fa' ); ?>
-						</a>
-					</p>
-					
-					<?php wp_nonce_field( 'wp2fa_dismiss_notice_mail_domain', 'wp2fa_dismiss_notice_mail_domain', false ); ?>
-				</div>
+					<div class="notice notice-error">
+						<p style="font-size: 2em;"><?php esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo self::get_default_email_address(); ?></b> <?php esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' ); ?></p>
+						<p>
+							<a style="font-size: 1.7em;" href="<?php echo \esc_url( $email_settings_url ); ?>"><?php esc_html_e( 'Change it', 'wp-2fa' ); ?></a>
+							<a style="margin-left:20px;font-size: 1.7em;" href="#" class="2fa-email-notice">
+								<?php esc_html_e( 'Keep using it', 'wp-2fa' ); ?>
+							</a>
+						</p>
+						
+						<?php wp_nonce_field( 'wp2fa_dismiss_notice_mail_domain', 'wp2fa_dismiss_notice_mail_domain', false ); ?>
+					</div>
 					<?php
 				} else {
 					Settings_Utils::update_option( 'dismiss_notice_mail_domain', true );

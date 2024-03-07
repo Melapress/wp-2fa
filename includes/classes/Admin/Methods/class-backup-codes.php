@@ -312,7 +312,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			$backup_codes = get_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, true );
 			if ( is_array( $backup_codes ) && ! empty( $backup_codes ) ) {
 				foreach ( $backup_codes as $code_hashed ) {
-					if ( wp_check_password( $code, $code_hashed, $user->ID ) ) {
+					if ( \wp_check_password( $code, $code_hashed, $user->ID ) ) {
 						self::delete_code( $user, $code_hashed );
 						self::clear_login_attempts( $user );
 
@@ -342,7 +342,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			$backup_codes = array_values( array_flip( $backup_codes ) );
 
 			// Update the backup code master list.
-			update_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, $backup_codes );
+			\update_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, $backup_codes );
 		}
 
 		/**
@@ -571,7 +571,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 
 				foreach ( $posted_codes as $key => $check_code ) {
 					$check_code = trim( \explode( ':', $check_code )[1] );
-					if ( ! wp_check_password( $check_code, $stored_codes[ $key ], $user->ID ) ) {
+					if ( ! \wp_check_password( $check_code, $stored_codes[ $key ], $user->ID ) ) {
 
 						\wp_die();
 					}

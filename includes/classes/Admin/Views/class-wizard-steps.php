@@ -307,16 +307,24 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 				self::congratulations_step_plugin_wizard();
 				return;
 			}
+
+			$redirect = ( '' !== self::determine_redirect_url() ) ? self::determine_redirect_url() : '';
 			?>
 
-		<div class="step-setting-wrapper active">
-		<div class="mb-20">
-			<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'no_further_action', true ) ); ?>
-		</div>
-		<div class="wp2fa-setup-actions">
-			<button class="modal__btn wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?></button>
-		</div>
-		</div>
+			<div class="step-setting-wrapper active">
+			<div class="mb-20">
+				<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'no_further_action', true ) ); ?>
+			</div>
+			<div class="wp2fa-setup-actions">
+				<?php if ( '' !== trim( $redirect ) ) { ?>
+				<a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
+						<?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
+				</a>
+				<?php } else { ?>
+				<button class="modal__btn wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?></button>
+				<?php } ?>
+			</div>
+			</div>
 			<?php
 		}
 
@@ -331,30 +339,30 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 			$redirect    = ( '' !== self::determine_redirect_url() ) ? self::determine_redirect_url() : get_edit_profile_url( User_Helper::get_user_object()->ID );
 			$slide_title = ( User_Helper::is_excluded( User_Helper::get_user_object()->ID ) ) ? esc_html__( 'Congratulations.', 'wp-2fa' ) : esc_html__( 'Congratulations, you\'re almost there...', 'wp-2fa' );
 			?>
-		<h3><?php echo \esc_html( $slide_title ); ?></h3>
-		<p><?php esc_html_e( 'Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu.', 'wp-2fa' ); ?></p>
+				<h3><?php echo \esc_html( $slide_title ); ?></h3>
+				<p><?php esc_html_e( 'Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu.', 'wp-2fa' ); ?></p>
 
-			<?php
-			if ( User_Helper::is_excluded( User_Helper::get_user_object()->ID ) ) {
-				?>
-		<div class="wp2fa-setup-actions">
-			<a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
-					<?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
-			</a>
-		</div>
-				<?php
-			} else {
-				?>
-		<p><?php esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
-		<div class="wp2fa-setup-actions">
-			<a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-secondary">
-				<?php esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
-			</a>
-			<a href="<?php echo esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
-				<?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
-			</a>
-		</div>
-			<?php } ?>
+					<?php
+					if ( User_Helper::is_excluded( User_Helper::get_user_object()->ID ) ) {
+						?>
+				<div class="wp2fa-setup-actions">
+					<a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
+							<?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
+					</a>
+				</div>
+						<?php
+					} else {
+						?>
+				<p><?php esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
+				<div class="wp2fa-setup-actions">
+					<a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-secondary">
+						<?php esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
+					</a>
+					<a href="<?php echo esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
+						<?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
+					</a>
+				</div>
+					<?php } ?>
 			<?php
 		}
 

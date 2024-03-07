@@ -17,6 +17,7 @@ use WP2FA\Utils\Debugging;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Settings_Page;
 
 /**
  * Email settings tab
@@ -112,7 +113,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 								<input type="radio" name="email_from_setting" id="use-defaults" value="use-defaults"
 								<?php checked( WP2FA::get_wp2fa_email_templates( 'email_from_setting' ), 'use-defaults' ); ?>
 								>
-							<span><?php esc_html_e( 'Use the email address from the WordPress general settings.', 'wp-2fa' ); ?></span>
+							<span><?php esc_html_e( 'Use the email address ', 'wp-2fa' ) ?> <?php echo Settings_Page::get_default_email_address(); ?></span>
 							</label>
 							<br/>
 							<label for="use-custom-email">

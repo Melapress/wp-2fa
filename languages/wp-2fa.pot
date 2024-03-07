@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v3.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 2.6.3\n"
+"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 2.6.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-2fa\n"
 "Last-Translator: WP White Security <info@wpwhitesecurity.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-02-14T05:48:12+00:00\n"
+"POT-Creation-Date: 2024-03-07T07:08:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: wp-2fa\n"
@@ -164,8 +164,9 @@ msgstr ""
 #: extensions/twilio/class-twilio-wizard-steps.php:106
 #: includes/classes/Admin/Views/class-wizard-steps.php:174
 #: includes/classes/Admin/Views/class-wizard-steps.php:180
-#: includes/classes/Admin/Views/class-wizard-steps.php:317
-#: includes/classes/Admin/Views/class-wizard-steps.php:342
+#: includes/classes/Admin/Views/class-wizard-steps.php:321
+#: includes/classes/Admin/Views/class-wizard-steps.php:324
+#: includes/classes/Admin/Views/class-wizard-steps.php:350
 msgid "Close wizard"
 msgstr ""
 
@@ -499,7 +500,7 @@ msgstr ""
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:152
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:244
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:278
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:249
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:250
 msgid "Nonce verification failed."
 msgstr ""
 
@@ -1663,7 +1664,7 @@ msgstr ""
 #: extensions/white-labeling/class-white-labeling-render.php:1005
 #: extensions/white-labeling/class-white-labeling-render.php:1036
 #: extensions/white-labeling/class-white-labeling-render.php:1068
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:446
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:447
 msgid "Available template tags:"
 msgstr ""
 
@@ -2078,7 +2079,7 @@ msgid "plugin website"
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:415
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:138
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:139
 msgid "contact us"
 msgstr ""
 
@@ -2136,16 +2137,20 @@ msgstr ""
 msgid "WP 2FA User Page"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:487
-msgid "By default, the plugin uses the Administrator's email address as configured in WordPress settings as the \"from address\" when sending emails with the 2FA code for users to log in. This email address is currently configured as: "
+#: includes/classes/Admin/class-settings-page.php:506
+msgid "By default, the plugin uses "
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:489
-msgid "Configure email address now"
+#: includes/classes/Admin/class-settings-page.php:506
+msgid "as the \"from address\" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:491
-msgid "Use the Administrator's email address."
+#: includes/classes/Admin/class-settings-page.php:508
+msgid "Change it"
+msgstr ""
+
+#: includes/classes/Admin/class-settings-page.php:510
+msgid "Keep using it"
 msgstr ""
 
 #: includes/classes/Admin/class-setup-wizard.php:120
@@ -2298,7 +2303,7 @@ msgstr ""
 
 #: includes/classes/Admin/class-user-notices.php:142
 #: includes/classes/Admin/class-user-notices.php:163
-#: includes/classes/Admin/Views/class-wizard-steps.php:351
+#: includes/classes/Admin/Views/class-wizard-steps.php:359
 #: includes/classes/Authenticator/class-login.php:290
 msgid "Configure 2FA now"
 msgstr ""
@@ -2664,147 +2669,147 @@ msgstr ""
 msgid "One-time code via 2FA app"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:43
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:44
 msgid "Save email settings and templates"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:100
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:101
 msgid "Which email address should the plugin use as a from address?"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:102
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:103
 msgid "Use these settings to customize the \"from\" name and email address for all correspondence sent from our plugin."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:107
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:108
 msgid "From email & name"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:115
-msgid "Use the email address from the WordPress general settings."
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:116
+msgid "Use the email address "
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:122
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:123
 msgid "Use another email address"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:126
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:127
 msgid "A 'From email' address with a domain different than that of your website domain name, or with a domain that the hosting does not relay might cause the notification emails to be blocked, marked as spam, or not delivered at all. If you are not 100% sure about this change, consult with your web host."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:129
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:130
 msgid "Email Address:"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:130
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:131
 msgid "Display Name:"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:138
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:139
 msgid "Tip: The 'From email' address should match your website domain. If the \"from address\" does not match your website domain, the emails may be blocked or marked as spam. If you are not sure about this please consult with your website administrator / developer or "
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:138
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:139
 msgid "for more information."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:142
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:143
 msgid "Email delivery test"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:144
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:145
 msgid "The plugin sends emails with one-time codes, blocked account notifications and more. Use the button below to confirm the plugin can successfully send emails."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:151
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:152
 msgid "Test email delivery"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:172
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:173
 msgid "User backup codes email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:173
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:174
 msgid "This email can be sent a user once backup codes are generated."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:180
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:181
 msgid "2FA setup code email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:181
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:182
 msgid "This is the email sent to a user when setting up 2FA via email."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:185
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:186
 msgid "Login code email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:186
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:187
 msgid "This is the email sent to a user when a login code is required."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:190
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:191
 msgid "User account locked email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:191
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:192
 msgid "This is the email sent to a user upon grace period expiry."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:195
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:196
 msgid "User account unlocked email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:196
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:197
 msgid "This is the email sent to a user when the user's account has been unlocked."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:200
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:201
 msgid "User reset password code email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:201
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:202
 msgid "This is the email sent to a user when a password reset is requested."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:262
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:263
 msgid "Please provide an email address"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:272
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:273
 msgid "Please provide a display name."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:283
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:284
 msgid "Please provide a valid email address. Your email address has not been updated."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:303
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:304
 msgid "Please only use alphanumeric text. Your display name has not been updated."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:413
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:414
 msgid "Email Templates"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:422
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:423
 msgid "Send this email"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:428
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:429
 msgid "Uncheck to disable this message."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:435
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:436
 msgid "Email subject"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:444
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:445
 msgid "Email body"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:485
+#: includes/classes/Admin/SettingsPages/class-settings-page-email.php:486
 msgid "Send test email"
 msgstr ""
 
@@ -3219,28 +3224,28 @@ msgstr ""
 msgid "I'm ready, close the wizard"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-wizard-steps.php:332
+#: includes/classes/Admin/Views/class-wizard-steps.php:340
 msgid "Congratulations."
 msgstr ""
 
-#: includes/classes/Admin/Views/class-wizard-steps.php:332
+#: includes/classes/Admin/Views/class-wizard-steps.php:340
 msgid "Congratulations, you're almost there..."
 msgstr ""
 
-#: includes/classes/Admin/Views/class-wizard-steps.php:335
+#: includes/classes/Admin/Views/class-wizard-steps.php:343
 msgid "Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu."
 msgstr ""
 
-#: includes/classes/Admin/Views/class-wizard-steps.php:348
+#: includes/classes/Admin/Views/class-wizard-steps.php:356
 msgid "Now you need to configure 2FA for your own user account. You can do this now (recommended) or later."
 msgstr ""
 
-#: includes/classes/Admin/Views/class-wizard-steps.php:354
-#: includes/classes/Admin/Views/class-wizard-steps.php:412
+#: includes/classes/Admin/Views/class-wizard-steps.php:362
+#: includes/classes/Admin/Views/class-wizard-steps.php:420
 msgid "Close wizard & configure 2FA later"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-wizard-steps.php:409
+#: includes/classes/Admin/Views/class-wizard-steps.php:417
 msgid "Configure backup 2FA method"
 msgstr ""
 

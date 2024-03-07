@@ -224,7 +224,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 			foreach ( $ticks as $offset ) {
 				$log_time    = $time + $offset;
 				$calculdated = (string) self::calc_totp( $key, $log_time );
-				if ( $calculdated === $authcode ) {
+				if ( hash_equals( $calculdated, $authcode ) ) {
 					return true;
 				}
 			}
@@ -359,7 +359,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 * @param string|array $chars Valid auth code characters.
 		 * @return string
 		 */
-		public static function get_code( $length = 8, $chars = '1234567890' ) {
+		public static function get_code( $length = 6, $chars = '1234567890' ) {
 			$code = '';
 			if ( is_array( $chars ) ) {
 				$chars = implode( '', $chars );
