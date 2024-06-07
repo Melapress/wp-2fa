@@ -32,6 +32,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 		const POLICY_SETTINGS_NAME = 'methods_order';
 
 		/**
+		 * Cached methods array
+		 *
+		 * @var array
+		 *
+		 * @since 2.7.0
+		 */
+		public static $methods = array();
+
+		/**
 		 * Inits the class and initializes all the methods
 		 *
 		 * @return void
@@ -39,8 +48,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function init() {
-			$methods = Classes_Helper::get_classes_by_namespace( self::METHODS_NAMESPACE );
-			foreach ( $methods as $method ) {
+
+			foreach ( self::get_methods() as $method ) {
 				if ( method_exists( $method, 'init' ) ) {
 					call_user_func_array( array( $method, 'init' ), array() );
 				}
@@ -167,6 +176,47 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 			}
 
 			return $output;
+		}
+
+		/**
+		 * Returns the method by its slug.
+		 *
+		 * @param string $provider_name - The slug to search for.
+		 *
+		 * @return bool|\WP2FA\Methods
+		 *
+		 * @since 2.7.0
+		 */
+		public static function get_method_by_provider_name( string $provider_name ) {
+			foreach ( self::get_methods() as $method ) {
+				if ( $provider_name === $method::METHOD_NAME ) {
+					return $method;
+				}
+			}
+
+			return \false;
+		}
+
+		/**
+		 * Returns all of the registered methods.
+		 *
+		 * @return array
+		 *
+		 * @since 2.7.0
+		 */
+		private static function get_methods(): array {
+			if ( empty( self::$methods ) ) {
+				/**
+				 * Gives the ability to add classes to the Class_Helper array.
+				 *
+				 * @since 2.7.0
+				 */
+				\do_action( WP_2FA_PREFIX . 'add_to_class_map' );
+
+				self::$methods = Classes_Helper::get_classes_by_namespace( self::METHODS_NAMESPACE );
+			}
+
+			return self::$methods;
 		}
 	}
 }

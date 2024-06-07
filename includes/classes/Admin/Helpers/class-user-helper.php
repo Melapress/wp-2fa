@@ -1013,12 +1013,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 					if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
 						if ( WP_Helper::is_multisite() ) {
 							wp2fa_freemius()->switch_to_blog( $user_blog_id );
-							// \switch_to_blog( $user_blog_id->blog_id );
 						}
 						User_Licensing::method_has_been_set();
 						if ( WP_Helper::is_multisite() ) {
 							wp2fa_freemius()->switch_to_blog( $current_blog );
-							// \switch_to_blog( $current_blog );
 						}
 					}
 				}

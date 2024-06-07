@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     2.6.4
+ * Version:     2.7.0
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -54,7 +54,7 @@ if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '2.6.4' );
+	define( 'WP_2FA_VERSION', '2.7.0' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -164,7 +164,7 @@ if ( ! function_exists( 'check_ssl' ) ) {
 	function check_ssl() {
 		if ( ! \WP2FA\Authenticator\Open_SSL::is_ssl_available() ) {
 			$html = '<div class="updated notice is-dismissible">
-			<p>' . esc_html__( 'This plugin requires OpenSSL. Contact your web host or website administrator so they can enable OpenSSL. Re-activate the plugin once the library has been enabled.', 'wp-2fa' )
+			<p>' . \esc_html__( 'This plugin requires OpenSSL. Contact your web host or website administrator so they can enable OpenSSL. Re-activate the plugin once the library has been enabled.', 'wp-2fa' )
 			. '</p>
 		</div>';
 
@@ -183,5 +183,25 @@ if ( \PHP_VERSION_ID < 80000 && ! \interface_exists( 'Stringable' ) ) {
 		 * @return string
 		 */
 		public function __toString();
+	}
+}
+
+if ( ! function_exists( 'str_starts_with' ) ) {
+	/**
+	 * PHP lower than 8 is missing that function but it required in the newer versions of our plugin.
+	 *
+	 * @param string $haystack - The string to search in.
+	 * @param string $needle - The needle to search for.
+	 *
+	 * @return bool
+	 *
+	 * @since 2.6.4
+	 */
+	function str_starts_with( $haystack, $needle ): bool {
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		return 0 === strpos( $haystack, $needle );
 	}
 }

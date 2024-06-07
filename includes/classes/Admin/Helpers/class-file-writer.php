@@ -51,7 +51,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return false;
 			}
 
-			set_error_handler(
+			\set_error_handler( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
 				function ( $err_severity, $err_msg, $err_file, $err_line, array $err_context ) {
 					throw new \Error( $err_msg, 0, $err_severity, $err_file, $err_line ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				},

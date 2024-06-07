@@ -19,6 +19,7 @@ return array(
     'WP2FA\\Admin\\Helpers\\WP_Helper' => $baseDir . '/includes/classes/Admin/Helpers/class-wp-helper.php',
     'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
     'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
+    'WP2FA\\Admin\\Plugin_Updated_Notice' => $baseDir . '/includes/classes/Admin/class-plugin-updated-notice.php',
     'WP2FA\\Admin\\Premium_Features' => $baseDir . '/includes/classes/Admin/class-premium-features.php',
     'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => $baseDir . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
     'WP2FA\\Admin\\SettingsPages\\Settings_Page_General' => $baseDir . '/includes/classes/Admin/SettingsPages/class-settings-page-general.php',
@@ -34,6 +35,7 @@ return array(
     'WP2FA\\Admin\\Views\\First_Time_Wizard_Steps' => $baseDir . '/includes/classes/Admin/Views/class-first-time-wizard-steps.php',
     'WP2FA\\Admin\\Views\\Grace_Period_Notifications' => $baseDir . '/includes/classes/Admin/Views/class-grace-period-notifications.php',
     'WP2FA\\Admin\\Views\\Password_Reset_2FA' => $baseDir . '/includes/classes/Admin/Views/class-passord-reset-2fa.php',
+    'WP2FA\\Admin\\Views\\Re_Login_2FA' => $baseDir . '/includes/classes/Admin/Views/class-re-login-2fa.php',
     'WP2FA\\Admin\\Views\\Wizard_Steps' => $baseDir . '/includes/classes/Admin/Views/class-wizard-steps.php',
     'WP2FA\\App\\Grace_Period' => $baseDir . '/includes/classes/App/grace-period/class-grace-period.php',
     'WP2FA\\Authenticator\\Authentication' => $baseDir . '/includes/classes/Authenticator/class-authentication.php',
@@ -41,6 +43,11 @@ return array(
     'WP2FA\\Authenticator\\Open_SSL' => $baseDir . '/includes/classes/Authenticator/class-open-ssl.php',
     'WP2FA\\Authenticator\\Reset_Password' => $baseDir . '/includes/classes/Authenticator/class-reset-passord.php',
     'WP2FA\\Email_Template' => $baseDir . '/includes/classes/class-email-template.php',
+    
+    
+    
+    
+    
     
     
     

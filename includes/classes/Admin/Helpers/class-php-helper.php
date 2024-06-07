@@ -29,14 +29,14 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\PHP_Helper' ) ) {
 		/**
 		 * Checks if given function is callable (exists) or not
 		 *
-		 * @param string $function - The name of the function to check.
+		 * @param string $function_name - The name of the function to check.
 		 *
 		 * @return boolean
 		 *
 		 * @since 2.4.0
 		 */
-		public static function is_callable( string $function ): bool {
-			if ( ! is_callable( $function ) ) {
+		public static function is_callable( string $function_name ): bool {
+			if ( ! is_callable( $function_name ) ) {
 				return false;
 			}
 

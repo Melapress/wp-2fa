@@ -75,8 +75,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			$enabled_methods = User_Helper::get_enabled_method_for_user( $user );
 
 			if ( empty( $enabled_methods ) ) {
-				$new_page_modal_content  = '<h3>' . esc_html__( 'Exclude yourself?', 'wp-2fa' ) . '</h3>';
-				$new_page_modal_content .= '</p>' . esc_html__( 'You are about to enforce 2FA instantly on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' ) . '</p>';
+				$new_page_modal_content  = '<h3>' . \esc_html__( 'Exclude yourself?', 'wp-2fa' ) . '</h3>';
+				$new_page_modal_content .= '</p>' . \esc_html__( 'You are about to enforce 2FA instantly on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' ) . '</p>';
 
 				echo Generate_Modal::generate_modal( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					'exclude-self-from-instant-2fa',
@@ -84,7 +84,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					$new_page_modal_content, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					array(
 						'<a href="#" class="wp-2fa-button-secondary button-secondary" data-close-2fa-modal>' . __( 'Continue anyway', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-						'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal data-user-login-name="' . esc_attr( $user->user_login ) . '">' . __( 'Exclude myself from 2FA policies', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'<a href="#" class="wp-2fa-button-primary button-primary" data-close-2fa-modal data-user-login-name="' . \esc_attr( $user->user_login ) . '">' . __( 'Exclude myself from 2FA policies', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					),
 					false,
 					'560px'
@@ -93,11 +93,11 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			?>
 
 		<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
-			<h2><?php esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
+			<h2><?php \esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
 			<hr>
 			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) { ?>
 				<?php
-				echo esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+				echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
 				?>
 			<?php } else { ?>
 				<?php
@@ -120,13 +120,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						<?php
 						printf(
 							'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
-							esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
-							esc_html__( 'support@melapress.com', 'wp-2fa' )
+							\esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
+							\esc_html__( 'support@melapress.com', 'wp-2fa' )
 						);
 						?>
 					<br/>
 						<?php $total_users = count_users(); ?>
-					<form id="wp-2fa-admin-settings" action='<?php echo esc_attr( $action ); ?>' method='post' autocomplete="off" data-2fa-total-users="<?php echo \esc_attr( $total_users['total_users'] ); ?>">
+					<form id="wp-2fa-admin-settings" action='<?php echo \esc_attr( $action ); ?>' method='post' autocomplete="off" data-2fa-total-users="<?php echo \esc_attr( $total_users['total_users'] ); ?>">
 						<?php
 							settings_fields( WP_2FA_POLICY_SETTINGS_NAME );
 						self::select_method_setting();
@@ -185,13 +185,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				if ( $new_page_id > 0 ) {
 					$new_page_permalink = get_permalink( $new_page_id );
 
-					$new_page_modal_content  = '<h3>' . esc_html__( 'The plugin created the 2FA settings page with the URL:', 'wp-2fa' ) . '</h3>';
-					$new_page_modal_content .= '<h4><a target="_blank" href="' . esc_url( $new_page_permalink ) . '">' . esc_url( $new_page_permalink ) . '</a></h4>';
-					$new_page_modal_content .= '<p>' . esc_html__( 'You can edit this page using the page editor, like you do with all other pages.', 'wp-2fa' );
+					$new_page_modal_content  = '<h3>' . \esc_html__( 'The plugin created the 2FA settings page with the URL:', 'wp-2fa' ) . '</h3>';
+					$new_page_modal_content .= '<h4><a target="_blank" href="' . \esc_url( $new_page_permalink ) . '">' . \esc_url( $new_page_permalink ) . '</a></h4>';
+					$new_page_modal_content .= '<p>' . \esc_html__( 'You can edit this page using the page editor, like you do with all other pages.', 'wp-2fa' );
 					$new_page_modal_content .= '</p>';
 					$new_page_modal_content .= sprintf(
 					/* translators: %s: tag name. */
-						esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ),
+						\esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ),
 						'<strong>{2fa_settings_page_url}</strong>'
 					);
 					$new_page_modal_content .= '</p>';
@@ -244,13 +244,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				 *
 				 * @since 2.0.0
 				 */
-				$no_methods_set = apply_filters( WP_2FA_PREFIX . 'save_additional_enabled_methods', true, $input );
+				$no_methods_set = \apply_filters( WP_2FA_PREFIX . 'save_additional_enabled_methods', true, $input );
 
 				if ( $no_methods_set ) {
 					add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
-						esc_attr( 'enable_email_settings_error' ),
-						esc_html__( 'No global 2FA methods enabled.', 'wp-2fa' ),
+						\esc_attr( 'enable_email_settings_error' ),
+						\esc_html__( 'No global 2FA methods enabled.', 'wp-2fa' ),
 						'error'
 					);
 					$no_method_enabled = true;
@@ -277,7 +277,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			$simple_settings_we_can_loop = apply_filters( WP_2FA_PREFIX . 'loop_settings', $simple_settings_we_can_loop );
+			$simple_settings_we_can_loop = \apply_filters( WP_2FA_PREFIX . 'loop_settings', $simple_settings_we_can_loop );
 
 			$settings_to_turn_into_bools = array(
 				'enable_destroy_session',
@@ -311,7 +311,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				 *
 				 * @since 2.0.0
 				 */
-				$output = apply_filters( WP_2FA_PREFIX . 'no_method_enabled', $output );
+				$output = \apply_filters( WP_2FA_PREFIX . 'no_method_enabled', $output );
 			}
 
 			$output['included_sites'] = array();
@@ -331,8 +331,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 					add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
-						esc_attr( 'included_sites_settings_error' ),
-						esc_html__( 'You must specify at least one sub-site', 'wp-2fa' ),
+						\esc_attr( 'included_sites_settings_error' ),
+						\esc_html__( 'You must specify at least one sub-site', 'wp-2fa' ),
 						'error'
 					);
 
@@ -351,8 +351,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				if ( 0 === (int) $input['grace-period'] ) {
 					add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
-						esc_attr( 'grace_settings_error' ),
-						esc_html__( 'Grace period must be at least 1 day/hour', 'wp-2fa' ),
+						\esc_attr( 'grace_settings_error' ),
+						\esc_html__( 'Grace period must be at least 1 day/hour', 'wp-2fa' ),
 						'error'
 					);
 					$output['grace-period'] = 1;
@@ -413,8 +413,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			if ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] && empty( $input['custom-user-page-url'] ) ) {
 				add_settings_error(
 					WP_2FA_POLICY_SETTINGS_NAME,
-					esc_attr( 'no_page_slug_provided' ),
-					esc_html__( 'You must provide a new page slug.', 'wp-2fa' ),
+					\esc_attr( 'no_page_slug_provided' ),
+					\esc_html__( 'You must provide a new page slug.', 'wp-2fa' ),
 					'error'
 				);
 			}
@@ -443,8 +443,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				if ( 'certain-roles-only' === $input['enforcement-policy'] && empty( $input['enforced_roles'] ) && empty( $input['enforced_users'] ) ) {
 					add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
-						esc_attr( 'enforced_roles_settings_error' ),
-						esc_html__( 'You must specify at least one role or user', 'wp-2fa' ),
+						\esc_attr( 'enforced_roles_settings_error' ),
+						\esc_html__( 'You must specify at least one role or user', 'wp-2fa' ),
 						'error'
 					);
 
@@ -495,7 +495,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			$output = apply_filters( WP_2FA_PREFIX . 'filter_output_content', $output, $input );
+			$output = \apply_filters( WP_2FA_PREFIX . 'filter_output_content', $output, $input );
 
 			// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
 			global $wp_settings_errors;
@@ -595,8 +595,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				return $page_exists->ID;
 			}
 
-			$generated_by_message  = '<p>' . esc_html__( 'Page generated by', 'wp-2fa' );
-			$generated_by_message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . esc_html__( 'WP 2FA Plugin', 'wp-2fa' ) . '</a>';
+			$generated_by_message  = '<p>' . \esc_html__( 'Page generated by', 'wp-2fa' );
+			$generated_by_message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA Plugin', 'wp-2fa' ) . '</a>';
 			$generated_by_message .= '</p>';
 
 			$user      = wp_get_current_user();
@@ -680,34 +680,34 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			ob_start();
 			$create_page = WP2FA::get_wp2fa_setting( 'create-custom-user-page' );
 			?>
-		<h3><?php esc_html_e( 'Can users access the WordPress dashboard or you have custom profile pages? ', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Can users access the WordPress dashboard or you have custom profile pages? ', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'If your users do not have access to the WordPress dashboard (because you use custom user profile pages) enable this option. Once enabled, the plugin creates a page which ONLY authenticated users can access to configure their user 2FA settings. A link to this page is sent in the 2FA welcome email.', 'wp-2fa' ); ?></a>
+			<?php \esc_html_e( 'If your users do not have access to the WordPress dashboard (because you use custom user profile pages) enable this option. Once enabled, the plugin creates a page which ONLY authenticated users can access to configure their user 2FA settings. A link to this page is sent in the 2FA welcome email.', 'wp-2fa' ); ?></a>
 		</p>
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th><label for="use_custom_page"><?php esc_html_e( 'Frontend 2FA settings page', 'wp-2fa' ); ?></label></th>
+					<th><label for="use_custom_page"><?php \esc_html_e( 'Frontend 2FA settings page', 'wp-2fa' ); ?></label></th>
 					<td>
 						<fieldset>
 							<label class="radio-inline">
 								<input id="use_custom_page" type="radio" name="wp_2fa_policy[create-custom-user-page]" value="yes"
 								<?php checked( $create_page, 'yes' ); ?>
 								>
-								<?php esc_html_e( 'Yes', 'wp-2fa' ); ?>
+								<?php \esc_html_e( 'Yes', 'wp-2fa' ); ?>
 							</label>
 							<label class="radio-inline">
 								<input id="dont_use_custom_page" type="radio" name="wp_2fa_policy[create-custom-user-page]" value="no"
 								<?php checked( $create_page, 'no' ); ?>
 								<?php checked( $create_page, '' ); ?>
 								>
-								<?php esc_html_e( 'No', 'wp-2fa' ); ?>
+								<?php \esc_html_e( 'No', 'wp-2fa' ); ?>
 							</label>
 						</fieldset>
 					</td>
 				</tr>
 				<tr class="custom-user-page-setting<?php echo ( 'yes' !== $create_page ) ? ' disabled' : ''; ?>">
-					<th><label for="custom-user-page-url"><?php esc_html_e( 'Frontend 2FA settings page URL', 'wp-2fa' ); ?></label></th>
+					<th><label for="custom-user-page-url"><?php \esc_html_e( 'Frontend 2FA settings page URL', 'wp-2fa' ); ?></label></th>
 					<td>
 						<fieldset>
 							<?php
@@ -730,7 +730,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 							}
 
 							?>
-							<?php echo esc_html( trailingslashit( get_site_url() ) ); ?>
+							<?php echo \esc_html( trailingslashit( get_site_url() ) ); ?>
 							<input type="text" id="custom-user-page-url" name="wp_2fa_policy[custom-user-page-url]" value="<?php echo \esc_attr( sanitize_text_field( $custom_slug ) ); ?>"
 							<?php echo ( $has_error ) ? ' class="error"' : ''; ?>>
 						</fieldset>
@@ -740,7 +740,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 								$view_post_link = get_permalink( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) );
 								?>
 							<br>
-							<a href="<?php echo esc_url( $edit_post_link ); ?>" target="_blank" class="button button-secondary" style="margin-right: 5px;"><?php esc_html_e( 'Edit Page', 'wp-2fa' ); ?></a> <a href="<?php echo esc_url( $view_post_link ); ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'View Page', 'wp-2fa' ); ?></a>
+							<a href="<?php echo \esc_url( $edit_post_link ); ?>" target="_blank" class="button button-secondary" style="margin-right: 5px;"><?php \esc_html_e( 'Edit Page', 'wp-2fa' ); ?></a> <a href="<?php echo \esc_url( $view_post_link ); ?>" target="_blank" class="button button-primary"><?php \esc_html_e( 'View Page', 'wp-2fa' ); ?></a>
 								<?php
 							}
 							?>
@@ -748,7 +748,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				</tr>
 				<?php if ( WP_Helper::is_multisite() ) { ?>
 					<tr class="custom-user-page-setting<?php echo ( 'yes' !== $create_page ) ? ' disabled' : ''; ?>">
-						<th><label for="separate-multisite-page-url"><?php esc_html_e( 'Create separate pages on multisite network', 'wp-2fa' ); ?></label></th>
+						<th><label for="separate-multisite-page-url"><?php \esc_html_e( 'Create separate pages on multisite network', 'wp-2fa' ); ?></label></th>
 						<td>
 							<?php
 								$separate_multisite_page = WP2FA::get_wp2fa_setting( 'separate-multisite-page-url' );
@@ -764,16 +764,16 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					</tr>
 					<?php } ?>
 				<tr class="custom-user-page-setting<?php echo ( 'yes' !== $create_page ) ? ' disabled' : ''; ?>">
-					<th colspan="2"><p class="description"><?php esc_html_e( 'Specify the page where you want to redirect your users to after they complete the 2FA setup. This will override the global redirect setting.', 'wp-2fa' ); ?></p></th>
+					<th colspan="2"><p class="description"><?php \esc_html_e( 'Specify the page where you want to redirect your users to after they complete the 2FA setup. This will override the global redirect setting.', 'wp-2fa' ); ?></p></th>
 				</tr>
 				<tr class="custom-user-page-setting<?php echo ( 'yes' !== $create_page ) ? ' disabled' : ''; ?>">
-					<th><label for="redirect-user-custom-page"><?php esc_html_e( 'Redirect users after 2FA setup', 'wp-2fa' ); ?></label></th>
+					<th><label for="redirect-user-custom-page"><?php \esc_html_e( 'Redirect users after 2FA setup', 'wp-2fa' ); ?></label></th>
 					<td>
 						<fieldset>
 							<?php
 							$custom_slug = WP2FA::get_wp2fa_setting( 'redirect-user-custom-page' );
 							?>
-							<?php echo esc_html( trailingslashit( get_site_url() ) ); ?>
+							<?php echo \esc_html( trailingslashit( get_site_url() ) ); ?>
 							<input type="text" id="redirect-user-custom-page" name="wp_2fa_policy[redirect-user-custom-page]" value="<?php echo \esc_attr( sanitize_text_field( $custom_slug ) ); ?>">
 						</fieldset>
 					</td>
@@ -790,7 +790,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			$output = apply_filters( WP_2FA_PREFIX . 'user_profile_settings', $output );
+			$output = \apply_filters( WP_2FA_PREFIX . 'user_profile_settings', $output );
 
 			echo $output; // phpcs:ignore
 		}
@@ -805,14 +805,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		private static function user_redirect_after_wizard() {
 			ob_start();
 			?>
-		<h3><?php esc_html_e( 'Do you want to redirect the user to a specific page after completing the 2FA setup wizard', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Do you want to redirect the user to a specific page after completing the 2FA setup wizard', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'Specify a URL of a page where you want to redirect the users once they complete the 2FA setup wizard. Leave empty for default behaviour, in which users are redirected back to the page from where they launched the wizard.', 'wp-2fa' ); ?></a>
+			<?php \esc_html_e( 'Specify a URL of a page where you want to redirect the users once they complete the 2FA setup wizard. Leave empty for default behaviour, in which users are redirected back to the page from where they launched the wizard.', 'wp-2fa' ); ?></a>
 		</p>
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th><label for="redirect-user-custom-page-global"><?php esc_html_e( 'Redirect users after 2FA setup to', 'wp-2fa' ); ?></label></th>
+					<th><label for="redirect-user-custom-page-global"><?php \esc_html_e( 'Redirect users after 2FA setup to', 'wp-2fa' ); ?></label></th>
 					<td>
 						<fieldset>
 							<?php echo \esc_html( trailingslashit( get_site_url() ) ); ?>
@@ -832,7 +832,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			$output = apply_filters( WP_2FA_PREFIX . 'redirect_after', $output );
+			$output = \apply_filters( WP_2FA_PREFIX . 'redirect_after', $output );
 
 			echo $output; // phpcs:ignore
 		}
@@ -888,15 +888,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			?>
 		<br>
-		<h3><?php esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/configure-grace-period-2fa/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><?php esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+			<?php \esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/configure-grace-period-2fa/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 		</p>
 
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th><label for="grace-policy"><?php esc_html_e( 'Grace period', 'wp-2fa' ); ?></label></th>
+					<th><label for="grace-policy"><?php \esc_html_e( 'Grace period', 'wp-2fa' ); ?></label></th>
 					<td>
 					<?php First_Time_Wizard_Steps::grace_period( true ); ?>
 					</td>
@@ -913,7 +913,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			$output = apply_filters( WP_2FA_PREFIX . 'grace_period', $output );
+			$output = \apply_filters( WP_2FA_PREFIX . 'grace_period', $output );
 
 			echo $output; // phpcs:ignore
 		}
@@ -929,20 +929,20 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			ob_start();
 			?>
 		<br>
-		<h3><?php esc_html_e( 'Should users be able to disable 2FA on their user profile', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Should users be able to disable 2FA on their user profile', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'Users can configure and also disable 2FA on their profile by clicking the "Remove 2FA" button. Enable this setting to disable the Remove 2FA button so users cannot disable 2FA from their user profile.', 'wp-2fa' ); ?>
+			<?php \esc_html_e( 'Users can configure and also disable 2FA on their profile by clicking the "Remove 2FA" button. Enable this setting to disable the Remove 2FA button so users cannot disable 2FA from their user profile.', 'wp-2fa' ); ?>
 		</p>
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th><label for="hide-remove-2fa"><?php esc_html_e( 'Hide the Remove 2FA button', 'wp-2fa' ); ?></label></th>
+					<th><label for="hide-remove-2fa"><?php \esc_html_e( 'Hide the Remove 2FA button', 'wp-2fa' ); ?></label></th>
 					<td>
 						<fieldset>
 							<input type="checkbox" id="hide-remove-2fa" name="wp_2fa_policy[hide_remove_button]" value="hide_remove_button"
 							<?php checked( 1, WP2FA::get_wp2fa_setting( 'hide_remove_button' ), true ); ?>
 							>
-							<?php esc_html_e( 'Hide the Remove 2FA button on user profile pages', 'wp-2fa' ); ?>
+							<?php \esc_html_e( 'Hide the Remove 2FA button on user profile pages', 'wp-2fa' ); ?>
 						</fieldset>
 					</td>
 				</tr>
@@ -959,7 +959,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			$output = apply_filters( WP_2FA_PREFIX . 'disable_2fa', $output );
+			$output = \apply_filters( WP_2FA_PREFIX . 'disable_2fa', $output );
 
 			echo $output; // phpcs:ignore
 		}

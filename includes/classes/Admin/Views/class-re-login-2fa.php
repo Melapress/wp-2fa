@@ -1,6 +1,6 @@
 <?php
 /**
- * Roles and main settings password reset class.
+ * Roles and main settings user login again after 2FA setup class.
  *
  * @package    wp2fa
  * @subpackage views
@@ -18,30 +18,44 @@ namespace WP2FA\Admin\Views;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
 
-if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
+if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 	/**
-	 * Password_Reset_2FA - Class for rendering the plugin settings related to 2fa when  user resets the password.
+	 * Re_Login_2FA - Class for rendering the plugin settings related to 2fa when user sets the 2FA method.
 	 *
-	 * @since 2.5.0
+	 * @since 2.7.0
 	 */
-	class Password_Reset_2FA {
-		public const PASSWORD_RESET_SETTINGS_NAME = 'password-reset-2fa-show';
+	class Re_Login_2FA {
+		public const RE_LOGIN_SETTINGS_NAME = 're-login-2fa-show';
 
-		public const ENABLED_SETTING_VALUE = 'password-reset-2fa';
+		public const ENABLED_SETTING_VALUE = 're-login-2fa';
 
 		/**
 		 * Inits all the class related hooks.
 		 *
 		 * @return void
 		 *
-		 * @since 2.5.0
+		 * @since 2.7.0
 		 */
 		public static function init() {
 			if ( is_admin() ) {
-				\add_filter( WP_2FA_PREFIX . 'before_grace_period', array( __CLASS__, 'password_reset_setting' ), 10, 5 );
+				\add_filter( WP_2FA_PREFIX . 'before_grace_period', array( __CLASS__, 're_login_setting' ), 11, 5 );
 				\add_filter( WP_2FA_PREFIX . 'loop_settings', array( __CLASS__, 'add_setting_value' ) );
+				\add_action( 'wp_ajax_custom_ajax_logout', array( __CLASS__, 'redirect_after_logout' ) );
 			}
 			\add_filter( WP_2FA_PREFIX . 'default_settings', array( __CLASS__, 'add_default_settings' ) );
+		}
+
+		/**
+		 * Logs out the current user and sends success message to the ajax request.
+		 *
+		 * @return void
+		 *
+		 * @since 2.7.0
+		 */
+		public static function redirect_after_logout() {
+			\wp_logout();
+			ob_clean(); // probably overkill for this, but good habit.
+			\wp_send_json_success();
 		}
 
 		/**
@@ -54,25 +68,25 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 		 *
 		 * @return string
 		 *
-		 * @since 2.5.0
+		 * @since 2.7.0
 		 */
 		public static function reset_settings( string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
 
 			if ( class_exists( 'WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
-				$password_reset_action = Role_Settings_Controller::get_setting( $role, self::PASSWORD_RESET_SETTINGS_NAME, true );
+				$password_reset_action = Role_Settings_Controller::get_setting( $role, self::RE_LOGIN_SETTINGS_NAME, true );
 			} else {
-				$password_reset_action = Settings::get_role_or_default_setting( self::PASSWORD_RESET_SETTINGS_NAME, null, null, true );
+				$password_reset_action = Settings::get_role_or_default_setting( self::RE_LOGIN_SETTINGS_NAME, null, null, true );
 			}
 			?>
 			<div class="sub-setting-indent">
 				<fieldset>
 					<label for="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 10px; display: inline-block;">
-						<input type="checkbox" name="<?php echo \esc_attr( $name_prefix ); ?>[<?php echo \esc_attr( self::PASSWORD_RESET_SETTINGS_NAME ); ?>]" 
+						<input type="checkbox" name="<?php echo \esc_attr( $name_prefix ); ?>[<?php echo \esc_attr( self::RE_LOGIN_SETTINGS_NAME ); ?>]" 
 						id="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>" 
 						<?php echo $data_role; // phpcs:ignore?> 
 						value="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?>" <?php checked( $password_reset_action, self::ENABLED_SETTING_VALUE ); ?> class="js-nested">
-						<span><?php echo \esc_html__( 'Require 2FA on password reset', 'wp-2fa' ); ?></span>
+						<span><?php echo \esc_html__( 'Logout the user after set 2FA', 'wp-2fa' ); ?></span>
 					</label>
 				</fieldset>
 			</div>
@@ -90,10 +104,10 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 		 *
 		 * @return array
 		 *
-		 * @since 2.5.0
+		 * @since 2.7.0
 		 */
 		public static function add_setting_value( array $loop_settings ) {
-			$loop_settings[] = self::PASSWORD_RESET_SETTINGS_NAME;
+			$loop_settings[] = self::RE_LOGIN_SETTINGS_NAME;
 
 			return $loop_settings;
 		}
@@ -105,10 +119,10 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 		 *
 		 * @return array
 		 *
-		 * @since 2.5.0
+		 * @since 2.7.0
 		 */
 		public static function add_default_settings( array $default_settings ) {
-			$default_settings[ self::PASSWORD_RESET_SETTINGS_NAME ] = self::PASSWORD_RESET_SETTINGS_NAME;
+			$default_settings[ self::RE_LOGIN_SETTINGS_NAME ] = self::RE_LOGIN_SETTINGS_NAME;
 
 			return $default_settings;
 		}
@@ -124,20 +138,20 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 		 *
 		 * @return string
 		 *
-		 * @since 2.5.0
+		 * @since 2.7.0
 		 */
-		public static function password_reset_setting( string $content, string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
+		public static function re_login_setting( string $content, string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
 			?>
-		<h3><?php \esc_html_e( 'Do you want to require 2FA when users reset their password', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Do you want to logout user after setup the 2FA', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php \esc_html_e( 'When you enable this setting users will be required to enter a one-time code sent to them via email when resetting the password.', 'wp-2fa' ); ?>
+			<?php \esc_html_e( 'When you enable this setting users will be asked to login again.', 'wp-2fa' ); ?>
 		</p>
 
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th><label for="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>"><?php \esc_html_e( 'Password reset', 'wp-2fa' ); ?></label></th>
+					<th><label for="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>"><?php \esc_html_e( 'Re-login', 'wp-2fa' ); ?></label></th>
 					<td>
 					<fieldset class="contains-hidden-inputs">
 					<?php echo self::reset_settings( $role, $name_prefix, $data_role, $role_id ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

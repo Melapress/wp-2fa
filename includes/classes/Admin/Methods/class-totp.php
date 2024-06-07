@@ -51,6 +51,10 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 
 		/**
 		 * Secret TOTP key meta name.
+		 *
+		 * @var string
+		 *
+		 * @since 2.6.0
 		 */
 		public const TOTP_META_KEY = WP_2FA_PREFIX . 'totp_key';
 
@@ -328,6 +332,11 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			$default_settings['method_verification_totp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code from your chosen authentication app to finalize the setup.', 'wp-2fa' ) . '</p>';
 			$default_settings['totp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} the 2FA App', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working.', 'wp-2fa' ) . '</p>';
 			$default_settings['totp-option-label']            = __( 'One-time code via 2FA app', 'wp-2fa' );
+			$default_settings['totp-option-label-hint']       = sprintf(
+				/* translators: link to the knowledge base website */
+				\esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
+			'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
+			);
 
 			return $default_settings;
 		}

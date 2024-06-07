@@ -1,6 +1,6 @@
 <?php
 /**
- * Responsible for the plugin login attempts
+ * Responsible for the plugin wizard ordering
  *
  * @package    wp2fa
  * @subpackage traits

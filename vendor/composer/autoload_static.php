@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit18408
+class ComposerStaticInit3274
 {
     public static $files = array (
         'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
@@ -21,6 +21,7 @@ class ComposerStaticInit18408
             'WP2FA_Vendor\\Firebase\\JWT\\' => 26,
             'WP2FA_Vendor\\Endroid\\QrCode\\' => 28,
             'WP2FA_Vendor\\DASPRiD\\Enum\\' => 26,
+            'WP2FA_Vendor\\Clickatell\\' => 24,
             'WP2FA_Vendor\\BaconQrCode\\' => 25,
             
             'WP2FA\\' => 6,
@@ -60,6 +61,11 @@ class ComposerStaticInit18408
         array (
             0 => __DIR__ . '/..' . '/dasprid/enum/src',
         ),
+        'WP2FA_Vendor\\Clickatell\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/arcturial/clickatell/src',
+            1 => __DIR__ . '/..' . '/arcturial/clickatell/test',
+        ),
         'WP2FA_Vendor\\BaconQrCode\\' => 
         array (
             0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
@@ -88,6 +94,7 @@ class ComposerStaticInit18408
         'WP2FA\\Admin\\Helpers\\WP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-wp-helper.php',
         'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
         'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
+        'WP2FA\\Admin\\Plugin_Updated_Notice' => __DIR__ . '/../..' . '/includes/classes/Admin/class-plugin-updated-notice.php',
         'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_General' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-general.php',
@@ -103,6 +110,7 @@ class ComposerStaticInit18408
         'WP2FA\\Admin\\Views\\First_Time_Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-first-time-wizard-steps.php',
         'WP2FA\\Admin\\Views\\Grace_Period_Notifications' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-grace-period-notifications.php',
         'WP2FA\\Admin\\Views\\Password_Reset_2FA' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-passord-reset-2fa.php',
+        'WP2FA\\Admin\\Views\\Re_Login_2FA' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-re-login-2fa.php',
         'WP2FA\\Admin\\Views\\Wizard_Steps' => __DIR__ . '/../..' . '/includes/classes/Admin/Views/class-wizard-steps.php',
         'WP2FA\\App\\Grace_Period' => __DIR__ . '/../..' . '/includes/classes/App/grace-period/class-grace-period.php',
         'WP2FA\\Authenticator\\Authentication' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-authentication.php',
@@ -110,6 +118,11 @@ class ComposerStaticInit18408
         'WP2FA\\Authenticator\\Open_SSL' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-open-ssl.php',
         'WP2FA\\Authenticator\\Reset_Password' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-reset-passord.php',
         'WP2FA\\Email_Template' => __DIR__ . '/../..' . '/includes/classes/class-email-template.php',
+        
+        
+        
+        
+        
         
         
         
@@ -168,9 +181,9 @@ class ComposerStaticInit18408
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit18408::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit18408::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit18408::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3274::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3274::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit3274::$classMap;
 
         }, null, ClassLoader::class);
     }
