@@ -203,7 +203,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				return true;
 			}
 
-			return ( in_array( $abs_path . 'wp-login.php', get_included_files() ) || in_array( $abs_path . 'wp-register.php', get_included_files() ) ) || ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) || '/wp-login.php' == $_SERVER['PHP_SELF'];
+			return ( in_array( $abs_path . 'wp-login.php', get_included_files() ) || in_array( $abs_path . 'wp-register.php', get_included_files() ) ) || ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) || '/wp-login.php' == $_SERVER['PHP_SELF']; // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		}
 
 		/**

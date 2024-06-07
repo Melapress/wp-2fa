@@ -8,8 +8,11 @@
 namespace WP2FA\Core;
 
 use WP2FA\WP2FA;
-use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Views\Re_Login_2FA;
+use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Default setup routine
@@ -207,7 +210,7 @@ function admin_scripts() {
 		return;
 	}
 
-	wp_enqueue_script(
+	\wp_enqueue_script(
 		'wp_2fa_admin',
 		script_url( 'admin', 'admin' ),
 		array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'wp_2fa_micro_modals', 'select2' ),
@@ -215,7 +218,7 @@ function admin_scripts() {
 		true
 	);
 
-	wp_enqueue_script(
+	\wp_enqueue_script(
 		'wp_2fa_micro_modals',
 		script_url( 'micromodal', 'admin' ),
 		array(),
@@ -227,29 +230,35 @@ function admin_scripts() {
 
 	// Data array.
 	$data_array = array(
-		'ajaxURL'                        => admin_url( 'admin-ajax.php' ),
+		'ajaxURL'                        => \admin_url( 'admin-ajax.php' ),
 		'roles'                          => WP2FA::wp_2fa_get_roles(),
-		'nonce'                          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-		'codeValidatedHeading'           => esc_html__( 'Congratulations', 'wp-2fa' ),
-		'codeValidatedText'              => esc_html__( 'Your account just got more secure', 'wp-2fa' ),
-		'codeValidatedButton'            => esc_html__( 'Close Wizard & Refresh', 'wp-2fa' ),
-		'processingText'                 => esc_html__( 'Processing Update', 'wp-2fa' ),
-		'email_sent_success'             => esc_html__( 'Email successfully sent', 'wp-2fa' ),
-		'email_sent_failure'             => esc_html__( 'Email delivery failed', 'wp-2fa' ),
-		'invalidEmail'                   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
-		'license_validation_in_progress' => esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
+		'nonce'                          => \wp_create_nonce( 'wp-2fa-settings-nonce' ),
+		'codeValidatedHeading'           => \esc_html__( 'Congratulations', 'wp-2fa' ),
+		'codeValidatedText'              => \esc_html__( 'Your account just got more secure', 'wp-2fa' ),
+		'codeValidatedButton'            => \esc_html__( 'Close Wizard & Refresh', 'wp-2fa' ),
+		'processingText'                 => \esc_html__( 'Processing Update', 'wp-2fa' ),
+		'email_sent_success'             => \esc_html__( 'Email successfully sent', 'wp-2fa' ),
+		'email_sent_failure'             => \esc_html__( 'Email delivery failed', 'wp-2fa' ),
+		'invalidEmail'                   => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+		'license_validation_in_progress' => \esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
 	);
-	wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
+	\wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
+
+	$role = User_Helper::get_user_role();
+
+	$re_login = Settings::get_role_or_default_setting( Re_Login_2FA::RE_LOGIN_SETTINGS_NAME, 'current', $role );
 
 	$data_array = array(
-		'ajaxURL'         => admin_url( 'admin-ajax.php' ),
-		'nonce'           => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
-		'codesPreamble'   => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-		'readyText'       => esc_html__( 'I\'m ready', 'wp-2fa' ),
-		'codeReSentText'  => esc_html__( 'New code sent', 'wp-2fa' ),
-		'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
+		'ajaxURL'         => \admin_url( 'admin-ajax.php' ),
+		'nonce'           => \wp_create_nonce( 'wp2fa-verify-wizard-page' ),
+		'codesPreamble'   => \esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+		'readyText'       => \esc_html__( 'I\'m ready', 'wp-2fa' ),
+		'codeReSentText'  => \esc_html__( 'New code sent', 'wp-2fa' ),
+		'backupCodesSent' => \esc_html__( 'Backup codes sent', 'wp-2fa' ),
+		'reLoginEnabled'  => Re_Login_2FA::ENABLED_SETTING_VALUE,
+		'reLogin'         => $re_login,
 	);
-	wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
+	\wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
 }
 
 /**

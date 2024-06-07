@@ -218,7 +218,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 				printf(
 					'<div id="message" class="updated notice is-dismissable"><p>' .
 					// translators: The number of the affected users.
-					esc_html__( 'Removed 2FA from %d users.', 'wp-2fa' ) .
+					\esc_html__( 'Removed 2FA from %d users.', 'wp-2fa' ) .
 					'</p></div>',
 					(int) $num_changed
 				);
@@ -228,7 +228,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 				printf(
 					'<div id="message" class="updated notice is-dismissable"><p>' .
 					// translators: The number of the affected users.
-					esc_html__( 'Removed 2FA trusted devices from %d users.', 'wp-2fa' ) .
+					\esc_html__( 'Removed 2FA trusted devices from %d users.', 'wp-2fa' ) .
 					'</p></div>',
 					(int) $num_changed
 				);

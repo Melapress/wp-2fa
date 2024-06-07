@@ -29,9 +29,9 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 	 */
 	class Open_SSL {
 
-		const CIPHER_METHOD    = 'aes-256-ctr';
-		const BLOCK_BYTE_SIZE  = 16;
-		const DIGEST_ALGORITHM = 'SHA256';
+		const CIPHER_METHOD     = 'aes-256-ctr';
+		const BLOCK_BYTE_SIZE   = 16;
+		const DIGEST_ALGORITHM  = 'SHA256';
 		const SECRET_KEY_PREFIX = 'lsc_';
 
 		/**

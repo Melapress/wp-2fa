@@ -32,8 +32,8 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 		public static function add_extra_menu_item() {
 			add_submenu_page(
 				Settings_Page::TOP_MENU_SLUG,
-				esc_html__( 'Premium Features', 'wp-2fa' ),
-				esc_html__( 'Premium Features ➤', 'wp-2fa' ),
+				\esc_html__( 'Premium Features', 'wp-2fa' ),
+				\esc_html__( 'Premium Features ➤', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				array( __CLASS__, 'render' ),
@@ -48,17 +48,17 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 		 */
 		public static function add_settings_banner() {
 			$banner  = '<div id="wp-2fa-side-banner">';
-			$banner .= '<img src="' . esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
-			$banner .= '<p>' . esc_html__( 'Upgrade to Premium & benefit:', 'wp-2fa' ) . '</p>';
-			$banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Login with 2FA via SMS, push notification or with a simple mouse click', 'wp-2fa' ) . '</li>';
-			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span>' . esc_html__( 'Add & manage trusted devices ("Remember this device" option)', 'wp-2fa' ) . '</li>';
-			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Add alternative 2FA methods ensuring no user is ever locked out', 'wp-2fa' ) . '</li>';
-			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'One-click 2FA integration with WooCommerce', 'wp-2fa' ) . '</li>';
-			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Completely whitelabel the 2FA user experience including the 2FA code page, email & wizards text', 'wp-2fa' ) . '</li>';
-			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
-			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'Many other features', 'wp-2fa' ) . '</li>';
-			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html__( 'No Ads!', 'wp-2fa' ) . '</li></ul>';
-			$banner .= '<a href="https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" class="button button-primary" target="_blank">' . esc_html__( 'Upgrade to Premium', 'wp-2fa' ) . '</a>';
+			$banner .= '<img src="' . \esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
+			$banner .= '<p>' . \esc_html__( 'Upgrade to Premium & benefit:', 'wp-2fa' ) . '</p>';
+			$banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . \esc_html__( 'Login with 2FA via SMS, push notification or with a simple mouse click', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span>' . \esc_html__( 'Add & manage trusted devices ("Remember this device" option)', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Add alternative 2FA methods ensuring no user is ever locked out', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'One-click 2FA integration with WooCommerce', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Completely whitelabel the 2FA user experience including the 2FA code page, email & wizards text', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Many other features', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'No Ads!', 'wp-2fa' ) . '</li></ul>';
+			$banner .= '<a href="https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" class="button button-primary" target="_blank">' . \esc_html__( 'Upgrade to Premium', 'wp-2fa' ) . '</a>';
 			$banner .= '</div>';
 
 			echo $banner; // phpcs:ignore
@@ -181,32 +181,32 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 
 		<div class="wrap help-wrap features-wrap wp-2fa-settings-wrapper">
 			<div class="page-head">
-				<h2><?php esc_html_e( 'Upgrade to Premium and benefit more!', 'wp-2fa' ); ?></h2>
+				<h2><?php \esc_html_e( 'Upgrade to Premium and benefit more!', 'wp-2fa' ); ?></h2>
 			</div>
 			<div class="content-block">
 				<div class="logo-wrap">
 					<img class="wp2fa-logo" src="<?php echo WP_2FA_URL; // phpcs:ignore?>dist/images/wp-2fa-color_opt.png" alt="">
 				</div>
 				<div>
-					<p><?php esc_html_e( 'WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and anyone who accesses your website, including you, secure and better protected than ever before.', 'wp-2fa' ); ?></p>
-					<p><?php esc_html_e( 'Upgrade to WP 2FA Premium to add more secure authentication options and automate more, encouraging all your website users to utilize 2FA to its fullest extent and give your users more flexibility by allowing them to work from anywhere without compromising on security.', 'wp-2fa' ); ?></p>
+					<p><?php \esc_html_e( 'WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and anyone who accesses your website, including you, secure and better protected than ever before.', 'wp-2fa' ); ?></p>
+					<p><?php \esc_html_e( 'Upgrade to WP 2FA Premium to add more secure authentication options and automate more, encouraging all your website users to utilize 2FA to its fullest extent and give your users more flexibility by allowing them to work from anywhere without compromising on security.', 'wp-2fa' ); ?></p>
 				</div>
 			</div>
 			<div class="content-block">
-				<p><strong><?php esc_html_e( 'Upgrade to Premium and start benefiting from value-added features such as:', 'wp-2fa' ); ?></strong></p>
+				<p><strong><?php \esc_html_e( 'Upgrade to Premium and start benefiting from value-added features such as:', 'wp-2fa' ); ?></strong></p>
 				<ul class="feature-list">
-					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'More 2FA methods, including SMS, push notifications & one-click login', 'wp-2fa' ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Trusted devices: Allow users to add trusted devices so they do not have to manually enter the 2FA code each time they log in', 'wp-2fa' ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'White labeling features: Gain increased trust by extending your business’ branding and tone of voice to all 2FA pages, wizards & emails', 'wp-2fa' ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Refer to the features matrix below for a detailed list of all the premium features', 'wp-2fa' ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span> <?php \esc_html_e( 'More 2FA methods, including SMS, push notifications & one-click login', 'wp-2fa' ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span> <?php \esc_html_e( 'Trusted devices: Allow users to add trusted devices so they do not have to manually enter the 2FA code each time they log in', 'wp-2fa' ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span> <?php \esc_html_e( 'White labeling features: Gain increased trust by extending your business’ branding and tone of voice to all 2FA pages, wizards & emails', 'wp-2fa' ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span> <?php \esc_html_e( 'Refer to the features matrix below for a detailed list of all the premium features', 'wp-2fa' ); ?></li>
 				</ul>
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
+					<a href="<?php echo \esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
 				</div>		
 			</div>
 			<div class="content-block">
-				<p><strong><?php esc_html_e( 'WP 2FA plugin features', 'wp-2fa' ); ?></strong></p>
-				<p><?php esc_html_e( 'Take advantage of these benefits and many others, with prices starting from as little as $29 for 5 users per year. ', 'wp-2fa' ); ?></p>
+				<p><strong><?php \esc_html_e( 'WP 2FA plugin features', 'wp-2fa' ); ?></strong></p>
+				<p><?php \esc_html_e( 'Take advantage of these benefits and many others, with prices starting from as little as $29 for 5 users per year. ', 'wp-2fa' ); ?></p>
 				<table class="c21 feature-table">
 					<tbody>
 						<tr class="c2">
@@ -214,37 +214,26 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 								<p class="c10 c4"><span class="c5"></span></p>
 							</td>
 							<td class="c8 row-head" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><?php esc_html_e( 'Premium', 'wp-2fa' ); ?></span></p>
+								<p class="c7"><span class="c5"><?php \esc_html_e( 'Premium', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c12 row-head" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><?php esc_html_e( 'Free', 'wp-2fa' ); ?></span></p>
+								<p class="c7"><span class="c5"><?php \esc_html_e( 'Free', 'wp-2fa' ); ?></span></p>
 							</td>
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Support', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Support', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><?php esc_html_e( '1-to-1 emails, forums', 'wp-2fa' ); ?></span></p>
+								<p class="c7"><span class="c5"><?php \esc_html_e( '1-to-1 emails, forums', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c12" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><?php esc_html_e( 'forums', 'wp-2fa' ); ?></span></p>
+								<p class="c7"><span class="c5"><?php \esc_html_e( 'forums', 'wp-2fa' ); ?></span></p>
 							</td>
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Out of the box support for e-commerce, membership & third party plugins (no code required)', 'wp-2fa' ); ?></span></p>
-							</td>
-							<td class="c8" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
-							</td>
-							<td class="c12" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
-							</td>
-						</tr>
-						<tr class="c2">
-							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( '2FA code via mobile app', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Out of the box support for e-commerce, membership & third party plugins (no code required)', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -255,7 +244,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( '2FA code over email', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( '2FA code via mobile app', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -266,7 +255,18 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( '2FA login with push notification (Authy)', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( '2FA code over email', 'wp-2fa' ); ?></span></p>
+							</td>
+							<td class="c8" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+							</td>
+							<td class="c12" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+							</td>
+						</tr>
+						<tr class="c2">
+							<td class="c6" colspan="1" rowspan="1">
+								<p class="c10"><span class="c5"><?php \esc_html_e( '2FA login with push notification (Authy)', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -277,7 +277,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( '2FA Login with SMS (with Twilio)', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( '2FA Login with SMS (with Twilio)', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -289,7 +289,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'One-click 2FA login', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'One-click 2FA login', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -300,7 +300,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Different 2FA policies per user role', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Different 2FA policies per user role', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -311,7 +311,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Trusted devices (remember devices)', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Trusted devices (remember devices)', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -322,29 +322,18 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Alternative 2FA methods', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Alternative 2FA methods', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
 							</td>
 							<td class="c12" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><?php esc_html_e( 'Backup codes only', 'wp-2fa' ); ?></span></p>
+								<p class="c7"><span class="c5"><?php \esc_html_e( 'Backup codes only', 'wp-2fa' ); ?></span></p>
 							</td>
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'White labeling (logo, wizards, email, colours, fonts & custom CSS)', 'wp-2fa' ); ?></span></p>
-							</td>
-							<td class="c8" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
-							</td>
-							<td class="c12" colspan="1" rowspan="1">
-								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
-							</td>
-						</tr>
-						<tr class="c2">
-							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'One-click 2FA integration in WooCommerce user page', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'White labeling (logo, wizards, email, colours, fonts & custom CSS)', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -355,7 +344,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Reports & Statistics', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'One-click 2FA integration in WooCommerce user page', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -366,7 +355,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Configurable 2FA code expiration time', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Reports & Statistics', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -377,7 +366,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'Sortable users\' 2FA status', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Configurable 2FA code expiration time', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -388,7 +377,29 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						</tr>
 						<tr class="c2">
 							<td class="c6" colspan="1" rowspan="1">
-								<p class="c10"><span class="c5"><?php esc_html_e( 'No Ads!', 'wp-2fa' ); ?></span></p>
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Sortable users\' 2FA status', 'wp-2fa' ); ?></span></p>
+							</td>
+							<td class="c8" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+							</td>
+							<td class="c12" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
+							</td>
+						</tr>
+						<tr class="c2">
+							<td class="c6" colspan="1" rowspan="1">
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'Export/import plugin settings', 'wp-2fa' ); ?></span></p>
+							</td>
+							<td class="c8" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+							</td>
+							<td class="c12" colspan="1" rowspan="1">
+								<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
+							</td>
+						</tr>
+						<tr class="c2">
+							<td class="c6" colspan="1" rowspan="1">
+								<p class="c10"><span class="c5"><?php \esc_html_e( 'No Ads!', 'wp-2fa' ); ?></span></p>
 							</td>
 							<td class="c8" colspan="1" rowspan="1">
 								<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -401,7 +412,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 				</table>
 
 				<div class="premium-cta">
-					<a href="<?php echo esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
+					<a href="<?php echo \esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
 				</div>		
 			</div>
 
@@ -410,13 +421,13 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 				<?php
 				$text = sprintf(
 					/* translators: 1: Link to our site 2: Link to our contact page */
-					esc_html__( 'Visit the WP 2FA %1$s for more information or %2$s  with any questions you might have. We look forward to hearing from you.', 'wp-2fa' ),
-					'<a target="_blank" href="' . esc_url( 'https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ) . '">' . esc_html__( 'plugin website', 'wp-2fa' ) . '</a>',
-					'<a target="_blank" href="' . esc_url( 'https://melapress.com/contact/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ) . '">' . esc_html__( 'contact us', 'wp-2fa' ) . '</a>'
+					\esc_html__( 'Visit the WP 2FA %1$s for more information or %2$s  with any questions you might have. We look forward to hearing from you.', 'wp-2fa' ),
+					'<a target="_blank" href="' . \esc_url( 'https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ) . '">' . \esc_html__( 'plugin website', 'wp-2fa' ) . '</a>',
+					'<a target="_blank" href="' . \esc_url( 'https://melapress.com/contact/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ) . '">' . \esc_html__( 'contact us', 'wp-2fa' ) . '</a>'
 				);
 
 			echo $text; // phpcs:ignore -- Visit the WP 2FA plugin website for more information or contact us with any questions you might have. We look forward to hearing from you.
-				?>
+			?>
 				</p>
 			</div>
 		</div>		

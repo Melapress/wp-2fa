@@ -38,8 +38,8 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		public static function create_settings_admin_menu() {
 			// Create admin menu item.
 			add_menu_page(
-				esc_html__( 'WP 2FA', 'wp-2fa' ),
-				esc_html__( 'WP 2FA', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				null,
@@ -49,8 +49,8 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
-				esc_html__( '2FA Policies', 'wp-2fa' ),
-				esc_html__( '2FA Policies', 'wp-2fa' ),
+				\esc_html__( '2FA Policies', 'wp-2fa' ),
+				\esc_html__( '2FA Policies', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'render' ),
@@ -59,8 +59,8 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
-				esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
-				esc_html__( 'Settings', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
+				\esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_Render::class, 'render' ),
@@ -113,8 +113,8 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		public static function create_settings_admin_menu_multisite() {
 			// Create admin menu item.
 			add_menu_page(
-				esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
-				esc_html__( 'WP 2FA', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				null,
@@ -124,8 +124,8 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
-				esc_html__( '2FA Policies', 'wp-2fa' ),
-				esc_html__( '2FA Policies', 'wp-2fa' ),
+				\esc_html__( '2FA Policies', 'wp-2fa' ),
+				\esc_html__( '2FA Policies', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'render' ),
@@ -134,8 +134,8 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			add_submenu_page(
 				self::TOP_MENU_SLUG,
-				esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
-				esc_html__( 'Settings', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
+				\esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_Render::class, 'render' ),
@@ -220,7 +220,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			$url   = Settings::get_settings_page_link();
 			$links = array_merge(
 				array(
-					'<a href="' . esc_url( $url ) . '">' . esc_html__( 'Configure 2FA Settings', 'wp-2fa' ) . '</a>',
+					'<a href="' . \esc_url( $url ) . '">' . \esc_html__( 'Configure 2FA Settings', 'wp-2fa' ) . '</a>',
 				),
 				$links
 			);
@@ -265,9 +265,9 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'true' === $_GET['wp_2fa_network_settings_updated'] ) {
 				?>
 			<div class="notice notice-success is-dismissible">
-				<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
+				<p><?php \esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
 				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+					<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 				</button>
 			</div>
 				<?php
@@ -281,14 +281,14 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 					?>
 					<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( $error ) ) ); ?></p>
 					<button type="button" class="notice-dismiss">
-						<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+						<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 					</button>
 					<?php
 				} else {
 					?>
-				<p><?php esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
+				<p><?php \esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
 				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+					<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 				</button>
 					<?php
 				}
@@ -311,7 +311,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				<p><?php echo \esc_attr( ( $error ) ); ?></p>
 				<?php } ?>
 				<button type="button" class="notice-dismiss">
-					<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+					<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 				</button>
 			</div>
 				<?php
@@ -336,7 +336,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 					<div class="notice notice-<?php echo \esc_attr( $error['type'] ); ?> is-dismissible">
 						<p><?php echo \esc_html( $error['message'] ); ?></p>
 						<button type="button" class="notice-dismiss">
-							<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+							<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 						</button>
 					</div>
 							<?php
@@ -344,9 +344,9 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 					} else {
 						?>
 					<div class="notice notice-success is-dismissible">
-						<p><?php esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
+						<p><?php \esc_html_e( '2FA Settings Updated', 'wp-2fa' ); ?></p>
 						<button type="button" class="notice-dismiss">
-							<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+							<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 						</button>
 					</div>
 						<?php
@@ -355,9 +355,9 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				if ( isset( $_GET['settings-updated'] ) && 'false' === $_GET['settings-updated'] ) {
 					?>
 				<div class="notice notice-error is-dismissible">
-					<p><?php esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
+					<p><?php \esc_html_e( 'Please ensure both custom email address and display name are provided.', 'wp-2fa' ); ?></p>
 					<button type="button" class="notice-dismiss">
-						<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+						<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 					</button>
 				</div>
 					<?php
@@ -367,7 +367,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				<div class="notice notice-error is-dismissible">
 					<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( \sanitize_text_field( \wp_unslash( $_GET['settings_error'] ) ) ) ) ); ?></p>
 					<button type="button" class="notice-dismiss">
-						<span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+						<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
 					</button>
 				</div>
 					<?php
@@ -492,7 +492,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				}
 
 				if ( '' === trim( (string) $admin_email ) ) {
-					$email_settings_url = esc_url(
+					$email_settings_url = \esc_url(
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
@@ -502,12 +502,12 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 						)
 					);
 					?>
-					<div class="notice notice-error">
-						<p style="font-size: 2em;"><?php esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo self::get_default_email_address(); ?></b> <?php esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' ); ?></p>
+					<div class="notice notice-error" style="padding-top: 10px; padding-bottom: 10px;">
+						<p class="description" ><?php \esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo self::get_default_email_address(); ?></b> <?php \esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' ); ?></p>
 						<p>
-							<a style="font-size: 1.7em;" href="<?php echo \esc_url( $email_settings_url ); ?>"><?php esc_html_e( 'Change it', 'wp-2fa' ); ?></a>
-							<a style="margin-left:20px;font-size: 1.7em;" href="#" class="2fa-email-notice">
-								<?php esc_html_e( 'Keep using it', 'wp-2fa' ); ?>
+							<a class="button button-primary" href="<?php echo \esc_url( $email_settings_url ); ?>"><?php \esc_html_e( 'Change it', 'wp-2fa' ); ?></a>
+							<a class="button button-secondary 2fa-email-notice" style="margin-left:20px" href="#">
+								<?php \esc_html_e( 'Keep using it', 'wp-2fa' ); ?>
 							</a>
 						</p>
 						

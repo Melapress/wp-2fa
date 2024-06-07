@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace WP2FA\Shortcodes;
 
-use WP2FA\WP2FA;
 use WP2FA\Core;
-use WP2FA\Admin\User_Profile;
+use WP2FA\WP2FA;
 use WP2FA\Admin\User_Notices;
+use WP2FA\Admin\User_Profile;
+use WP2FA\Admin\Views\Re_Login_2FA;
+use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 
 if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
@@ -39,35 +41,39 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 		 */
 		public static function register_2fa_shortcode_scripts() {
 			// Add our front end stuff, which we only want to load when the shortcode is present.
-			wp_register_script( 'wp_2fa_frontend_scripts', Core\script_url( 'wp-2fa', 'admin' ), array( 'jquery', 'wp_2fa_micro_modals' ), WP_2FA_VERSION, true );
-			wp_register_script( 'wp_2fa_micro_modals', Core\script_url( 'micromodal', 'admin' ), array(), WP_2FA_VERSION, true );
-			wp_register_style( 'wp_2fa_styles', Core\style_url( 'styles', 'frontend' ), array(), WP_2FA_VERSION );
+			\wp_register_script( 'wp_2fa_frontend_scripts', Core\script_url( 'wp-2fa', 'admin' ), array( 'jquery', 'wp_2fa_micro_modals' ), WP_2FA_VERSION, true );
+			\wp_register_script( 'wp_2fa_micro_modals', Core\script_url( 'micromodal', 'admin' ), array(), WP_2FA_VERSION, true );
+			\wp_register_style( 'wp_2fa_styles', Core\style_url( 'styles', 'frontend' ), array(), WP_2FA_VERSION );
 
 			$data_array = array(
-				'ajaxURL'        => admin_url( 'admin-ajax.php' ),
+				'ajaxURL'        => \admin_url( 'admin-ajax.php' ),
 				'roles'          => WP2FA::wp_2fa_get_roles(),
-				'nonce'          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-				'codesPreamble'  => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-				'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
-				'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
-				'allDoneHeading' => esc_html__( 'All done.', 'wp-2fa' ),
-				'allDoneText'    => esc_html__( 'Your login just got more secure.', 'wp-2fa' ),
-				'closeWizard'    => esc_html__( 'Close Wizard', 'wp-2fa' ),
-				'invalidEmail'   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+				'nonce'          => \wp_create_nonce( 'wp-2fa-settings-nonce' ),
+				'codesPreamble'  => \esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+				'readyText'      => \esc_html__( 'I\'m ready', 'wp-2fa' ),
+				'codeReSentText' => \esc_html__( 'New code sent', 'wp-2fa' ),
+				'allDoneHeading' => \esc_html__( 'All done.', 'wp-2fa' ),
+				'allDoneText'    => \esc_html__( 'Your login just got more secure.', 'wp-2fa' ),
+				'closeWizard'    => \esc_html__( 'Close Wizard', 'wp-2fa' ),
+				'invalidEmail'   => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
 			);
-			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
+			\wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
 
-			$data_array = array(
-				'ajaxURL'         => admin_url( 'admin-ajax.php' ),
-				'nonce'           => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
-				'codesPreamble'   => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-				'readyText'       => esc_html__( 'I\'m ready', 'wp-2fa' ),
-				'codeReSentText'  => esc_html__( 'New code sent', 'wp-2fa' ),
-				'invalidEmail'    => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
-				'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
+			$role = User_Helper::get_user_role();
+
+			$re_login = Settings::get_role_or_default_setting( Re_Login_2FA::RE_LOGIN_SETTINGS_NAME, 'current', $role );
+
+			$data_array                  = array(
+				'ajaxURL'         => \admin_url( 'admin-ajax.php' ),
+				'nonce'           => \wp_create_nonce( 'wp2fa-verify-wizard-page' ),
+				'codesPreamble'   => \esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+				'readyText'       => \esc_html__( 'I\'m ready', 'wp-2fa' ),
+				'codeReSentText'  => \esc_html__( 'New code sent', 'wp-2fa' ),
+				'invalidEmail'    => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+				'backupCodesSent' => \esc_html__( 'Backup codes sent', 'wp-2fa' ),
+				'reLogin'         => $re_login,
+				'reLoginEnabled'  => Re_Login_2FA::ENABLED_SETTING_VALUE,
 			);
-
-			$role                        = array_key_first( WP2FA::wp_2fa_get_roles() );
 			$redirect_page               = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', 'current', $role );
 			$data_array['redirectToUrl'] = ( '' !== trim( (string) $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
 			// Check and override if custom redirect page is selected and custom redirect is set.
@@ -78,21 +84,21 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 				'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role ) ) ||
 				'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
 					if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ) {
-						$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role );
+						$data_array['redirectToUrl'] = \trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role );
 					} else {
-						$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
+						$data_array['redirectToUrl'] = \trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
 					}
 				}
 			}
 
 			// Check for shortcode parameter - if one is present use it to redirect the user - highest priority.
 			if ( isset( $redirect_after ) && ! empty( $redirect_after ) ) {
-				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . \urlencode( $redirect_after );
+				$data_array['redirectToUrl'] = \trailingslashit( \get_site_url() ) . \urlencode( $redirect_after );
 			} elseif ( isset( $_GET['return'] ) && ! empty( $_GET['return'] ) ) {
-				$data_array['redirectToUrl'] = trailingslashit( get_site_url() ) . strip_tags( \wp_unslash( $_GET['return'] ) ); // phpcs:ignore
+				$data_array['redirectToUrl'] = \trailingslashit( \get_site_url() ) . strip_tags( \wp_unslash( $_GET['return'] ) ); // phpcs:ignore
 			}
 
-			wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faWizardData', $data_array );
+			\wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faWizardData', $data_array );
 		}
 
 		/**
@@ -106,10 +112,11 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 
 			/** Shortcode redirect_after is supported, with which the user can override all other settings */
 			extract( // phpcs:ignore
-				shortcode_atts(
+				\shortcode_atts(
 					array(
 						'show_preamble'  => 'true',
 						'redirect_after' => '',
+						'do_not_show_enabled' => 'false',
 					),
 					$atts
 				)
@@ -125,23 +132,24 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 			\do_action( WP_2FA_PREFIX . 'shortcode_scripts', true );
 
 			if ( is_user_logged_in() ) {
-				wp_enqueue_script( 'wp_2fa_frontend_scripts' );
-				wp_enqueue_style( 'wp_2fa_styles' );
+				\wp_enqueue_script( 'wp_2fa_frontend_scripts' );
+				\wp_enqueue_style( 'wp_2fa_styles' );
 
 				ob_start();
 				echo '<form id="your-profile" class="wp-2fa-configuration-form">';
-				User_Profile::inline_2fa_profile_form( 'output_shortcode', $show_preamble );
+				User_Profile::inline_2fa_profile_form( 'output_shortcode', $show_preamble, ['do_not_show_enabled'=>$do_not_show_enabled] );
 				echo '</form>';
 				$content = ob_get_contents();
 				ob_end_clean();
+
 				return $content;
 			} elseif ( ! is_admin() && ! is_user_logged_in() ) {
 				ob_start();
 				$new_page_id = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
 				$redirect_to = ! empty( $new_page_id ) ? get_permalink( $new_page_id ) : get_home_url();
-				$link_markup = '<a href="' . esc_url( wp_login_url( $redirect_to ) ) . '">' . esc_html__( 'Login here.', 'wp-2fa' ) . '</a>';
+				$link_markup = '<a href="' . \esc_url( wp_login_url( $redirect_to ) ) . '">' . \esc_html__( 'Login here.', 'wp-2fa' ) . '</a>';
 				$message     = '<p>' . str_replace( '{login_url}', $link_markup, WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', true ) ) . '</p>';
-				echo wp_kses_post( $message );
+				echo \wp_kses_post( $message );
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
@@ -177,12 +185,12 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 					'ajaxURL'        => admin_url( 'admin-ajax.php' ),
 					'roles'          => WP2FA::wp_2fa_get_roles(),
 					'nonce'          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-					'codesPreamble'  => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-					'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
-					'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
-					'allDoneHeading' => esc_html__( 'All done.', 'wp-2fa' ),
-					'allDoneText'    => esc_html__( 'Your login just got more secure.', 'wp-2fa' ),
-					'closeWizard'    => esc_html__( 'Close Wizard', 'wp-2fa' ),
+					'codesPreamble'  => \esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+					'readyText'      => \esc_html__( 'I\'m ready', 'wp-2fa' ),
+					'codeReSentText' => \esc_html__( 'New code sent', 'wp-2fa' ),
+					'allDoneHeading' => \esc_html__( 'All done.', 'wp-2fa' ),
+					'allDoneText'    => \esc_html__( 'Your login just got more secure.', 'wp-2fa' ),
+					'closeWizard'    => \esc_html__( 'Close Wizard', 'wp-2fa' ),
 				);
 				wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
 
