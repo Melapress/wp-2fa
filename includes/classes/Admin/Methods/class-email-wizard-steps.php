@@ -91,9 +91,9 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 			\ob_start();
 			?>
 			<div class="option-pill">
-				<?php echo wp_kses_post( WP2FA::contextual_reconfigure_text( WP2FA::get_wp2fa_white_label_setting( 'hotp_reconfigure_intro', true ), User_Helper::get_user_object()->ID, 'hotp' ) ); ?>
+				<?php echo \wp_kses_post( WP2FA::contextual_reconfigure_text( WP2FA::get_wp2fa_white_label_setting( 'hotp_reconfigure_intro', true ), User_Helper::get_user_object()->ID, 'hotp' ) ); ?>
 				<div class="wp2fa-setup-actions">
-					<a class="button button-primary wp-2fa-button-primary" data-name="next_step_setting_modal_wizard" value="<?php esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" data-user-id="<?php echo esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-next-step="2fa-wizard-email"><?php esc_html_e( 'Change email address', 'wp-2fa' ); ?></a>
+					<a class="button button-primary wp-2fa-button-primary" data-name="next_step_setting_modal_wizard" value="<?php \esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-next-step="2fa-wizard-email"><?php \esc_html_e( 'Change email address', 'wp-2fa' ); ?></a>
 				</div>
 			</div>
 			<?php
@@ -125,7 +125,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 					<div class="option-pill">
 						<label for="geek">
 							<input id="geek" name="wp_2fa_enabled_methods" type="radio" value="email">
-						<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) ); ?>
+						<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) ); ?>
 						</label>
 					</div>
 				<?php
@@ -151,7 +151,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function email_wizard_settings( array $methods, bool $setup_wizard, string $data_role, $role = null ) {
-			$name_prefix = WP_2FA_POLICY_SETTINGS_NAME;
+			$name_prefix = \WP_2FA_POLICY_SETTINGS_NAME;
 			$role_id     = '';
 			if ( null !== $role && '' !== trim( (string) $role ) ) {
 				$name_prefix .= "[{$role}]";
@@ -166,7 +166,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 							<input type="checkbox" id="hotp<?php echo \esc_attr( $role_id ); ?>" name="<?php echo \esc_attr( $name_prefix ); ?>[enable_email]" value="enable_email"
 							<?php echo $data_role; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							<?php if ( null !== $role && ! empty( $role ) ) { ?>
-								<?php checked( Email::POLICY_SETTINGS_NAME, Role_Settings_Controller::get_setting( $role, Email::POLICY_SETTINGS_NAME ), true ); ?>
+								<?php \checked( Email::POLICY_SETTINGS_NAME, Role_Settings_Controller::get_setting( $role, Email::POLICY_SETTINGS_NAME ), true ); ?>
 								<?php
 							} else {
 								$use_role_setting = null;
@@ -176,18 +176,18 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 
 								$enabled_settings = Settings::get_role_or_default_setting( Email::POLICY_SETTINGS_NAME, $use_role_setting, $role, true );
 								?>
-								<?php checked( $enabled_settings, Email::POLICY_SETTINGS_NAME ); ?>
+								<?php \checked( $enabled_settings, Email::POLICY_SETTINGS_NAME ); ?>
 							<?php } ?>
 							>
 							<?php
-							esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
-							esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' );
+							\esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
+							\esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' );
 							echo '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>.';
 							?>
 					</label>
 					<?php
 					if ( $setup_wizard ) {
-						echo '<p class="description">' . esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . esc_html__( 'Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ) . '</p>';
+						echo '<p class="description">' . \esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . \esc_html__( 'Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ) . '</p>';
 					}
 					?>
 					<?php
@@ -202,17 +202,17 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 					<?php if ( ! $setup_wizard ) { ?>
 						<div class="use-different-hotp-mail<?php echo \esc_attr( ( false === $enabled_settings ? ' disabled' : '' ) ); ?>">
 							<p class="description">
-								<?php esc_html_e( 'Allow user to specify the email address of choice', 'wp-2fa' ); ?>
+								<?php \esc_html_e( 'Allow user to specify the email address of choice', 'wp-2fa' ); ?>
 							</p>
 							<fieldset class="email-hotp-options">
 							<?php
 							$options = array(
 								'yes' => array(
-									'label' => esc_html__( 'Yes', 'wp-2fa' ),
+									'label' => \esc_html__( 'Yes', 'wp-2fa' ),
 									'value' => 'specify-email_hotp',
 								),
 								'no'  => array(
-									'label' => esc_html__( 'No', 'wp-2fa' ),
+									'label' => \esc_html__( 'No', 'wp-2fa' ),
 									'value' => '',
 								),
 							);
@@ -226,7 +226,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 									id="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>"
 									value="<?php echo \esc_attr( $option_settings['value'] ); ?>" class="js-nested"
 									<?php if ( null !== $role ) { ?>
-										<?php checked( Role_Settings_Controller::get_setting( $role, 'specify-email_hotp' ), $option_settings['value'] ); ?>
+										<?php \checked( Role_Settings_Controller::get_setting( $role, 'specify-email_hotp' ), $option_settings['value'] ); ?>
 										<?php
 									} else {
 
@@ -235,7 +235,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 											$use_role_setting = \WP_2FA_PREFIX . 'no-user';
 										}
 
-										checked( Settings::get_role_or_default_setting( 'specify-email_hotp', $use_role_setting, $role, true, false ), $option_settings['value'] );
+										\checked( Settings::get_role_or_default_setting( 'specify-email_hotp', $use_role_setting, $role, true, false ), $option_settings['value'] );
 										?>
 									<?php } ?>
 									>
@@ -274,13 +274,13 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 				<fieldset>
 					<div class="step-setting-wrapper active">
 						<div class="mb-20">
-							<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_intro', true ) ); ?>
+							<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_intro', true ) ); ?>
 						</div>
 						<fieldset class="radio-cells">
 						<div class="option-pill">
 							<label for="use_wp_email">
-								<input type="radio" name="wp_2fa_email_address" id="use_wp_email" value="<?php echo esc_attr( User_Helper::get_user_object()->user_email ); ?>" checked>
-								<span><?php esc_html_e( 'Use my user email (', 'wp-2fa' ); ?><small><?php echo esc_attr( User_Helper::get_user_object()->user_email ); ?></small><?php esc_html_e( ')', 'wp-2fa' ); ?></span>
+								<input type="radio" name="wp_2fa_email_address" id="use_wp_email" value="<?php echo \esc_attr( User_Helper::get_user_object()->user_email ); ?>" \checked>
+								<span><?php \esc_html_e( 'Use my user email (', 'wp-2fa' ); ?><small><?php echo \esc_attr( User_Helper::get_user_object()->user_email ); ?></small><?php \esc_html_e( ')', 'wp-2fa' ); ?></span>
 							</label>
 						</div>
 						<?php
@@ -289,8 +289,8 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						<div class="option-pill">
 							<label for="use_custom_email">
 								<input type="radio" name="wp_2fa_email_address" id="use_custom_email" value="use_custom_email">
-								<span><?php esc_html_e( 'Use a different email address:', 'wp-2fa' ); ?></span>
-								<?php esc_html_e( 'Email address', 'wp-2fa' ); ?>
+								<span><?php \esc_html_e( 'Use a different email address:', 'wp-2fa' ); ?></span>
+								<?php \esc_html_e( 'Email address', 'wp-2fa' ); ?>
 								<input type="email" name="custom-email-address" id="custom-email-address" class="input" value=""/>
 							</label>
 						</div>
@@ -298,37 +298,33 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						}
 						?>
 						</fieldset>
-						<p class="description"><?php esc_html_e( 'To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator.', 'wp-2fa' ); ?></p><br>
+						<p class="description"><?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_help', true ) ); ?></p><br>
 
 						<?php
-						$from_email = get_option( 'admin_email' );
+						$from_email = \get_option( 'admin_email' );
 
 						$custom_mail = WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' );
 
 						if ( isset( $custom_mail ) && ! empty( (string) $custom_mail ) ) {
 							$from_email = $custom_mail;
 						}
-						printf(
-							'<b>%1$1s</b> %2$1s %3$1s',
-							esc_html__( 'IMPORTANT: ', 'wp-2fa' ),
-							esc_html__( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is ', 'wp-2fa' ),
-							esc_attr( $from_email )
-						);
+						
+						echo \wp_kses_post( str_replace( '{from_email}', $from_email, WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_help_email', true ) ) );
 						?>
 
 						<div class="wp2fa-setup-actions">
-							<button class="button button-primary wp-2fa-button-primary" name="next_step_setting_email_verify" value="<?php esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" data-trigger-setup-email data-user-id="<?php echo esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> type="button"><?php esc_html_e( 'I\'m Ready', 'wp-2fa' ); ?></button>
-							<a class="button button-primary wp-2fa-button-primary modal_cancel"><?php esc_attr_e( 'Cancel', 'wp-2fa' ); ?></a>
+							<button class="button button-primary wp-2fa-button-primary" name="next_step_setting_email_verify" value="<?php \esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" data-trigger-setup-email data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> type="button"><?php \esc_html_e( 'I\'m Ready', 'wp-2fa' ); ?></button>
+							<a class="button button-primary wp-2fa-button-primary modal_cancel"><?php \esc_attr_e( 'Cancel', 'wp-2fa' ); ?></a>
 						</div>
 					</div>
 
-					<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Verify configuration', 'wp-2fa' ); ?>" id="2fa-wizard-email">
+					<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Verify configuration', 'wp-2fa' ); ?>" id="2fa-wizard-email">
 						<div class="mb-20">
-							<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_verification_hotp_pre', true ) ); ?>
+							<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_verification_hotp_pre', true ) ); ?>
 						</div>
 						<fieldset>
 							<label for="2fa-email-authcode">
-								<?php esc_html_e( 'Authentication Code', 'wp-2fa' ); ?>
+								<?php \esc_html_e( 'Authentication Code', 'wp-2fa' ); ?>
 								<input type="tel" name="wp-2fa-email-authcode" id="wp-2fa-email-authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off"/>
 								<script>
 									const email_authcode = document.getElementById('wp-2fa-email-authcode');
@@ -340,11 +336,11 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 							<div class="verification-response"></div>
 						</fieldset>
 						<br />
-						<a href="#" class="button wp-2fa-button-primary" data-validate-authcode-ajax <?php echo WP_Helper::create_data_nonce( 'wp-2fa-validate-authcode' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php esc_html_e( 'Validate & Save', 'wp-2fa' ); ?></a>
-						<a href="#" class="button wp-2fa-button-primary resend-email-code" data-trigger-setup-email data-user-id="<?php echo esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-							<span class="resend-inner"><?php esc_html_e( 'Send me another code', 'wp-2fa' ); ?></span>
+						<a href="#" class="button wp-2fa-button-primary" data-validate-authcode-ajax <?php echo WP_Helper::create_data_nonce( 'wp-2fa-validate-authcode' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php \esc_html_e( 'Validate & Save', 'wp-2fa' ); ?></a>
+						<a href="#" class="button wp-2fa-button-primary resend-email-code" data-trigger-setup-email data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+							<span class="resend-inner"><?php \esc_html_e( 'Send me another code', 'wp-2fa' ); ?></span>
 						</a>
-						<button class="wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
+						<button class="wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window"><?php \esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
 					</div>
 				</fieldset>
 			</div>

@@ -39,12 +39,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 			?>
 
 		<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
-			<h2><?php esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
+			<h2><?php \esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
 			<hr>
 			<br>			
 			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $current_user_id ) { ?>
 				<?php
-				echo esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+				echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
 				?>
 			<?php } else { ?>
 				<?php
@@ -94,7 +94,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 						$settings[ $show_tab ]['description'];
 					?>
 					<br/>
-					<form id="wp-2fa-admin-settings" action='<?php echo esc_attr( $action ); ?>' method='post' autocomplete="off" >
+					<form id="wp-2fa-admin-settings" action='<?php echo \esc_attr( $action ); ?>' method='post' autocomplete="off" >
 						<?php
 						\call_user_func( array( $settings[ $show_tab ]['class'], $settings[ $show_tab ]['method'] ) );
 						?>
@@ -114,7 +114,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 		private static function settings_array(): array {
 			$settings_tabs = array(
 				'generic-settings'     => array(
-					'url'            => esc_url(
+					'url'            => \esc_url(
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
@@ -123,19 +123,19 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 							network_admin_url( 'admin.php' )
 						)
 					),
-					'name'           => esc_html__( 'General settings', 'wp-2fa' ),
+					'name'           => \esc_html__( 'General settings', 'wp-2fa' ),
 					'default'        => true,
 					'description'    => sprintf(
 						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
-						esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
-						esc_html__( 'support@melapress.com', 'wp-2fa' )
+						\esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
+						\esc_html__( 'support@melapress.com', 'wp-2fa' )
 					),
 					'class'          => 'WP2FA\Admin\SettingsPages\Settings_Page_General',
 					'method'         => 'render',
 					'network_action' => 'update_wp2fa_network_options',
 				),
 				'email-settings'       => array(
-					'url'            => esc_url(
+					'url'            => \esc_url(
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
@@ -144,19 +144,19 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 							network_admin_url( 'admin.php' )
 						)
 					),
-					'name'           => esc_html__( 'Emails & templates', 'wp-2fa' ),
+					'name'           => \esc_html__( 'Emails & templates', 'wp-2fa' ),
 					'default'        => false,
 					'description'    => sprintf(
 						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
-						esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
-						esc_html__( 'support@melapress.com', 'wp-2fa' )
+						\esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
+						\esc_html__( 'support@melapress.com', 'wp-2fa' )
 					),
 					'class'          => 'WP2FA\Admin\SettingsPages\Settings_Page_Email',
 					'method'         => 'render',
 					'network_action' => 'update_wp2fa_network_email_options',
 				),
 				'white-label-settings' => array(
-					'url'            => esc_url(
+					'url'            => \esc_url(
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
@@ -165,12 +165,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 							network_admin_url( 'admin.php' )
 						)
 					),
-					'name'           => esc_html__( 'White labeling', 'wp-2fa' ),
+					'name'           => \esc_html__( 'White labeling', 'wp-2fa' ),
 					'default'        => false,
 					'description'    => sprintf(
 						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
-						esc_html__( 'Use the settings below to configure the emails which are sent to users as part of the 2FA plugin. If you have any questions send us an email at', 'wp-2fa' ),
-						esc_html__( 'support@melapress.com', 'wp-2fa' )
+						\esc_html__( 'Use the settings below to configure the emails which are sent to users as part of the 2FA plugin. If you have any questions send us an email at', 'wp-2fa' ),
+						\esc_html__( 'support@melapress.com', 'wp-2fa' )
 					),
 					'class'          => 'WP2FA\Admin\SettingsPages\Settings_Page_White_Label',
 					'method'         => 'render',
@@ -185,7 +185,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 			*
 			* @param array $settings_tabs – Settings tabs.
 			*/
-			return apply_filters( WP_2FA_PREFIX . 'settings_tabs', $settings_tabs );
+			return \apply_filters( WP_2FA_PREFIX . 'settings_tabs', $settings_tabs );
 		}
 	}
 }

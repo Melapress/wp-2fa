@@ -109,20 +109,23 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			if ( isset( $_REQUEST['_wp_http_referer'] ) ) {
 				$request_area      = wp_parse_url( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ); // phpcs:ignore
 				$request_area_path = strpos( $request_area['query'], 'white-label-section' );
-
+				
 				// If we have the input POSTed, we are on the right page so grab it.
 				if ( isset( $input['enable_wizard_styling'] ) && '' !== trim( (string) $input['enable_wizard_styling'] ) ) {
 					$output['enable_wizard_styling'] = \wp_strip_all_tags( $input['enable_wizard_styling'] );
 				} else {
 					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
 					if ( $request_area_path && ! strpos( $request_area['query'], 'custom-css' ) || ! $request_area_path ) {
-						$input['enable_wizard_styling']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
-						$output['enable_wizard_styling'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
-						/* @free:start */
-						// Free edition does have setting, so allow for it to be disabled.
-						$output['enable_wizard_styling'] = '';
-						$input['enable_wizard_styling']  = '';
-						/* @free:end */
+						if ( ! isset( $input['enable_wizard_styling'] ) ) {
+							$input['enable_wizard_styling']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
+							$output['enable_wizard_styling'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
+						} else {
+							/* @free:start */
+							// Free edition does have setting, so allow for it to be disabled.
+							$output['enable_wizard_styling'] = '';
+							$input['enable_wizard_styling']  = '';
+							/* @free:end */
+						}
 					} else {
 						$output['enable_wizard_styling'] = '';
 						$input['enable_wizard_styling']  = '';
@@ -169,8 +172,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				if ( preg_match( '#</?\w+#', $input['login_custom_css'] ) ) {
 					add_settings_error(
 						WP_2FA_SETTINGS_NAME,
-						esc_attr( 'markup_invalid_settings_error' ),
-						esc_html__( 'Markup is not allowed in Login area CSS.', 'wp-2fa' ),
+						\esc_attr( 'markup_invalid_settings_error' ),
+						\esc_html__( 'Markup is not allowed in Login area CSS.', 'wp-2fa' ),
 						'error'
 					);
 					$output['login_custom_css'] = WP2FA::get_wp2fa_white_label_setting( 'login_custom_css', false );
@@ -178,6 +181,19 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				} else {
 					$output['login_custom_css'] = \wp_strip_all_tags( $input['login_custom_css'] );
 					$input['login_custom_css']  = \wp_strip_all_tags( $input['login_custom_css'] );
+				}
+			}
+
+			if ( isset( $input['disable_login_css'] ) && '' !== trim( (string) $input['disable_login_css'] ) ) {
+				$output['disable_login_css'] = \wp_strip_all_tags( $input['disable_login_css'] );
+			} else {
+				// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
+				if ( $request_area_path && ! strpos( $request_area['query'], 'method_selection' ) ) {
+					$input['disable_login_css']  = WP2FA::get_wp2fa_white_label_setting( 'disable_login_css', false );
+					$output['disable_login_css'] = WP2FA::get_wp2fa_white_label_setting( 'disable_login_css', false );
+				} else {
+					$output['disable_login_css'] = '';
+					$input['disable_login_css']  = '';
 				}
 			}
 
@@ -196,7 +212,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			 *
 			 * @since 2.0.0
 			 */
-			$output = apply_filters( WP_2FA_PREFIX . 'filter_output_content', $output, $input );
+			$output = \apply_filters( WP_2FA_PREFIX . 'filter_output_content', $output, $input );
 
 			Debugging::log( 'The following settings are being saved (White Label): ' . "\n" . wp_json_encode( $output ) );
 
@@ -283,15 +299,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			do_action( WP_2FA_PREFIX . 'white_labeling_settings_page_before_default_text' );
 			?>
 
-		<h3><?php esc_html_e( 'Change the default text used in the 2FA code page', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Change the default text used in the 2FA code page', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php esc_html_e( 'This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder.', 'wp-2fa' ); ?>
+			<?php \esc_html_e( 'This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder.', 'wp-2fa' ); ?>
 		</p>
 
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th><label for="2fa-method"><?php esc_html_e( '2FA code page text', 'wp-2fa' ); ?></label></th>
+					<th><label for="2fa-method"><?php \esc_html_e( '2FA code page text', 'wp-2fa' ); ?></label></th>
 					<td>
 						<?php
 						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
@@ -299,11 +315,11 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 						} else {
 							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ), 'default-text-code-page' );	
 						} ?>
-						<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+						<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 					</td>
 				</tr>
 				<tr>
-					<th><label for="backup-method"><?php esc_html_e( 'Backup code page text', 'wp-2fa' ); ?></label></th>
+					<th><label for="backup-method"><?php \esc_html_e( 'Backup code page text', 'wp-2fa' ); ?></label></th>
 					<td>
 						<?php
 						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
@@ -311,12 +327,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 						} else { 
 							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ), 'default-backup-code-page' );
 						} ?>
-						<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+						<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 					</td>
 				</tr>
 
 				<tr>
-					<th><label for="backup-method"><?php esc_html_e( 'Text for logged out users trying to access the 2FA configuration page', 'wp-2fa' ); ?></label></th>
+					<th><label for="backup-method"><?php \esc_html_e( 'Text for logged out users trying to access the 2FA configuration page', 'wp-2fa' ); ?></label></th>
 					<td>
 						<?php
 						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
@@ -335,20 +351,20 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				?>
 			</tbody>
 		</table>
-			<h3><?php esc_html_e( 'Change the styling of the user 2FA wizards', 'wp-2fa' ); ?></h3>
+			<h3><?php \esc_html_e( 'Change the styling of the user 2FA wizards', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
+				<?php \esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
 			</p>
 			<table class="form-table">
 				<tbody>
 					<tr>
-						<th><label for="enable_wizard_styling"><?php esc_html_e( 'Enable styling', 'wp-2fa' ); ?></label></th>
+						<th><label for="enable_wizard_styling"><?php \esc_html_e( 'Enable styling', 'wp-2fa' ); ?></label></th>
 						<td>
 							<fieldset>
 								<input type="checkbox" id="enable_wizard_styling" name="wp_2fa_white_label[enable_wizard_styling]" value="enable_wizard_styling"
-								<?php checked( 'enable_wizard_styling', WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ), true ); ?>
+								<?php \checked( 'enable_wizard_styling', WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ), true ); ?>
 								>
-								<?php esc_html_e( 'Enable our CSS within user wizards', 'wp-2fa' ); ?>
+								<?php \esc_html_e( 'Enable our CSS within user wizards', 'wp-2fa' ); ?>
 							</fieldset>
 						</td>
 					</tr>

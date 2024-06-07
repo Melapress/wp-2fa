@@ -31,8 +31,8 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 		public static function add_extra_menu_item() {
 			add_submenu_page(
 				Settings_Page::TOP_MENU_SLUG,
-				esc_html__( 'Help & Contact Us', 'wp-2fa' ),
-				esc_html__( 'Help & Contact Us', 'wp-2fa' ),
+				\esc_html__( 'Help & Contact Us', 'wp-2fa' ),
+				\esc_html__( 'Help & Contact Us', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				array( __CLASS__, 'render' ),
@@ -56,11 +56,11 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $current_user_id ) : ?>
 			</br>
 				<?php
-				echo esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+				echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
 				?>
 		<?php else : ?>
 			<div class="wrap help-wrap">
-				<h2><?php esc_html_e( 'Help', 'wp-2fa' ); ?></h2>
+				<h2><?php \esc_html_e( 'Help', 'wp-2fa' ); ?></h2>
 				<hr>
 				<br>
 				<div class="nav-tab-wrapper">
@@ -68,8 +68,8 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 						// Get current tab.
 						$current_tab = isset( $_GET['tab'] ) ? \sanitize_text_field( \wp_unslash( $_GET['tab'] ) ) : 'help'; // phpcs:ignore
 					?>
-					<a href="<?php echo esc_url( remove_query_arg( 'tab' ) ); ?>" class="nav-tab<?php echo 'help' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'Help', 'wp-2fa' ); ?></a>
-					<a href="<?php echo esc_url( add_query_arg( 'tab', 'system-info' ) ); ?>" class="nav-tab<?php echo 'system-info' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( 'System info', 'wp-2fa' ); ?></a>
+					<a href="<?php echo \esc_url( remove_query_arg( 'tab' ) ); ?>" class="nav-tab<?php echo 'help' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php \esc_html_e( 'Help', 'wp-2fa' ); ?></a>
+					<a href="<?php echo \esc_url( add_query_arg( 'tab', 'system-info' ) ); ?>" class="nav-tab<?php echo 'system-info' === $current_tab ? ' nav-tab-active' : ''; ?>"><?php \esc_html_e( 'System info', 'wp-2fa' ); ?></a>
 				</div>
 				<div class="wp2fa-help-section nav-tabs">
 					<?php
@@ -96,36 +96,36 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 		<div class="wp2fa-help-main">
 			<!-- getting started -->
 			<div class="title">
-				<h2><?php esc_html_e( 'Getting started', 'wp-2fa' ); ?></h2>
+				<h2><?php \esc_html_e( 'Getting started', 'wp-2fa' ); ?></h2>
 			</div>
-			<p><?php esc_html_e( 'Getting started with WP 2FA and making 2FA compulsory is as easy as 1 2 3 with WP 2FA. This can be easily done through the install wizard or the plugin settings. If you are stuck, no problem! Below are a few links of guides to help you get started:', 'wp-2fa' ); ?></p>
+			<p><?php \esc_html_e( 'Getting started with WP 2FA and making 2FA compulsory is as easy as 1 2 3 with WP 2FA. This can be easily done through the install wizard or the plugin settings. If you are stuck, no problem! Below are a few links of guides to help you get started:', 'wp-2fa' ); ?></p>
 			<ul>
-				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://melapress.com/support/kb/wp-2fa-plugin-getting-started/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ), esc_html__( 'Getting started with WP 2FA', 'wp-2fa' ) ); ?></li>
-				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://melapress.com/support/kb/wp-2fa-configure-2fa-policies-enforce/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ), esc_html__( 'Configuring 2FA policies & making 2FA mandatory', 'wp-2fa' ) ); ?></li>
-				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', esc_url( 'https://melapress.com/support/kb/wp-2fa-configure-2fa-front-end-page-wordpress/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ), esc_html__( 'Allowing users to configure 2FA from a website page (no dashboard access)', 'wp-2fa' ) ); ?></li>
+				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', \esc_url( 'https://melapress.com/support/kb/wp-2fa-plugin-getting-started/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ), \esc_html__( 'Getting started with WP 2FA', 'wp-2fa' ) ); ?></li>
+				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', \esc_url( 'https://melapress.com/support/kb/wp-2fa-configure-2fa-policies-enforce/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ), \esc_html__( 'Configuring 2FA policies & making 2FA mandatory', 'wp-2fa' ) ); ?></li>
+				<li><?php echo wp_sprintf( '<a href="%1$s" target="_blank">%2$s</a>', \esc_url( 'https://melapress.com/support/kb/wp-2fa-configure-2fa-front-end-page-wordpress/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ), \esc_html__( 'Allowing users to configure 2FA from a website page (no dashboard access)', 'wp-2fa' ) ); ?></li>
 			</ul>
 			<!-- End -->
 			<br>
-			<p><iframe title="<?php esc_html_e( 'Getting started', 'wp-2fa' ); ?>" class="wsal-youtube-embed" width="100%" height="315" src="https://www.youtube.com/embed/vRlX_NNGeFo" frameborder="0" allowfullscreen></iframe></p>
+			<p><iframe title="<?php \esc_html_e( 'Getting started', 'wp-2fa' ); ?>" class="wsal-youtube-embed" width="100%" height="315" src="https://www.youtube.com/embed/vRlX_NNGeFo" frameborder="0" allowfullscreen></iframe></p>
 
 			<!-- Plugin documentation -->
 			<div class="title">
-				<h2><?php esc_html_e( 'Plugin documentation', 'wp-2fa' ); ?></h2>
+				<h2><?php \esc_html_e( 'Plugin documentation', 'wp-2fa' ); ?></h2>
 			</div>
-			<p><?php esc_html_e( 'For more technical information about the WP 2FA plugin please visit the plugin\'s knowledge base.', 'wp-2fa' ); ?></p>
+			<p><?php \esc_html_e( 'For more technical information about the WP 2FA plugin please visit the plugin\'s knowledge base.', 'wp-2fa' ); ?></p>
 			<div class="btn">
-				<a href="<?php echo esc_url( 'https://melapress.com/support/kb/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" class="button" target="_blank"><?php esc_html_e( 'Knowledge base', 'wp-2fa' ); ?></a>
+				<a href="<?php echo \esc_url( 'https://melapress.com/support/kb/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" class="button" target="_blank"><?php \esc_html_e( 'Knowledge base', 'wp-2fa' ); ?></a>
 			</div>
 			<!-- End -->
 
 			<!-- Plugin support -->
 			<div class="title">
-				<h2><?php esc_html_e( 'Plugin support', 'wp-2fa' ); ?></h2>
+				<h2><?php \esc_html_e( 'Plugin support', 'wp-2fa' ); ?></h2>
 			</div>
-			<p><?php esc_html_e( 'Do you need assistance with the plugin? Have you noticed or encountered an issue while using WP 2FA, or do you just want to report something to us?', 'wp-2fa' ); ?></p>
+			<p><?php \esc_html_e( 'Do you need assistance with the plugin? Have you noticed or encountered an issue while using WP 2FA, or do you just want to report something to us?', 'wp-2fa' ); ?></p>
 			<div class="btn">
-				<a href="<?php echo esc_url( 'https://melapress.com/support/submit-ticket/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" class="button" target="_blank"><?php esc_html_e( 'Open support ticket', 'wp-2fa' ); ?></a>
-				<a href="<?php echo esc_url( 'https://melapress.com/contact/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" class="button" target="_blank"><?php esc_html_e( 'Contact us', 'wp-2fa' ); ?></a>
+				<a href="<?php echo \esc_url( 'https://melapress.com/support/submit-ticket/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" class="button" target="_blank"><?php \esc_html_e( 'Open support ticket', 'wp-2fa' ); ?></a>
+				<a href="<?php echo \esc_url( 'https://melapress.com/contact/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" class="button" target="_blank"><?php \esc_html_e( 'Contact us', 'wp-2fa' ); ?></a>
 			</div>
 			<!-- End -->
 		</div>
@@ -142,7 +142,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 		<div class="wp2fa-help-main">
 			<!-- getting started -->
 			<div class="title">
-				<h2><?php esc_html_e( 'System information', 'wp-2fa' ); ?></h2>
+				<h2><?php \esc_html_e( 'System information', 'wp-2fa' ); ?></h2>
 			</div>
 			<form method="post" dir="ltr">
 				<textarea readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="wsal-sysinfo"><?php echo self::get_sysinfo(); // phpcs:ignore ?></textarea>
@@ -189,7 +189,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 		public static function sidebar() {
 			?>
 		<div class="our-wordpress-plugins side-bar">
-			<h3><?php esc_html_e( 'Our WordPress Plugins', 'wp-2fa' ); ?></h3>
+			<h3><?php \esc_html_e( 'Our WordPress Plugins', 'wp-2fa' ); ?></h3>
 			<ul>
 				<li>
 					<div class="plugin-box">
@@ -197,11 +197,11 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/wp-activity-log.jpeg" alt="">
 						</div>
 						<div class="plugin-desc">
-							<p><?php esc_html_e( 'Keep a log of users and under the hood site activity.', 'wp-2fa' ); ?></p>
+							<p><?php \esc_html_e( 'Keep a log of users and under the hood site activity.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
 								<?php
-								echo esc_url(
+								echo \esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -213,7 +213,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 									)
 								);
 								?>
-								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php \esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -224,11 +224,11 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/login-security.jpeg" alt="">
 						</div>
 						<div class="plugin-desc">
-							<p><?php esc_html_e( 'Enforce strong password policies on WordPress.', 'wp-2fa' ); ?></p>
+							<p><?php \esc_html_e( 'Enforce strong password policies on WordPress.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
 								<?php
-								echo esc_url(
+								echo \esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -240,7 +240,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 									)
 								);
 								?>
-								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php \esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -251,11 +251,11 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/website-file-changes-monitor.jpg" alt="">
 						</div>
 						<div class="plugin-desc">
-							<p><?php esc_html_e( 'Automatically identify unauthorized file changes on your WordPress site.', 'wp-2fa' ); ?></p>
+							<p><?php \esc_html_e( 'Automatically identify unauthorized file changes on your WordPress site.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
 								<?php
-								echo esc_url(
+								echo \esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -267,7 +267,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 									)
 								);
 								?>
-								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php \esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>
@@ -278,11 +278,11 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 							<img src="<?php echo WP_2FA_URL; // phpcs:ignore ?>dist/images/c4wp.jpg" alt="">
 						</div>
 						<div class="plugin-desc">
-							<p><?php esc_html_e( 'Protect website forms & login pages from spam bots & automated attacks.', 'wp-2fa' ); ?></p>
+							<p><?php \esc_html_e( 'Protect website forms & login pages from spam bots & automated attacks.', 'wp-2fa' ); ?></p>
 							<div class="cta-btn">
 								<a href="
 								<?php
-								echo esc_url(
+								echo \esc_url(
 									add_query_arg(
 										array(
 											'utm_source'   => 'plugin',
@@ -294,7 +294,7 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 									)
 								);
 								?>
-								" target="_blank"><?php esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
+								" target="_blank"><?php \esc_html_e( 'LEARN MORE', 'wp-2fa' ); ?></a>
 							</div>
 						</div>
 					</div>

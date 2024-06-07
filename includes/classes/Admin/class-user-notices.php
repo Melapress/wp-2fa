@@ -19,8 +19,6 @@ use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
-use WP2FA\Extensions\Integrations\WP2FA_Integrations;
-use WP2FA\Extensions\Integrations\Plugins\Woocommerce;
 use WP2FA\Extensions\WhiteLabeling\White_Labeling_Render;
 
 /**
@@ -137,10 +135,10 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 				}
 
 				if ( $show ) {
-					echo '<div class="' . esc_attr( $class ) . '">';
-					echo wpautop( wp_kses_post( WP2FA::replace_remaining_grace_period( $message, (int) $grace_expiry ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo ' <a href="' . esc_url( $setup_url ) . '" class="button button-primary">' . esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
-					echo ' <a href="#" class="button button-secondary dismiss-user-configure-nag">' . esc_html__( 'Remind me on next login', 'wp-2fa' ) . '</a></p>';
+					echo '<div class="' . \esc_attr( $class ) . '">';
+					echo wpautop( \wp_kses_post( WP2FA::replace_remaining_grace_period( $message, (int) $grace_expiry ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo ' <a href="' . \esc_url( $setup_url ) . '" class="button button-primary">' . \esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
+					echo ' <a href="#" class="button button-secondary dismiss-user-configure-nag">' . \esc_html__( 'Remind me on next login', 'wp-2fa' ) . '</a></p>';
 					echo '</div>';
 				}
 			} else {
@@ -157,11 +155,11 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 			if ( User_Helper::needs_to_reconfigure_method() ) {
 				$class = 'notice notice-info wp-2fa-nag';
 
-				$message = esc_html__( 'The 2FA method you were using is no longer allowed on this website. Please reconfigure 2FA using one of the supported methods.', 'wp-2fa' );
+				$message = \esc_html__( 'The 2FA method you were using is no longer allowed on this website. Please reconfigure 2FA using one of the supported methods.', 'wp-2fa' );
 
-				echo '<div class="' . esc_attr( $class ) . '"><p>' . esc_html( $message );
-				echo ' <a href="' . esc_url( Settings::get_setup_page_link() ) . '" class="button button-primary">' . esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
-				echo '  <a href="#" class="button button-secondary wp-2fa-button-secondary dismiss-user-reconfigure-nag">' . esc_html__( 'I\'ll do it later', 'wp-2fa' ) . '</a></p>';
+				echo '<div class="' . \esc_attr( $class ) . '"><p>' . \esc_html( $message );
+				echo ' <a href="' . \esc_url( Settings::get_setup_page_link() ) . '" class="button button-primary">' . \esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
+				echo '  <a href="#" class="button button-secondary wp-2fa-button-secondary dismiss-user-reconfigure-nag">' . \esc_html__( 'I\'ll do it later', 'wp-2fa' ) . '</a></p>';
 				echo '</div>';
 			}
 		}
@@ -195,39 +193,39 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 		public static function white_label_settings_text() {
 			?>
 			<tr>
-				<th><label for="email-backup-method"><?php esc_html_e( '2FA mandatory notice', 'wp-2fa' ); ?></label></th>
+				<th><label for="email-backup-method"><?php \esc_html_e( '2FA mandatory notice', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
 						echo White_Labeling_Render::get_method_text_editor( 'default-2fa-required-notice' ); // phpcs:ignore
 					?>
-					<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>
 			</tr>
 			<tr>
-				<th><label for="email-backup-method"><?php esc_html_e( '2FA reconfiguration mandatory notice', 'wp-2fa' ); ?></label></th>
+				<th><label for="email-backup-method"><?php \esc_html_e( '2FA reconfiguration mandatory notice', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
 						echo White_Labeling_Render::get_method_text_editor( 'default-2fa-resetup-required-notice' ); // phpcs:ignore
 					?>
-					<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>
 			</tr>
 			<tr>
-				<th><label><?php esc_html_e( 'User profile 2FA configuration area title', 'wp-2fa' ); ?></label></th>
+				<th><label><?php \esc_html_e( 'User profile 2FA configuration area title', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
 						echo White_Labeling_Render::get_method_text_editor( 'user-profile-form-preamble-title' ); // phpcs:ignore
 					?>
-					<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>
 			</tr>
 			<tr>
-			<th><label><?php esc_html_e( 'User profile 2FA configuration area description', 'wp-2fa' ); ?></label></th>
+			<th><label><?php \esc_html_e( 'User profile 2FA configuration area description', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
 						echo White_Labeling_Render::get_method_text_editor( 'user-profile-form-preamble-desc' ); // phpcs:ignore
 					?>
-					<div style="margin-top: 5px;"><span><strong><i><?php esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
+					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>
 			</tr>
 			<?php

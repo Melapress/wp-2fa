@@ -14,6 +14,7 @@ return array(
     'WP2FA_Vendor\\Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
     'WP2FA_Vendor\\Endroid\\QrCode\\' => array($vendorDir . '/endroid/qr-code/src'),
     'WP2FA_Vendor\\DASPRiD\\Enum\\' => array($vendorDir . '/dasprid/enum/src'),
+    'WP2FA_Vendor\\Clickatell\\' => array($vendorDir . '/arcturial/clickatell/src', $vendorDir . '/arcturial/clickatell/test'),
     'WP2FA_Vendor\\BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
     'WP2FA\\Extensions\\' => array($baseDir . '/extensions'),
     'WP2FA\\' => array($baseDir . '/includes/classes'),

@@ -77,7 +77,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 
 			$login_nonce = Login::create_login_nonce( $user_data->ID );
 			if ( ! $login_nonce ) {
-				wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+				wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
 
 			self::show_two_factor_login( $user_data, $login_nonce['key'] );
@@ -119,14 +119,14 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			login_header();
 
 			if ( ! empty( $error_msg ) ) {
-				echo '<div id="login_error"><strong>' . esc_html( apply_filters( 'login_errors', esc_html( $error_msg ) ) ) . '</strong><br /></div>';
+				echo '<div id="login_error"><strong>' . \esc_html( apply_filters( 'login_errors', \esc_html( $error_msg ) ) ) . '</strong><br /></div>';
 			}
 			?>
-		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
-			<input type="hidden" name="wp-auth-id"    id="wp-auth-id"    value="<?php echo esc_attr( $user->ID ); ?>" />
-			<input type="hidden" name="wp-auth-nonce" id="wp-auth-nonce" value="<?php echo esc_attr( $login_nonce ); ?>" />
-			<input type="hidden" name="reset"      id="reset"      value="<?php echo esc_attr( 'reset-2fa' ); ?>" />
-			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
+		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo \esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
+			<input type="hidden" name="wp-auth-id"    id="wp-auth-id"    value="<?php echo \esc_attr( $user->ID ); ?>" />
+			<input type="hidden" name="wp-auth-nonce" id="wp-auth-nonce" value="<?php echo \esc_attr( $login_nonce ); ?>" />
+			<input type="hidden" name="reset"      id="reset"      value="<?php echo \esc_attr( 'reset-2fa' ); ?>" />
+			<input type="hidden" name="redirect_to" value="<?php echo \esc_attr( $redirect_to ); ?>" />
 			<?php
 			// Check to see what provider is set and give the relevant authentication page.
 
@@ -142,7 +142,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				 *
 				 * @since 2.0.0
 				 */
-				$button_text = apply_filters( WP_2FA_PREFIX . 'new_password_button_text', esc_html__( 'Get New Password', 'wp-2fa' ) );
+				$button_text = apply_filters( WP_2FA_PREFIX . 'new_password_button_text', \esc_html__( 'Get New Password', 'wp-2fa' ) );
 			?>
 
 					<p class="submit">
@@ -152,8 +152,8 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 
 				<p class="2fa-email-resend">
 					<input type="submit" class="button"
-					name="<?php echo esc_attr( Login::INPUT_NAME_RESEND_CODE ); ?>"
-					value="<?php esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
+					name="<?php echo \esc_attr( Login::INPUT_NAME_RESEND_CODE ); ?>"
+					value="<?php \esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
 				</p>
 
 		</form>
@@ -193,7 +193,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			if ( Email::METHOD_NAME === $provider && true !== Login::pre_process_email_authentication( $user ) ) {
 				$login_nonce = Login::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
-					wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+					wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
 			}
 
@@ -210,13 +210,13 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 
 				$login_nonce = Login::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
-					wp_die( esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+					wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
 
 				if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) { //phpcs:ignore
-					self::show_two_factor_login( $user, $login_nonce['key'], esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore
+					self::show_two_factor_login( $user, $login_nonce['key'], \esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore
 				} else {
-						self::show_two_factor_login( $user, $login_nonce['key'], esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore
+						self::show_two_factor_login( $user, $login_nonce['key'], \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore
 				}
 
 				exit;

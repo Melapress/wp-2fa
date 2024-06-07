@@ -96,25 +96,25 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		/**
 		 * Returns all the classes which are part of the given namespace.
 		 *
-		 * @param string $namespace - The namespace to search for.
+		 * @param string $extract_namespace - The extract_namespace to search for.
 		 *
 		 * @return array
 		 *
 		 * @since 2.4.0
 		 */
-		public static function get_classes_by_namespace( string $namespace ) {
-			if ( 0 === strpos( $namespace, '\\' ) ) {
-				$namespace = ltrim( $namespace, '\\' );
+		public static function get_classes_by_namespace( string $extract_namespace ) {
+			if ( 0 === strpos( $extract_namespace, '\\' ) ) {
+				$extract_namespace = ltrim( $extract_namespace, '\\' );
 			}
 
-			$namespace = rtrim( $namespace, '\\' );
+			$extract_namespace = rtrim( $extract_namespace, '\\' );
 
-			$term_upper = strtoupper( $namespace );
+			$term_upper = strtoupper( $extract_namespace );
 
 			return array_filter(
 				array_keys( self::get_class_map() ),
-				function ( $class ) use ( $term_upper ) {
-					$class_name = strtoupper( $class );
+				function ( $found_class ) use ( $term_upper ) {
+					$class_name = strtoupper( $found_class );
 
 					/**
 					 * Find class name, by finding the last occurrence of the \
@@ -133,7 +133,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 						false === strpos( $class_name, strtoupper( 'Abstract' ) ) &&
 						false === strpos( $class_name, strtoupper( 'Interface' ) )
 					) {
-						return $class;
+						return $found_class;
 					}
 
 					return false;
@@ -155,19 +155,36 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 
 			return array_filter(
 				self::get_class_map(),
-				function ( $class ) use ( $term_upper ) {
-					$class_name = strtoupper( $class );
+				function ( $found_class ) use ( $term_upper ) {
+					$class_name = strtoupper( $found_class );
 					if (
 						false !== strpos( $class_name, $term_upper ) &&
 						false === strpos( $class_name, strtoupper( 'Abstract' ) ) &&
 						false === strpos( $class_name, strtoupper( 'Interface' ) )
 					) {
-						return $class;
+						return $found_class;
 					}
 
 					return false;
 				}
 			);
+		}
+
+		/**
+		 * Adds a class (or classes) to the class map.
+		 *
+		 * @param array $class_add - Array with class or classes to add.
+		 *
+		 * @return void
+		 *
+		 * @since 2.7.0
+		 */
+		public static function add_to_class_map( array $class_add ) {
+			if ( empty( self::$class_map ) ) {
+				self::$class_map = require WP_2FA_PATH . 'vendor/composer/autoload_classmap.php';
+			}
+
+			self::$class_map = \array_merge( self::$class_map, $class_add );
 		}
 	}
 }

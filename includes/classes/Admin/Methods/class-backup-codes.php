@@ -309,7 +309,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function validate_code( $user, $code ) {
-			$backup_codes = get_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, true );
+			$backup_codes = \get_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, true );
 			if ( is_array( $backup_codes ) && ! empty( $backup_codes ) ) {
 				foreach ( $backup_codes as $code_hashed ) {
 					if ( \wp_check_password( $code, $code_hashed, $user->ID ) ) {
@@ -592,6 +592,17 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			}
 
 			return Settings_Page::send_email( $email_address, $subject, $final_output );
+		}
+
+		/**
+		 * Marks methods as secondary.
+		 *
+		 * @return boolean
+		 *
+		 * @since 2.7.0
+		 */
+		public static function is_secondary() {
+			return true;
 		}
 	}
 }

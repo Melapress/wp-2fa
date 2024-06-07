@@ -19,6 +19,7 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 	 * Utility class for creating modal popup markup.
 	 *
 	 * @package WP2FA\Utils
+	 *
 	 * @since 1.4.2
 	 */
 	class Debugging {
@@ -27,6 +28,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * Local cache for the logging dir so that it doesn't need to be repopulated each time get_logging_dir_path is called.
 		 *
 		 * @var string
+		 *
+		 * @since 1.4.2
 		 */
 		private static $logging_dir_path = '';
 
@@ -34,6 +37,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * Retrieve the logging status
 		 *
 		 * @return boolean
+		 *
+		 * @since 1.4.2
 		 */
 		private static function is_logging_enabled() {
 			/**
@@ -50,6 +55,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * @param string $message - The message to log.
 		 *
 		 * @return void
+		 *
+		 * @since 1.4.2
 		 */
 		public static function log( $message ) {
 			if ( self::is_logging_enabled() ) {
@@ -61,6 +68,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * Retrieves the path to the log file
 		 *
 		 * @return string
+		 *
+		 * @since 1.4.2
 		 */
 		private static function get_logging_dir_path() {
 			if ( strlen( self::$logging_dir_path ) === 0 ) {
@@ -76,7 +85,10 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 *
 		 * @param string $data     - Data to write to file.
 		 * @param bool   $override - Set to true if overriding the file.
+		 *
 		 * @return bool
+		 *
+		 * @since 1.4.2
 		 */
 		private static function write_to_log( $data, $override = false ) {
 			$logging_dir_path = self::get_logging_dir_path();
@@ -94,6 +106,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * avoid directory listing in the specified directory.
 		 *
 		 * @return bool
+		 *
+		 * @since 1.4.2
 		 */
 		private static function create_index_file() {
 			return self::write_to_file( 'index.php', '<?php // Silence is golden' );
@@ -104,6 +118,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * block access to directory listing in the specified directory.
 		 *
 		 * @return bool
+		 *
+		 * @since 1.4.2
 		 */
 		private static function create_htaccess_file() {
 			return self::write_to_file( '.htaccess', 'Deny from all' );
@@ -115,7 +131,10 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * @param string $filename - File name.
 		 * @param string $content  - Contents of the file.
 		 * @param bool   $override - (Optional) True if overriding file contents.
+		 *
 		 * @return bool
+		 *
+		 * @since 1.4.2
 		 */
 		private static function write_to_file( $filename, $content, $override = false ) {
 			global $wp_filesystem;
@@ -147,6 +166,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * Returns the timestamp for log files.
 		 *
 		 * @return string
+		 *
+		 * @since 1.4.2
 		 */
 		private static function get_log_timestamp() {
 			return '[' . gmdate( 'd-M-Y H:i:s' ) . ' UTC]';

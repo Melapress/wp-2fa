@@ -38,7 +38,7 @@ if ( ! class_exists( '\WP2FA\Utils\Date_Time_Utils' ) ) {
 			}
 
 			if ( 'no-grace-period' === $grace_policy ) {
-				return esc_html__( 'no grace period', 'wp-2fa' );
+				return \esc_html__( 'no grace period', 'wp-2fa' );
 			}
 
 			if ( -1 === $grace_expiry ) {
@@ -63,7 +63,7 @@ if ( ! class_exists( '\WP2FA\Utils\Date_Time_Utils' ) ) {
 			);
 
 			/* translators: Grace period expiration label. %s: Date and time formatted using WordPress date and time formats. */
-			return sprintf( esc_html__( 'before %s', 'wp-2fa' ), $expiration_date_time );
+			return sprintf( \esc_html__( 'before %s', 'wp-2fa' ), $expiration_date_time );
 		}
 	}
 }

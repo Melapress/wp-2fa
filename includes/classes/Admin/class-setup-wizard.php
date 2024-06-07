@@ -11,22 +11,23 @@
 
 namespace WP2FA\Admin;
 
-use WP2FA\Methods\TOTP;
 use WP2FA\Core;
-use WP2FA\Methods\Email;
 use WP2FA\WP2FA;
+use WP2FA\Methods\TOTP;
+use WP2FA\Methods\Email;
+use WP2FA\Utils\User_Utils;
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Methods\Backup_Codes;
+use WP2FA\Utils\Generate_Modal;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Views\Re_Login_2FA;
 use WP2FA\Admin\Views\Wizard_Steps;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Utils\User_Utils;
-use WP2FA\Admin\Views\First_Time_Wizard_Steps;
-use WP2FA\Admin\Settings_Page;
-use WP2FA\Utils\Settings_Utils;
-use WP2FA\Utils\Generate_Modal;
-use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
 use WP2FA\Authenticator\Authentication;
+use WP2FA\Admin\Views\First_Time_Wizard_Steps;
+use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
 
 /**
  * Setup_Wizard class for the wizard steps setup
@@ -117,18 +118,18 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 			$wizard_steps = array(
 				'welcome'                => array(
-					'name'        => esc_html__( 'Welcome', 'wp-2fa' ),
+					'name'        => \esc_html__( 'Welcome', 'wp-2fa' ),
 					'content'     => array( __CLASS__, 'wp_2fa_step_welcome' ),
 					'wizard_type' => 'welcome_wizard',
 				),
 				'settings_configuration' => array(
-					'name'        => esc_html__( 'Configure 2FA methods & Policies', 'wp-2fa' ),
+					'name'        => \esc_html__( 'Configure 2FA methods & Policies', 'wp-2fa' ),
 					'content'     => array( __CLASS__, 'wp_2fa_step_global_2fa_methods' ),
 					'save'        => array( __CLASS__, 'wp_2fa_step_global_2fa_methods_save' ),
 					'wizard_type' => 'welcome_wizard',
 				),
 				'finish'                 => array(
-					'name'        => esc_html__( 'Setup Finish', 'wp-2fa' ),
+					'name'        => \esc_html__( 'Setup Finish', 'wp-2fa' ),
 					'content'     => array( __CLASS__, 'wp_2fa_step_finish' ),
 					'save'        => array( __CLASS__, 'wp_2fa_step_finish_save' ),
 					'wizard_type' => 'welcome_wizard',
@@ -200,7 +201,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 						'all-set'      => 1,
 					)
 				);
-				wp_safe_redirect( esc_url_raw( $redirect_to_finish ) );
+				wp_safe_redirect( \esc_url_raw( $redirect_to_finish ) );
 			}
 
 			/**
@@ -243,18 +244,22 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				'ajaxURL'         => admin_url( 'admin-ajax.php' ),
 				'roles'           => WP2FA::wp_2fa_get_roles(),
 				'nonce'           => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-				'invalidEmail   ' => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
-				'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
+				'invalidEmail   ' => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+				'backupCodesSent' => \esc_html__( 'Backup codes sent', 'wp-2fa' ),
 			);
-			wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
+			\wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
+
+			$re_login = Settings::get_role_or_default_setting( Re_Login_2FA::RE_LOGIN_SETTINGS_NAME, 'current', User_Helper::get_user_role() );
 
 			// Data array.
 			$data_array = array(
 				'ajaxURL'        => admin_url( 'admin-ajax.php' ),
 				'nonce'          => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
-				'codesPreamble'  => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-				'readyText'      => esc_html__( 'I\'m ready', 'wp-2fa' ),
-				'codeReSentText' => esc_html__( 'New code sent', 'wp-2fa' ),
+				'codesPreamble'  => \esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+				'readyText'      => \esc_html__( 'I\'m ready', 'wp-2fa' ),
+				'codeReSentText' => \esc_html__( 'New code sent', 'wp-2fa' ),
+				'reLogin'         => $re_login,
+				'reLoginEnabled' => Re_Login_2FA::ENABLED_SETTING_VALUE,
 			);
 
 			/**
@@ -293,7 +298,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		<head>
 			<meta name="viewport" content="width=device-width" />
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-			<title><?php esc_html_e( 'WP 2FA &rsaquo; Setup Wizard', 'wp-2fa' ); ?></title>
+			<title><?php \esc_html_e( 'WP 2FA &rsaquo; Setup Wizard', 'wp-2fa' ); ?></title>
 			<?php wp_print_scripts( 'jquery' ); ?>
 			<?php wp_print_scripts( 'jquery-ui-core' ); ?>
 			<?php wp_print_scripts( 'wp_2fa_setup_wizard' ); ?>
@@ -316,7 +321,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		</head>
 		<body class="wp2fa-setup wp-core-ui">
 			<div class="setup-wizard-wrapper wp-2fa-settings-wrapper wp2fa-form-styles">
-				<h1 id="wp2fa-logo"><a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><img style="max-width: 80px;" src="<?php echo esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>"></a></h1>
+				<h1 id="wp2fa-logo"><a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><img style="max-width: 80px;" src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>"></a></h1>
 			<?php
 		}
 
@@ -331,7 +336,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			<div class="wp2fa-setup-footer">
 				<?php if ( 'welcome' !== self::$current_step && 'finish' !== self::$current_step ) { // Don't show the link on the first & last step. ?>
 					<?php if ( ! User_Helper::get_user_enforced_instantly( $user ) ) { ?>
-						<a class="close-wizard-link" href="<?php echo esc_url( $redirect ); ?>"><?php esc_html_e( 'Close Wizard', 'wp-2fa' ); ?></a>
+						<a class="close-wizard-link" href="<?php echo \esc_url( $redirect ); ?>"><?php \esc_html_e( 'Close Wizard', 'wp-2fa' ); ?></a>
 						<?php
 					}
 				}
@@ -347,7 +352,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				'',
 				__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the ', 'wp-2fa' ) . ' <b>' . __( 'WP 2FA', 'wp-2fa' ) . '</b>' . __( ' entry in your WordPress dashboard menu.', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				array(
-					'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . esc_url( $redirect ) . '">' . __( 'OK, close wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . \esc_url( $redirect ) . '">' . __( 'OK, close wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					'<a href="#" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" data-close-2fa-modal>' . __( 'Continue with wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				),
 				'',
@@ -368,11 +373,11 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				if ( 'welcome_wizard' === $step['wizard_type'] || is_array( $step['wizard_type'] ) && in_array( 'welcome_wizard', $step['wizard_type'], true ) ) :
 					if ( $key === self::$current_step ) :
 						?>
-						<li class="is-active"><?php echo esc_html( $step['name'] ); ?></li>
+						<li class="is-active"><?php echo \esc_html( $step['name'] ); ?></li>
 						<?php
 									else :
 										?>
-						<li><?php echo esc_html( $step['name'] ); ?></li>
+						<li><?php echo \esc_html( $step['name'] ); ?></li>
 										<?php
 									endif;
 				endif;
@@ -445,7 +450,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		private static function wp_2fa_step_finish_save() {
 			// Verify nonce.
 			check_admin_referer( 'wp2fa-step-finish' );
-			wp_safe_redirect( esc_url_raw( self::get_next_step() ) );
+			wp_safe_redirect( \esc_url_raw( self::get_next_step() ) );
 			exit();
 		}
 
@@ -456,47 +461,47 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			?>
 		<form method="post" class="wp2fa-setup-form wp2fa-form-styles wp2fa-first-time-wizard" autocomplete="off">
 			<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
-			<div class="step-setting-wrapper active" data-step-title="<?php esc_html_e( '2FA methods', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper active" data-step-title="<?php \esc_html_e( '2FA methods', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::select_method( true ); ?>
 				<div class="wp2fa-setup-actions">
-					<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+					<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
 				</div>
 			</div>
-			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Alternative methods', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Alternative methods', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::backup_method( true ); ?>
 				<div class="wp2fa-setup-actions">
-					<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+					<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
 				</div>
 			</div>
-			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( '2FA policy', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( '2FA policy', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::enforcement_policy( true ); ?>
 				<div class="wp2fa-setup-actions">
-					<a class="button button-primary continue-wizard hidden" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
-					<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php esc_html_e( 'All done', 'wp-2fa' ); ?></button>
+					<a class="button button-primary continue-wizard hidden" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+					<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php \esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php \esc_html_e( 'All done', 'wp-2fa' ); ?></button>
 				</div>
 			</div>
-			<div class="step-setting-wrapper hidden" data-step-title="<?php esc_html_e( 'Exclude users', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper hidden" data-step-title="<?php \esc_html_e( 'Exclude users', 'wp-2fa' ); ?>">
 			<?php First_Time_Wizard_Steps::exclude_users( true ); ?>
 				<div class="wp2fa-setup-actions">
-					<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+					<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
 				</div>
 			</div>
 
 			<?php if ( WP_Helper::is_multisite() ) : ?>
-				<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Exclude sites', 'wp-2fa' ); ?>">
+				<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Exclude sites', 'wp-2fa' ); ?>">
 				<?php First_Time_Wizard_Steps::excluded_network_sites( true ); ?>
 					<div class="wp2fa-setup-actions">
-						<a class="button button-primary" name="next_step_setting" value="<?php esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+						<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
 					</div>
 				</div>
 			<?php endif; ?>
 
-			<div class="step-setting-wrapper" data-step-title="<?php esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
-				<h3><?php esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
-				<p class="description"><?php esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
+			<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
+				<h3><?php \esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
+				<p class="description"><?php \esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
 				<?php First_Time_Wizard_Steps::grace_period( true ); ?>
 				<div class="wp2fa-setup-actions">
-					<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php esc_html_e( 'All done', 'wp-2fa' ); ?></button>
+					<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php \esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php \esc_html_e( 'All done', 'wp-2fa' ); ?></button>
 				</div>
 			</div>
 
@@ -525,7 +530,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			$sanitized_settings = $settings_page->validate_and_sanitize( $input, 'setup_wizard' );
 			WP2FA::update_plugin_settings( $sanitized_settings );
 
-			wp_safe_redirect( esc_url_raw( self::get_next_step() ) );
+			wp_safe_redirect( \esc_url_raw( self::get_next_step() ) );
 			exit();
 		}
 
@@ -649,7 +654,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			// Check nonce.
 			check_admin_referer( 'wp2fa-step-addon' );
 
-			wp_safe_redirect( esc_url_raw( self::get_next_step() ) );
+			wp_safe_redirect( \esc_url_raw( self::get_next_step() ) );
 			exit();
 		}
 	}

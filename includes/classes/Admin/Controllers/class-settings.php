@@ -7,6 +7,7 @@
  * @copyright  2024 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
+ * @since      2.2.0
  */
 
 declare(strict_types=1);
@@ -26,6 +27,8 @@ defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 	/**
 	 * WP2FA Settings controller
+	 *
+	 * @since 2.2.0
 	 */
 	class Settings {
 
@@ -33,6 +36,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * The link to the WP admin settings page
 		 *
 		 * @var string
+		 *
+		 * @since 2.2.0
 		 */
 		private static $settings_page_link = '';
 
@@ -40,6 +45,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * The name of the WP2FA WP admin setup page
 		 *
 		 * @var string
+		 *
+		 * @since 2.2.0
 		 */
 		private static $setup_page_name = 'wp-2fa-setup';
 
@@ -47,6 +54,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * The link to the WP admin setup page
 		 *
 		 * @var string
+		 *
+		 * @since 2.2.0
 		 */
 		private static $setup_page_link = '';
 
@@ -54,11 +63,19 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * The link to the custom settings page (if one is presented)
 		 *
 		 * @var string
+		 *
+		 * @since 2.2.0
 		 */
 		private static $custom_setup_page_link = null;
 
 		/**
-		 * Array with all the backup methods available
+		 * Array with all the backup methods available.
+		 *
+		 * Array must contain the following:
+		 * [backup_method_slug] - [
+		 *          'wizard-step' - The name (HTML friendly as it will be used in the tags) of the plugin wizard step.
+		 *          'button_name' - The button name shown in the wizard - language translated.
+		 * ]
 		 *
 		 * @var array
 		 *
@@ -98,6 +115,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * Returns the link to the WP admin settings page, based on the current WP install
 		 *
 		 * @return string
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_settings_page_link() {
 			if ( '' === self::$settings_page_link ) {
@@ -111,6 +130,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * Returns the link to the WP admin settings page, based on the current WP install
 		 *
 		 * @return string
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_setup_page_link() {
 			if ( '' === self::$setup_page_link ) {
@@ -134,6 +155,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * @param mixed $user - User for which to extract the setting, null, \WP_User or user id - @see get_role_or_default_setting method of this class.
 		 *
 		 * @return string
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_custom_page_link( $user = null ): string {
 			if ( null === self::$custom_setup_page_link ) {
@@ -387,6 +410,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * Grab list of all register providers in the plugin.
 		 *
 		 * @return array
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_providers() {
 			if ( empty( self::$all_providers ) ) {
