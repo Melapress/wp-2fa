@@ -496,7 +496,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				</div>
 			<?php endif; ?>
 
-			<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper hidden" data-step-title="<?php \esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
 				<h3><?php \esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
 				<p class="description"><?php \esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
 				<?php First_Time_Wizard_Steps::grace_period( true ); ?>

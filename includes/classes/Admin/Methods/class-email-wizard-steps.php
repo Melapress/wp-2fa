@@ -308,7 +308,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						if ( isset( $custom_mail ) && ! empty( (string) $custom_mail ) ) {
 							$from_email = $custom_mail;
 						}
-						
+
 						echo \wp_kses_post( str_replace( '{from_email}', $from_email, WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_help_email', true ) ) );
 						?>
 
