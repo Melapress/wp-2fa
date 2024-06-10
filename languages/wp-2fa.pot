@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-06-07T10:57:05+00:00\n"
+"POT-Creation-Date: 2024-06-10T10:18:29+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: wp-2fa\n"
@@ -456,7 +456,7 @@ msgstr ""
 
 #: extensions/clickatell/class-clickatell-render.php:82
 #: extensions/clickatell/class-clickatell-wizard-steps.php:331
-msgid "Verify the Clickatell keys"
+msgid "Verify the Clickatell account SID"
 msgstr ""
 
 #: extensions/clickatell/class-clickatell-render.php:151
