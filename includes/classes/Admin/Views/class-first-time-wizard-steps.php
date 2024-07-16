@@ -174,7 +174,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 				<?php
 					echo '<p class="description">';
 					printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-						'%1$1s <a href="https://melapress.com/support/kb/wp-2fa-what-are-2fa-backup-codes/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> <br><br>',
+						'%1$1s <a href="https://melapress.com/support/kb/wp-2fa-what-are-2fa-backup-codes/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> <br><br>',
 						\esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
 						\esc_html__( 'More information', 'wp-2fa' )
 					);
@@ -182,14 +182,16 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 				?>
 
 				<?php
+				/* @free:start */
 					echo '<label>';
 					printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-						'%1$1s <a href="https://melapress.com/wordpress-2fa/features/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> %3$1s',
+						'%1$1s <a href="https://melapress.com/wordpress-2fa/features/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">%2$1s</a> %3$1s',
 						\esc_html__( 'Upgrade to WP 2FA Premium for', 'wp-2fa' ),
 						\esc_html__( 'more alternative 2FA methods', 'wp-2fa' ),
 						\esc_html__( 'to give your users more options.', 'wp-2fa' )
 					);
 					echo '<label>';
+				/* @free:end */
 				?>
 			</fieldset>
 				<?php
@@ -214,7 +216,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 			?>
 		<h3 id="enforcement_settings"><?php \esc_html_e( 'Do you want to enforce 2FA for some, or all the users? ', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php \esc_html_e( 'When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. ', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-policies-enforce/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel=noopener><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+			<?php \esc_html_e( 'When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. ', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-policies-enforce/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel=noopener><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 		</p>
 			<?php
 			if ( ! $setup_wizard ) {
@@ -258,8 +260,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 									<p>
 										<label for="enforced_users-multi-select"><?php \esc_html_e( 'Users :', 'wp-2fa' ); ?></label> <select multiple="multiple" id="enforced_users-multi-select" name="wp_2fa_policy[enforced_users][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 										<?php
-										$excluded_users = WP2FA::get_wp2fa_setting( 'enforced_users' );
-										foreach ( $excluded_users as $user ) {
+										$enforced_users = (array) WP2FA::get_wp2fa_setting( 'enforced_users' );
+										foreach ( $enforced_users as $user ) {
 											?>
 												<option selected="selected" value="<?php echo \esc_attr( $user ); ?>"><?php echo \esc_attr( $user ); ?></option>
 												<?php
@@ -275,8 +277,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 										<label for="enforced-roles-multi-select"><?php \esc_html_e( 'Roles :', 'wp-2fa' ); ?></label>
 										<select multiple="multiple" id="enforced-roles-multi-select" name="wp_2fa_policy[enforced_roles][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 										<?php
-										$all_roles      = \WP2FA\WP2FA::wp_2fa_get_roles();
-										$enforced_roles = WP2FA::get_wp2fa_setting( 'enforced_roles' );
+										$all_roles      = WP_Helper::get_roles_wp();
+										$enforced_roles = (array) WP2FA::get_wp2fa_setting( 'enforced_roles' );
 										foreach ( $all_roles as $role => $role_name ) {
 											$selected = '';
 											if ( in_array( $role, $enforced_roles, true ) ) {
@@ -310,7 +312,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 									<p>
 										<label for="enforced-sites-multi-select"><?php \esc_html_e( 'Sites :', 'wp-2fa' ); ?></label> <select multiple="multiple" id="enforced-sites-multi-select" name="wp_2fa_policy[included_sites][]" style="display:none; width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 											<?php
-											$selected_sites = WP2FA::get_wp2fa_setting( 'included_sites' );
+											$selected_sites = (array) WP2FA::get_wp2fa_setting( 'included_sites' );
 											foreach ( WP_Helper::get_multi_sites() as $site ) {
 												$args = array(
 													'blog_id' => $site->blog_id,
@@ -382,7 +384,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 							<div>
 								<select multiple="multiple" id="excluded-users-multi-select" name="wp_2fa_policy[excluded_users][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 								<?php
-								$excluded_users = WP2FA::get_wp2fa_setting( 'excluded_users' );
+								$excluded_users = (array) WP2FA::get_wp2fa_setting( 'excluded_users' );
 								foreach ( $excluded_users as $user ) {
 									?>
 									<option selected="selected" value="<?php echo \esc_attr( $user ); ?>"><?php echo \esc_html( $user ); ?></option>
@@ -407,8 +409,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 							<?php } ?>
 									<select multiple="multiple" id="excluded-roles-multi-select" name="wp_2fa_policy[excluded_roles][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 									<?php
-									$all_roles      = \WP2FA\WP2FA::wp_2fa_get_roles();
-									$excluded_roles = WP2FA::get_wp2fa_setting( 'excluded_roles' );
+									$all_roles      = WP_Helper::get_roles_wp();
+									$excluded_roles = (array) WP2FA::get_wp2fa_setting( 'excluded_roles' );
 									foreach ( $all_roles as $role => $role_name ) {
 										$selected = '';
 										if ( in_array( strtolower( $role ), $excluded_roles, true ) ) {
@@ -452,53 +454,53 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 		public static function excluded_network_sites( $setup_wizard = false ) {
 			?>
 		<h3><?php \esc_html_e( 'Do you want to exclude all the users of a site from 2FA? ', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php \esc_html_e( 'If you are enforcing 2FA on all users but for some reason you do not want to enforce it on a specific sub site, specify the sub site name below:', 'wp-2fa' ); ?>
-		</p>
+			<p class="description">
+				<?php \esc_html_e( 'If you are enforcing 2FA on all users but for some reason you do not want to enforce it on a specific sub site, specify the sub site name below:', 'wp-2fa' ); ?>
+			</p>
 			<?php
 			if ( ! $setup_wizard ) {
 				?>
-		<table class="form-table js-enforcement-policy-section">
-			<tbody>
-				<tr>
-					<th><label for="excluded-sites-multi-select"><?php \esc_html_e( 'Exclude the following sites', 'wp-2fa' ); ?></label></th>
-					<td>
-			<?php } ?>
-						<fieldset>
-						<?php
-						if ( $setup_wizard ) {
-							?>
-
-						<div class="option-pill">
-							<label for="excluded_sites_search"><?php \esc_html_e( 'Exclude the following sites', 'wp-2fa' ); ?>
-						<?php } ?>
-								<select multiple="multiple" id="excluded-sites-multi-select" name="wp_2fa_policy[excluded_sites][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
-								<?php
-									$excluded_sites = WP2FA::get_wp2fa_setting( 'excluded_sites' );
-								if ( ! empty( $excluded_sites ) ) {
-									foreach ( $excluded_sites as $site_id ) {
-										$site = get_blog_details( $site_id )->blogname;
-										?>
-												<option selected="selected" value="<?php echo \esc_attr( $site_id ); ?>"><?php echo \esc_html( $site ); ?></option>
-											<?php
-									}
-								}
-								?>
-								</select>
+				<table class="form-table js-enforcement-policy-section">
+					<tbody>
+						<tr>
+							<th><label for="excluded-sites-multi-select"><?php \esc_html_e( 'Exclude the following sites', 'wp-2fa' ); ?></label></th>
+							<td>
+					<?php } ?>
+								<fieldset>
 								<?php
 								if ( $setup_wizard ) {
 									?>
-							</label>
-						</div>
-						<?php } ?>
-						</fieldset>
-							<?php
-							if ( ! $setup_wizard ) {
-								?>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+
+								<div class="option-pill">
+									<label for="excluded_sites_search"><?php \esc_html_e( 'Exclude the following sites', 'wp-2fa' ); ?>
+								<?php } ?>
+										<select multiple="multiple" id="excluded-sites-multi-select" name="wp_2fa_policy[excluded_sites][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
+										<?php
+											$excluded_sites = (array) WP2FA::get_wp2fa_setting( 'excluded_sites' );
+										if ( ! empty( $excluded_sites ) ) {
+											foreach ( $excluded_sites as $site_id ) {
+												$site = get_blog_details( $site_id )->blogname;
+												?>
+														<option selected="selected" value="<?php echo \esc_attr( $site_id ); ?>"><?php echo \esc_html( $site ); ?></option>
+													<?php
+											}
+										}
+										?>
+										</select>
+										<?php
+										if ( $setup_wizard ) {
+											?>
+									</label>
+								</div>
+								<?php } ?>
+								</fieldset>
+									<?php
+									if ( ! $setup_wizard ) {
+										?>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 							<?php } ?>
 			<?php
 		}

@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Utils;
 
+use PhpParser\Node\Stmt\Static_;
+
 if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 	/**
 	 * Utility class for creating modal popup markup.
@@ -98,7 +100,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 			}
 
 			$log_file_name = gmdate( 'Y-m-d' );
-			return self::write_to_file( 'wp-2fa-debug-' . $log_file_name . '.log', $data, $override );
+
+			return self::write_to_file( 'wp-2fa-debug-' . $log_file_name . '-' . self::get_random_file_string_addon() . '.log', $data, $override );
 		}
 
 		/**
@@ -171,6 +174,23 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 */
 		private static function get_log_timestamp() {
 			return '[' . gmdate( 'd-M-Y H:i:s' ) . ' UTC]';
+		}
+
+		/**
+		 * Generates a short random string which is used to generate log file name.
+		 *
+		 * @return string
+		 *
+		 * @since 2.8.0
+		 */
+		private static function get_random_file_string_addon(): string {
+			$rnd_string = Settings_Utils::get_option( 'debug_name', false );
+			if ( ! $rnd_string ) {
+				$rnd_string = (string) \wp_generate_password( 20, false, false );
+				Settings_Utils::update_option( 'debug_name', $rnd_string );
+			}
+
+			return $rnd_string;
 		}
 	}
 }

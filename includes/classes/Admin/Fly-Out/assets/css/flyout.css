@@ -1,0 +1,197 @@
+ #mlp-flyout {
+    position: fixed;
+    z-index: 100049;
+    transition: all 0.3s ease-in-out;
+    right: 40px;
+    bottom: 40px;
+    opacity: 1;
+  }
+  
+  #mlp-overlay {
+    background: #000;
+    opacity: 0.4;
+    filter: alpha(opacity=40);
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: none;
+    z-index: 100049;
+  }
+  
+  #mlp-flyout a:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  
+  #mlp-flyout #mlp-elmnts-button {
+    display: block;
+  }
+  
+  #mlp-flyout #mlp-elmnts-image-wrapper {
+    border: 3px solid #000000;
+    border-radius: 50%;
+    padding: 0;
+    display: block;
+    overflow: hidden;
+    background: #000000;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  #mlp-flyout #mlp-elmnts-button img {
+    width: 55px;
+    height: 55px;
+    display: block;
+    overflow: hidden;
+    padding: 2px;
+    box-sizing: border-box;
+    position: relative;
+    top: 4px;
+  }
+  
+  #mlp-flyout #mlp-elmnts-button:hover #mlp-elmnts-image-wrapper {
+    box-shadow: 0 3px 30px rgba(0, 0, 0, 0.25);
+  }
+  
+  #mlp-flyout:not(.opened) #mlp-elmnts-button:hover .mlp-elmnts-label {
+    opacity: 1;
+    margin-right: 0;
+  }
+  
+  #mlp-flyout .mlp-elmnts-label {
+    position: absolute;
+    display: block;
+    top: 50%;
+    right: calc(100% + 25px);
+    transform: translateY(-50%) scale(1);
+    -moz-transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    color: #fff;
+    background: #444 0 0 no-repeat padding-box;
+    font-size: 14px;
+    white-space: nowrap;
+    padding: 5px 10px;
+    height: auto !important;
+    line-height: initial;
+    transition: all 0.2s ease-out;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    opacity: 0;
+    margin-right: -50px;
+  }
+  
+  #mlp-flyout .mlp-elmnts-icon {
+    width: 40px;
+    height: 40px;
+    vertical-align: middle;
+    line-height: 60px;
+    text-align: center;
+  }
+  
+  #mlp-flyout .mlp-elmnts-icon img {
+    max-width: 70%;
+    filter: brightness(100);
+  }
+  
+  #mlp-flyout .mlp-elmnts-label.visible {
+    opacity: 1;
+  }
+  
+  #mlp-flyout .mlp-elmnts-menu-item {
+    position: absolute;
+    left: 10px;
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0);
+    border-radius: 50%;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.2);
+    background: #1c3aa9;
+    text-align: center;
+    vertical-align: middle;
+    text-decoration: none;
+    transition-timing-function: ease-in-out;
+  }
+  
+  #mlp-flyout .mlp-elmnts-menu-item.accent {
+    background: #ca4a1f;
+  }
+  
+  #mlp-flyout.opened .mlp-elmnts-menu-item {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+  
+  #mlp-flyout .mlp-elmnts-menu-item:hover {
+    box-shadow: 0 3px 30px rgba(0, 0, 0, 0.25);
+  }
+  
+  #mlp-flyout .mlp-elmnts-menu-item:hover .mlp-elmnts-label {
+    right: calc(100% + 55px);
+  }
+  
+  #mlp-flyout .mlp-elmnts-menu-item .mlp-elmnts-label {
+    right: calc(100% + 70px);
+  }
+  
+  #mlp-flyout .mlp-elmnts-menu-item .dashicons {
+    line-height: 41px;
+    font-size: 23px;
+    color: #fff;
+    padding: 0px 3px 0px 0;
+  }
+  
+  .mlp-elmnts-menu-item-1 {
+    bottom: 75px;
+    transition: transform 0.2s 30ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-2 {
+    bottom: 130px;
+    transition: transform 0.2s 70ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-3 {
+    bottom: 185px;
+    transition: transform 0.2s 110ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-4 {
+    bottom: 240px;
+    transition: transform 0.2s 150ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-5 {
+    bottom: 295px;
+    transition: transform 0.2s 190ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-6 {
+    bottom: 350px;
+    transition: transform 0.2s 230ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-7 {
+    bottom: 405px;
+    transition: transform 0.2s 270ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-8 {
+    bottom: 460px;
+    transition: transform 0.2s 310ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-9 {
+    bottom: 515px;
+    transition: transform 0.2s 350ms, background-color 0.2s;
+  }
+  
+  .mlp-elmnts-menu-item-10 {
+    bottom: 570px;
+    transition: transform 0.2s 390ms, background-color 0.2s;
+  }
+  

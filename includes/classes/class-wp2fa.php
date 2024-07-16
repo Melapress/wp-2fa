@@ -12,7 +12,7 @@ namespace WP2FA;
 
 use WP2FA\Admin\User_Listing;
 use WP2FA\Admin\User_Notices;
-use WP2FA\Admin\Plugin_Updated_Notice;
+use WP2FA\Admin\FlyOut\FlyOut;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Request_Utils;
 use WP2FA\Utils\Settings_Utils;
@@ -26,6 +26,7 @@ use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\File_Writer;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Plugin_Updated_Notice;
 use WP2FA\Admin\Helpers\Classes_Helper;
 use WP2FA\Admin\Helpers\Methods_Helper;
 use WP2FA\Admin\Views\Password_Reset_2FA;
@@ -56,6 +57,15 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		private static $plugin_settings = array();
 
 		/**
+		 * Local static cache for plugins settings.
+		 *
+		 * @var array
+		 *
+		 * @since 2.8.0
+		 */
+		private static $default_settings = array();
+
+		/**
 		 * Local static cache for email template settings.
 		 *
 		 * @var array
@@ -70,98 +80,105 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function get_default_settings() {
-			$default_settings = array(
-				'enforcement-policy'                       => 'do-not-enforce',
-				'excluded_users'                           => array(),
-				'excluded_roles'                           => array(),
-				'enforced_users'                           => array(),
-				'enforced_roles'                           => array(),
-				'grace-period'                             => 3,
-				'grace-period-denominator'                 => 'days',
-				'enable_destroy_session'                   => '',
-				'limit_access'                             => '',
-				'brute_force_disable'                      => '',
-				'2fa_settings_last_updated_by'             => '',
-				'2fa_main_user'                            => '',
-				'grace-period-expiry-time'                 => '',
-				'plugin_version'                           => WP_2FA_VERSION,
-				'delete_data_upon_uninstall'               => '',
-				'excluded_sites'                           => '',
-				'included_sites'                           => array(),
-				'create-custom-user-page'                  => 'no',
-				'redirect-user-custom-page'                => '',
-				'redirect-user-custom-page-global'         => '',
-				'custom-user-page-url'                     => '',
-				'custom-user-page-id'                      => '',
-				'hide_remove_button'                       => '',
-				'separate-multisite-page-url'              => '',
-				'grace-policy'                             => 'use-grace-period',
-				'superadmins-role-add'                     => 'no',
-				'superadmins-role-exclude'                 => 'no',
-				'default-text-code-page'                   => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
-				'default-text-pw-reset-code-page'          => '<p>' . __( 'You have been sent a one-time code via email. Please enter the code below and then click Get New Password to proceed with the password reset.', 'wp-2fa' ) . '</p><br><p><strong>' . __( 'Note: If you have not received the code please click the button Resend Code. If you still do not get the code after pressing the button, please contact the website\'s administrator.', 'wp-2fa' ) . '</strong></p>',
-				'default-2fa-required-notice'              => '<p>' . __( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . __( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
-				'default-2fa-resetup-required-notice'      => '<p>' . __( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . __( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
-				'custom-text-authy-code-page-intro'        => __( 'If you are using the Authy app approve the OneTouch request to log in.', 'wp-2fa' ),
-				'custom-text-authy-code-page-awaiting'     => __( 'Waiting for approval from application...', 'wp-2fa' ),
-				'custom-text-authy-code-page'              => __( 'Manually enter the code from the mobile app.', 'wp-2fa' ),
-				'custom-text-twilio-code-page'             => __( 'Enter the 2FA code you have received over SMS.', 'wp-2fa' ),
-				'custom-text-clickatell-code-page'         => __( 'Enter the 2FA code you have received over SMS.', 'wp-2fa' ),
-				'custom-text-app-code-page'                => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
-				'custom-text-email-code-page'              => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
+			if ( empty( self::$default_settings ) ) {
+				self::$default_settings = array(
+					'enforcement-policy'                   => 'do-not-enforce',
+					'excluded_users'                       => array(),
+					'excluded_roles'                       => array(),
+					'enforced_users'                       => array(),
+					'enforced_roles'                       => array(),
+					'grace-period'                         => 3,
+					'grace-period-denominator'             => 'days',
+					'enable_destroy_session'               => '',
+					'limit_access'                         => '',
+					'brute_force_disable'                  => '',
+					'2fa_settings_last_updated_by'         => '',
+					'2fa_main_user'                        => '',
+					'grace-period-expiry-time'             => '',
+					'plugin_version'                       => WP_2FA_VERSION,
+					'delete_data_upon_uninstall'           => '',
+					'excluded_sites'                       => array(),
+					'included_sites'                       => array(),
+					'create-custom-user-page'              => 'no',
+					'redirect-user-custom-page'            => '',
+					'redirect-user-custom-page-global'     => '',
+					'custom-user-page-url'                 => '',
+					'custom-user-page-id'                  => '',
+					'hide_remove_button'                   => '',
+					'separate-multisite-page-url'          => '',
+					'grace-policy'                         => 'use-grace-period',
+					'superadmins-role-add'                 => 'no',
+					'superadmins-role-exclude'             => 'no',
+					'default-text-code-page'               => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
+					'default-text-pw-reset-code-page'      => '<p>' . __( 'You have been sent a one-time code via email. Please enter the code below and then click Get New Password to proceed with the password reset.', 'wp-2fa' ) . '</p><br><p><strong>' . __( 'Note: If you have not received the code please click the button Resend Code. If you still do not get the code after pressing the button, please contact the website\'s administrator.', 'wp-2fa' ) . '</strong></p>',
+					'default-2fa-required-notice'          => '<p>' . __( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . __( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
+					'default-2fa-resetup-required-notice'  => '<p>' . __( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . __( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
+					'custom-text-authy-code-page-intro'    => __( 'If you are using the Authy app approve the OneTouch request to log in.', 'wp-2fa' ),
+					'custom-text-authy-code-page-awaiting' => __( 'Waiting for approval from application...', 'wp-2fa' ),
+					'custom-text-authy-code-page'          => __( 'Manually enter the code from the mobile app.', 'wp-2fa' ),
+					'custom-text-twilio-code-page'         => __( 'Enter the 2FA code you have received over SMS.', 'wp-2fa' ),
+					'custom-text-clickatell-code-page'     => __( 'Enter the 2FA code you have received over SMS.', 'wp-2fa' ),
+					'custom-text-yubico-code-page'         => __( 'Please insert the YubiKey in a USB port and touch / click the button on the YubiKey to generate the OTP required to log in.', 'wp-2fa' ),
+					'custom-text-app-code-page'            => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
+					'custom-text-email-code-page'          => '<p>' . __( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . __( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
 
-				'default-backup-code-page'                 => __( 'Enter a backup verification code.', 'wp-2fa' ),
-				'method_invalid_setting'                   => 'login_block',
-				'enable_wizard_styling'                    => 'enable_wizard_styling',
-				'show_help_text'                           => 'show_help_text',
-				'enable_wizard_logo'                       => '',
-				'enable_welcome'                           => '',
-				'welcome'                                  => '',
-				'method_selection'                         => '<h3>' . __( 'Choose the 2FA method', 'wp-2fa' ) . '</h3>' . Methods::get_number_of_methods_text(),
-				'method_selection_single'                  => '<h3>' . __( 'Choose the 2FA method', 'wp-2fa' ) . '</h3><p>' . __( 'Only the below 2FA method is allowed on this website:', 'wp-2fa' ) . '</p>',
-				'method_help_authy_intro'                  => '<h3>' . __( 'Setting up Push notifications', 'wp-2fa' ) . '</h3><p>' . __( 'To enable push notifications enter the country and cellphone number in order to use it with this account.', 'wp-2fa' ) . '</p>',
-				'method_help_twilio_intro'                 => '<h3>' . __( 'Setting up 2FA over SMS', 'wp-2fa' ) . '</h3><p>' . __( 'When you use 2FA over SMS to log in to this website you will receive your one-time code via an SMS on your cellphone. Therefore please enter the cellphone number of where you would like to receive the SMS below.', 'wp-2fa' ) . '</p>',
-				'method_help_clickatell_intro'             => '<h3>' . __( 'Setting up 2FA over SMS', 'wp-2fa' ) . '</h3><p>' . __( 'When you use 2FA over SMS to log in to this website you will receive your one-time code via an SMS on your cellphone. Therefore please enter the cellphone number of where you would like to receive the SMS below.', 'wp-2fa' ) . '</p>',
-				'method_help_oob_intro'                    => '<h3>' . __( 'Setting up Link over email 2FA', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address to where the out-of-band link should be sent:', 'wp-2fa' ) . '</p>',
-				'method_verification_oob_pre'              => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup. Once the code is confirmed and 2FA is set up, you only have to verify a login by clicking on a link sent to you via email.', 'wp-2fa' ) . '</p>',
-				'method_verification_authy_pre'            => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the code from your Authy application with name {authy_name}', 'wp-2fa' ) . '</p>',
-				'method_verification_twilio_pre'           => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent via SMS to your phone to confirm your phone number.', 'wp-2fa' ) . '</p>',
-				'method_verification_clickatell_pre'       => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent via SMS to your phone to confirm your phone number.', 'wp-2fa' ) . '</p>',
-				'backup_codes_intro_multi'                 => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to have a backup 2FA method in case you cannot generate a code from your 2FA app and you need to log in. You can configure any of the below. You can always configure any or both from your user profile page later.', 'wp-2fa' ) . '</p>',
-				'backup_codes_intro'                       => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p>',
-				'backup_codes_intro_continue'              => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p><p>' . __( 'You should now generate the list of backup method. Although this is optional, it is highly recommended to have a secondary 2FA method. This can be used as a backup should the primary 2FA method fail. This can happen if, for example, you forget your smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ) . '</p>',
-				'backup_codes_generate_intro'              => '<h3>' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method.', 'wp-2fa' ) . '</p>',
-				'backup_codes_generated'                   => '<h3>' . __( 'Backup codes generated', 'wp-2fa' ) . '</h3><p>' . __( 'Here are your backup codes:', 'wp-2fa' ) . '</p>',
-				'no_further_action'                        => '<h3>' . __( 'Congratulations! You are all set.', 'wp-2fa' ),
-				'2fa_required_intro'                       => '<h3>' . __( 'You are required to configure 2FA.', 'wp-2fa' ) . '</h3><p>' . __( 'In order to keep this site - and your details secure, this website’s administrator requires you to enable 2FA authentication to continue.', 'wp-2fa' ) . '</p><p>' . __( 'Two factor authentication ensures only you have access to your account by creating an added layer of security when logging in -', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel="noopener">' . __( 'Learn more', 'wp-2fa' ) . '</a></p>',
-				'authy_reconfigure_intro'                  => '<h3>' . __( '{reconfigure_or_configure_capitalized} push notification method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the phone where link should be send:', 'wp-2fa' ) . '</p>',
-				'authy_reconfigure_intro_unavailable'      => '<h3>' . __( '{reconfigure_or_configure_capitalized} push notification method', 'wp-2fa' ) . '</h3><p>' . __( 'The 2FA service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
-				'twilio_reconfigure_intro'                 => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the phone where code should be send:', 'wp-2fa' ) . '</p>',
-				'clickatell_reconfigure_intro'             => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the phone where code should be send:', 'wp-2fa' ) . '</p>',
-				'twilio_reconfigure_intro_unavailable'     => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method', 'wp-2fa' ) . '</h3><p>' . __( 'The 2FA over SMS service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
-				'clickatell_reconfigure_intro_unavailable' => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method', 'wp-2fa' ) . '</h3><p>' . __( 'The 2FA over SMS service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
-				'oob_reconfigure_intro'                    => '<h3>' . __( '{reconfigure_or_configure_capitalized} link over email method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the OOB code should be sent:', 'wp-2fa' ) . '</p>',
-				'custom_css'                               => '',
-				'login_custom_css'                         => '',
-				'logo-code-page'                           => '',
-				'disable_login_css'                        => '',
-				'login-to-view-area'                       => '<p>' . __( 'You must be logged in to view this page. {login_url}', 'wp-2fa' ) . '</p>',
-				'backup_email_intro'                       => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Well done on configuring 2FA, your login has just got more secure. To make sure you never get locked out you are required to confirm your email address and use email as an alternative and backup 2FA method in case your primary method is unavailable. Please confirm your email address below', 'wp-2fa' ) . '</p>',
-				'user-profile-form-preamble-title'         => __( 'Two-factor authentication settings', 'wp-2fa' ),
-				'user-profile-form-preamble-desc'          => __( 'Add two-factor authentication to strengthen the security of your user account.', 'wp-2fa' ),
-				'use_custom_2fa_message'                   => 'use-defaults',
+					'default-backup-code-page'             => __( 'Enter a backup verification code.', 'wp-2fa' ),
+					'method_invalid_setting'               => 'login_block',
+					'enable_wizard_styling'                => 'enable_wizard_styling',
+					'show_help_text'                       => 'show_help_text',
+					'enable_wizard_logo'                   => '',
+					'enable_welcome'                       => '',
+					'welcome'                              => '',
+					'method_selection'                     => '<h3>' . __( 'Choose the 2FA method', 'wp-2fa' ) . '</h3>' . Methods::get_number_of_methods_text(),
+					'method_selection_single'              => '<h3>' . __( 'Choose the 2FA method', 'wp-2fa' ) . '</h3><p>' . __( 'Only the below 2FA method is allowed on this website:', 'wp-2fa' ) . '</p>',
+					'method_help_authy_intro'              => '<h3>' . __( 'Setting up Push notifications', 'wp-2fa' ) . '</h3><p>' . __( 'To enable push notifications enter the country and cellphone number in order to use it with this account.', 'wp-2fa' ) . '</p>',
+					'method_help_twilio_intro'             => '<h3>' . __( 'Setting up 2FA over SMS', 'wp-2fa' ) . '</h3><p>' . __( 'When you use 2FA over SMS to log in to this website you will receive your one-time code via an SMS on your cellphone. Therefore please enter the cellphone number of where you would like to receive the SMS below.', 'wp-2fa' ) . '</p>',
+					'method_help_clickatell_intro'         => '<h3>' . __( 'Setting up 2FA over SMS', 'wp-2fa' ) . '</h3><p>' . __( 'When you use 2FA over SMS to log in to this website you will receive your one-time code via an SMS on your cellphone. Therefore please enter the cellphone number of where you would like to receive the SMS below.', 'wp-2fa' ) . '</p>',
+					'method_help_oob_intro'                => '<h3>' . __( 'Setting up Link over email 2FA', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address to where the out-of-band link should be sent:', 'wp-2fa' ) . '</p>',
+					'method_help_yubico_intro'             => '<h3>' . __( 'Setting up 2FA with YubiKey', 'wp-2fa' ) . '</h3><p>' . __( '1 - Insert your YubiKey into the computer\'s / mobile\'s USB port', 'wp-2fa' ) . '</p><p>' . __( '2 - Touch / press the button on your YubiKey to generate the OTP code, which is automatically populated below', 'wp-2fa' ) . '</p>',
+					'method_verification_oob_pre'          => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup. Once the code is confirmed and 2FA is set up, you only have to verify a login by clicking on a link sent to you via email.', 'wp-2fa' ) . '</p>',
+					'method_verification_authy_pre'        => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the code from your Authy application with name {authy_name}', 'wp-2fa' ) . '</p>',
+					'method_verification_twilio_pre'       => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent via SMS to your phone to confirm your phone number.', 'wp-2fa' ) . '</p>',
+					'method_verification_clickatell_pre'   => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent via SMS to your phone to confirm your phone number.', 'wp-2fa' ) . '</p>',
+					'method_verification_yubico_pre'       => '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Touch the YubiKey again to generate the OTP code to confirm the setup. Once the code is populated below, it should be automatically saved and verified. If that does not happen by any reason, once the secret key was pasted, click "Validate & save" button below to manually save and complete the configuration.', 'wp-2fa' ) . '</p>',
+					'backup_codes_intro_multi'             => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to configure a backup 2FA method in case you do not have access to the primary 2FA method to generate a code to log in. You can configure any of the below. You can always configure any or both from your user profile page later.', 'wp-2fa' ) . '</p>',
+					'backup_codes_intro'                   => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p>',
+					'backup_codes_intro_continue'          => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p><p>' . __( 'You should now generate the list of backup method. Although this is optional, it is highly recommended to have a secondary 2FA method. This can be used as a backup should the primary 2FA method fail. This can happen if, for example, you forget your smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ) . '</p>',
+					'backup_codes_generate_intro'          => '<h3>' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method.', 'wp-2fa' ) . '</p>',
+					'backup_codes_generated'               => '<h3>' . __( 'Backup codes generated', 'wp-2fa' ) . '</h3><p>' . __( 'Here are your backup codes:', 'wp-2fa' ) . '</p>',
+					'no_further_action'                    => '<h3>' . __( 'Congratulations! You are all set.', 'wp-2fa' ),
+					'2fa_required_intro'                   => '<h3>' . __( 'You are required to configure 2FA.', 'wp-2fa' ) . '</h3><p>' . __( 'In order to keep this site - and your details secure, this website’s administrator requires you to enable 2FA authentication to continue.', 'wp-2fa' ) . '</p><p>' . __( 'Two factor authentication ensures only you have access to your account by creating an added layer of security when logging in -', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel="noopener">' . __( 'Learn more', 'wp-2fa' ) . '</a></p>',
+					'authy_reconfigure_intro'              => '<h3>' . __( '{reconfigure_or_configure_capitalized} push notification method', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the push notifications configuration.', 'wp-2fa' ) . '</p>',
+					'authy_reconfigure_intro_unavailable'  => '<h3>' . __( '{reconfigure_or_configure_capitalized} push notification method', 'wp-2fa' ) . '</h3><p>' . __( 'The 2FA service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
+					'twilio_reconfigure_intro'             => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method (Twilio)', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the mobile phone number where the one-time code should be sent.', 'wp-2fa' ) . '</p>',
+					'clickatell_reconfigure_intro'         => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method (Clickatell)', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the phone where code should be send:', 'wp-2fa' ) . '</p>',
+					'yubico_reconfigure_intro'             => '<h3>' . __( '{reconfigure_or_configure_capitalized} 2FA over YubiKey', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the YubiKey associated with your user.', 'wp-2fa' ) . '</p>',
+					'twilio_reconfigure_intro_unavailable' => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method', 'wp-2fa' ) . '</h3><p>' . __( 'The 2FA over SMS service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
+					'clickatell_reconfigure_intro_unavailable' => '<h3>' . __( '{reconfigure_or_configure_capitalized} SMS method', 'wp-2fa' ) . '</h3><p>' . __( 'The 2FA over SMS service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
+					'yubico_reconfigure_intro_unavailable' => '<h3>' . __( ' {reconfigure_or_configure_capitalized} 2FA over YubiKey', 'wp-2fa' ) . '</h3><p>' . __( 'The Yubico service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method.', 'wp-2fa' ) . '</p>',
+					'oob_reconfigure_intro'                => '<h3>' . __( '{reconfigure_or_configure_capitalized} link over email method', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the email address where the link should be sent.', 'wp-2fa' ) . '</p>',
+					'custom_css'                           => '',
+					'login_custom_css'                     => '',
+					'logo-code-page'                       => '',
+					'disable_login_css'                    => '',
+					'login-to-view-area'                   => '<p>' . __( 'You must be logged in to view this page. {login_url}', 'wp-2fa' ) . '</p>',
+					'backup_email_intro'                   => '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Well done on configuring 2FA, your login has just got more secure. To make sure you never get locked out you are required to confirm your email address and use email as an alternative and backup 2FA method in case your primary method is unavailable. Please confirm your email address below', 'wp-2fa' ) . '</p>',
+					'user-profile-form-preamble-title'     => __( 'Two-factor authentication settings', 'wp-2fa' ),
+					'user-profile-form-preamble-desc'      => __( 'Add two-factor authentication to strengthen the security of your user account.', 'wp-2fa' ),
+					'use_custom_2fa_message'               => 'use-defaults',
 
-			);
-			/**
-			 * Gives the ability to filter the default settings array of the plugin
-			 *
-			 * @param array $settings - The array with all the default settings.
-			 *
-			 * @since 2.0.0
-			 */
-			$default_settings = \apply_filters( WP_2FA_PREFIX . 'default_settings', $default_settings );
+				);
+				/**
+				 * Gives the ability to filter the default settings array of the plugin
+				 *
+				 * @param array $settings - The array with all the default settings.
+				 *
+				 * @since 2.0.0
+				 */
+				self::$default_settings = \apply_filters( WP_2FA_PREFIX . 'default_settings', self::$default_settings );
+			}
 
-			return $default_settings;
+			return self::$default_settings;
 		}
 
 		/**
@@ -203,6 +220,8 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				User_Listing::init();
 				// Hide all unrelated to the plugin notices on the plugin admin pages.
 				\add_action( 'admin_print_scripts', array( '\WP2FA\Admin\Helpers\WP_Helper', 'hide_unrelated_notices' ) );
+
+				// FlyOut::init();
 			}
 
 			Grace_Period_Notifications::init();
@@ -391,17 +410,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		}
 
 		/**
-		 * Return user roles.
-		 *
-		 * @return array User roles.
-		 *
-		 * @since 2.0.0
-		 */
-		public static function wp_2fa_get_roles() {
-			return WP_Helper::get_roles_wp();
-		}
-
-		/**
 		 * Util function to grab settings or apply defaults if no settings are saved into the db.
 		 *
 		 * @param string  $setting_name Settings to grab value of.
@@ -445,7 +453,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 */
 		public static function get_wp2fa_white_label_setting( $setting_name = '', $get_default_on_empty = false, $get_default_value = false ) {
 
-			return self::get_wp2fa_setting_generic( WP_2FA_WHITE_LABEL_SETTINGS_NAME, $setting_name, $get_default_on_empty, $get_default_value );
+			return (string) self::get_wp2fa_setting_generic( WP_2FA_WHITE_LABEL_SETTINGS_NAME, $setting_name, $get_default_on_empty, $get_default_value );
 		}
 
 		/**
@@ -543,7 +551,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			$login_code_body .= '</p>';
 			$login_code_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
 			$login_code_body .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-			$login_code_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$login_code_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
 			$login_code_body .= '</p>';
 
 			// Create Reset PW Code Message.
@@ -572,7 +580,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			$login_code_setup_body .= '</p>';
 			$login_code_setup_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
 			$login_code_setup_body .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-			$login_code_setup_body .= ' <a href="hhttps://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$login_code_setup_body .= ' <a href="hhttps://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
 			$login_code_setup_body .= '</p>';
 
 			// Create User Locked Message.
@@ -590,7 +598,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			$user_locked_body .= '<p>' . \esc_html__( 'Contact your website administrator to unlock your account.', 'wp-2fa' ) . '</p>';
 			$user_locked_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
 			$user_locked_body .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-			$user_locked_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$user_locked_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
 			$user_locked_body .= '</p>';
 
 			// Create User unlocked Message.
@@ -603,7 +611,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				$user_unlocked_body .= '<p>' . __( 'You can configure 2FA from this page:', 'wp-2fa' ) . ' <a href="{2fa_settings_page_url}" target="_blank">{2fa_settings_page_url}.</a></p>';
 			}
 
-			$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
+			$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
 
 			// Create User backup codes Message.
 			$user_backup_codes_subject = __( '2FA backup codes for user {user_login_name} on {site_name}', 'wp-2fa' );
@@ -613,7 +621,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			$user_backup_codes_body .= '{backup_codes}';
 
-			$user_backup_codes_body .= '<p>' . __( 'Thank you for enabling 2FA on your account and helping us keeping the website secure.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
+			$user_backup_codes_body .= '<p>' . __( 'Thank you for enabling 2FA on your account and helping us keeping the website secure.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
 
 			// Array of defaults, now we have things setup above.
 			$default_settings = array(
@@ -1131,28 +1139,28 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				$admin_page            = \get_current_screen();
 				if ( in_array( $admin_page->base, $whitelist_admin_pages ) ) {
 					?>
-			<div class="notice notice-warning" id="config-update-notice">
-					<?php
-					$message = sprintf(
-						'<p>%1$s <a href="https://melapress.com/support/kb/wp-2fa-add-2fa-plugin-encryption-key-wp-config/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" noopener target="_blank">%2$s</a><br>%3$s</p>',
-						\esc_html__( 'For security reasons WP 2FA needs to store the private key in the wp-config.php file. However, it is unable to. This can happen because of restrictive permissions, or the file is not in the default location. To fix this you can:', 'wp-2fa' ) . '<br><br>' .
+				<div class="notice notice-warning" id="config-update-notice">
+						<?php
+						$message = sprintf(
+							'<p>%1$s <a href="https://melapress.com/support/kb/wp-2fa-add-2fa-plugin-encryption-key-wp-config/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" noopener target="_blank">%2$s</a><br>%3$s</p>',
+							\esc_html__( 'For security reasons WP 2FA needs to store the private key in the wp-config.php file. However, it is unable to. This can happen because of restrictive permissions, or the file is not in the default location. To fix this you can:', 'wp-2fa' ) . '<br><br>' .
 
-						\esc_html__( 'Option A) allow the plugin to write to the wp-config.php file temporarily by changing the wp-config.php permissions to 755. Once ready, click the button to proceed.', 'wp-2fa' ) . '<br>' .
+							\esc_html__( 'Option A) allow the plugin to write to the wp-config.php file temporarily by changing the wp-config.php permissions to 755. Once ready, click the button to proceed.', 'wp-2fa' ) . '<br>' .
 
-						\esc_html__( 'Option B) Add the encryption key to the wp-config.php file yourself by ', 'wp-2fa' ),
-						\esc_html__( 'following these instructions.', 'wp-2fa' ) . '<br>',
-						\esc_html__(
-							'Once you complete any of the above, please click the button below.
-					',
-							'wp-2fa'
-						),
-					)
-					?>
-					<?php echo $message; // phpcs:ignore ?>
-				<p><button id="salt-update" type="button">
-					<span><?php \esc_html_e( 'Write key to file now / Check for the key in file', 'wp-2fa' ); ?></span>
-				</button></p>
-			</div>
+							\esc_html__( 'Option B) Add the encryption key to the wp-config.php file yourself by ', 'wp-2fa' ),
+							\esc_html__( 'following these instructions.', 'wp-2fa' ) . '<br>',
+							\esc_html__(
+								'Once you complete any of the above, please click the button below.
+						',
+								'wp-2fa'
+							),
+						)
+						?>
+						<?php echo $message; // phpcs:ignore ?>
+					<p><button id="salt-update" type="button">
+						<span><?php \esc_html_e( 'Write key to file now / Check for the key in file', 'wp-2fa' ); ?></span>
+					</button></p>
+				</div>
 				<script>
 				jQuery(document).ready(function($) {
 					$(document).on('click', '#salt-update', function( event ) {

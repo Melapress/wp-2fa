@@ -111,7 +111,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 		 *
 		 * @since 2.2.0
 		 */
-		private static function settings_array(): array {
+		private static function settings_array(): array {			
+			$email_settings_name = \esc_html__( 'Emails & templates', 'wp-2fa' );
 			$settings_tabs = array(
 				'generic-settings'     => array(
 					'url'            => \esc_url(
@@ -144,7 +145,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 							network_admin_url( 'admin.php' )
 						)
 					),
-					'name'           => \esc_html__( 'Emails & templates', 'wp-2fa' ),
+					'name'           => $email_settings_name,
 					'default'        => false,
 					'description'    => sprintf(
 						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',

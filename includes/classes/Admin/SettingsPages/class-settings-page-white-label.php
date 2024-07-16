@@ -69,18 +69,24 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				$output['default-backup-code-page'] = \wp_strip_all_tags( $input['default-backup-code-page'] );
 			}
 
+			$output['login-to-view-area'] = WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', false, false );
+
+			if ( isset( $input['login-to-view-area'] ) && '' !== trim( (string) $input['login-to-view-area'] ) ) {
+				$output['login-to-view-area'] = \wp_strip_all_tags( $input['login-to-view-area'] );
+			}
+
 			$output['use_custom_2fa_message'] = WP2FA::get_wp2fa_white_label_setting( 'use_custom_2fa_message', false, false );
 
 			if ( isset( $input['use_custom_2fa_message'] ) && '' !== trim( (string) $input['use_custom_2fa_message'] ) ) {
 				$output['use_custom_2fa_message'] = \wp_strip_all_tags( $input['use_custom_2fa_message'] );
 			}
 
-			$output['custom-text-app-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-app-code-page', false, false );
-			$output['custom-text-email-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-email-code-page', false, false );
-			$output['custom-text-authy-code-page-intro'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-intro', false, false );
+			$output['custom-text-app-code-page']            = WP2FA::get_wp2fa_white_label_setting( 'custom-text-app-code-page', false, false );
+			$output['custom-text-email-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-email-code-page', false, false );
+			$output['custom-text-authy-code-page-intro']    = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-intro', false, false );
 			$output['custom-text-authy-code-page-awaiting'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-awaiting', false, false );
-			$output['custom-text-authy-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page', false, false );
-			$output['custom-text-twilio-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-twilio-code-page', false, false );
+			$output['custom-text-authy-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page', false, false );
+			$output['custom-text-twilio-code-page']         = WP2FA::get_wp2fa_white_label_setting( 'custom-text-twilio-code-page', false, false );
 
 			if ( isset( $input['custom-text-app-code-page'] ) && '' !== trim( (string) $input['custom-text-app-code-page'] ) ) {
 				$output['custom-text-app-code-page'] = \wp_strip_all_tags( $input['custom-text-app-code-page'] );
@@ -109,26 +115,18 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			if ( isset( $_REQUEST['_wp_http_referer'] ) ) {
 				$request_area      = wp_parse_url( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ); // phpcs:ignore
 				$request_area_path = strpos( $request_area['query'], 'white-label-section' );
-				
+
 				// If we have the input POSTed, we are on the right page so grab it.
 				if ( isset( $input['enable_wizard_styling'] ) && '' !== trim( (string) $input['enable_wizard_styling'] ) ) {
 					$output['enable_wizard_styling'] = \wp_strip_all_tags( $input['enable_wizard_styling'] );
 				} else {
-					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
-					if ( $request_area_path && ! strpos( $request_area['query'], 'custom-css' ) || ! $request_area_path ) {
-						if ( ! isset( $input['enable_wizard_styling'] ) ) {
-							$input['enable_wizard_styling']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
-							$output['enable_wizard_styling'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
-						} else {
-							/* @free:start */
-							// Free edition does have setting, so allow for it to be disabled.
-							$output['enable_wizard_styling'] = '';
-							$input['enable_wizard_styling']  = '';
-							/* @free:end */
-						}
-					} else {
+					// Are we on either the white labelling page (free and premium) or the custom CSS area (premium only)?
+					if ( ! $request_area_path || $request_area_path && strpos( $request_area['query'], 'custom-css' ) ) {
 						$output['enable_wizard_styling'] = '';
 						$input['enable_wizard_styling']  = '';
+					} else {
+						$input['enable_wizard_styling']  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
+						$output['enable_wizard_styling'] = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling', false );
 					}
 				}
 
@@ -313,8 +311,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
 							echo White_Labeling_Render::get_method_text_editor( 'default-text-code-page' ); // phpcs:ignore
 						} else {
-							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ), 'default-text-code-page' );	
-						} ?>
+							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', true ), 'default-text-code-page' );
+						}
+						?>
 						<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 					</td>
 				</tr>
@@ -324,9 +323,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 						<?php
 						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
 							echo White_Labeling_Render::get_method_text_editor( 'default-backup-code-page' ); // phpcs:ignore
-						} else { 
+						} else {
 							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ), 'default-backup-code-page' );
-						} ?>
+						}
+						?>
 						<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 					</td>
 				</tr>
@@ -338,8 +338,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 						if ( class_exists( 'WP2FA\Extensions\WhiteLabeling\White_Labeling_Render' ) ) {
 							echo White_Labeling_Render::get_method_text_editor( 'login-to-view-area' ); // phpcs:ignore
 						} else {
-							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', true ), 'login-to-view-area' );	
-						} ?>
+							echo self::create_standard_editor( WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', true ), 'login-to-view-area' );
+						}
+						?>
 					</td>
 				</tr>
 

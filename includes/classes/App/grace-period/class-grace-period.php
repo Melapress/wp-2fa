@@ -149,9 +149,12 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 			ob_start();
 
 			if ( class_exists( 'WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
-				$expire_action = Role_Settings_Controller::get_setting( $role, 'grace-policy-after-expire-action', true );
+				$expire_action = Role_Settings_Controller::get_setting( $role, 'grace-policy-after-expire-action', 'configure-right-away' );
 			} else {
-				$expire_action = Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', null, null, true );
+				$expire_action = Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', null, null, 'configure-right-away' );
+			}
+			if ( false === $expire_action ) {
+				$expire_action = 'configure-right-away';
 			}
 			?>
 			<div class="sub-setting-indent">
