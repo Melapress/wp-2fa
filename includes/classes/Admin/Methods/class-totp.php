@@ -127,7 +127,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function totp_provider_name_translated( array $providers ) {
-			$providers[ self::METHOD_NAME ] = esc_html__( 'TOTP (App)', 'wp-2fa' );
+			$providers[ self::METHOD_NAME ] = esc_html__( 'TOTP (one-time code via app)', 'wp-2fa' );
 
 			return $providers;
 		}
@@ -325,7 +325,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 */
 		public static function add_default_settings( array $default_settings ) {
 			$default_settings[ self::POLICY_SETTINGS_NAME ]   = self::POLICY_SETTINGS_NAME;
-			$default_settings['method_help_totp_intro']       = '<h3>' . __( 'Setting up TOTP', 'wp-2fa' ) . '</h3>';
+			$default_settings['method_help_totp_intro']       = '<h3>' . __( 'Setting up TOTP (one-time code via app)', 'wp-2fa' ) . '</h3>';
 			$default_settings['method_help_totp_step_1']      = __( 'Download and start the application of your choice', 'wp-2fa' );
 			$default_settings['method_help_totp_step_2']      = __( 'From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:', 'wp-2fa' );
 			$default_settings['method_help_totp_step_3']      = __( 'Click the "I\'m ready" button below when you complete the application setup process to proceed with the wizard.', 'wp-2fa' );
@@ -335,7 +335,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			$default_settings['totp-option-label-hint']       = sprintf(
 				/* translators: link to the knowledge base website */
 				\esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
-			'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
+			'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
 			);
 
 			return $default_settings;

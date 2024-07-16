@@ -141,11 +141,11 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 			if ( in_array( 'user_needs_to_setup_backup_codes', $user_type, true ) ) {
 				?>
 				<div class="mb-20">
-					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_continue', true ) ); ?>
+					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro', true ) ); ?>
 				</div>
 			<?php } else { ?>
 				<div class="mb-20">
-					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro', true ) ); ?>
+					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_continue', true ) ); ?>
 				</div>
 			<?php } ?>
 			<div class="wp2fa-setup-actions">
@@ -403,7 +403,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 				foreach ( $backup_methods as $method_name => $method ) {
 					$checked = '';
 					if ( ! $i ) {
-						$checked = ' \checked="\checked"';
+						$checked = ' checked="checked"';
 					}
 					$i = 1;
 					?>

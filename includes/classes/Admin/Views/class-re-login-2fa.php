@@ -86,7 +86,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 						id="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>" 
 						<?php echo $data_role; // phpcs:ignore?> 
 						value="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?>" <?php checked( $password_reset_action, self::ENABLED_SETTING_VALUE ); ?> class="js-nested">
-						<span><?php echo \esc_html__( 'Logout the user after set 2FA', 'wp-2fa' ); ?></span>
+						<span><?php echo \esc_html__( 'Log out user after 2FA setup', 'wp-2fa' ); ?></span>
 					</label>
 				</fieldset>
 			</div>
@@ -143,9 +143,9 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		public static function re_login_setting( string $content, string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
 			?>
-		<h3><?php \esc_html_e( 'Do you want to logout user after setup the 2FA', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Do you want to logout users after setting up 2FA on their account?', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php \esc_html_e( 'When you enable this setting users will be asked to login again.', 'wp-2fa' ); ?>
+			<?php \esc_html_e( 'When you enable this setting users will be logged out automatically after configuring 2FA and they will need to log back in.', 'wp-2fa' ); ?>
 		</p>
 
 		<table class="form-table">

@@ -92,74 +92,74 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 			?>
 
-		<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
-			<h2><?php \esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
-			<hr>
-			<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) { ?>
-				<?php
-				echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
-				?>
-			<?php } else { ?>
-				<?php
-					/**
-					 * Fires before the plugin settings rendering.
-					 *
-					 * @since 2.0.0
-					 */
-					do_action( WP_2FA_PREFIX . 'before_plugin_settings' );
-				?>
+			<div class="wrap wp-2fa-settings-wrapper wp2fa-form-styles">
+				<h2><?php \esc_html_e( 'WP 2FA Settings', 'wp-2fa' ); ?></h2>
+				<hr>
+				<?php if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) { ?>
 					<?php
-					if ( WP_Helper::is_multisite() ) {
-						$action = 'edit.php?action=update_wp2fa_network_options';
-					} else {
-						$action = 'options.php';
-					}
-					if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && '2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore
-						?>
-					<br/>
+					echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+					?>
+				<?php } else { ?>
+					<?php
+						/**
+						 * Fires before the plugin settings rendering.
+						 *
+						 * @since 2.0.0
+						 */
+						do_action( WP_2FA_PREFIX . 'before_plugin_settings' );
+					?>
 						<?php
-						printf(
-							'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
-							\esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
-							\esc_html__( 'support@melapress.com', 'wp-2fa' )
-						);
-						?>
-					<br/>
-						<?php $total_users = count_users(); ?>
-					<form id="wp-2fa-admin-settings" action='<?php echo \esc_attr( $action ); ?>' method='post' autocomplete="off" data-2fa-total-users="<?php echo \esc_attr( $total_users['total_users'] ); ?>">
-						<?php
-							settings_fields( WP_2FA_POLICY_SETTINGS_NAME );
-						self::select_method_setting();
-						self::select_enforcement_policy_setting();
-						self::excluded_roles_or_users_setting();
 						if ( WP_Helper::is_multisite() ) {
-							self::excluded_network_sites();
+							$action = 'edit.php?action=update_wp2fa_network_options';
+						} else {
+							$action = 'options.php';
 						}
+						if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && '2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore
+							?>
+						<br/>
+							<?php
+							printf(
+								'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',
+								\esc_html__( 'Use the settings below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at', 'wp-2fa' ),
+								\esc_html__( 'support@melapress.com', 'wp-2fa' )
+							);
+							?>
+						<br/>
+							<?php $total_users = count_users(); ?>
+						<form id="wp-2fa-admin-settings" action='<?php echo \esc_attr( $action ); ?>' method='post' autocomplete="off" data-2fa-total-users="<?php echo \esc_attr( $total_users['total_users'] ); ?>">
+							<?php
+								settings_fields( WP_2FA_POLICY_SETTINGS_NAME );
+							self::select_method_setting();
+							self::select_enforcement_policy_setting();
+							self::excluded_roles_or_users_setting();
+							if ( WP_Helper::is_multisite() ) {
+								self::excluded_network_sites();
+							}
 
-						/**
-						 * Fires before grace period HTML rendering settings.
-						 *
-						 * @since 2.0.0
-						 */
-						do_action( WP_2FA_PREFIX . 'before_grace_period_settings' );
+							/**
+							 * Fires before grace period HTML rendering settings.
+							 *
+							 * @since 2.0.0
+							 */
+							do_action( WP_2FA_PREFIX . 'before_grace_period_settings' );
 
-						self::grace_period_setting();
-						self::user_redirect_after_wizard();
+							self::grace_period_setting();
+							self::user_redirect_after_wizard();
 
-						/**
-						 * Fires before user profile period HTML rendering settings.
-						 *
-						 * @since 2.0.0
-						 */
-						do_action( WP_2FA_PREFIX . 'before_user_profile_settings' );
-						self::user_profile_settings();
-						self::disable_2fa_removal_setting();
-						submit_button();
-						?>
-					</form>
+							/**
+							 * Fires before user profile period HTML rendering settings.
+							 *
+							 * @since 2.0.0
+							 */
+							do_action( WP_2FA_PREFIX . 'before_user_profile_settings' );
+							self::user_profile_settings();
+							self::disable_2fa_removal_setting();
+							submit_button();
+							?>
+						</form>
+					<?php } ?>
 				<?php } ?>
-			<?php } ?>
-		</div>
+			</div>
 			<?php
 		}
 
@@ -176,7 +176,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			$role = ( is_null( $role ) || empty( $role ) || 'global' === $role ) ? '' : $role;
 			// Check if new user page has been published.
 			if ( ! empty( get_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role ) ) ) {
-				delete_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role );
+				\delete_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role );
 				$new_page_id = Settings::get_role_or_default_setting( 'custom-user-page-id', '', $role );
 				if ( empty( $new_page_id ) ) {
 					$new_page_id = Settings::get_custom_settings_page_id( $role );
@@ -406,7 +406,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					$output['custom-user-page-url']        = '';
 					$output['custom-user-page-id']         = '';
 					$output['separate-multisite-page-url'] = '';
-					wp_delete_post( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ), true );
+					\wp_delete_post( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ), true );
 				}
 			}
 
@@ -453,7 +453,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 				// If any users are being excluded, delete any wp 2fa data.
 				if ( isset( $output['excluded_users'] ) &&
-				! empty( array_diff( WP2FA::get_wp2fa_setting( 'excluded_users' ), $output['excluded_users'] ) ) ) {
+				! empty( array_diff( (array) WP2FA::get_wp2fa_setting( 'excluded_users' ), (array) $output['excluded_users'] ) ) ) {
 					// Wipe user 2fa data.
 					$user_array = $output['excluded_users'];
 					foreach ( $user_array as $user ) {
@@ -596,7 +596,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			$generated_by_message  = '<p>' . \esc_html__( 'Page generated by', 'wp-2fa' );
-			$generated_by_message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA Plugin', 'wp-2fa' ) . '</a>';
+			$generated_by_message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA Plugin', 'wp-2fa' ) . '</a>';
 			$generated_by_message .= '</p>';
 
 			$user      = wp_get_current_user();
@@ -712,13 +712,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						<fieldset>
 							<?php
 							if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
-								$custom_slug = get_post_field( 'post_name', get_post( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) );
+								$custom_slug = \get_post_field( 'post_name', \get_post( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) );
 							} else {
 								$custom_slug = WP2FA::get_wp2fa_setting( 'custom-user-page-url' );
 							}
 
 							$has_error       = false;
-							$settings_errors = get_settings_errors( WP_2FA_SETTINGS_NAME );
+							$settings_errors = \get_settings_errors( WP_2FA_SETTINGS_NAME );
 							if ( ! empty( $settings_errors ) ) {
 								foreach ( $settings_errors as $error ) {
 									if ( 'no_page_slug_provided' === $error['code'] ) {
@@ -736,8 +736,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						</fieldset>
 							<?php
 							if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) && ! WP_Helper::is_multisite() ) ) {
-								$edit_post_link = get_edit_post_link( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) );
-								$view_post_link = get_permalink( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) );
+								$edit_post_link = \get_edit_post_link( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) );
+								$view_post_link = \get_permalink( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) );
 								?>
 							<br>
 							<a href="<?php echo \esc_url( $edit_post_link ); ?>" target="_blank" class="button button-secondary" style="margin-right: 5px;"><?php \esc_html_e( 'Edit Page', 'wp-2fa' ); ?></a> <a href="<?php echo \esc_url( $view_post_link ); ?>" target="_blank" class="button button-primary"><?php \esc_html_e( 'View Page', 'wp-2fa' ); ?></a>
@@ -888,9 +888,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			?>
 		<br>
-		<h3><?php \esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period?', 'wp-2fa' ); ?></h3>
 		<p class="description">
-			<?php \esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/configure-grace-period-2fa/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank"><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+			<?php \esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/configure-grace-period-2fa/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank"><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 		</p>
 
 		<table class="form-table">
@@ -929,7 +929,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			ob_start();
 			?>
 		<br>
-		<h3><?php \esc_html_e( 'Should users be able to disable 2FA on their user profile', 'wp-2fa' ); ?></h3>
+		<h3><?php \esc_html_e( 'Should users be allowed to disable 2FA from their user profile?', 'wp-2fa' ); ?></h3>
 		<p class="description">
 			<?php \esc_html_e( 'Users can configure and also disable 2FA on their profile by clicking the "Remove 2FA" button. Enable this setting to disable the Remove 2FA button so users cannot disable 2FA from their user profile.', 'wp-2fa' ); ?>
 		</p>

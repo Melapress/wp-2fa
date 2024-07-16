@@ -17,7 +17,6 @@ use WP2FA\Admin\SettingsPages\{
 	Settings_Page_General,
 	Settings_Page_Email
 };
-use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Utils\Settings_Utils;
 
@@ -37,7 +36,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 */
 		public static function create_settings_admin_menu() {
 			// Create admin menu item.
-			add_menu_page(
+			\add_menu_page(
 				\esc_html__( 'WP 2FA', 'wp-2fa' ),
 				\esc_html__( 'WP 2FA', 'wp-2fa' ),
 				'manage_options',
@@ -47,7 +46,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				81
 			);
 
-			add_submenu_page(
+			\add_submenu_page(
 				self::TOP_MENU_SLUG,
 				\esc_html__( '2FA Policies', 'wp-2fa' ),
 				\esc_html__( '2FA Policies', 'wp-2fa' ),
@@ -57,7 +56,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				1
 			);
 
-			add_submenu_page(
+			\add_submenu_page(
 				self::TOP_MENU_SLUG,
 				\esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
 				\esc_html__( 'Settings', 'wp-2fa' ),
@@ -68,27 +67,27 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			);
 
 			// Register our policy settings.
-			register_setting(
+			\register_setting(
 				WP_2FA_POLICY_SETTINGS_NAME,
 				WP_2FA_POLICY_SETTINGS_NAME,
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'validate_and_sanitize' )
 			);
 
 			// Register our white label settings.
-			register_setting(
+			\register_setting(
 				WP_2FA_WHITE_LABEL_SETTINGS_NAME,
 				WP_2FA_WHITE_LABEL_SETTINGS_NAME,
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_White_Label::class, 'validate_and_sanitize' )
 			);
 
 			// Register our settings page.
-			register_setting(
+			\register_setting(
 				WP_2FA_SETTINGS_NAME,
 				WP_2FA_SETTINGS_NAME,
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_General::class, 'validate_and_sanitize' )
 			);
 
-			register_setting(
+			\register_setting(
 				WP_2FA_EMAIL_SETTINGS_NAME,
 				WP_2FA_EMAIL_SETTINGS_NAME,
 				array( \WP2FA\Admin\SettingsPages\Settings_Page_Email::class, 'validate_and_sanitize' )
@@ -102,9 +101,9 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			do_action( WP_2FA_PREFIX . 'after_admin_menu_created', self::TOP_MENU_SLUG, false );
+			\do_action( WP_2FA_PREFIX . 'after_admin_menu_created', self::TOP_MENU_SLUG, false );
 
-			add_action( WP_2FA_PREFIX . 'before_plugin_settings', array( __CLASS__, 'check_email' ) );
+			\add_action( WP_2FA_PREFIX . 'before_plugin_settings', array( __CLASS__, 'check_email' ) );
 		}
 
 		/**
@@ -112,7 +111,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 */
 		public static function create_settings_admin_menu_multisite() {
 			// Create admin menu item.
-			add_menu_page(
+			\add_menu_page(
 				\esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
 				\esc_html__( 'WP 2FA', 'wp-2fa' ),
 				'manage_options',
@@ -122,7 +121,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				81
 			);
 
-			add_submenu_page(
+			\add_submenu_page(
 				self::TOP_MENU_SLUG,
 				\esc_html__( '2FA Policies', 'wp-2fa' ),
 				\esc_html__( '2FA Policies', 'wp-2fa' ),
@@ -132,7 +131,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				1
 			);
 
-			add_submenu_page(
+			\add_submenu_page(
 				self::TOP_MENU_SLUG,
 				\esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
 				\esc_html__( 'Settings', 'wp-2fa' ),
@@ -150,7 +149,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			do_action( WP_2FA_PREFIX . 'after_admin_menu_created', self::TOP_MENU_SLUG, true );
+			\do_action( WP_2FA_PREFIX . 'after_admin_menu_created', self::TOP_MENU_SLUG, true );
 		}
 		/**
 		 * Send account unlocked notification via email.
@@ -207,7 +206,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		public static function add_plugin_action_links( $links ) {
 			// add link to the external free trial page in free version and also in premium version if license is not active.
 			if ( ! function_exists( 'wp2fa_freemius' ) || ! wp2fa_freemius()->has_active_valid_license() ) {
-				$trial_link = 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa';
+				$trial_link = 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa';
 				$links      = array_merge(
 					array(
 						'<a style="font-weight:bold" href="' . $trial_link . '" target="_blank">' . __( 'Upgrade to Premium', 'wp-2fa' ) . '</a>',
@@ -416,7 +415,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			}
 
 			// Fire our email.
-			return wp_mail( $recipient_email, $subject, $message, $headers );
+			return wp_mail( $recipient_email, stripslashes_deep( html_entity_decode( $subject, ENT_QUOTES, 'UTF-8' ) ), $message, $headers );
 		}
 
 		/**
@@ -503,7 +502,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 					);
 					?>
 					<div class="notice notice-error" style="padding-top: 10px; padding-bottom: 10px;">
-						<p class="description" ><?php \esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo self::get_default_email_address(); ?></b> <?php \esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' ); ?></p>
+						<p class="description" ><?php \esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo \sanitize_email( self::get_default_email_address() ); ?></b> <?php \esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' ); ?></p>
 						<p>
 							<a class="button button-primary" href="<?php echo \esc_url( $email_settings_url ); ?>"><?php \esc_html_e( 'Change it', 'wp-2fa' ); ?></a>
 							<a class="button button-secondary 2fa-email-notice" style="margin-left:20px" href="#">

@@ -6,8 +6,8 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
 Requires at least: 5.0
 Tested up to: 6.4.3
-Stable tag: 2.7.0
-Requires PHP: 7.2.0
+Stable tag: 2.8.0
+Requires PHP: 7.3.0
 
 Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy-to-use plugin.
 

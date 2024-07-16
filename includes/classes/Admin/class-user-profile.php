@@ -147,7 +147,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 							if ( $codes_remaining > 0 ) {
 								$backup_codes_desc = '<span class="description mt-5px">' . \esc_attr( (int) $codes_remaining ) . ' ' . \esc_html__( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 							} elseif ( 0 === $codes_remaining ) {
-								$backup_codes_desc = '<a class="learn_more_link" href="https://melapress.com/2fa-backup-codes/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
+								$backup_codes_desc = '<a class="learn_more_link" href="https://melapress.com/2fa-backup-codes/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 							}
 
 							if ( ! empty( $backup_codes_desc ) ) {
@@ -273,7 +273,15 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					$backup_methods_enabled = \implode( ', ', $enabled_backup_methods );
 				}
 
-				if ( isset( $additional_args ) && ! empty( $additional_args ) && isset( $additional_args['options'] ) && ! empty( $additional_args['options'] ) && isset( $additional_args['options']['do_not_show_enabled'] ) && 'false' === $additional_args['options']['do_not_show_enabled'] ) {
+				$show_enabled = true;
+
+				if ( isset( $additional_args ) && ! empty( $additional_args ) && isset( $additional_args['options'] ) && ! empty( $additional_args['options'] ) ) {
+					if ( isset( $additional_args['options']['do_not_show_enabled'] ) && 'false' !== $additional_args['options']['do_not_show_enabled'] ) {
+						$show_enabled = false;
+					}
+				}
+
+				if ( $show_enabled ) {
 
 					$form_output .= '<h3>' . \esc_html__( 'Currently configured:', 'wp-2fa' ) . '</h3>';
 
@@ -525,8 +533,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 							__( 'Remove 2FA?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							__( 'Are you sure you want to remove two-factor authentication and lower the security of your user account?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							array(
-								'<a href="#" class="button wp-2fa-button-primary button-confirm" data-trigger-remove-2fa data-user-id="' . \esc_attr( $user->ID ) . '" ' . WP_Helper::create_data_nonce( 'wp-2fa-remove-user-2fa-nonce' ) . '>' . \esc_html__( 'Yes', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-								'<button class="modal__btn  wp-2fa-button-secondary  button button-decline" data-close-2fa-modal aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
+								'<a href="#" class="button wp-2fa-button-primary" data-trigger-remove-2fa data-user-id="' . \esc_attr( $user->ID ) . '" ' . WP_Helper::create_data_nonce( 'wp-2fa-remove-user-2fa-nonce' ) . '>' . \esc_html__( 'Yes', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								'<button class="modal__btn  wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
 							)
 						);
 					endif;

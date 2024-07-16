@@ -279,7 +279,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						<fieldset class="radio-cells">
 						<div class="option-pill">
 							<label for="use_wp_email">
-								<input type="radio" name="wp_2fa_email_address" id="use_wp_email" value="<?php echo \esc_attr( User_Helper::get_user_object()->user_email ); ?>" \checked>
+								<input type="radio" name="wp_2fa_email_address" id="use_wp_email" value="<?php echo \esc_attr( User_Helper::get_user_object()->user_email ); ?>" checked>
 								<span><?php \esc_html_e( 'Use my user email (', 'wp-2fa' ); ?><small><?php echo \esc_attr( User_Helper::get_user_object()->user_email ); ?></small><?php \esc_html_e( ')', 'wp-2fa' ); ?></span>
 							</label>
 						</div>

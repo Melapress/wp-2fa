@@ -9,6 +9,7 @@ return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'WP2FA\\Admin\\Controllers\\Methods' => $baseDir . '/includes/classes/Admin/Controllers/class-methods.php',
     'WP2FA\\Admin\\Controllers\\Settings' => $baseDir . '/includes/classes/Admin/Controllers/class-settings.php',
+    'WP2FA\\Admin\\FlyOut\\FlyOut' => $baseDir . '/includes/classes/Admin/Fly-Out/class-flyout.php',
     'WP2FA\\Admin\\Help_Contact_Us' => $baseDir . '/includes/classes/Admin/class-help-contact-us.php',
     'WP2FA\\Admin\\Helpers\\Ajax_Helper' => $baseDir . '/includes/classes/Admin/Helpers/class-ajax-helper.php',
     'WP2FA\\Admin\\Helpers\\Classes_Helper' => $baseDir . '/includes/classes/Admin/Helpers/class-classes-helper.php',
@@ -85,6 +86,11 @@ return array(
     
     
     
+    
+    
+    
+    
+    
     'WP2FA\\Methods\\Backup_Codes' => $baseDir . '/includes/classes/Admin/Methods/class-backup-codes.php',
     'WP2FA\\Methods\\Email' => $baseDir . '/includes/classes/Admin/Methods/class-email.php',
     'WP2FA\\Methods\\TOTP' => $baseDir . '/includes/classes/Admin/Methods/class-totp.php',
@@ -99,6 +105,7 @@ return array(
     'WP2FA\\Utils\\Request_Utils' => $baseDir . '/includes/classes/Utils/class-request-utils.php',
     'WP2FA\\Utils\\Settings_Utils' => $baseDir . '/includes/classes/Utils/class-settings-utils.php',
     'WP2FA\\Utils\\User_Utils' => $baseDir . '/includes/classes/Utils/class-user-utils.php',
+    'WP2FA\\Utils\\White_Label' => $baseDir . '/includes/classes/Utils/class-white-label.php',
     'WP2FA\\WP2FA' => $baseDir . '/includes/classes/class-wp2fa.php',
     'WP2FA_Vendor\\Stringable' => $vendorDir . '/myclabs/php-enum/stubs/Stringable.php',
 );
