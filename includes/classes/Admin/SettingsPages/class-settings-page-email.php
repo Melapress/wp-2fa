@@ -18,6 +18,7 @@ use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Settings_Page;
+use WP2FA\Extensions\WhiteLabeling\White_Labeling_Render;
 
 /**
  * Email settings tab
@@ -136,7 +137,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				</tr>
 			</tbody>
 		</table>
-		<div class="description"><i><?php \esc_html_e( 'Tip: The \'From email\' address should match your website domain. If the "from address" does not match your website domain, the emails may be blocked or marked as spam. If you are not sure about this please consult with your website administrator / developer or ', 'wp-2fa' ); ?><a href="<?php echo \esc_url( 'https://melapress.com/contact/?utm_source=plugins&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank"><?php \esc_html_e( 'contact us', 'wp-2fa' ); ?></a> <?php \esc_html_e( 'for more information.', 'wp-2fa' ); ?></i></div>
+		<div class="description"><i><?php \esc_html_e( 'Tip: The \'From email\' address should match your website domain. If the "from address" does not match your website domain, the emails may be blocked or marked as spam. If you are not sure about this please consult with your website administrator / developer or ', 'wp-2fa' ); ?><a href="<?php echo \esc_url( 'https://melapress.com/contact/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank"><?php \esc_html_e( 'contact us', 'wp-2fa' ); ?></a> <?php \esc_html_e( 'for more information.', 'wp-2fa' ); ?></i></div>
 		<br>
 		<hr>
 
@@ -490,11 +491,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				</tr>
 			</tbody>
 		</table>
-
 		<br>
 		<hr>
 		<?php endforeach; ?>
-			<?php
+		<?php
+			$additional_content = apply_filters( WP_2FA_PREFIX . 'append_to_email_and_sms_template_settings', '' );
+			echo $additional_content;
 		}
 	}
 }

@@ -338,6 +338,18 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		}
 
 		/**
+		 * Migration for version upto 2.8.0
+		 *
+		 * @return void
+		 *
+		 * @since 2.8.0
+		 */
+		protected static function migrate_up_to_280() {
+
+			self::migrate_up_to_240();
+		}
+
+		/**
 		 * Returns the plugin settings by a given setting type
 		 *
 		 * @param mixed $setting_name - The setting which needs to be extracted.

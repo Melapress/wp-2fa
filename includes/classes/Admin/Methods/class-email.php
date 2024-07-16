@@ -139,11 +139,11 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		public static function add_default_settings( array $default_settings ) {
 			$default_settings[ self::POLICY_SETTINGS_NAME ] = self::POLICY_SETTINGS_NAME;
 			$default_settings['specify-email_hotp']           = 'specify-email_hotp';
-			$default_settings['method_help_hotp_intro']       = '<h3>' . __( 'Setting up HOTP', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
+			$default_settings['method_help_hotp_intro']       = '<h3>' . __( 'Setting up HOTP (one-time code via email)', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
 			$default_settings['method_help_hotp_help']        = __( 'To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator', 'wp-2fa' );
 			$default_settings['method_help_hotp_help_email']  = '<b>' . __( 'IMPORTANT', 'wp-2fa' ) . '</b><p>' . __( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is {from_email}', 'wp-2fa' ) . '</p>';
 			$default_settings['method_verification_hotp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup', 'wp-2fa' ) . '</p>';
-			$default_settings['hotp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} one-time code over email method', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
+			$default_settings['hotp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} one-time code over email method', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the email address where the one-time code should be sent.', 'wp-2fa' ) . '</p>';
 			$default_settings['email-option-label']           = __( 'One-time code via email', 'wp-2fa' );
 
 			return $default_settings;

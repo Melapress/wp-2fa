@@ -11,7 +11,6 @@
 
 namespace WP2FA\Admin;
 
-use WP2FA\WP2FA;
 use WP2FA\Utils\Settings_Utils;
 
 /**
@@ -27,7 +26,7 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 
 		/**
 		 * Lets set things up
-		 * 
+		 *
 		 * @since 2.7.0
 		 */
 		public static function init() {
@@ -44,9 +43,9 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 		 * @return void
 		 */
 		public static function plugin_update_banner() {
-			$screen             = get_current_screen();
-			$correct_screen 	= ( 'toplevel_page_wp-2fa-policies-network' === $screen->base || 'toplevel_page_wp-2fa-policies' === $screen->base ) ? true : false;
-			
+			$screen         = get_current_screen();
+			$correct_screen = ( 'toplevel_page_wp-2fa-policies-network' === $screen->base || 'toplevel_page_wp-2fa-policies' === $screen->base ) ? true : false;
+
 			if ( $correct_screen && Settings_Utils::get_option( 'wp_2fa_update_notice_needed', false ) ) {
 				/* translators: %s: version number. */
 				printf( '<div id="wp_2fa_update_notice" class="notice notice-success is-dismissible"><img src="' . esc_url( WP_2FA_URL . 'dist/images/wp-2fa-square.png' ) . '"><p><strong>' . esc_html__( 'Thank you for updating WP 2FA.', 'wp-2fa' ) . '</strong></p><p>' . esc_html__( 'This is version %s. Check out the release notes to see what is new and improved in this update.', 'wp-2fa' ) . '</p><a href="https://melapress.com/wordpress-2fa/releases/" target="_blank" class="button button-primary dismiss_update_notice" data-dismiss-nonce="%2s">' . esc_html__( 'Release notes', 'wp-2fa' ) . '</a></p></div>', WP_2FA_VERSION, wp_create_nonce( 'wp_2fa_dismiss_update_notice_nonce' ) );
@@ -102,9 +101,9 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 				delete_site_option( 'wp_2fa_update_redirection_needed' );
 				update_site_option( 'wp_2fa_update_notice_needed', true );
 				$args = array(
-					'page' => 'wp-2fa-policies'
+					'page' => 'wp-2fa-policies',
 				);
-				$url = add_query_arg( $args, network_admin_url( 'admin.php' ) );
+				$url  = add_query_arg( $args, network_admin_url( 'admin.php' ) );
 				wp_safe_redirect( $url );
 				exit;
 			}

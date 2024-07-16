@@ -32,6 +32,8 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 * Holds map with human readable 2FA statuses.
 		 *
 		 * @var array
+		 *
+		 * @since 2.2.0
 		 */
 		private static $statuses;
 
@@ -117,11 +119,11 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 				$user_type[] = 'orphan_user'; // User has no role.
 			}
 
-			if ( current_user_can( 'manage_options' ) ) {
+			if ( \current_user_can( 'manage_options' ) ) {
 				$user_type[] = 'can_manage_options';
 			}
 
-			if ( current_user_can( 'read' ) ) {
+			if ( \current_user_can( 'read' ) ) {
 				$user_type[] = 'can_read';
 			}
 
@@ -141,7 +143,7 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			return apply_filters( WP_2FA_PREFIX . 'additional_user_types', $user_type, $user );
+			return \apply_filters( WP_2FA_PREFIX . 'additional_user_types', $user_type, $user );
 		}
 
 		/**
@@ -165,6 +167,8 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 * @param array $user_roles - The User roles.
 		 *
 		 * @return bool
+		 *
+		 * @since 2.2.0
 		 */
 		public static function role_is_not( $roles, $user_roles ) {
 			if (
@@ -188,6 +192,8 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 * @param array  $users_args Query arguments.
 		 *
 		 * @return mixed Array of IDs/Object of Users.
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_all_users_data( $method, $users_args ) {
 			if ( 'get_users' === $method ) {
@@ -262,6 +268,8 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 * @param array $users_args - Arguments.
 		 *
 		 * @return string
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_all_user_ids_who_have_wp_2fa_metadata_present( $users_args ) {
 			global $wpdb;
@@ -302,6 +310,8 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 * @param array  $users_args Query arguments.
 		 *
 		 * @return string List of IDs.
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_all_user_ids( $method, $users_args ) {
 			$user_data = self::get_all_users_data( $method, $users_args );
@@ -323,6 +333,8 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 * @param array  $users_args Query arguments.
 		 *
 		 * @return array User details.
+		 *
+		 * @since 2.2.0
 		 */
 		public static function get_all_user_ids_and_login_names( $method, $users_args ) {
 			$user_data = self::get_all_users_data( $method, $users_args );

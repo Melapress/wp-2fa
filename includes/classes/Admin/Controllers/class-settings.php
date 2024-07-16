@@ -165,25 +165,28 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				if ( ! empty( self::$custom_setup_page_link ) ) {
 					$custom_slug = '';
 					if ( WP_Helper::is_multisite() ) {
-						switch_to_blog( get_main_site_id() );
+						\switch_to_blog( get_main_site_id() );
 
-						$custom_slug                  = get_post_field( 'post_name', get_post( self::$custom_setup_page_link ) );
-						self::$custom_setup_page_link = trailingslashit( get_site_url() ) . $custom_slug;
+						// $custom_slug                  = get_post_field( 'post_name', get_post( self::$custom_setup_page_link ) );
+						$new_page_permalink = get_permalink( get_post( self::$custom_setup_page_link ) );
+						self::$custom_setup_page_link = $new_page_permalink;//trailingslashit( get_site_url() ) . $custom_slug;
 
-						restore_current_blog();
+						\restore_current_blog();
 					} else {
-						$custom_slug                  = get_post_field( 'post_name', get_post( self::$custom_setup_page_link ) );
-						self::$custom_setup_page_link = trailingslashit( get_site_url() ) . $custom_slug;
+						//$custom_slug                  = get_post_field( 'post_name', get_post( self::$custom_setup_page_link ) );
+
+						$new_page_permalink = get_permalink( get_post( self::$custom_setup_page_link ) );
+						self::$custom_setup_page_link = $new_page_permalink;
 					}
 				} else {
 					$custom_user_page_id = (int) self::get_custom_settings_page_id( '', $user );
 					if ( ! empty( $custom_user_page_id ) ) {
-						self::$custom_setup_page_link = get_permalink( $custom_user_page_id );
+						self::$custom_setup_page_link = \get_permalink( $custom_user_page_id );
 					}
 				}
 			}
 
-			return (string) apply_filters( WP_2FA_PREFIX . 'custom_setup_page_link', self::$custom_setup_page_link, $user );
+			return (string) \apply_filters( WP_2FA_PREFIX . 'custom_setup_page_link', self::$custom_setup_page_link, $user );
 		}
 
 		/**
