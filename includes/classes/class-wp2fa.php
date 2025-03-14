@@ -580,7 +580,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			$login_code_setup_body .= '</p>';
 			$login_code_setup_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
 			$login_code_setup_body .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-			$login_code_setup_body .= ' <a href="hhttps://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$login_code_setup_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
 			$login_code_setup_body .= '</p>';
 
 			// Create User Locked Message.
