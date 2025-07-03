@@ -379,7 +379,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 				<p>
 					</br>
 					<label for="authcode"><?php \esc_html_e( 'Authentication Code:', 'wp-2fa' ); ?></label>
-					<input type="tel" name="authcode" id="authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off" />
+					<input type="tel" name="authcode" id="authcode" class="input" value="" size="20" pattern="[0-9]*"  autocomplete="one-time-code" />
 					<script>
 						const authcode = document.getElementById('authcode');
 						authcode.addEventListener('input', function() {
