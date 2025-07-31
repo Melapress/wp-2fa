@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage authentication
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -23,9 +23,11 @@ namespace WP2FA\Authenticator;
 
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA_Vendor\Endroid\QrCode\QrCode;
+use WP2FA_Vendor\BaconQrCode\Writer;
 use WP2FA\Admin\Methods\Traits\Login_Attempts;
-use WP2FA_Vendor\Endroid\QrCode\Writer\SvgWriter;
+use WP2FA_Vendor\BaconQrCode\Renderer\ImageRenderer;
+use WP2FA_Vendor\BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use WP2FA_Vendor\BaconQrCode\Renderer\RendererStyle\RendererStyle;
 
 if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 	/**
@@ -91,10 +93,13 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 				$target_url .= ( '&issuer=' . rawurlencode( $title ) );
 			}
 
-			$qr = new QrCode( $target_url );
-			$qr->setWriterOptions( array( 'exclude_xml_declaration' => true ) );
-			$writer = new SvgWriter();
-			$result = $writer->writeString( $qr );
+			$renderer = new ImageRenderer(
+				new RendererStyle( 400 ),
+				new SvgImageBackEnd()
+			);
+			$writer   = new Writer( $renderer );
+
+			$result = $writer->writeString( $target_url );
 
 			return 'data:image/svg+xml;base64,' . base64_encode( $result ); // phpcs:ignore
 		}
@@ -271,7 +276,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 *
 		 * @param string $base32_string The base 32 string to decode.
 		 *
-		 * @throws \Exception If string contains non-base32 characters.
+		 * @throws \InvalidArgumentException If string contains non-base32 characters.
 		 *
 		 * @return string Binary representation of decoded string
 		 */
@@ -279,8 +284,8 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 
 			$base32_string = strtoupper( $base32_string );
 
-			if ( ! preg_match( '/^[' . self::$base_32_chars . ']+$/', $base32_string, $match ) ) {
-				throw new \Exception( 'Invalid characters in the base32 string.' );
+			if ( ! preg_match( '/^[' . self::$base_32_chars . ']+$/', $base32_string ) ) {
+				throw new \InvalidArgumentException( 'Invalid characters in the base32 string.' );
 			}
 
 			$l      = strlen( $base32_string );
@@ -398,9 +403,9 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		public static function validate_token( $user, $token ) {
 			$user_id      = $user->ID;
 			$hashed_token = self::get_user_token( $user_id );
+
 			// Bail if token is empty or it doesn't match.
-			// This code is here just because people have no idea what is the difference between preaching and real life.
-			if ( empty( $hashed_token ) || ( ! hash_equals( wp_hash( $token ), $hashed_token ) ) ) {
+			if ( empty( $hashed_token ) || ! hash_equals( wp_hash( $token ), $hashed_token ) ) {
 				self::increase_login_attempts( $user );
 				return false;
 			}
@@ -541,17 +546,24 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 * @return string
 		 *
 		 * @since 2.0.0
+		 *
+		 * @throws \RuntimeException - The key could not be decrypted.
 		 */
 		public static function decrypt_key_if_needed( string &$key ): string {
-			if ( '' === trim( (string) self::$decrypted_key ) ) {
-				if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
-					$key = self::$decrypted_key = Open_SSL::decrypt( substr( $key, 4 ) ); // phpcs:ignore
+			if ( '' === trim( self::$decrypted_key ) ) {
+				if ( Open_SSL::is_ssl_available() && strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) === 0 ) {
+					$decrypted = Open_SSL::decrypt( substr( $key, strlen( Open_SSL::SECRET_KEY_PREFIX ) ) );
+					if ( false !== $decrypted ) {
+						self::$decrypted_key = $decrypted;
+					} else {
+						throw new \RuntimeException( 'Failed to decrypt the key.' );
+					}
 				} else {
 					self::$decrypted_key = $key;
 				}
 			}
 
-			return ( $key = self::$decrypted_key ); // phpcs:ignore
+			return ( $key = self::$decrypted_key ); // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found
 		}
 	}
 }

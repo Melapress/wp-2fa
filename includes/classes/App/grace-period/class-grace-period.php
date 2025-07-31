@@ -5,16 +5,15 @@
  * @package    wp2fa
  * @subpackage grace-period
  * @since      2.0.0
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\App;
 
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -59,7 +58,7 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function maybe_prevent_account_lock( bool $state, \WP_User $user ) {
-			if ( 'configure-right-away' === Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', $user ) ) {
+			if ( 'configure-right-away' === Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'grace-policy-after-expire-action' ) ) {
 				User_Helper::set_user_enforced_instantly( true, $user );
 
 				return false;
@@ -110,7 +109,7 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function is_set_up_immediately_set( \WP_User $user ) {
-			if ( 'configure-right-away' === Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', $user ) ) {
+			if ( 'configure-right-away' === Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'grace-policy-after-expire-action' ) ) {
 
 				return true;
 			}
@@ -148,11 +147,8 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 		private static function grace_options( string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ): string {
 			ob_start();
 
-			if ( class_exists( 'WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
-				$expire_action = Role_Settings_Controller::get_setting( $role, 'grace-policy-after-expire-action', 'configure-right-away' );
-			} else {
-				$expire_action = Settings::get_role_or_default_setting( 'grace-policy-after-expire-action', null, null, 'configure-right-away' );
-			}
+			$expire_action = Settings_Utils::get_setting_role( sanitize_text_field( $role ), 'grace-policy-after-expire-action', true );
+
 			if ( false === $expire_action ) {
 				$expire_action = 'configure-right-away';
 			}
@@ -162,22 +158,22 @@ if ( ! class_exists( '\WP2FA\App\Grace_Period' ) ) {
 					<?php echo \esc_html__( 'What should the plugin do with users who do not configure 2FA within the grace period?', 'wp-2fa' ); ?>
 				</p>
 				<fieldset>
-					<label for="configure-right-away<?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 10px; display: inline-block;">
-						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[grace-policy-after-expire-action]" 
-						id="configure-right-away<?php echo \esc_attr( $role_id ); ?>" 
-						<?php echo $data_role; // phpcs:ignore?> 
+					<label for="configure-right-away<?php echo \esc_attr( sanitize_text_field( $role_id ) ); ?>" style="margin-bottom: 10px; display: inline-block;">
+						<input type="radio" name="<?php echo \esc_attr( sanitize_text_field( $name_prefix ) ); ?>[grace-policy-after-expire-action]" 
+						id="configure-right-away<?php echo \esc_attr( sanitize_text_field( $role_id ) ); ?>" 
+						<?php echo ( $data_role );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
 						value="configure-right-away" <?php checked( $expire_action, 'configure-right-away' ); ?> class="js-nested">
 						<span><?php echo \esc_html__( 'Do not let them access the dashboard / user page once they log in until they configure 2FA', 'wp-2fa' ); ?></span>
 					</label>
 
 					<br>
 					<div style="clear:both">
-					<label for="manual-block<?php echo \esc_attr( $role_id ); ?>">
-						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[grace-policy-after-expire-action]" <?php checked( $expire_action, 'manual-block' ); ?> 
-						id="manual-block<?php echo \esc_attr( $role_id ); ?>"
-						<?php echo $data_role; // phpcs:ignore?> 
+					<label for="manual-block<?php echo \esc_attr( sanitize_text_field( $role_id ) ); ?>">
+						<input type="radio" name="<?php echo \esc_attr( sanitize_text_field( $name_prefix ) ); ?>[grace-policy-after-expire-action]" <?php checked( $expire_action, 'manual-block' ); ?> 
+						id="manual-block<?php echo \esc_attr( sanitize_text_field( $role_id ) ); ?>"
+						<?php echo ( $data_role );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
 						value="manual-block" class="js-nested">
-						<span><?php echo \esc_html__( 'Block the user (administrators have to manually unblock them)', 'wp-2fa' ); ?></span>
+						<span><?php echo \esc_html__( 'Lock the user (administrators have to manually unlock them)', 'wp-2fa' ); ?></span>
 					</label>
 					</div>
 				</fieldset>

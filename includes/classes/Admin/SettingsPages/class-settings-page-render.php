@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage views
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -53,7 +53,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 					 *
 					 * @since 2.0.0
 					 */
-					do_action( WP_2FA_PREFIX . 'before_plugin_settings' );
+					\do_action( WP_2FA_PREFIX . 'before_plugin_settings' );
 				?>
 				<div class="nav-tab-wrapper">
 					<?php
@@ -66,35 +66,32 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 
 					foreach ( $settings as $setting_tab => $setting_values ) {
 						$active_class = '';
-						if ( ! isset( $_REQUEST['tab'] ) && $setting_values['default'] ) { // phpcs:ignore
+						if ( ! isset( $_REQUEST['tab'] ) && $setting_values['default'] ) {
 							$active_class         = 'nav-tab-active';
 							$default_settings_key = $setting_tab;
-						} elseif ( isset( $_REQUEST['tab'] ) && $setting_tab === $_REQUEST['tab'] ) { // phpcs:ignore
+						} elseif ( isset( $_REQUEST['tab'] ) && \sanitize_text_field( \wp_unslash( $_REQUEST['tab'] ) ) === $setting_tab ) {
 							$active_class = 'nav-tab-active';
 						}
-						echo '<a href="' . $setting_values['url'] . '" class="nav-tab ' . $active_class . '">' . $setting_values['name'] . '</a>'; // phpcs:ignore
+						echo '<a href="' . esc_url( $setting_values['url'] ) . '" class="nav-tab ' . esc_attr( $active_class ) . '">' . esc_html( $setting_values['name'] ) . '</a>';
 					}
 					?>
 				</div>
 					<?php
 					$show_tab = $default_settings_key;
 
-					if ( isset( $_REQUEST['tab'] ) && array_key_exists( $_REQUEST['tab'], $settings ) ) { // phpcs:ignore
-						$show_tab = \sanitize_text_field( \wp_unslash( $_REQUEST['tab'] ) ); // phpcs:ignore
+					if ( isset( $_REQUEST['tab'] ) && array_key_exists( \sanitize_text_field( \wp_unslash( $_REQUEST['tab'] ) ), $settings ) ) {
+						$show_tab = \sanitize_text_field( \wp_unslash( $_REQUEST['tab'] ) );
 					}
 
 					if ( WP_Helper::is_multisite() ) {
-						$action = 'edit.php?action=' . $settings[ $show_tab ]['network_action'];
+						$action = 'edit.php?action=' . \esc_attr( $settings[ $show_tab ]['network_action'] );
 					} else {
 						$action = 'options.php';
 					}
 					?>
 					<br/>
-					<?php
-						$settings[ $show_tab ]['description'];
-					?>
-					<br/>
-					<form id="wp-2fa-admin-settings" action='<?php echo \esc_attr( $action ); ?>' method='post' autocomplete="off" >
+					
+					<form id="wp-2fa-admin-settings" action='<?php echo esc_attr( $action ); ?>' method='post' autocomplete="off" >
 						<?php
 						\call_user_func( array( $settings[ $show_tab ]['class'], $settings[ $show_tab ]['method'] ) );
 						?>
@@ -111,7 +108,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 		 *
 		 * @since 2.2.0
 		 */
-		private static function settings_array(): array {			
+		private static function settings_array(): array {
 			$email_settings_name = \esc_html__( 'Emails & templates', 'wp-2fa' );
 			$settings_tabs = array(
 				'generic-settings'     => array(
@@ -124,7 +121,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Render' ) ) {
 							network_admin_url( 'admin.php' )
 						)
 					),
-					'name'           => \esc_html__( 'General settings', 'wp-2fa' ),
+					'name'           => \esc_html__( 'General', 'wp-2fa' ),
 					'default'        => true,
 					'description'    => sprintf(
 						'<p class="description">%1$s <a href="mailto:support@melapress.com">%2$s</a></p>',

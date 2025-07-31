@@ -3,9 +3,10 @@
  * Open SSL encrypt / decrypt class.
  *
  * @package   wp2fa
- * @copyright 2024 Melapress
+ * @copyright 2025 Melapress
  * @license   https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link      https://wordpress.org/plugins/wp-2fa/
+ * @since     2.0.0
  */
 
 declare(strict_types=1);
@@ -13,7 +14,6 @@ declare(strict_types=1);
 namespace WP2FA\Authenticator;
 
 use WP2FA\WP2FA;
-use WP2FA\Utils\Debugging;
 
 use function WP2FA\Core\wp_salt;
 
@@ -50,13 +50,15 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		 *
 		 * @return string
 		 *
+		 * @throws \RuntimeException - If encryption fails.
+		 *
 		 * @since 2.0.0
 		 */
 		public static function encrypt( string $text ): string {
 			if ( self::is_ssl_available() ) {
-				$iv   = self::secure_random( self::BLOCK_BYTE_SIZE );
-				$key  = \openssl_digest( \base64_decode( wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
-				$text = \openssl_encrypt(
+				$iv             = self::secure_random( self::BLOCK_BYTE_SIZE );
+				$key            = \openssl_digest( \base64_decode( wp_salt() ), self::DIGEST_ALGORITHM, true );
+				$encrypted_text = \openssl_encrypt(
 					$text,
 					self::CIPHER_METHOD,
 					$key,
@@ -64,7 +66,11 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 					$iv
 				);
 
-				$text = \base64_encode( $iv . $text ); //phpcs:ignore
+				if ( false === $encrypted_text ) {
+					throw new \RuntimeException( 'Encryption failed.' );
+				}
+
+				$text = \base64_encode( $iv . $encrypted_text ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			}
 
 			return $text;
@@ -76,25 +82,29 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		 * @param string $text - Encrypted text to be decrypted.
 		 *
 		 * @return string
+		 *
+		 * @throws \RuntimeException - If decryption fails.
 		 *
 		 * @since 2.0.0
 		 */
 		public static function decrypt( string $text ): string {
-			Debugging::log( 'Decrypting a text: ' . $text );
-			Debugging::log( 'Will use the following salt: ' . wp_salt() );
-
 			if ( self::is_ssl_available() ) {
-				$decoded_base = \base64_decode( $text ); //phpcs:ignore
+				$decoded_base = \base64_decode( $text ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
-				$key = \openssl_digest( \base64_decode( wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
+				$key = \openssl_digest( \base64_decode( wp_salt() ), self::DIGEST_ALGORITHM, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
 
 				$iv             = \substr( $decoded_base, 0, $ivlen );
 				$ciphertext_raw = \substr( $decoded_base, $ivlen );
-				$text           = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
+				$decrypted_text = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
+
+				if ( false === $decrypted_text ) {
+					throw new \RuntimeException( 'Decryption failed.' );
+				}
+
+				$text = $decrypted_text;
 			}
-			Debugging::log( 'Decrypted text: ' . $text );
 
 			return $text;
 		}
@@ -106,23 +116,28 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		 *
 		 * @return string
 		 *
+		 * @throws \RuntimeException - If legacy decryption fails.
+		 *
 		 * @since 2.0.0
 		 */
 		public static function decrypt_legacy( string $text ): string {
-			Debugging::log( 'Decrypting a text: ' . $text );
-
 			if ( self::is_ssl_available() ) {
-				$decoded_base = \base64_decode( $text ); //phpcs:ignore
+				$decoded_base = \base64_decode( $text ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
-				$key = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
+				$key = \openssl_digest( \base64_decode( WP2FA::get_secret_key() ), self::DIGEST_ALGORITHM, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
 
 				$iv             = \substr( $decoded_base, 0, $ivlen );
 				$ciphertext_raw = \substr( $decoded_base, $ivlen );
-				$text           = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
+				$decrypted_text = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
+
+				if ( false === $decrypted_text ) {
+					throw new \RuntimeException( 'Decryption failed.' );
+				}
+
+				$text = $decrypted_text;
 			}
-			Debugging::log( 'Decrypted text: ' . $text );
 
 			return $text;
 		}
@@ -134,24 +149,28 @@ if ( ! class_exists( '\WP2FA\Authenticator\Open_SSL' ) ) {
 		 *
 		 * @return string
 		 *
+		 * @throws \RuntimeException - If decryption fails.
+		 *
 		 * @since 2.3.0
 		 */
 		public static function decrypt_wps( string $text ): string {
-			Debugging::log( 'Decrypting a text: ' . $text );
-			Debugging::log( 'Will use the following salt: ' . \wp_salt() );
-
 			if ( self::is_ssl_available() ) {
-				$decoded_base = \base64_decode( $text ); //phpcs:ignore
+				$decoded_base = \base64_decode( $text ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
-				$key = \openssl_digest( \base64_decode( \wp_salt() ), self::DIGEST_ALGORITHM, true ); //phpcs:ignore
+				$key = \openssl_digest( \base64_decode( \wp_salt() ), self::DIGEST_ALGORITHM, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				$ivlen = \openssl_cipher_iv_length( self::CIPHER_METHOD );
 
 				$iv             = \substr( $decoded_base, 0, $ivlen );
 				$ciphertext_raw = \substr( $decoded_base, $ivlen );
-				$text           = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
+				$decrypted_text = \openssl_decrypt( $ciphertext_raw, self::CIPHER_METHOD, $key, OPENSSL_RAW_DATA, $iv );
+
+				if ( false === $decrypted_text ) {
+					throw new \RuntimeException( 'Decryption failed.' );
+				}
+
+				$text = $decrypted_text;
 			}
-			Debugging::log( 'Decrypted text: ' . $text );
 
 			return $text;
 		}

@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage admin_controllers
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -42,12 +42,14 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		/**
 		 * Works our a list of available 2FA methods. It doesn't include the disabled ones.
 		 *
-		 * TODO: There is a high possibility that this method is duplication of the Settings::get_providers - check and make the changes as there must be only one way to extract that info
+		 * @param string $role - The role to get the methods for. Default is 'global'.
 		 *
 		 * @return string[]
+		 *
 		 * @since 2.0.0
+		 * @since 2.9.0 - Added role parameter so the methods can be filtered base on the user role.
 		 */
-		public static function get_available_2fa_methods(): array {
+		public static function get_available_2fa_methods( string $role = 'global' ): array {
 			$available_methods = array();
 
 			/**
@@ -57,7 +59,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			return \apply_filters( WP_2FA_PREFIX . 'available_2fa_methods', $available_methods );
+			return \apply_filters( WP_2FA_PREFIX . 'available_2fa_methods', $available_methods, $role );
 		}
 
 		/**
@@ -70,6 +72,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function get_enabled_methods( $role = 'global' ): array {
+			$role = \sanitize_text_field( $role );
+
 			if ( null === self::$enabled_methods || ! isset( self::$enabled_methods[ $role ] ) ) {
 				self::$enabled_methods[ $role ] = array();
 				$providers                      = Settings::get_providers();
@@ -80,9 +84,9 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 						if ( $method && \method_exists( $method, 'is_secondary' ) && $method::is_secondary() ) {
 							continue;
 						} elseif ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $provider ) {
-							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role );
+							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . \sanitize_key( $provider ) . '_email', false, false, $role );
 						} else {
-							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role );
+							self::$enabled_methods[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . \sanitize_key( $provider ), false, false, $role );
 						}
 					}
 				}
@@ -91,6 +95,30 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 			}
 
 			return self::$enabled_methods;
+		}
+
+		/**
+		 * Checks if given methog is enabled for given role and returns true or false.
+		 *
+		 * @param string $provider_name - The name of the method.
+		 * @param string $role - The name of the role to check for. Default is 'global.
+		 *
+		 * @return boolean
+		 *
+		 * @since 2.9.0
+		 */
+		public static function is_method_enabled_for_role( string $provider_name, string $role = 'global' ): bool {
+			$role = \sanitize_text_field( $role );
+
+			if ( ! isset( self::$enabled_methods[ $role ] ) ) {
+				self::get_enabled_methods( $role );
+			}
+
+			if ( isset( self::$enabled_methods[ $role ][ $provider_name ] ) && self::$enabled_methods[ $role ][ $provider_name ] ) {
+				return true;
+			}
+
+			return false;
 		}
 
 		/**

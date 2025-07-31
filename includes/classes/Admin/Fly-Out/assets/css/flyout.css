@@ -25,11 +25,11 @@
     box-shadow: none;
   }
   
-  #mlp-flyout #mlp-elmnts-button {
+  #mlp-flyout #mlp-elements-button {
     display: block;
   }
   
-  #mlp-flyout #mlp-elmnts-image-wrapper {
+  #mlp-flyout #mlp-elements-image-wrapper {
     border: 3px solid #000000;
     border-radius: 50%;
     padding: 0;
@@ -39,7 +39,7 @@
     box-shadow: 0 3px 20px rgba(0, 0, 0, 0.2);
   }
   
-  #mlp-flyout #mlp-elmnts-button img {
+  #mlp-flyout #mlp-elements-button img {
     width: 55px;
     height: 55px;
     display: block;
@@ -50,16 +50,16 @@
     top: 4px;
   }
   
-  #mlp-flyout #mlp-elmnts-button:hover #mlp-elmnts-image-wrapper {
+  #mlp-flyout #mlp-elements-button:hover #mlp-elements-image-wrapper {
     box-shadow: 0 3px 30px rgba(0, 0, 0, 0.25);
   }
   
-  #mlp-flyout:not(.opened) #mlp-elmnts-button:hover .mlp-elmnts-label {
+  #mlp-flyout:not(.opened) #mlp-elements-button:hover .mlp-elements-label {
     opacity: 1;
     margin-right: 0;
   }
   
-  #mlp-flyout .mlp-elmnts-label {
+  #mlp-flyout .mlp-elements-label {
     position: absolute;
     display: block;
     top: 50%;
@@ -82,7 +82,7 @@
     margin-right: -50px;
   }
   
-  #mlp-flyout .mlp-elmnts-icon {
+  #mlp-flyout .mlp-elements-icon {
     width: 40px;
     height: 40px;
     vertical-align: middle;
@@ -90,16 +90,16 @@
     text-align: center;
   }
   
-  #mlp-flyout .mlp-elmnts-icon img {
+  #mlp-flyout .mlp-elements-icon img {
     max-width: 70%;
     filter: brightness(100);
   }
   
-  #mlp-flyout .mlp-elmnts-label.visible {
+  #mlp-flyout .mlp-elements-label.visible {
     opacity: 1;
   }
   
-  #mlp-flyout .mlp-elmnts-menu-item {
+  #mlp-flyout .mlp-elements-menu-item {
     position: absolute;
     left: 10px;
     width: 40px;
@@ -116,81 +116,81 @@
     transition-timing-function: ease-in-out;
   }
   
-  #mlp-flyout .mlp-elmnts-menu-item.accent {
+  #mlp-flyout .mlp-elements-menu-item.accent {
     background: #ca4a1f;
   }
   
-  #mlp-flyout.opened .mlp-elmnts-menu-item {
+  #mlp-flyout.opened .mlp-elements-menu-item {
     opacity: 1;
     visibility: visible;
     transform: scale(1);
   }
   
-  #mlp-flyout .mlp-elmnts-menu-item:hover {
+  #mlp-flyout .mlp-elements-menu-item:hover {
     box-shadow: 0 3px 30px rgba(0, 0, 0, 0.25);
   }
   
-  #mlp-flyout .mlp-elmnts-menu-item:hover .mlp-elmnts-label {
+  #mlp-flyout .mlp-elements-menu-item:hover .mlp-elements-label {
     right: calc(100% + 55px);
   }
   
-  #mlp-flyout .mlp-elmnts-menu-item .mlp-elmnts-label {
+  #mlp-flyout .mlp-elements-menu-item .mlp-elements-label {
     right: calc(100% + 70px);
   }
   
-  #mlp-flyout .mlp-elmnts-menu-item .dashicons {
+  #mlp-flyout .mlp-elements-menu-item .dashicons {
     line-height: 41px;
     font-size: 23px;
     color: #fff;
     padding: 0px 3px 0px 0;
   }
   
-  .mlp-elmnts-menu-item-1 {
+  .mlp-elements-menu-item-1 {
     bottom: 75px;
     transition: transform 0.2s 30ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-2 {
+  .mlp-elements-menu-item-2 {
     bottom: 130px;
     transition: transform 0.2s 70ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-3 {
+  .mlp-elements-menu-item-3 {
     bottom: 185px;
     transition: transform 0.2s 110ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-4 {
+  .mlp-elements-menu-item-4 {
     bottom: 240px;
     transition: transform 0.2s 150ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-5 {
+  .mlp-elements-menu-item-5 {
     bottom: 295px;
     transition: transform 0.2s 190ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-6 {
+  .mlp-elements-menu-item-6 {
     bottom: 350px;
     transition: transform 0.2s 230ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-7 {
+  .mlp-elements-menu-item-7 {
     bottom: 405px;
     transition: transform 0.2s 270ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-8 {
+  .mlp-elements-menu-item-8 {
     bottom: 460px;
     transition: transform 0.2s 310ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-9 {
+  .mlp-elements-menu-item-9 {
     bottom: 515px;
     transition: transform 0.2s 350ms, background-color 0.2s;
   }
   
-  .mlp-elmnts-menu-item-10 {
+  .mlp-elements-menu-item-10 {
     bottom: 570px;
     transition: transform 0.2s 390ms, background-color 0.2s;
   }

@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage setup
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -86,7 +86,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		public static function setup_page() {
 
 			// Get page argument from $_GET array.
-			$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
+			$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : '';
 			if ( empty( $page ) || 'wp-2fa-setup' !== $page ) {
 				return;
 			}
@@ -108,12 +108,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			/**
 			 * Wizard Steps.
 			 */
-			$get_array = filter_input_array( INPUT_GET );
-			if ( isset( $get_array['wizard_type'] ) ) {
-				$wizard_type = \sanitize_text_field( $get_array['wizard_type'] );
-			} else {
-				$wizard_type = 'default';
-			}
+			$wizard_type = isset( $_GET['wizard_type'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wizard_type'] ) ) : 'default';
 
 			$is_user_forced_to_setup = User_Helper::get_user_enforced_instantly( $user );
 			if ( ! empty( $is_user_forced_to_setup ) ) {
@@ -198,7 +193,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			self::$wizard_steps = apply_filters( WP_2FA_PREFIX . 'wizard_default_steps', $wizard_steps );
 
 			// Set current step.
-			$current_step       = ( isset( $_GET['current-step'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['current-step'] ) ) : ''; // phpcs:ignore
+			$current_step       = ( isset( $_GET['current-step'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['current-step'] ) ) : '';
 			self::$current_step = ! empty( $current_step ) ? $current_step : current( array_keys( self::$wizard_steps ) );
 
 			if ( Backup_Codes::METHOD_NAME === self::$current_step && ! Backup_Codes::are_backup_codes_enabled_for_role( User_Helper::get_user_role( $user ) ) ) {
@@ -252,12 +247,12 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				'ajaxURL'         => \admin_url( 'admin-ajax.php' ),
 				'roles'           => WP_Helper::get_roles_wp(),
 				'nonce'           => \wp_create_nonce( 'wp-2fa-settings-nonce' ),
-				'invalidEmail   ' => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+				'invalidEmail'    => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
 				'backupCodesSent' => \esc_html__( 'Backup codes sent', 'wp-2fa' ),
 			);
 			\wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
 
-			$re_login = Settings::get_role_or_default_setting( Re_Login_2FA::RE_LOGIN_SETTINGS_NAME, 'current', User_Helper::get_user_role() );
+			$re_login = Settings_Utils::get_setting_role( User_Helper::get_user_role(), Re_Login_2FA::RE_LOGIN_SETTINGS_NAME );
 
 			// Data array.
 			$data_array = array(
@@ -283,7 +278,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			/**
 			 * Save Wizard Settings.
 			 */
-			$save_step = ( isset( $_POST['save_step'] ) ) ? \sanitize_text_field( \wp_unslash( $_POST['save_step'] ) ) : ''; // phpcs:ignore
+			$save_step = ( isset( $_POST['save_step'] ) ) ? \sanitize_text_field( \wp_unslash( $_POST['save_step'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( ! empty( $save_step ) && ! empty( self::$wizard_steps[ self::$current_step ]['save'] ) ) {
 				call_user_func( self::$wizard_steps[ self::$current_step ]['save'] );
 			}
@@ -306,32 +301,39 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				<!DOCTYPE html>
 				<html <?php language_attributes(); ?>>
 				<head>
-					<meta name="viewport" content="width=device-width" />
+					<meta name="viewport" content="width=device-width, initial-scale=1" />
 					<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 					<title><?php \esc_html_e( 'WP 2FA &rsaquo; Setup Wizard', 'wp-2fa' ); ?></title>
-					<?php \wp_print_scripts( 'jquery' ); ?>
-					<?php \wp_print_scripts( 'jquery-ui-core' ); ?>
-					<?php \wp_print_scripts( 'wp_2fa_setup_wizard' ); ?>
-					<?php \wp_print_scripts( 'wp_2fa_micromodal' ); ?>
-					<?php \wp_print_scripts( 'wp_2fa_admin' ); ?>
 					<?php
+						\wp_print_scripts( 'jquery' );
+						\wp_print_scripts( 'jquery-ui-core' );
+						\wp_print_scripts( 'wp_2fa_setup_wizard' );
+						\wp_print_scripts( 'wp_2fa_micromodal' );
+						\wp_print_scripts( 'wp_2fa_admin' );
+
+						\wp_enqueue_script( 'jquery' );
+						\wp_enqueue_script( 'jquery-ui-core' );
+						\wp_enqueue_script( 'wp_2fa_setup_wizard' );
+						\wp_enqueue_script( 'wp_2fa_micromodal' );
+						\wp_enqueue_script( 'wp_2fa_admin' );
+						\wp_enqueue_style( 'common' );
+						\wp_enqueue_style( 'forms' );
+						\wp_enqueue_style( 'buttons' );
+						\wp_enqueue_style( 'wp-jquery-ui-dialog' );
+						\wp_enqueue_style( 'wp_2fa_admin' );
+						\remove_action( 'admin_print_styles', 'print_emoji_styles' );
 						/**
 						 * Gives the ability for 3rd party scripts to add their own JS to the plugin setup page.
 						 *
 						 * @since 2.2.0
 						 */
 						\do_action( WP_2FA_PREFIX . 'setup_page_scripts' );
+						\do_action( 'admin_print_styles' );
 					?>
-					<?php \wp_print_styles( 'common' ); ?>
-					<?php \wp_print_styles( 'forms' ); ?>
-					<?php \wp_print_styles( 'buttons' ); ?>
-					<?php \wp_print_styles( 'wp-jquery-ui-dialog' ); ?>
-					<?php \wp_print_styles( 'wp_2fa_admin' ); ?>
-					<?php \do_action( 'admin_print_styles' ); ?>
 				</head>
 				<body class="wp2fa-setup wp-core-ui">
 					<div class="setup-wizard-wrapper wp-2fa-settings-wrapper wp2fa-form-styles">
-						<h1 id="wp2fa-logo"><a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank"><img style="max-width: 80px;" src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>"></a></h1>
+						<h1 id="wp2fa-logo"><a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=wp_2fa_logo" target="_blank" ><img style="max-width: 80px;" src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>" alt="WP 2FA Logo"></a></h1>
 			<?php
 		}
 
@@ -362,10 +364,10 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				echo Generate_Modal::generate_modal(
 					'notify-admin-settings-page',
 					'',
-					__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the ', 'wp-2fa' ) . ' <b>' . __( 'WP 2FA', 'wp-2fa' ) . '</b>' . __( ' entry in your WordPress dashboard menu.', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					\esc_html__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the ', 'wp-2fa' ) . ' <b>' . \esc_html__( 'WP 2FA', 'wp-2fa' ) . '</b>' . \esc_html__( ' entry in your WordPress dashboard menu.', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					array(
-						'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . \esc_url( $redirect ) . '">' . __( 'OK, close wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-						'<a href="#" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" data-close-2fa-modal>' . __( 'Continue with wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . \esc_url( $redirect ) . '">' . \esc_html__( 'OK, close wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'<a href="#" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" data-close-2fa-modal>' . \esc_html__( 'Continue with wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					),
 					'',
 					'580px'
@@ -382,14 +384,15 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			<ul class="steps">
 				<?php
 				foreach ( self::$wizard_steps as $key => $step ) {
-					if ( 'welcome_wizard' === $step['wizard_type'] || is_array( $step['wizard_type'] ) && in_array( 'welcome_wizard', $step['wizard_type'], true ) ) {
+					if ( 'welcome_wizard' === $step['wizard_type'] || ( is_array( $step['wizard_type'] ) && in_array( 'welcome_wizard', $step['wizard_type'], true ) ) ) {
+						$step_name = isset( $step['name'] ) ? \esc_html( $step['name'] ) : '';
 						if ( $key === self::$current_step ) {
 							?>
-							<li class="is-active"><?php echo \esc_html( $step['name'] ); ?></li>
+							<li class="is-active"><?php echo \esc_html( $step_name ); ?></li>
 							<?php
 						} else {
 							?>
-							<li><?php echo \esc_html( $step['name'] ); ?></li>
+							<li><?php echo \esc_html( $step_name ); ?></li>
 							<?php
 						}
 					}
@@ -413,7 +416,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			// Array of step keys.
 			$keys = array_keys( self::$wizard_steps );
 			if ( end( $keys ) === $current_step ) { // If last step is active then return WP Admin URL.
-				return admin_url();
+				return \network_admin_url();
 			}
 
 			// Search for step index in step keys.
@@ -423,7 +426,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			}
 
 			// Return next step.
-			return add_query_arg( 'current-step', $keys[ $step_index + 1 ] );
+			return \add_query_arg( 'current-step', \sanitize_text_field( $keys[ $step_index + 1 ] ) );
 		}
 
 		/**
@@ -541,9 +544,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			// Check nonce.
 			\check_admin_referer( 'wp2fa-step-choose-method' );
 
-			$input = ( isset( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) && ! empty( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) && \is_array( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) ? $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] : array();
+			$input = ( isset( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) && ! empty( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) && \is_array( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) ? $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-			$input = \map_deep( $input, 'wp_unslash' );
 			$input = \map_deep( $input, 'sanitize_text_field' );
 
 			if ( ! WP_Helper::is_multisite() ) {
@@ -582,17 +584,20 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				}
 			}
 
-			if ( isset( $_POST['user_id'] ) ) {
-				$user = get_userdata( intval( $_POST['user_id'] ) );
+			if ( empty( $user_id ) ) {
+				$user = \wp_get_current_user();
 			} else {
-				$user = get_userdata( $user_id );
+				$user = \get_userdata( $user_id );
 			}
 
-			// Grab email address is its provided.
+			if ( ! $user ) {
+				return false;
+			}
+
+			// Grab email address if it's provided.
+			$email = sanitize_email( $user->user_email );
 			if ( isset( $_POST['email_address'] ) ) {
 				$email = sanitize_email( \wp_unslash( $_POST['email_address'] ) );
-			} else {
-				$email = sanitize_email( $user->user_email );
 			}
 
 			if ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
@@ -623,6 +628,16 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			} else {
 				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
 				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
+
+				// phpcs:disable
+				/* @free:start */
+				// phpcs:enable
+				$message         .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
+				$message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+				$message .= '</p>';
+				// phpcs:disable
+				/* @free:end */
+				// phpcs:enable
 			}
 
 			// If we have a nonce posted, check it.

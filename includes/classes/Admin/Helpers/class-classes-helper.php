@@ -7,7 +7,7 @@
  *
  * @since      2.4.0
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -59,6 +59,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		 * @since 2.4.0
 		 */
 		public static function get_class_by_filename( string $file ) {
+			$file = \sanitize_text_field( $file );
+
 			if ( in_array( $file, self::get_class_map(), true ) ) {
 				$class = array_search( $file, self::get_class_map(), true );
 
@@ -80,6 +82,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		 * @since 2.4.0
 		 */
 		public static function get_subclasses_of_class( string $current_class, string $base_class, bool $exclude_abstracts = true ): array {
+			$current_class = \sanitize_text_field( $current_class );
+			$base_class = \sanitize_text_field( $base_class );
+
 			$matching_classes = array();
 			foreach ( array_keys( self::get_class_map() ) as $class_name ) {
 				if ( $current_class !== $class_name && is_subclass_of( $class_name, $base_class ) ) {
@@ -103,6 +108,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		 * @since 2.4.0
 		 */
 		public static function get_classes_by_namespace( string $extract_namespace ) {
+			$extract_namespace = \sanitize_text_field( $extract_namespace );
+
 			if ( 0 === strpos( $extract_namespace, '\\' ) ) {
 				$extract_namespace = ltrim( $extract_namespace, '\\' );
 			}
@@ -151,6 +158,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		 * @since 2.4.0
 		 */
 		public static function get_classes_with_term( $term ) {
+			$term = \sanitize_text_field( $term );
 			$term_upper = strtoupper( $term );
 
 			return array_filter(
@@ -180,6 +188,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function add_to_class_map( array $class_add ) {
+			$class_add = array_map( 'sanitize_text_field', $class_add );
+
 			if ( empty( self::$class_map ) ) {
 				self::$class_map = require WP_2FA_PATH . 'vendor/composer/autoload_classmap.php';
 			}

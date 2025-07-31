@@ -11,8 +11,11 @@
 function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 
 	global $error, $interim_login, $action;
+
 	// Don't index any of these forms.
-	add_action( 'login_head', 'wp_no_robots' );
+	add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
+	add_action( 'login_head', 'wp_strict_cross_origin_referrer' );
+
 	add_action( 'login_head', 'wp_login_viewport_meta' );
 
 	if ( ! is_wp_error( $wp_error ) ) {
@@ -52,9 +55,10 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		<!--<![endif]-->
 		<head>
 		<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
-		<title><?php echo $login_title; ?></title>
+		<title><?php echo $login_title;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></title>
 		<?php
 		wp_enqueue_style( 'login' );
+
 		/*
 		 * Remove all stored post data on logging out.
 		 * This could be added by add_action('login_head'...) like wp_shake_js(),

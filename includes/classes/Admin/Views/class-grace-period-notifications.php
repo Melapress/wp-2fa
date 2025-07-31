@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage views
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Admin\Views;
 
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
+use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Helpers\User_Helper;
 
 if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 	/**
@@ -60,11 +60,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 		public static function grace_period_notification_settings( string $content, string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
 
-			if ( class_exists( 'WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
-				$expire_action = Role_Settings_Controller::get_setting( $role, self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME, true );
-			} else {
-				$expire_action = Settings::get_role_or_default_setting( self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME, null, null, true );
-			}
+			$expire_action = Settings_Utils::get_setting_role( $role, self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME, true );
+
 			?>
 			<div class="sub-setting-indent">
 				<p class="description" style="margin-top: 15px; margin-bottom: 8px;">
@@ -74,7 +71,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 					<label for="dashboard-notification<?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 10px; display: inline-block;">
 						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[<?php echo \esc_attr( self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME ); ?>]" 
 						id="dashboard-notification<?php echo \esc_attr( $role_id ); ?>" 
-						<?php echo $data_role; // phpcs:ignore?> 
+						<?php echo $data_role;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
 						value="dashboard-notification" <?php checked( $expire_action, 'dashboard-notification' ); ?> class="js-nested">
 						<span><?php echo \esc_html__( 'Show an admin notice in the dashboard', 'wp-2fa' ); ?></span>
 					</label>
@@ -84,7 +81,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 					<label for="after-login-notification<?php echo \esc_attr( $role_id ); ?>">
 						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[<?php echo \esc_attr( self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME ); ?>]" <?php checked( $expire_action, 'after-login-notification' ); ?> 
 						id="after-login-notification<?php echo \esc_attr( $role_id ); ?>"
-						<?php echo $data_role; // phpcs:ignore?> 
+						<?php echo $data_role;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
 						value="after-login-notification" <?php checked( $expire_action, 'after-login-notification' ); ?> class="js-nested">
 						<span><?php echo \esc_html__( 'Show a notification on a page on its own after the user authenticates and before accessing the dashboard', 'wp-2fa' ); ?></span>
 					</label>
@@ -92,8 +89,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 				</fieldset>
 			</div>
 			<?php
-			$html_content = ob_get_contents();
-			ob_end_clean();
+			$html_content = ob_get_clean();
 
 			return $content . $html_content;
 		}
@@ -123,7 +119,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 		 * @since 2.5.0
 		 */
 		public static function notify_using_dashboard( \WP_User $user ) {
-			if ( 'dashboard-notification' !== Settings::get_role_or_default_setting( self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME, $user ) ) {
+			if ( 'dashboard-notification' !== Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME ) ) {
 				return false;
 			}
 

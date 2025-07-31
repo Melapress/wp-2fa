@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage views
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -15,8 +15,7 @@ declare(strict_types=1);
 
 namespace WP2FA\Admin\Views;
 
-use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
+use WP2FA\Utils\Settings_Utils;
 
 if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 	/**
@@ -72,21 +71,17 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		 */
 		public static function reset_settings( string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
-
-			if ( class_exists( 'WP2FA\Extensions\RoleSettings\Role_Settings_Controller' ) ) {
-				$password_reset_action = Role_Settings_Controller::get_setting( $role, self::RE_LOGIN_SETTINGS_NAME, true );
-			} else {
-				$password_reset_action = Settings::get_role_or_default_setting( self::RE_LOGIN_SETTINGS_NAME, null, null, true );
-			}
+			
+			$password_reset_action = Settings_Utils::get_setting_role( sanitize_text_field( $role ), self::RE_LOGIN_SETTINGS_NAME, true );
 			?>
 			<div class="sub-setting-indent">
 				<fieldset>
-					<label for="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 10px; display: inline-block;">
-						<input type="checkbox" name="<?php echo \esc_attr( $name_prefix ); ?>[<?php echo \esc_attr( self::RE_LOGIN_SETTINGS_NAME ); ?>]" 
-						id="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>" 
-						<?php echo $data_role; // phpcs:ignore?> 
-						value="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?>" <?php checked( $password_reset_action, self::ENABLED_SETTING_VALUE ); ?> class="js-nested">
-						<span><?php echo \esc_html__( 'Log out user after 2FA setup', 'wp-2fa' ); ?></span>
+					<label for="<?php echo esc_attr( self::ENABLED_SETTING_VALUE . $role_id ); ?>" style="margin-bottom: 10px; display: inline-block;">
+						<input type="checkbox" name="<?php echo esc_attr( $name_prefix . '[' . self::RE_LOGIN_SETTINGS_NAME . ']' ); ?>" 
+						id="<?php echo esc_attr( self::ENABLED_SETTING_VALUE . $role_id ); ?>" 
+						<?php echo $data_role;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
+						value="<?php echo esc_attr( self::ENABLED_SETTING_VALUE ); ?>" <?php checked( $password_reset_action, self::ENABLED_SETTING_VALUE ); ?> class="js-nested">
+						<span><?php echo esc_html__( 'Log out user after 2FA setup', 'wp-2fa' ); ?></span>
 					</label>
 				</fieldset>
 			</div>
@@ -143,23 +138,23 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		public static function re_login_setting( string $content, string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
 			?>
-		<h3><?php \esc_html_e( 'Do you want to logout users after setting up 2FA on their account?', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php \esc_html_e( 'When you enable this setting users will be logged out automatically after configuring 2FA and they will need to log back in.', 'wp-2fa' ); ?>
-		</p>
+			<h3><?php \esc_html_e( 'Do you want to logout users after setting up 2FA on their account?', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'When you enable this setting users will be logged out automatically after configuring 2FA and they will need to log back in.', 'wp-2fa' ); ?>
+			</p>
 
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th><label for="<?php echo \esc_attr( self::ENABLED_SETTING_VALUE ); ?><?php echo \esc_attr( $role_id ); ?>"><?php \esc_html_e( 'Re-login', 'wp-2fa' ); ?></label></th>
-					<td>
-					<fieldset class="contains-hidden-inputs">
-					<?php echo self::reset_settings( $role, $name_prefix, $data_role, $role_id ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</fieldset>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="<?php echo esc_attr( self::ENABLED_SETTING_VALUE . $role_id ); ?>"><?php esc_html_e( 'Re-login', 'wp-2fa' ); ?></label></th>
+						<td>
+						<fieldset class="contains-hidden-inputs">
+						<?php echo self::reset_settings( sanitize_text_field( $role ), sanitize_text_field( $name_prefix ), sanitize_text_field( $data_role ), sanitize_text_field( $role_id ) );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 			<?php
 
 			$content .= ob_get_contents();

@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage methods-wizard
  * @since      2.6.0
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -17,12 +17,13 @@ namespace WP2FA\Methods\Wizards;
 
 use WP2FA\WP2FA;
 use WP2FA\Methods\Email;
+use WP2FA\Admin\Settings_Page;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Wizard_Steps;
+use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Methods\Traits\Methods_Wizards_Trait;
-use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
 
 /**
  * Class for handling email codes.
@@ -85,7 +86,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 		 */
 		public static function email_re_configure( array $methods, string $role ): array {
 
-			if ( ! Email::is_enabled() ) {
+			if ( ! Email::is_enabled( $role ) ) {
 				return $methods;
 			}
 			\ob_start();
@@ -97,8 +98,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 				</div>
 			</div>
 			<?php
-				$output = ob_get_contents();
-				ob_end_clean();
+				$output = ob_get_clean();
 
 				$methods[ self::get_order( $role, $methods ) ] = array(
 					'name'   => self::$main_class::METHOD_NAME,
@@ -119,18 +119,28 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 		 * @return array
 		 */
 		public static function email_option( array $methods, string $role ): array {
-			if ( Email::is_enabled() ) {
+			if ( Email::is_enabled( $role ) && Methods::is_method_enabled_for_role( Email::METHOD_NAME, $role ) ) {
 				\ob_start();
 				?>
 					<div class="option-pill">
 						<label for="geek">
 							<input id="geek" name="wp_2fa_enabled_methods" type="radio" value="email">
 						<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) ); ?>
+						<?php
+						$show = ( 'show_help_text' === WP2FA::get_wp2fa_white_label_setting( 'show_help_text' ) && WP2FA::get_wp2fa_white_label_setting( \esc_attr( Email::METHOD_NAME ) . '-option-label-hint', true ) ) ?? false;
+						if ( $show ) {
+							echo '<br><span class="wizard-tooltip" data-tooltip-content="data-' . \esc_attr( Email::METHOD_NAME ) . '-tooltip-content-wrapper">i</span>';
+						}
+						?>
 						</label>
+						<?php
+						if ( $show ) {
+							echo '<p class="description tooltip-content-wrapper" data-' . \esc_attr( Email::METHOD_NAME ) . '-tooltip-content-wrapper>' . \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( \esc_attr( Email::METHOD_NAME ) . '-option-label-hint', true ) ) . '</p>';
+						}
+						?>
 					</div>
 				<?php
-				$output = ob_get_contents();
-				ob_end_clean();
+				$output = ob_get_clean();
 
 				$methods[ self::get_order( $role, $methods ) ] = $output;
 			}
@@ -165,19 +175,9 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 					<label for="hotp<?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 0 !important;">
 							<input type="checkbox" id="hotp<?php echo \esc_attr( $role_id ); ?>" name="<?php echo \esc_attr( $name_prefix ); ?>[enable_email]" value="enable_email"
 							<?php echo $data_role; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-							<?php if ( null !== $role && ! empty( $role ) ) { ?>
-								<?php \checked( Email::POLICY_SETTINGS_NAME, Role_Settings_Controller::get_setting( $role, Email::POLICY_SETTINGS_NAME ), true ); ?>
-								<?php
-							} else {
-								$use_role_setting = null;
-								if ( null === $role || '' === trim( (string) $role ) ) {
-									$use_role_setting = \WP_2FA_PREFIX . 'no-user';
-								}
-
-								$enabled_settings = Settings::get_role_or_default_setting( Email::POLICY_SETTINGS_NAME, $use_role_setting, $role, true );
-								?>
-								<?php \checked( $enabled_settings, Email::POLICY_SETTINGS_NAME ); ?>
-							<?php } ?>
+							
+								<?php \checked( Email::POLICY_SETTINGS_NAME, Settings_Utils::get_setting_role( $role, Email::POLICY_SETTINGS_NAME ), true ); ?>
+								
 							>
 							<?php
 							\esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
@@ -191,11 +191,9 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 					}
 					?>
 					<?php
-					if ( null !== $role ) {
-						$enabled_settings = Role_Settings_Controller::get_setting( $role, 'enable_email' );
-					} else {
-						$enabled_settings = Settings::get_role_or_default_setting( 'enable_email', ( ( null !== $role && '' !== $role ) ? '' : false ), $role, true, true );
-					}
+
+						$enabled_settings = Settings_Utils::get_setting_role( $role, 'enable_email', true );
+
 					?>
 					<?php
 					?>
@@ -204,6 +202,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 							<p class="description">
 								<?php \esc_html_e( 'Allow user to specify the email address of choice', 'wp-2fa' ); ?>
 							</p>
+							
 							<fieldset class="email-hotp-options">
 							<?php
 							$options = array(
@@ -219,25 +218,13 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 
 							foreach ( $options as $option_key => $option_settings ) {
 								?>
-								<label for="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>">
+								<label for="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?><?php echo \esc_attr( $role_id ); ?>">
 									<input type="radio"
 									name="<?php echo \esc_attr( $name_prefix ); ?>[specify-email_hotp]"
 									<?php echo $data_role; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-									id="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?>"
+									id="specify-email_hotp-<?php echo \esc_attr( $option_key ); ?><?php echo \esc_attr( $role_id ); ?>"
 									value="<?php echo \esc_attr( $option_settings['value'] ); ?>" class="js-nested"
-									<?php if ( null !== $role ) { ?>
-										<?php \checked( Role_Settings_Controller::get_setting( $role, 'specify-email_hotp' ), $option_settings['value'] ); ?>
-										<?php
-									} else {
-
-										$use_role_setting = null;
-										if ( null === $role || '' === trim( (string) $role ) ) {
-											$use_role_setting = \WP_2FA_PREFIX . 'no-user';
-										}
-
-										\checked( Settings::get_role_or_default_setting( 'specify-email_hotp', $use_role_setting, $role, true, false ), $option_settings['value'] );
-										?>
-									<?php } ?>
+										<?php echo \checked( Settings_Utils::get_setting_role( $role, 'specify-email_hotp', \true ), $option_settings['value'] ); ?>
 									>
 									<span><?php echo $option_settings['label']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 								</label>
@@ -246,11 +233,20 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 							?>
 							</fieldset>
 						</div>
+						<script>
+							document.querySelector('.enforce-email-hotp #enforce-email<?php echo \esc_attr( $role_id ); ?>').onclick = function() {
+								if (this.checked == true){
+									this.closest('.use-different-hotp-mail').querySelector('.email-hotp-options').classList.add('disabled');
+									document.querySelector('#specify-email_hotp-<?php echo \esc_attr( $option_key ); ?><?php echo \esc_attr( $role_id ); ?>').checked = true;
+								} else {
+									this.closest('.use-different-hotp-mail').querySelector('.email-hotp-options').classList.remove('disabled');
+								}
+							};
+						</script>
 					<?php } ?>
 				</div>
 			<?php
-			$output = ob_get_contents();
-			ob_end_clean();
+			$output = ob_get_clean();
 
 			$methods[ self::get_order( $role, $methods ) ] = $output;
 
@@ -284,7 +280,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 							</label>
 						</div>
 						<?php
-						if ( Settings::get_role_or_default_setting( 'specify-email_hotp', User_Helper::get_user_object() ) ) {
+						if ( Settings_Utils::get_setting_role( User_Helper::get_user_role(), 'specify-email_hotp' ) ) {
 							?>
 						<div class="option-pill">
 							<label for="use_custom_email">
@@ -307,9 +303,11 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 
 						if ( isset( $custom_mail ) && ! empty( (string) $custom_mail ) ) {
 							$from_email = $custom_mail;
+						} else {
+							$from_email = Settings_Page::get_default_email_address();
 						}
 
-						echo \wp_kses_post( str_replace( '{from_email}', $from_email, WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_help_email', true ) ) );
+						echo \wp_kses_post( str_replace( '{from_email}', \esc_html( $from_email ), WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_help_email', true ) ) );
 						?>
 
 						<div class="wp2fa-setup-actions">
@@ -324,7 +322,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						</div>
 						<fieldset>
 							<label for="2fa-email-authcode">
-								<?php \esc_html_e( 'Authentication Code', 'wp-2fa' ); ?>
+								<?php \esc_html_e( 'Verification Code:', 'wp-2fa' ); ?>
 								<input type="tel" name="wp-2fa-email-authcode" id="wp-2fa-email-authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off"/>
 								<script>
 									const email_authcode = document.getElementById('wp-2fa-email-authcode');

@@ -3,7 +3,7 @@
  * Responsible for email templates generation.
  *
  * @package    wp2fa
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -62,10 +62,10 @@ if ( ! class_exists( '\WP2FA\Email_Template' ) ) {
 		 * @param string $description - The description.
 		 */
 		public function __construct( string $id, string $title, string $description ) {
-			$this->id               = $id;
-			$this->title            = $title;
-			$this->description      = $description;
-			$this->email_content_id = $id;
+			$this->id               = $this->sanitize_input( $id );
+			$this->title            = $this->sanitize_input( $title );
+			$this->description      = $this->sanitize_input( $description );
+			$this->email_content_id = $this->sanitize_input( $id );
 		}
 
 		/**
@@ -83,7 +83,7 @@ if ( ! class_exists( '\WP2FA\Email_Template' ) ) {
 		 * @param bool $can_be_toggled - Can it be toggled.
 		 */
 		public function set_can_be_toggled( $can_be_toggled ) {
-			$this->can_be_toggled = $can_be_toggled;
+			$this->can_be_toggled = filter_var( $can_be_toggled, FILTER_VALIDATE_BOOLEAN );
 		}
 
 		/**
@@ -128,7 +128,17 @@ if ( ! class_exists( '\WP2FA\Email_Template' ) ) {
 		 * @param string $email_content_id - the ID of the content.
 		 */
 		public function set_email_content_id( string $email_content_id ) {
-			$this->email_content_id = $email_content_id;
+			$this->email_content_id = $this->sanitize_input( $email_content_id );
+		}
+
+		/**
+		 * Sanitize input data
+		 *
+		 * @param string $input - The input data.
+		 * @return string - The sanitized input data.
+		 */
+		private function sanitize_input( string $input ): string {
+			return htmlspecialchars( strip_tags( $input ), ENT_QUOTES, 'UTF-8' );
 		}
 	}
 }

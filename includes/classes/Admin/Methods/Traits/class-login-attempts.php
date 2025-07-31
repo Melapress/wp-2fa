@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage traits
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -14,6 +14,7 @@ namespace WP2FA\Admin\Methods\Traits;
 use WP2FA\Admin\Helpers\User_Helper;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
+
 /**
  * Responsible for the login attempts
  *
@@ -94,7 +95,7 @@ trait Login_Attempts {
 	 * @since 2.4.1
 	 */
 	public static function set_number_of_login_attempts( int $number ): int {
-		self::$number_of_allowed_attempts = $number;
+		self::$number_of_allowed_attempts = absint( $number );
 
 		return self::$number_of_allowed_attempts;
 	}
@@ -107,8 +108,7 @@ trait Login_Attempts {
 	 * @since 2.4.1
 	 */
 	public static function get_meta_key(): string {
-
-		return self::$logging_attempts_meta_key;
+		return sanitize_key( self::$logging_attempts_meta_key );
 	}
 
 	/**
@@ -121,7 +121,7 @@ trait Login_Attempts {
 	 * @since 2.4.1
 	 */
 	public static function set_meta_key( string $logging_attempts_meta_key ): string {
-		self::$logging_attempts_meta_key = $logging_attempts_meta_key;
+		self::$logging_attempts_meta_key = sanitize_key( $logging_attempts_meta_key );
 
 		return self::$logging_attempts_meta_key;
 	}

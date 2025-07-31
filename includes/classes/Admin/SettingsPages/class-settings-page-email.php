@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -18,7 +18,6 @@ use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Settings_Page;
-use WP2FA\Extensions\WhiteLabeling\White_Labeling_Render;
 
 /**
  * Email settings tab
@@ -39,6 +38,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function render() {
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
 			\settings_fields( WP_2FA_EMAIL_SETTINGS_NAME );
 			self::email_from_settings();
 			self::email_settings();
@@ -51,10 +54,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 * @return void
 		 *
 		 * @since 2.0.0
-		 *
-		 * @SuppressWarnings(PHPMD.ExitExpressions)
 		 */
 		public static function update_wp2fa_network_options() {
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
 			if ( isset( $_POST['email_from_setting'] ) ) { // phpcs:ignore
 				$options = self::validate_and_sanitize( wp_unslash( $_POST ) ); // phpcs:ignore
 
@@ -99,63 +104,63 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 */
 		private static function email_from_settings() {
 			?>
-		<h3><?php \esc_html_e( 'Which email address should the plugin use as a from address?', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php \esc_html_e( 'Use these settings to customize the "from" name and email address for all correspondence sent from our plugin.', 'wp-2fa' ); ?>
-		</p>
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th><label for="2fa-method"><?php \esc_html_e( 'From email & name', 'wp-2fa' ); ?></label>
-					</th>
-					<td>
-						<fieldset class="contains-hidden-inputs">
-							<label for="use-defaults">
-								<input type="radio" name="email_from_setting" id="use-defaults" value="use-defaults"
-								<?php \checked( WP2FA::get_wp2fa_email_templates( 'email_from_setting' ), 'use-defaults' ); ?>
-								>
-							<span><?php \esc_html_e( 'Use the email address ', 'wp-2fa' ); ?> <?php echo Settings_Page::get_default_email_address(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-							</label>
-							<br/>
-							<label for="use-custom-email">
-								<input type="radio" name="email_from_setting" id="use-custom-email" value="use-custom-email"
-								<?php \checked( WP2FA::get_wp2fa_email_templates( 'email_from_setting' ), 'use-custom-email' ); ?>
-								data-unhide-when-checked=".custom-from-inputs">
-								<span><?php \esc_html_e( 'Use another email address', 'wp-2fa' ); ?></span>
-							</label>
-							<fieldset class="hidden custom-from-inputs">
-								<p class="description">
-									<?php \esc_html_e( 'A \'From email\' address with a domain different than that of your website domain name, or with a domain that the hosting does not relay might cause the notification emails to be blocked, marked as spam, or not delivered at all. If you are not 100% sure about this change, consult with your web host.', 'wp-2fa' ); ?>
-								</p>
+			<h3><?php \esc_html_e( 'Which email address should the plugin use as a from address?', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'Use these settings to customize the "from" name and email address for all correspondence sent from our plugin.', 'wp-2fa' ); ?>
+			</p>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="2fa-method"><?php \esc_html_e( 'From email & name', 'wp-2fa' ); ?></label>
+						</th>
+						<td>
+							<fieldset class="contains-hidden-inputs">
+								<label for="use-defaults">
+									<input type="radio" name="email_from_setting" id="use-defaults" value="use-defaults"
+									<?php \checked( WP2FA::get_wp2fa_email_templates( 'email_from_setting' ), 'use-defaults' ); ?>
+									>
+								<span><?php \esc_html_e( 'Use the email address ', 'wp-2fa' ); ?> <?php echo Settings_Page::get_default_email_address(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+								</label>
 								<br/>
-								<span><?php \esc_html_e( 'Email Address:', 'wp-2fa' ); ?></span> <input type="text" id="custom_from_email_address" name="custom_from_email_address" value="<?php echo \esc_attr( WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) ); ?>"><br><br>
-								<span><?php \esc_html_e( 'Display Name:', 'wp-2fa' ); ?></span> <input type="text" id="custom_from_display_name" name="custom_from_display_name" value="<?php echo \esc_attr( WP2FA::get_wp2fa_email_templates( 'custom_from_display_name' ) ); ?>">
+								<label for="use-custom-email">
+									<input type="radio" name="email_from_setting" id="use-custom-email" value="use-custom-email"
+									<?php \checked( WP2FA::get_wp2fa_email_templates( 'email_from_setting' ), 'use-custom-email' ); ?>
+									data-unhide-when-checked=".custom-from-inputs">
+									<span><?php \esc_html_e( 'Use another email address', 'wp-2fa' ); ?></span>
+								</label>
+								<fieldset class="hidden custom-from-inputs">
+									<p class="description">
+										<?php \esc_html_e( 'A \'From email\' address with a domain different than that of your website domain name, or with a domain that the hosting does not relay might cause the notification emails to be blocked, marked as spam, or not delivered at all. If you are not 100% sure about this change, consult with your web host.', 'wp-2fa' ); ?>
+									</p>
+									<br/>
+									<span><?php \esc_html_e( 'Email Address:', 'wp-2fa' ); ?></span> <input type="text" id="custom_from_email_address" name="custom_from_email_address" value="<?php echo \esc_attr( WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) ); ?>"><br><br>
+									<span><?php \esc_html_e( 'Display Name:', 'wp-2fa' ); ?></span> <input type="text" id="custom_from_display_name" name="custom_from_display_name" value="<?php echo \esc_attr( WP2FA::get_wp2fa_email_templates( 'custom_from_display_name' ) ); ?>">
+								</fieldset>
+
 							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="description"><i><?php \esc_html_e( 'Tip: The \'From email\' address should match your website domain. If the "from address" does not match your website domain, the emails may be blocked or marked as spam. If you are not sure about this please consult with your website administrator / developer or ', 'wp-2fa' ); ?><a href="<?php echo \esc_url( 'https://melapress.com/contact/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=from_email_address' ); ?>" target="_blank"><?php \esc_html_e( 'contact us', 'wp-2fa' ); ?></a> <?php \esc_html_e( 'for more information.', 'wp-2fa' ); ?></i></div>
+			<br>
+			<hr>
 
-						</fieldset>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<div class="description"><i><?php \esc_html_e( 'Tip: The \'From email\' address should match your website domain. If the "from address" does not match your website domain, the emails may be blocked or marked as spam. If you are not sure about this please consult with your website administrator / developer or ', 'wp-2fa' ); ?><a href="<?php echo \esc_url( 'https://melapress.com/contact/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank"><?php \esc_html_e( 'contact us', 'wp-2fa' ); ?></a> <?php \esc_html_e( 'for more information.', 'wp-2fa' ); ?></i></div>
-		<br>
-		<hr>
+			<h3><?php \esc_html_e( 'Email delivery test', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'The plugin sends emails with one-time codes, blocked account notifications and more. Use the button below to confirm the plugin can successfully send emails.', 'wp-2fa' ); ?>
+			</p>
+			<p>
+				<button type="button" name="test_email_config_test"
+						class="button js-button-test-email-trigger"
+						data-email-id="config_test"
+						<?php echo WP_Helper::create_data_nonce( 'wp-2fa-email-test-config_test' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+					<?php \esc_html_e( 'Test email delivery', 'wp-2fa' ); ?>
+				</button>
+			</p>
 
-		<h3><?php \esc_html_e( 'Email delivery test', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php \esc_html_e( 'The plugin sends emails with one-time codes, blocked account notifications and more. Use the button below to confirm the plugin can successfully send emails.', 'wp-2fa' ); ?>
-		</p>
-		<p>
-			<button type="button" name="test_email_config_test"
-					class="button js-button-test-email-trigger"
-					data-email-id="config_test"
-					<?php echo WP_Helper::create_data_nonce( 'wp-2fa-email-test-config_test' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-				<?php \esc_html_e( 'Test email delivery', 'wp-2fa' ); ?>
-			</button>
-		</p>
-
-		<br>
-		<hr>
+			<br>
+			<hr>
 
 			<?php
 		}
@@ -235,8 +240,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		 * Validate email templates before saving
 		 *
 		 * @since 2.0.0
-		 *
-		 * @SuppressWarnings(PHPMD.ExitExpressions)
 		 */
 		public static function validate_and_sanitize() {
 
@@ -258,13 +261,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			}
 
 			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) {
-				\add_settings_error(
-					WP_2FA_SETTINGS_NAME,
-					\esc_attr( 'email_from_settings_error' ),
-					\esc_html__( 'Please provide an email address', 'wp-2fa' ),
-					'error'
-				);
-				$output['custom_from_email_address'] = '';
+					\add_settings_error(
+						WP_2FA_SETTINGS_NAME,
+						\esc_attr( 'email_from_settings_error' ),
+						\esc_html__( 'Please provide an email address', 'wp-2fa' ),
+						'error'
+					);
+					$output['custom_from_email_address'] = '';
 			}
 
 			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) ) {
@@ -286,7 +289,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 						'error'
 					);
 				}
-				$output['custom_from_email_address'] = \sanitize_email( \wp_unslash( $_POST['custom_from_email_address'] ) );
+						$output['custom_from_email_address'] = \sanitize_email( \wp_unslash( $_POST['custom_from_email_address'] ) );
 
 				Settings_Utils::delete_option( 'dismiss_notice_mail_domain' );
 			}
@@ -296,8 +299,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			}
 
 			if ( isset( $_POST['custom_from_display_name'] ) && ! empty( $_POST['custom_from_display_name'] ) ) {
-				// Check if the string contains HTML/tags.
-				preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) ), $matches );
+					// Check if the string contains HTML/tags.
+					preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) ), $matches );
 				if ( count( $matches ) > 0 ) {
 					\add_settings_error(
 						WP_2FA_SETTINGS_NAME,
@@ -459,6 +462,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 							{login_code}</br>
 							{user_ip_address}</br>
 							{backup_codes}
+							{admin_email}
 							<?php
 							if ( ! empty( $custom_user_page_id ) ) {
 								echo '</br>{2fa_settings_page_url}';
@@ -494,9 +498,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		<br>
 		<hr>
 		<?php endforeach; ?>
-		<?php
-			$additional_content = apply_filters( WP_2FA_PREFIX . 'append_to_email_and_sms_template_settings', '' );
-			echo $additional_content;
+			<?php
+			$additional_content = \apply_filters( WP_2FA_PREFIX . 'append_to_email_and_sms_template_settings', '' );
+			echo \wp_kses_post( $additional_content );
 		}
 	}
 }

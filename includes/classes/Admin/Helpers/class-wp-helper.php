@@ -7,7 +7,7 @@
  *
  * @since      2.2.0
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -161,13 +161,47 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		public static function get_multi_sites(): array {
 			if ( self::is_multisite() ) {
 				if ( empty( self::$sites ) ) {
-					self::$sites = \get_sites();
+					self::$sites = self::get_sites();
 				}
 
 				return self::$sites;
 			}
 
 			return array();
+		}
+
+		/**
+		 * Query sites from WPDB.
+		 *
+		 * @since 3.0.0
+		 *
+		 * @param int|null $limit — Maximum number of sites to return (null = no limit).
+		 *
+		 * @return object — Object with keys: blog_id, blogname, domain
+		 */
+		public static function get_sites( $limit = null ) {
+			if ( self::is_multisite() ) {
+				global $wpdb;
+				// Build query.
+				$sql =
+					'SELECT blog_id, domain FROM ' . $wpdb->blogs . ( ! is_null( $limit ) ? ' LIMIT ' . $limit : '' );
+
+				// Execute query.
+				$res = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+
+				// Modify result.
+				foreach ( $res as $row ) {
+					$row->blogname = \esc_html( \get_blog_option( $row->blog_id, 'blogname' ) );
+				}
+			} else {
+				$res           = new \stdClass();
+				$res->blog_id  = \get_current_blog_id();
+				$res->blogname = \esc_html( \get_bloginfo( 'name' ) );
+				$res           = array( $res );
+			}
+
+			// Return result.
+			return $res;
 		}
 
 		/**
@@ -197,7 +231,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		public static function is_wp_login() {
 			$abs_path = str_replace( array( '\\', '/' ), DIRECTORY_SEPARATOR, ABSPATH );
 
-			if ( function_exists( 'is_account_page' ) && is_account_page() ) {
+			if ( function_exists( 'is_account_page' ) && \is_account_page() ) {
 				// The user is on the WooCommerce login page.
 
 				return true;

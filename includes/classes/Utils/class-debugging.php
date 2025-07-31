@@ -4,17 +4,15 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
- * @since 1.4.2
+ * @since      1.4.2
  */
 
 declare(strict_types=1);
 
 namespace WP2FA\Utils;
-
-use PhpParser\Node\Stmt\Static_;
 
 if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 	/**
@@ -62,7 +60,7 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 */
 		public static function log( $message ) {
 			if ( self::is_logging_enabled() ) {
-				self::write_to_log( self::get_log_timestamp() . "\n" . $message . "\n" . __( 'Current memory usage: ', 'wp-2fa' ) . memory_get_usage( true ) . "\n" );
+				self::write_to_log( self::get_log_timestamp() . "\n" . sanitize_text_field( $message ) . "\n" . __( 'Current memory usage: ', 'wp-2fa' ) . memory_get_usage( true ) . "\n" );
 			}
 		}
 
@@ -156,10 +154,10 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 
 			$filepath = $logging_dir . $filename;
 			if ( ! $wp_filesystem->exists( $filepath ) || $override ) {
-				$result = $wp_filesystem->put_contents( $filepath, $content );
+				$result = $wp_filesystem->put_contents( $filepath, $content, FS_CHMOD_FILE );
 			} else {
 				$existing_content = $wp_filesystem->get_contents( $filepath );
-				$result           = $wp_filesystem->put_contents( $filepath, $existing_content . $content );
+				$result           = $wp_filesystem->put_contents( $filepath, $existing_content . $content, FS_CHMOD_FILE );
 			}
 
 			return $result;
@@ -190,7 +188,7 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 				Settings_Utils::update_option( 'debug_name', $rnd_string );
 			}
 
-			return $rnd_string;
+			return sanitize_text_field( $rnd_string );
 		}
 	}
 }

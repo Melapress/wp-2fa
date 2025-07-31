@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -44,22 +44,29 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 		 */
 		public static function plugin_update_banner() {
 			$screen         = get_current_screen();
-			$correct_screen = ( 'toplevel_page_wp-2fa-policies-network' === $screen->base || 'toplevel_page_wp-2fa-policies' === $screen->base ) ? true : false;
+			$correct_screen = ( 'toplevel_page_wp-2fa-policies-network' === $screen->base || 'toplevel_page_wp-2fa-policies' === $screen->base );
 
 			if ( $correct_screen && Settings_Utils::get_option( 'wp_2fa_update_notice_needed', false ) ) {
 				/* translators: %s: version number. */
-				printf( '<div id="wp_2fa_update_notice" class="notice notice-success is-dismissible"><img src="' . esc_url( WP_2FA_URL . 'dist/images/wp-2fa-square.png' ) . '"><p><strong>' . esc_html__( 'Thank you for updating WP 2FA.', 'wp-2fa' ) . '</strong></p><p>' . esc_html__( 'This is version %s. Check out the release notes to see what is new and improved in this update.', 'wp-2fa' ) . '</p><a href="https://melapress.com/wordpress-2fa/releases/" target="_blank" class="button button-primary dismiss_update_notice" data-dismiss-nonce="%2s">' . esc_html__( 'Release notes', 'wp-2fa' ) . '</a></p></div>', WP_2FA_VERSION, wp_create_nonce( 'wp_2fa_dismiss_update_notice_nonce' ) );
+				printf(
+					'<div id="wp_2fa_update_notice" class="notice notice-success is-dismissible"><img src="%1$s"><p><strong>%2$s</strong></p><p>%3$s</p><a href="https://melapress.com/wordpress-2fa/releases/" target="_blank" class="button button-primary dismiss_update_notice" data-dismiss-nonce="%4$s">%5$s</a></p></div>',
+					esc_url( WP_2FA_URL . 'dist/images/wp-2fa-square.png' ),
+					esc_html__( 'Thank you for updating WP 2FA.', 'wp-2fa' ),
+					sprintf( esc_html__( 'This is version %s. Check out the release notes to see what is new and improved in this update.', 'wp-2fa' ), esc_html( WP_2FA_VERSION ) ),
+					esc_attr( wp_create_nonce( 'wp_2fa_dismiss_update_notice_nonce' ) ),
+					esc_html__( 'Release notes', 'wp-2fa' )
+				);
 				?>
 					<script type="text/javascript">
 					//<![CDATA[
 					jQuery(document).ready(function( $ ) {
 						jQuery( 'body' ).on( 'click', 'a.dismiss_update_notice, #wp_2fa_update_notice .notice-dismiss', function ( e ) {
-							var nonce  = jQuery( '#wp_2fa_update_notice [data-dismiss-nonce]' ).attr( 'data-dismiss-nonce' );
+							e.preventDefault();
+							var nonce  = jQuery( '#wp_2fa_update_notice [data-dismiss-nonce]' ).data( 'dismiss-nonce' );
 							
 							jQuery.ajax({
 								type: 'POST',
-								url: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',
-								async: true,
+								url: '<?php echo esc_url( \admin_url( 'admin-ajax.php' ) ); ?>',
 								data: {
 									action: 'dismiss_update_notice',
 									nonce : nonce,
@@ -119,7 +126,7 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 			// Grab POSTed data.
 			$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : false;
 			// Check nonce.
-			if ( ! current_user_can( 'manage_options' ) || empty( $nonce ) || ! $nonce || ! wp_verify_nonce( $nonce, 'wp_2fa_dismiss_update_notice_nonce' ) ) {
+			if ( ! current_user_can( 'manage_options' ) || empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wp_2fa_dismiss_update_notice_nonce' ) ) {
 				wp_send_json_error( esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
 			}
 

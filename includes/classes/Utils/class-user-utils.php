@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage user-utils
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -15,7 +15,6 @@ declare(strict_types=1);
 
 namespace WP2FA\Utils;
 
-use WP2FA\WP2FA;
 use WP2FA\Methods\Backup_Codes;
 use WP2FA\Admin\Helpers\User_Helper;
 
@@ -48,9 +47,9 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 */
 		public static function determine_user_2fa_status( $user ) {
 			// Get current user, we going to need this regardless.
-			$current_user = wp_get_current_user();
+			$current_user = \wp_get_current_user();
 
-			// Bail if we still dont have an object.
+			// Bail if we still don't have an object.
 			if ( ! is_a( $user, '\WP_User' ) || ! is_a( $current_user, '\WP_User' ) ) {
 				return array();
 			}
@@ -64,11 +63,11 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 			$is_user_locked       = User_Helper::is_user_locked( $user->ID );
 			$user_last_login      = User_Helper::get_login_date_for_user( $user->ID );
 
-			// First lets see if the user already has a token.
+			// First let's see if the user already has a token.
 			$enabled_methods = User_Helper::get_enabled_method_for_user( $user );
 
 			$no_enforced_methods = false;
-			if ( 'do-not-enforce' === WP2FA::get_wp2fa_setting( 'enforcement-policy' ) ) {
+			if ( 'do-not-enforce' === Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'enforcement-policy' ) ) {
 				$no_enforced_methods = true;
 			}
 
@@ -138,7 +137,7 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 			/*
 			 * Gives the ability to alter the user types for the user.
 			 *
-			 * @param string $user_type - Type of the user.
+			 * @param array $user_type - Type of the user.
 			 * @param \WP_User $user - The WP user.
 			 *
 			 * @since 2.0.0
@@ -171,14 +170,7 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function role_is_not( $roles, $user_roles ) {
-			if (
-			empty(
-				array_intersect(
-					$roles,
-					$user_roles
-				)
-			)
-			) {
+			if ( empty( array_intersect( $roles, $user_roles ) ) ) {
 				return true;
 			}
 
@@ -203,25 +195,25 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 			// method is "query", let's build the SQL query ourselves.
 			global $wpdb;
 
-			$batch_size = isset( $users_args['batch_size'] ) ? $users_args['batch_size'] : false;
-			$offset     = isset( $users_args['count'] ) ? $users_args['count'] * $batch_size : false;
+			$batch_size = isset( $users_args['batch_size'] ) ? (int) $users_args['batch_size'] : false;
+			$offset     = isset( $users_args['count'] ) ? (int) $users_args['count'] * $batch_size : false;
 
 			// Default.
-			$select = 'SELECT ID, user_login FROM ' . $wpdb->users . '';
+			$select = 'SELECT ID, user_login FROM ' . $wpdb->users;
 
 			// If we want to grab users with a specific role.
 			if ( isset( $users_args['role__in'] ) && ! empty( $users_args['role__in'] ) ) {
-				$roles  = $users_args['role__in'];
+				$roles  = array_map( 'esc_sql', $users_args['role__in'] );
 				$select = '
 					SELECT  ID, user_login
 					FROM    ' . $wpdb->users . ' u INNER JOIN ' . $wpdb->usermeta . ' um
 					ON      u.ID = um.user_id
-					WHERE   um.meta_key LIKE \'' . $wpdb->base_prefix . '%capabilities\'' . // phpcs:ignore
+					WHERE   um.meta_key LIKE \'' . esc_sql( $wpdb->base_prefix ) . '%capabilities\'' .
 					' AND     (
 			';
 				$i      = 1;
 				foreach ( $roles as $role ) {
-					$select .= ' um.meta_value    LIKE    \'%"' . $role . '"%\' ';
+					$select .= ' um.meta_value    LIKE    \'%"' . esc_sql( $role ) . '"%\' ';
 					if ( $i < count( $roles ) ) {
 						$select .= ' OR ';
 					}
@@ -229,11 +221,11 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 				}
 				$select .= ' ) ';
 
-				$excluded_users = ( ! empty( $users_args['excluded_users'] ) ) ? $users_args['excluded_users'] : array();
+				$excluded_users = ( ! empty( $users_args['excluded_users'] ) ) ? array_map( 'esc_sql', $users_args['excluded_users'] ) : array();
 
 				$excluded_users = array_map(
 					function ( $excluded_user ) {
-						return '"' . $excluded_user . '"';
+						return '"' . esc_sql( $excluded_user ) . '"';
 					},
 					$excluded_users
 				);
@@ -244,7 +236,7 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 				';
 				}
 
-				$skip_existing_2fa_users = ( ! empty( $users_args['skip_existing_2fa_users'] ) ) ? $users_args['skip_existing_2fa_users'] : false;
+				$skip_existing_2fa_users = ( ! empty( $users_args['skip_existing_2fa_users'] ) ) ? (bool) $users_args['skip_existing_2fa_users'] : false;
 
 				if ( $skip_existing_2fa_users ) {
 					$select .= '
@@ -256,51 +248,10 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 			}
 
 			if ( $batch_size ) {
-				$select .= ' LIMIT ' . $batch_size . ' OFFSET ' . $offset . '';
+				$select .= ' LIMIT ' . $batch_size . ' OFFSET ' . $offset;
 			}
 
-			return $wpdb->get_results( $select ); // phpcs:ignore
-		}
-
-		/**
-		 * Collects all the users with 2FA meta data.
-		 *
-		 * @param array $users_args - Arguments.
-		 *
-		 * @return string
-		 *
-		 * @since 2.2.0
-		 */
-		public static function get_all_user_ids_who_have_wp_2fa_metadata_present( $users_args ) {
-			global $wpdb;
-
-			$batch_size = isset( $users_args['batch_size'] ) ? $users_args['batch_size'] : false;
-			$offset     = isset( $users_args['count'] ) ? $users_args['count'] * $batch_size : false;
-
-			$select = '
-			SELECT ID FROM ' . $wpdb->users . '
-			INNER JOIN ' . $wpdb->usermeta . ' ON ' . $wpdb->users . '.ID = ' . $wpdb->usermeta . '.user_id
-			WHERE ' . $wpdb->usermeta . '.meta_key LIKE \'wp_2fa_%\'
-		';
-
-			if ( $batch_size ) {
-				$select .= '
-				LIMIT ' . $batch_size . ' OFFSET ' . $offset . '
-			';
-			}
-
-			$users = $wpdb->get_results( $select ); // phpcs:ignore
-
-			$users = array_map(
-				function ( $user ) {
-					return (int) $user->ID;
-				},
-				$users
-			);
-
-			$users = implode( ',', $users );
-
-			return $users;
+			return $wpdb->get_results( $select );
 		}
 
 		/**
@@ -323,7 +274,10 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 				$user_data
 			);
 
-			return implode( ',', $users );
+			// Sanitize the IDs before returning them as a comma-separated string.
+			$sanitized_ids = array_map( 'intval', $users );
+
+			return implode( ',', $sanitized_ids );
 		}
 
 		/**
@@ -341,8 +295,8 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 
 			$users = array_map(
 				function ( $user ) {
-					$user_item['ID']         = (int) $user->ID;
-					$user_item['user_login'] = $user->user_login;
+					$user_item['ID']         = intval( $user->ID );
+					$user_item['user_login'] = sanitize_user( $user->user_login, true );
 
 					return $user_item;
 				},
@@ -361,15 +315,14 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 */
 		public static function get_human_readable_user_statuses() {
 			if ( null === self::$statuses ) {
-				self::$statuses =
-				array(
-					'has_enabled_methods'                 => __( 'Configured', 'wp-2fa' ),
-					'user_needs_to_setup_2fa'             => __( 'Required but not configured', 'wp-2fa' ),
-					'no_required_has_enabled'             => __( 'Configured (but not required)', 'wp-2fa' ),
-					'no_required_not_enabled'             => __( 'Not required & not configured', 'wp-2fa' ),
-					'user_is_excluded'                    => __( 'Not allowed', 'wp-2fa' ),
-					'user_is_locked'                      => __( 'Locked', 'wp-2fa' ),
-					User_Helper::USER_UNDETERMINED_STATUS => __( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
+				self::$statuses = array(
+					'has_enabled_methods'                 => esc_html__( 'Configured', 'wp-2fa' ),
+					'user_needs_to_setup_2fa'             => esc_html__( 'Required but not configured', 'wp-2fa' ),
+					'no_required_has_enabled'             => esc_html__( 'Configured (but not required)', 'wp-2fa' ),
+					'no_required_not_enabled'             => esc_html__( 'Not required & not configured', 'wp-2fa' ),
+					'user_is_excluded'                    => esc_html__( 'Not allowed', 'wp-2fa' ),
+					'user_is_locked'                      => esc_html__( 'Locked', 'wp-2fa' ),
+					User_Helper::USER_UNDETERMINED_STATUS => esc_html__( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
 				);
 			}
 
@@ -395,12 +348,12 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 				return array();
 			}
 
-			$key_to_search = reset( $user_types );
+			$key_to_search = sanitize_key( reset( $user_types ) );
 
 			if ( isset( self::$statuses[ $key_to_search ] ) ) {
 				return array(
 					'id'    => $key_to_search,
-					'label' => self::$statuses[ $key_to_search ],
+					'label' => esc_html( self::$statuses[ $key_to_search ] ),
 				);
 			}
 

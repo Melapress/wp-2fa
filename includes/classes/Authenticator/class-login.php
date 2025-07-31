@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage login
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -26,6 +26,7 @@ use WP2FA\Authenticator\Authentication;
 use WP2FA\Methods\Wizards\TOTP_Wizard_Steps;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
 use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
+use WP2FA\Utils\Settings_Utils;
 
 /**
  * Responsible for user login process.
@@ -78,7 +79,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function mepr_login(): bool {
-			\remove_action( 'wp_login', array( '\WP2FA\Authenticator\Login', 'wp_login' ), 20, 2 );
+			\remove_action( 'wp_login', array( __CLASS__, 'wp_login' ), 20, 2 );
 
 			return true;
 		}
@@ -92,8 +93,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 *
 		 * @param string   $user_login Username.
 		 * @param \WP_User $user \WP_User object of the logged-in user.
-		 *
-		 * @SuppressWarnings(PHPMD.ExitExpression)
 		 */
 		public static function wp_login( $user_login, $user ) {
 
@@ -134,6 +133,9 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				}
 			}
 
+			// phpcs:disable
+			// phpcs:enable
+
 			$user_status = User_Helper::get_2fa_status( $user );
 
 			if ( User_Helper::USER_UNDETERMINED_STATUS === $user_status ) {
@@ -150,11 +152,13 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				return;
 			}
 
-			$global_methods       = Methods::get_available_2fa_methods();
+			$global_methods       = Methods::get_available_2fa_methods( User_Helper::get_user_role( $user ) );
 			$users_method         = User_Helper::get_enabled_method_for_user( $user );
 			$users_method_removed = false;
 
-			if ( User_Helper::is_enforced( $user ) && ! empty( $users_method ) && empty( \array_intersect( array( $users_method ), $global_methods ) ) ) {
+			$enforced_check = User_Helper::is_enforced( $user, true );
+
+			if ( $enforced_check && ! empty( $users_method ) && empty( \array_intersect( array( $users_method ), $global_methods ) ) ) {
 				$users_method_removed = true;
 			}
 
@@ -177,7 +181,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			}
 
 			// leave if 2FA is not enforced, but optional.
-			$enforcement_policy = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
+			$enforcement_policy = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'enforcement-policy' );
 			if ( 'do-not-enforce' === $enforcement_policy ) {
 				return;
 			}
@@ -198,14 +202,14 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			// if there is some grace period configured, and it is not instant, we can let the users in (if they needed to
 			// be blocked, this would have already happened in wp_authenticate).
-			$grace_policy = WP2FA::get_wp2fa_setting( 'grace-policy' );
+			$grace_policy = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'grace-policy' );
 			if ( 'use-grace-period' === $grace_policy ) {
 
 				if ( ! Grace_Period_Notifications::notify_using_dashboard( $user ) ) {
-					$global_methods   = Methods::get_available_2fa_methods();
+					$global_methods   = Methods::get_available_2fa_methods( User_Helper::get_user_role( $user ) );
 					$users_method     = User_Helper::get_enabled_method_for_user( $user );
 					$is_nag_dismissed = User_Helper::get_nag_status();
-					$is_nag_needed    = User_Helper::is_enforced( User_Helper::get_user_object()->ID );
+					$is_nag_needed    = $enforced_check;
 
 
 					if ( ! $is_nag_dismissed && $is_nag_needed ) {
@@ -215,7 +219,17 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 							wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 						}
 
-						$redirect_to = isset( $_REQUEST['redirect_to'] ) ? \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url(); //phpcs:ignore
+						if ( isset( $_REQUEST['_wp_http_referer'] ) && ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+							$redirect_to = \esc_url_raw( \wp_unslash( $_REQUEST['_wp_http_referer'] ) );
+						}
+
+						if ( isset( $_REQUEST['redirect_to'] ) && ! empty( $_REQUEST['redirect_to'] ) ) {
+							$redirect_to = \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) );
+						}
+
+						if ( empty( $redirect_to ) ) {
+							$redirect_to = \network_admin_url();
+						}
 
 						self::show_2fa_form_grace_form( $user, $login_nonce['key'], $redirect_to );
 					} else {
@@ -247,7 +261,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		public static function show_2fa_form_grace_form( $user, $login_nonce, $redirect_to, $error_msg = '' ) {
 			$interim_login   = isset( $_REQUEST['interim-login'] ) ? filter_var( wp_unslash( $_REQUEST['interim-login'] ), FILTER_VALIDATE_BOOLEAN ) : false; //phpcs:ignore
 			$rememberme     = intval( self::rememberme() );
-			$global_methods = Methods::get_available_2fa_methods();
+			$global_methods = Methods::get_available_2fa_methods( User_Helper::get_user_role( $user ) );
 			$users_method   = User_Helper::get_enabled_method_for_user( $user );
 
 			if ( ! function_exists( 'login_header' ) ) {
@@ -258,7 +272,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			login_header();
 
 			if ( ! empty( $error_msg ) ) {
-				echo '<div id="login_error"><strong>' . apply_filters( 'login_errors', \esc_html( $error_msg ) ) . '</strong><br /></div>';
+				echo '<div id="login_error"><strong>' . \apply_filters( 'login_errors', \esc_html( $error_msg ) ) . '</strong><br /></div>';
 			}
 			?>
 			<form name="grace_2fa_form" id="lgraceform" action="<?php echo \esc_url( self::login_url( array( 'action' => 'grace_2fa' ), 'login_post' ) ); ?>" method="post" autocomplete="off">
@@ -316,7 +330,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				e.preventDefault();
 				const thisNotice = jQuery( this ).closest( '.notice' );
 				jQuery.ajax( {
-					url: '<?php echo admin_url( 'admin-ajax.php' ); ?>',
+					url: '<?php echo \admin_url( 'admin-ajax.php' );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>',
 					data: {
 						action: 'dismiss_nag'
 					},
@@ -346,8 +360,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * @param \WP_User $user WordPress user object.
 		 *
 		 * @since 2.0.0
-		 *
-		 * @SuppressWarnings(PHPMD.ExitExpression)
 		 */
 		private static function clear_session_and_show_2fa_form( $user ) {
 			/**
@@ -386,10 +398,10 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 */
 		private static function get_2fa_setup_url( $user ) {
 
-			$page_slug = Settings::get_role_or_default_setting( 'custom-user-page-url', $user );
+			$page_slug = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'custom-user-page-url' );
 
 			// Lets check for multisite first and if that is the case - lets search for that page on the user's default blog.
-			if ( WP_Helper::is_multisite() && false !== Settings::get_role_or_default_setting( 'separate-multisite-page-url', $user ) && ! empty( $page_slug ) ) {
+			if ( WP_Helper::is_multisite() && false !== Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'separate-multisite-page-url' ) && ! empty( $page_slug ) ) {
 				$blog_id = User_Helper::get_user_default_blog( $user );
 				if ( 0 === $blog_id ) {
 					$new_page_permalink = '';
@@ -435,7 +447,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				return Settings::get_setup_page_link();
 			}
 
-			return admin_url( 'profile.php' );
+			return network_admin_url( 'profile.php' );
 		}
 
 		/**
@@ -504,6 +516,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * Generates an error object representing locked user account.
 		 *
 		 * @return \WP_Error User account locked error.
+		 *
 		 * @since 2.0.0
 		 */
 		public static function get_user_locked_error() {
@@ -558,10 +571,10 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
 
-			$redirect_to = isset( $_REQUEST['redirect_to'] ) ? \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url(); //phpcs:ignore
+			$redirect_to = isset( $_REQUEST['redirect_to'] ) ? \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : network_admin_url();
 
 			if ( self::is_woocommerce_activated() ) {
-				$redirect_to = isset( $_REQUEST['redirect'] ) ? \esc_url_raw( wp_unslash( $_REQUEST['redirect'] ) ) : admin_url();
+				$redirect_to = isset( $_REQUEST['redirect'] ) ? \esc_url_raw( wp_unslash( $_REQUEST['redirect'] ) ) : network_admin_url();
 			}
 
 			self::login_html( $user, $login_nonce['key'], $redirect_to );
@@ -586,8 +599,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * Display the Backup code 2fa screen.
 		 *
 		 * @since 0.1-dev
-		 *
-		 * @SuppressWarnings(PHPMD.ExitExpression)
 		 */
 		public static function backup_2fa() {
 			if ( ! isset( $_GET['wp-auth-id'], $_GET['wp-auth-nonce'], $_GET['provider'] ) ) { //phpcs:ignore
@@ -641,12 +652,25 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			$interim_login   = isset( $_REQUEST['interim-login'] ) ? filter_var( wp_unslash( $_REQUEST['interim-login'] ), FILTER_VALIDATE_BOOLEAN ) : false; //phpcs:ignore
 			$rememberme      = intval( self::rememberme() );
 
+			\add_filter(
+				'login_body_class',
+				function ( $classes, $action ) {
+					$classes[] = 'wp-2fa-login';
+
+					return $classes;
+				},
+				10,
+				2
+			);
+
 			if ( ! function_exists( 'login_header' ) ) {
 				// We really should migrate login_header() out of `wp-login.php` so it can be called from an includes file.
 				include_once WP_2FA_PATH . 'includes/functions/login-header.php';
 			}
 
-			login_header();
+			\wp_enqueue_script( 'wp_2fa_user_login_scripts' );
+
+			\login_header();
 
 			if ( ! empty( $error_msg ) ) {
 				echo '<div id="login_error"><strong>' . apply_filters( 'login_errors', \esc_html( $error_msg ) ) . '</strong><br /></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -730,6 +754,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 								} catch (e) {}
 							}, 200)
 						</script>
+
 					<?php } ?>
 					</p>
 					<?php
@@ -790,7 +815,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			do_action( WP_2FA_PREFIX . 'login_html_after_backup_providers', $user, $provider, $login_nonce, $redirect_to, $rememberme );
+			\do_action( WP_2FA_PREFIX . 'login_html_after_backup_providers', $user, $provider, $login_nonce, $redirect_to, $rememberme );
 
 			?>
 
@@ -871,7 +896,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			try {
 				$login_nonce['key'] = bin2hex( random_bytes( 32 ) );
 			} catch ( \Exception $ex ) {
-				$login_nonce['key'] = wp_hash( $user_id . mt_rand() . microtime(), 'nonce' ); //phpcs:ignore
+				$login_nonce['key'] = wp_hash( $user_id . mt_rand() . microtime(), 'nonce' );
 			}
 			$login_nonce['expiration'] = time() + HOUR_IN_SECONDS;
 
@@ -922,33 +947,31 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * Login form validation.
 		 *
 		 * @since 0.1-dev
-		 *
-		 * @SuppressWarnings(PHPMD.ExitExpression)
 		 */
 		public static function login_form_validate_2fa() {
-			if ( ! isset( $_POST['wp-auth-id'], $_POST['wp-auth-nonce'] ) ) { // phpcs:ignore
+			if ( ! isset( $_POST['wp-auth-id'], $_POST['wp-auth-nonce'] ) ) {  // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				return;
 			}
 
 			// If form data comes from 2 factor password reset - bounce.
-			if ( isset( $_POST['reset'] ) && 'reset-2fa' === $_POST['reset'] ) { // phpcs:ignore
+			if ( isset( $_POST['reset'] ) && 'reset-2fa' === $_POST['reset'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				return;
 			}
 
-			$auth_id = (int) $_POST['wp-auth-id']; // phpcs:ignore
+			$auth_id = (int) $_POST['wp-auth-id']; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$user    = get_userdata( $auth_id );
 			if ( ! $user ) {
 				return;
 			}
 
-			$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore
+			$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( true !== self::verify_login_nonce( $user->ID, $nonce ) ) {
-				wp_safe_redirect( get_bloginfo( 'url' ) );
+				\wp_safe_redirect( get_bloginfo( 'url' ) );
 				exit;
 			}
 
-			if ( isset( $_POST['provider'] ) ) { // phpcs:ignore
-				$provider  = sanitize_textarea_field( wp_unslash( $_POST['provider'] ) ); // phpcs:ignore
+			if ( isset( $_POST['provider'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$provider = \sanitize_textarea_field( \wp_unslash( $_POST['provider'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			}
 
 			if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user ), $provider ) ) {
@@ -1054,7 +1077,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			do_action( WP_2FA_PREFIX . 'validate_login_form', $user, $provider );
+			\do_action( WP_2FA_PREFIX . 'validate_login_form', $user, $provider );
 
 			self::delete_login_nonce( $user->ID );
 
@@ -1064,7 +1087,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				$rememberme = true;
 			}
 
-			wp_set_auth_cookie( $user->ID, $rememberme );
+			\wp_set_auth_cookie( $user->ID, $rememberme );
 
 			/**
 			 * Fires when the user is authenticated.
@@ -1109,25 +1132,25 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			Backup_Codes::clear_login_attempts( $user );
 
-			if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || admin_url() === $redirect_to ) ) {
+			if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || \network_admin_url() === $redirect_to ) ) {
 				// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
 				if ( WP_Helper::is_multisite() && ! get_active_blog_for_user( $user->ID ) && ! is_super_admin( $user->ID ) ) {
 					$redirect_to = user_admin_url();
 				} elseif ( WP_Helper::is_multisite() && ! $user->has_cap( 'read' ) ) {
 					$redirect_to = get_dashboard_url( $user->ID );
 				} elseif ( ! $user->has_cap( 'edit_posts' ) ) {
-					$redirect_to = $user->has_cap( 'read' ) ? admin_url( 'profile.php' ) : home_url();
+					$redirect_to = $user->has_cap( 'read' ) ? network_admin_url( 'profile.php' ) : home_url();
 				}
 
-				$redirect_to = apply_filters( WP_2FA_PREFIX . 'post_login_orphan_user_redirect', $redirect_to, $user );
+				$redirect_to = \apply_filters( WP_2FA_PREFIX . 'post_login_orphan_user_redirect', $redirect_to, $user );
 
 				wp_redirect( $redirect_to );
 				exit;
 			}
 
-			$redirect_to = apply_filters( WP_2FA_PREFIX . 'post_login_user_redirect', $redirect_to, $user );
+			$redirect_to = \apply_filters( WP_2FA_PREFIX . 'post_login_user_redirect', $redirect_to, $user );
 
-			wp_safe_redirect( $redirect_to );
+			\wp_safe_redirect( $redirect_to );
 
 			exit;
 		}
@@ -1160,6 +1183,9 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * @since 0.1-dev
 		 *
 		 * @param \WP_User $user \WP_User object of the logged-in user.
+		 * @param bool     $is_reset_protection - That call is for reset code.
+		 *
+		 * @return void
 		 */
 		public static function email_authentication_page( $user, $is_reset_protection = false ) {
 			if ( ! $user ) {
@@ -1179,18 +1205,18 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			require_once ABSPATH . '/wp-admin/includes/template.php';
 			?>
-	<?php echo WP2FA::get_wp2fa_white_label_setting( $text_to_display, true ); // phpcs:ignore ?>
-	<p>
-	</br>
-		<label for="authcode"><?php \esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>
-		<input type="tel" name="wp-2fa-email-code" id="authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off" />
-		<script>
-			const email_code = document.getElementById('authcode');
-			email_code.addEventListener('input', function() {
-			this.value = this.value.trim();
-			});
-		</script>
-	</p>
+			<?php echo WP2FA::get_wp2fa_white_label_setting( $text_to_display, true );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<p>
+			</br>
+				<label for="authcode"><?php \esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>
+				<input type="tel" name="authcode" id="authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off" />
+				<script>
+					const email_code = document.getElementById('authcode');
+					email_code.addEventListener('input', function() {
+					this.value = this.value.trim();
+					});
+				</script>
+			</p>
 			<?php
 		}
 
@@ -1203,10 +1229,10 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * @return boolean
 		 */
 		public static function validate_email_authentication( $user ) {
-			if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-email-code'] ) ) { //phpcs:ignore
+			if ( ! isset( $user->ID ) || ! isset( $_REQUEST['authcode'] ) ) {
 				return false;
 			}
-			return Authentication::validate_token( $user, \sanitize_text_field( \wp_unslash( $_REQUEST['wp-2fa-email-code'] ) ) );
+			return Authentication::validate_token( $user, \sanitize_text_field( \wp_unslash( $_REQUEST['authcode'] ) ) );
 		}
 
 		/**
@@ -1214,7 +1240,10 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * validation if a new token has been generated and sent.
 		 *
 		 * @param  \WP_User $user \WP_User object of the logged-in user.
+		 *
 		 * @return boolean
+		 *
+		 * @since 3.0.0
 		 */
 		public static function pre_process_email_authentication( $user ) {
 			if ( isset( $user->ID ) && isset( $_REQUEST[ self::INPUT_NAME_RESEND_CODE ] ) ) { //phpcs:ignore -- nonce
@@ -1233,18 +1262,19 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 */
 		public static function backup_codes_authentication_page( $user ) {
 			require_once ABSPATH . '/wp-admin/includes/template.php';
+			\wp_enqueue_script( 'wp_2fa_user_login_scripts' );
 			?>
-		<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ); // phpcs:ignore ?></p><br/>
-		<p>
-			<label for="authcode"><?php \esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>
-			<input type="tel" name="wp-2fa-backup-code" id="authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off" />
-			<script>
-				const backup_code = document.getElementById('authcode');
-				input.addEventListener('input', function() {
-				this.value = this.value.trim();
-				});
-			</script>
-		</p>
+			<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p><br/>
+			<p>
+				<label for="authcode"><?php \esc_html_e( 'Verification Code:', 'wp-2fa' ); ?></label>
+				<input type="tel" name="wp-2fa-backup-code" id="authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off" />
+				<script>
+					const backup_code = document.getElementById('authcode');
+					backup_code.addEventListener('input', function() {
+					this.value = this.value.trim();
+					});
+				</script>
+			</p>
 			<?php
 		}
 
@@ -1256,7 +1286,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function dequeue_style() {
-			wp_dequeue_style( 'wpaas-sso-login' );
+			\wp_dequeue_style( 'wpaas-sso-login' );
 		}
 	}
 }

@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage settings-pages
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -35,6 +35,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function render() {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
 			settings_fields( WP_2FA_SETTINGS_NAME );
 			self::no_method_exists();
 			self::disable_brute_force_settings();
@@ -49,6 +52,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 * @param array $input The settings array.
 		 *
 		 * @return array|void
+		 *
+		 * @since 3.0.0
 		 */
 		public static function validate_and_sanitize( $input ) {
 			// Bail if user doesn't have permissions to be here.
@@ -132,12 +137,16 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 *
 		 * @return void
 		 *
-		 * @SuppressWarnings(PHPMD.ExitExpressions)
+		 * @since 2.9.0
 		 */
 		public static function update_wp2fa_network_options() {
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				\wp_die( \esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-2fa' ) );
+			}
+
 			if ( isset( $_POST[ WP_2FA_SETTINGS_NAME ] ) ) {
 				check_admin_referer( 'wp_2fa_settings-options' );
-				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_SETTINGS_NAME])); // phpcs:ignore
+				$options         = self::validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_SETTINGS_NAME ] ) );
 				$settings_errors = get_settings_errors( WP_2FA_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
 					// redirect back to our options page.
@@ -178,37 +187,36 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 */
 		private static function remove_data_upon_uninstall() {
 			?>
-		<div class="danger-zone-wrapper">
-			<h3><?php \esc_html_e( 'Do you want to delete the plugin data from the database upon uninstall', 'wp-2fa' ); ?></h3>
-			<p class="description">
-				<?php \esc_html_e( 'The plugin saves its settings in the WordPress database. By default the plugin settings are kept in the database so if it is installed again, you do not have to reconfigure the plugin. Enable this setting to delete the plugin settings from the database upon uninstall.', 'wp-2fa' ); ?>
-			</p>
-			<table class="form-table">
-				<tbody>
-					<tr>
-						<th><label for="delete_data"><?php \esc_html_e( 'Delete data', 'wp-2fa' ); ?></label></th>
-						<td>
-							<fieldset>
-								<input type="checkbox" id="delete_data" name="wp_2fa_settings[delete_data_upon_uninstall]" value="delete_data_upon_uninstall"
-								<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ), true ); ?>
-								>
-								<?php \esc_html_e( 'Delete data upon uninstall', 'wp-2fa' ); ?>
-							</fieldset>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+			<div class="danger-zone-wrapper">
+				<h3><?php \esc_html_e( 'Do you want to delete the plugin data from the database upon uninstall', 'wp-2fa' ); ?></h3>
+				<p class="description">
+					<?php \esc_html_e( 'The plugin saves its settings in the WordPress database. By default the plugin settings are kept in the database so if it is installed again, you do not have to reconfigure the plugin. Enable this setting to delete the plugin settings from the database upon uninstall.', 'wp-2fa' ); ?>
+				</p>
+				<table class="form-table">
+					<tbody>
+						<tr>
+							<th><label for="delete_data"><?php \esc_html_e( 'Delete data', 'wp-2fa' ); ?></label></th>
+							<td>
+								<fieldset>
+									<input type="checkbox" id="delete_data" name="wp_2fa_settings[delete_data_upon_uninstall]" value="delete_data_upon_uninstall"
+									<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ), true ); ?>
+									>
+									<?php \esc_html_e( 'Delete data upon uninstall', 'wp-2fa' ); ?>
+								</fieldset>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 			<?php
 			$last_user_to_update_settings = get_current_user_id();
-
 			?>
-		<input type="hidden" id="2fa_main_user" name="wp_2fa_settings[2fa_settings_last_updated_by]" value="<?php echo \esc_attr( $last_user_to_update_settings ); ?>">
+			<input type="hidden" id="2fa_main_user" name="wp_2fa_settings[2fa_settings_last_updated_by]" value="<?php echo \esc_attr( $last_user_to_update_settings ); ?>">
 			<?php
 		}
 
 		/**
-		 * Limit settings setting.
+		 * Limit settings access.
 		 *
 		 * @return void
 		 *
@@ -216,31 +224,31 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 */
 		private static function limit_settings_access() {
 			?>
-		<br>
-		<h3><?php \esc_html_e( 'Limit 2FA settings access', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php \esc_html_e( 'Use this setting to hide this plugin configuration area from all other admins.', 'wp-2fa' ); ?>
-		</p>
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th><label for="limit_access"><?php \esc_html_e( 'Limit access to 2FA settings', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset>
-							<input type="checkbox" id="limit_access" name="wp_2fa_settings[limit_access]" value="limit_access"
-							<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'limit_access' ), true ); ?>
-							>
-							<?php \esc_html_e( 'Hide settings from other administrators', 'wp-2fa' ); ?>
-						</fieldset>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+			<br>
+			<h3><?php \esc_html_e( 'Limit 2FA settings access', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'Use this setting to hide this plugin configuration area from all other admins.', 'wp-2fa' ); ?>
+			</p>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="limit_access"><?php \esc_html_e( 'Limit access to 2FA settings', 'wp-2fa' ); ?></label></th>
+						<td>
+							<fieldset>
+								<input type="checkbox" id="limit_access" name="wp_2fa_settings[limit_access]" value="limit_access"
+								<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'limit_access' ), true ); ?>
+								>
+								<?php \esc_html_e( 'Hide settings from other administrators', 'wp-2fa' ); ?>
+							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 			<?php
 		}
 
 		/**
-		 * Disable brute force setting.
+		 * Disable brute force protection setting.
 		 *
 		 * @return void
 		 *
@@ -248,25 +256,25 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 */
 		private static function disable_brute_force_settings() {
 			?>
-		<br>
-		<h3><?php \esc_html_e( 'Disable 2FA code brute force protection', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php \esc_html_e( 'When using email and SMS 2FA, the plugin sends the users a new one-time code whenever they enter the wrong code when logging in. This is a security enhancement, a sort of brute force protection. You can disable this feature from the below setting, however, it is not recommended.', 'wp-2fa' ); ?>
-		</p>
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th><label for="brute_force_disable"><?php \esc_html_e( 'Disable one-time code brute force protection', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset>
-							<input type="checkbox" id="brute_force_disable" name="wp_2fa_settings[brute_force_disable]" value="brute_force_disable"
-							<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ), true ); ?>
-							>
-						</fieldset>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+			<br>
+			<h3><?php \esc_html_e( 'Disable 2FA code brute force protection', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'When using email and SMS 2FA, the plugin sends the users a new one-time code whenever they enter the wrong code when logging in. This is a security enhancement, a sort of brute force protection. You can disable this feature from the below setting, however, it is not recommended.', 'wp-2fa' ); ?>
+			</p>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="brute_force_disable"><?php \esc_html_e( 'Disable one-time code brute force protection', 'wp-2fa' ); ?></label></th>
+						<td>
+							<fieldset>
+								<input type="checkbox" id="brute_force_disable" name="wp_2fa_settings[brute_force_disable]" value="brute_force_disable"
+								<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ), true ); ?>
+								>
+							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 			<?php
 		}
 
@@ -279,44 +287,44 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 */
 		private static function no_method_exists() {
 			?>
-		<p class="description">
-			<?php
-				printf(
-					// translators: support email.
-					\esc_html__( 'Use this setting below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at %1$s.', 'wp-2fa' ),
-					'<a href="mailto:support@melapress.com">support@melapress.com</a>'
-				);
-			?>
-		</p>
-		<h3><?php \esc_html_e( 'What should the plugin do if the 2FA method used during a user login is unavailable', 'wp-2fa' ); ?></h3>
-		<p class="description">
-			<?php \esc_html_e( 'There may be cases in which the 2FA service is unavailable when a user is trying to log in. For example, the service is unreachable or there are no credits to complete the action. In this case you can configure the plugin to either block the login process, or allow the user to log in without 2FA authentication.', 'wp-2fa' ); ?>
-		</p>
-		<table class="form-table">
-			<tbody>
-				<tr>
-					<th><label for="no-methods"><?php \esc_html_e( 'Select action', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset class="contains-hidden-inputs" id="no-methods">
-							<label for="login_block">
-								<input type="radio" name="wp_2fa_settings[method_invalid_setting]" id="login_block" value="login_block"
-								<?php checked( WP2FA::get_wp2fa_general_setting( 'method_invalid_setting' ), 'login_block' ); ?>
-								>
-							<span><?php \esc_html_e( 'Block the login.', 'wp-2fa' ); ?></span>
-							</label>
+			<p class="description">
+				<?php
+					printf(
+						// translators: support email.
+						\esc_html__( 'Use this setting below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at %1$s.', 'wp-2fa' ),
+						'<a href="mailto:support@melapress.com">support@melapress.com</a>'
+					);
+				?>
+			</p>
+			<h3><?php \esc_html_e( 'What should the plugin do if the 2FA method used during a user login is unavailable', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'There may be cases in which the 2FA service is unavailable when a user is trying to log in. For example, the service is unreachable or there are no credits to complete the action. In this case you can configure the plugin to either block the login process, or allow the user to log in without 2FA authentication.', 'wp-2fa' ); ?>
+			</p>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="no-methods"><?php \esc_html_e( 'Select action', 'wp-2fa' ); ?></label></th>
+						<td>
+							<fieldset class="contains-hidden-inputs" id="no-methods">
+								<label for="login_block">
+									<input type="radio" name="wp_2fa_settings[method_invalid_setting]" id="login_block" value="login_block"
+									<?php checked( WP2FA::get_wp2fa_general_setting( 'method_invalid_setting' ), 'login_block' ); ?>
+									>
+								<span><?php \esc_html_e( 'Block the login.', 'wp-2fa' ); ?></span>
+								</label>
 
-							<br/>
-							<label for="allow_login_without_method">
-								<input type="radio" name="wp_2fa_settings[method_invalid_setting]" id="allow_login_without_method" value="allow_login_without_method"
-								<?php checked( WP2FA::get_wp2fa_general_setting( 'method_invalid_setting' ), 'allow_login_without_method' ); ?>
-								data-unhide-when-checked=".custom-from-inputs">
-								<span><?php \esc_html_e( 'Allow the login without 2FA', 'wp-2fa' ); ?></span>
-							</label>
-						</fieldset>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+								<br/>
+								<label for="allow_login_without_method">
+									<input type="radio" name="wp_2fa_settings[method_invalid_setting]" id="allow_login_without_method" value="allow_login_without_method"
+									<?php checked( WP2FA::get_wp2fa_general_setting( 'method_invalid_setting' ), 'allow_login_without_method' ); ?>
+									data-unhide-when-checked=".custom-from-inputs">
+									<span><?php \esc_html_e( 'Allow the login without 2FA', 'wp-2fa' ); ?></span>
+								</label>
+							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 			<?php
 		}
 	}

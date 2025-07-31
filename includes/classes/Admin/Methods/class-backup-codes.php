@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage methods
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -41,6 +41,8 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 	class Backup_Codes {
 
 		use Login_Attempts;
+
+		public const POLICY_SETTINGS_NAME = 'backup_codes_enabled';
 
 		/**
 		 * Holds the name of the meta key for the allowed login attempts.
@@ -125,11 +127,63 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 
 			\add_filter( WP_2FA_PREFIX . 'default_settings', array( __CLASS__, 'add_default_settings' ) );
 
-			\add_filter( WP_2FA_PREFIX . 'providers', array( __CLASS__, 'backup_codes' ) );
+			\add_filter( WP_2FA_PREFIX . 'providers', array( __CLASS__, 'backup_codes_provider' ) );
 
 			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'fill_providers_array_with_method_name_translated' ) );
 
 			\add_filter( WP_2FA_PREFIX . 'user_enabled_backup_methods', array( __CLASS__, 'method_enabled_for_user' ), 10, 2 );
+
+			\add_filter( WP_2FA_PREFIX . 'white_label_default_settings', array( __CLASS__, 'add_whitelabel_settings' ) );
+
+			\add_action( WP_2FA_PREFIX . 'validate_login_api', array( __CLASS__, 'api_login_validate' ), 10, 3 );
+		}
+
+		/**
+		 * Checks the provided user and token and validates them. Returns true if valid, false otherwise.
+		 *
+		 * @param array       $valid - The current validation value.
+		 * @param integer     $user_id - The user ID to check for.
+		 * @param string|null $token - The token to validate against user provided.
+		 *
+		 * @return array
+		 *
+		 * @since 3.0.0
+		 */
+		public static function api_login_validate( array $valid, int $user_id, ?string $token ): array {
+
+			if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user_id ), self::METHOD_NAME ) ) {
+				return $valid;
+			}
+
+			if ( ! self::is_enabled_for_user( $user_id ) ) {
+				return $valid;
+			}
+
+			if ( ! is_array( $valid ) || ! isset( $valid['valid'] ) ) {
+				$valid['valid'] = false;
+			}
+
+			// If the login is valid, return it as it is.
+			if ( true === $valid['valid'] ) {
+				return $valid;
+			}
+
+			if ( ! isset( $token ) || empty( $token ) ) {
+				return $valid;
+			}
+
+			// Sanitize the token to ensure it is safe to use.
+			$sanitized_token = \sanitize_text_field( $token );
+
+			$is_valid = self::validate_code( User_Helper::get_user( $user_id ), $sanitized_token );
+
+			if ( ! $is_valid ) {
+				$valid[ self::METHOD_NAME ]['error'] = \esc_html__( 'ERROR: Invalid backup code.', 'wp-2fa' );
+			}
+
+			$valid['valid'] = $is_valid;
+
+			return $valid;
 		}
 
 		/**
@@ -196,8 +250,8 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function backup_codes( array $providers ) {
-			array_push( $providers, self::METHOD_NAME );
+		public static function backup_codes_provider( array $providers ) {
+			$providers[ self::class ] = self::METHOD_NAME;
 
 			return $providers;
 		}
@@ -231,13 +285,14 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		/**
 		 * Removes the backup method (user meta key) from the database.
 		 *
-		 * @param \WP_User,int,null $user - The user to remove method for.
+		 * @param \WP_User|int|null $user - The user to remove method for.
 		 *
 		 * @return void
 		 *
 		 * @since 2.5.0
 		 */
 		public static function remove_backup_methods_for_user( $user ) {
+			$user = User_Helper::get_user_object( $user );
 			if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user ), self::get_method_name() ) ) {
 				\delete_user_meta( $user->ID, self::BACKUP_CODES_META_KEY );
 			}
@@ -304,7 +359,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 * @param object $user User data.
 		 * @param string $code The code we are checking.
 		 *
-		 * @return bool Is is valid or not.
+		 * @return bool Is it valid or not.
 		 *
 		 * @since 2.6.0
 		 */
@@ -326,7 +381,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		}
 
 		/**
-		 * Delete code once its used.
+		 * Delete code once it's used.
 		 *
 		 * @param object $user        User data.
 		 * @param string $code_hashed Code to delete.
@@ -404,22 +459,19 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function are_backup_codes_enabled_for_role( $role = 'global' ) {
+		public static function are_backup_codes_enabled_for_role( $role = null ) {
 
-			$role = ( is_null( $role ) || empty( $role ) ) ? 'global' : $role;
+			$role_store = ( is_null( $role ) || empty( $role ) ) ? 'global' : $role;
 
-			if ( ! isset( self::$backup_codes_enabled[ $role ] ) ) {
-				self::$backup_codes_enabled[ $role ] = false;
+			if ( ! isset( self::$backup_codes_enabled[ $role_store ] ) ) {
+				self::$backup_codes_enabled[ $role_store ] = false;
 
-				if ( 'global' === $role ) {
-					$setting_value = Settings::get_role_or_default_setting( self::get_settings_name() );
-				} else {
-					$setting_value = Settings::get_role_or_default_setting( self::get_settings_name(), 'current', $role );
-				}
-				self::$backup_codes_enabled[ $role ] = Settings_Utils::string_to_bool( $setting_value );
+				$setting_value = Settings_Utils::get_setting_role( $role, self::get_settings_name() );
+
+				self::$backup_codes_enabled[ $role_store ] = Settings_Utils::string_to_bool( $setting_value );
 			}
 
-			return self::$backup_codes_enabled[ $role ];
+			return self::$backup_codes_enabled[ $role_store ];
 		}
 
 		/**
@@ -503,7 +555,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 * @return boolean
 		 */
 		public static function validate_backup_codes( $user ) {
-			if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-backup-code'] ) ) { //phpcs:ignore
+			if ( ! isset( $user->ID ) || ! isset( $_REQUEST['wp-2fa-backup-code'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				return false;
 			}
 
@@ -603,6 +655,25 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 */
 		public static function is_secondary() {
 			return true;
+		}
+		/**
+		 * Fills up the White Label settings array with the method defaults.
+		 *
+		 * @param array $default_settings - The array with the collected white label settings.
+		 *
+		 * @return array
+		 *
+		 * @since 3.0.0
+		 */
+		public static function add_whitelabel_settings( array $default_settings ): array {
+
+			$default_settings['backup_codes_intro_multi']    = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to configure a backup 2FA method in case you do not have access to the primary 2FA method to generate a code to log in. You can configure any of the below. You can always configure any or both from your user profile page later.', 'wp-2fa' ) . '</p>';
+			$default_settings['backup_codes_intro']          = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p>';
+			$default_settings['backup_codes_intro_continue'] = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p><p>' . __( 'You should now generate the list of backup method. Although this is optional, it is highly recommended to have a secondary 2FA method. This can be used as a backup should the primary 2FA method fail. This can happen if, for example, you forget your smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ) . '</p>';
+			$default_settings['backup_codes_generate_intro'] = '<h3>' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method.', 'wp-2fa' ) . '</p>';
+			$default_settings['backup_codes_generated']      = '<h3>' . __( 'Backup codes generated', 'wp-2fa' ) . '</h3><p>' . __( 'Here are your backup codes:', 'wp-2fa' ) . '</p>';
+
+			return $default_settings;
 		}
 	}
 }
