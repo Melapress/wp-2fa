@@ -12,7 +12,6 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Re_Login_2FA;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Controllers\Settings;
 
 /**
  * Default setup routine
@@ -46,7 +45,7 @@ function setup() {
  * @return void
  */
 function i18n() {
-	$locale = apply_filters( 'plugin_locale', get_locale(), 'wp-2fa' );
+	$locale = apply_filters( 'plugin_locale', determine_locale(), 'wp-2fa' );
 	load_textdomain( 'wp-2fa', WP_LANG_DIR . '/wp-2fa/wp-2fa-' . $locale . '.mo' );
 	load_plugin_textdomain( 'wp-2fa', false, plugin_basename( WP_2FA_PATH ) . '/languages/' );
 }
@@ -105,9 +104,9 @@ function uninstall() {
 	WP2FA::init();
 	if ( ! empty( WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
 		// Delete settings from wp_options.
+		global $wpdb;
 		if ( WP_Helper::is_multisite() ) {
 			$network_id = get_current_network_id();
-			global $wpdb;
 			$wpdb->query(
 				$wpdb->prepare(
 					"
@@ -115,45 +114,36 @@ function uninstall() {
 					WHERE meta_key LIKE %s
 					AND site_id = %d
 					",
-					array(
-						'%wp_2fa_%',
-						$network_id,
-					)
+					'%wp_2fa_%',
+					$network_id
 				)
 			);
 		} else {
-			global $wpdb;
 			$wpdb->query(
 				$wpdb->prepare(
 					"
 					DELETE FROM $wpdb->options
 					WHERE option_name LIKE %s
 					",
-					array(
-						'%wp_2fa_%',
-					)
+					'%wp_2fa_%'
 				)
 			);
 		}
 
-		global $wpdb;
 		$wpdb->query(
 			$wpdb->prepare(
 				"
 				DELETE FROM $wpdb->usermeta
-				WHERE 1
-				AND meta_key LIKE %s
+				WHERE meta_key LIKE %s
 				",
-				array(
-					WP_2FA_PREFIX . 'wp_2fa_%',
-				)
+				WP_2FA_PREFIX . 'wp_2fa_%'
 			)
 		);
 	}
 }
 
 /**
- * The list of knows contexts for enqueuing scripts/styles.
+ * The list of known contexts for enqueuing scripts/styles.
  *
  * @return array
  */
@@ -175,7 +165,7 @@ function script_url( $script, $context ) {
 		return new \WP_Error( 'invalid_enqueue_context', 'Invalid $context specified in WP2FA script loader.' );
 	}
 
-	return WP_2FA_URL . 'dist/js/' . $script . '.js';
+	return WP_2FA_URL . 'dist/js/' . sanitize_file_name( $script ) . '.js';
 }
 
 /**
@@ -192,7 +182,7 @@ function style_url( $stylesheet, $context ) {
 		return new \WP_Error( 'invalid_enqueue_context', 'Invalid $context specified in WP2FA stylesheet loader.' );
 	}
 
-	return WP_2FA_URL . 'dist/css/' . $stylesheet . '.css';
+	return WP_2FA_URL . 'dist/css/' . sanitize_file_name( $stylesheet ) . '.css';
 }
 
 /**
@@ -205,7 +195,7 @@ function admin_scripts() {
 	global $pagenow;
 
 	// Get page argument from $_GET array.
-	$page = ( isset( $_GET['page'] ) ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
+	$page = ( isset( $_GET['page'] ) ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
 	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && 'profile.php' !== $pagenow ) {
 		return;
 	}
@@ -232,33 +222,31 @@ function admin_scripts() {
 	$data_array = array(
 		'ajaxURL'                        => \admin_url( 'admin-ajax.php' ),
 		'roles'                          => WP_Helper::get_roles_wp(),
-		'nonce'                          => \wp_create_nonce( 'wp-2fa-settings-nonce' ),
-		'codeValidatedHeading'           => \esc_html__( 'Congratulations', 'wp-2fa' ),
-		'codeValidatedText'              => \esc_html__( 'Your account just got more secure', 'wp-2fa' ),
-		'codeValidatedButton'            => \esc_html__( 'Close Wizard & Refresh', 'wp-2fa' ),
-		'processingText'                 => \esc_html__( 'Processing Update', 'wp-2fa' ),
-		'email_sent_success'             => \esc_html__( 'Email successfully sent', 'wp-2fa' ),
-		'email_sent_failure'             => \esc_html__( 'Email delivery failed', 'wp-2fa' ),
-		'invalidEmail'                   => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
-		'license_validation_in_progress' => \esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
+		'nonce'                          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
+		'codeValidatedHeading'           => esc_html__( 'Congratulations', 'wp-2fa' ),
+		'codeValidatedText'              => esc_html__( 'Your account just got more secure', 'wp-2fa' ),
+		'codeValidatedButton'            => esc_html__( 'Close Wizard & Refresh', 'wp-2fa' ),
+		'processingText'                 => esc_html__( 'Processing Update', 'wp-2fa' ),
+		'email_sent_success'             => esc_html__( 'Email successfully sent', 'wp-2fa' ),
+		'email_sent_failure'             => esc_html__( 'Email delivery failed', 'wp-2fa' ),
+		'invalidEmail'                   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+		'license_validation_in_progress' => esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
 	);
-	\wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
+	wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
 
-	$role = User_Helper::get_user_role();
-
-	$re_login = Settings::get_role_or_default_setting( Re_Login_2FA::RE_LOGIN_SETTINGS_NAME, 'current', $role );
+	$re_login = Settings_Utils::get_setting_role( User_Helper::get_user_role(), Re_Login_2FA::RE_LOGIN_SETTINGS_NAME );
 
 	$data_array = array(
-		'ajaxURL'         => \admin_url( 'admin-ajax.php' ),
-		'nonce'           => \wp_create_nonce( 'wp2fa-verify-wizard-page' ),
-		'codesPreamble'   => \esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-		'readyText'       => \esc_html__( 'I\'m ready', 'wp-2fa' ),
-		'codeReSentText'  => \esc_html__( 'New code sent', 'wp-2fa' ),
-		'backupCodesSent' => \esc_html__( 'Backup codes sent', 'wp-2fa' ),
+		'ajaxURL'         =>\admin_url( 'admin-ajax.php' ),
+		'nonce'           => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
+		'codesPreamble'   => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+		'readyText'       => esc_html__( 'I\'m ready', 'wp-2fa' ),
+		'codeReSentText'  => esc_html__( 'New code sent', 'wp-2fa' ),
+		'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
 		'reLoginEnabled'  => Re_Login_2FA::ENABLED_SETTING_VALUE,
 		'reLogin'         => $re_login,
 	);
-	\wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
+	wp_localize_script( 'wp_2fa_admin', 'wp2faWizardData', $data_array );
 }
 
 /**

@@ -4,71 +4,27 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit17996
+class ComposerStaticInit12198
 {
-    public static $files = array (
-        'a9ed0d27b5a698798a89181429f162c5' => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib/Common/customFunctions.php',
-    );
-
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
-            'WP2FA_Vendor\\Zxing\\' => 19,
-            'WP2FA_Vendor\\Twilio\\' => 20,
-            'WP2FA_Vendor\\Symfony\\Component\\PropertyAccess\\' => 46,
-            'WP2FA_Vendor\\Symfony\\Component\\Inflector\\' => 41,
-            'WP2FA_Vendor\\MyCLabs\\Enum\\' => 26,
             'WP2FA_Vendor\\Firebase\\JWT\\' => 26,
-            'WP2FA_Vendor\\Endroid\\QrCode\\' => 28,
-            'WP2FA_Vendor\\DASPRiD\\Enum\\' => 26,
             'WP2FA_Vendor\\Clickatell\\' => 24,
-            'WP2FA_Vendor\\BaconQrCode\\' => 25,
             
             'WP2FA\\' => 6,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'WP2FA_Vendor\\Zxing\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/khanamiryan/qrcode-detector-decoder/lib',
-        ),
-        'WP2FA_Vendor\\Twilio\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/twilio/sdk/src/Twilio',
-        ),
-        'WP2FA_Vendor\\Symfony\\Component\\PropertyAccess\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/property-access',
-        ),
-        'WP2FA_Vendor\\Symfony\\Component\\Inflector\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/inflector',
-        ),
-        'WP2FA_Vendor\\MyCLabs\\Enum\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
-        ),
         'WP2FA_Vendor\\Firebase\\JWT\\' => 
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
-        ),
-        'WP2FA_Vendor\\Endroid\\QrCode\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/endroid/qr-code/src',
-        ),
-        'WP2FA_Vendor\\DASPRiD\\Enum\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/dasprid/enum/src',
         ),
         'WP2FA_Vendor\\Clickatell\\' => 
         array (
             0 => __DIR__ . '/..' . '/arcturial/clickatell/src',
             1 => __DIR__ . '/..' . '/arcturial/clickatell/test',
-        ),
-        'WP2FA_Vendor\\BaconQrCode\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/bacon/bacon-qr-code/src',
         ),
         
         array (
@@ -82,6 +38,8 @@ class ComposerStaticInit17996
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'WP2FA\\Admin\\Controllers\\API\\API_Login' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-api-login.php',
+        'WP2FA\\Admin\\Controllers\\Endpoints' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-endpoints.php',
         'WP2FA\\Admin\\Controllers\\Methods' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-methods.php',
         'WP2FA\\Admin\\Controllers\\Settings' => __DIR__ . '/../..' . '/includes/classes/Admin/Controllers/class-settings.php',
         'WP2FA\\Admin\\FlyOut\\FlyOut' => __DIR__ . '/../..' . '/includes/classes/Admin/Fly-Out/class-flyout.php',
@@ -117,7 +75,7 @@ class ComposerStaticInit17996
         'WP2FA\\Authenticator\\Authentication' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-authentication.php',
         'WP2FA\\Authenticator\\Login' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-login.php',
         'WP2FA\\Authenticator\\Open_SSL' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-open-ssl.php',
-        'WP2FA\\Authenticator\\Reset_Password' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-reset-passord.php',
+        'WP2FA\\Authenticator\\Reset_Password' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-reset-password.php',
         'WP2FA\\Email_Template' => __DIR__ . '/../..' . '/includes/classes/class-email-template.php',
         
         
@@ -180,17 +138,87 @@ class ComposerStaticInit17996
         'WP2FA\\Utils\\Request_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-request-utils.php',
         'WP2FA\\Utils\\Settings_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-settings-utils.php',
         'WP2FA\\Utils\\User_Utils' => __DIR__ . '/../..' . '/includes/classes/Utils/class-user-utils.php',
+        'WP2FA\\Utils\\Validator' => __DIR__ . '/../..' . '/includes/classes/Utils/class-validator.php',
         'WP2FA\\Utils\\White_Label' => __DIR__ . '/../..' . '/includes/classes/Utils/class-white-label.php',
         'WP2FA\\WP2FA' => __DIR__ . '/../..' . '/includes/classes/class-wp2fa.php',
-        'WP2FA_Vendor\\Stringable' => __DIR__ . '/..' . '/myclabs/php-enum/stubs/Stringable.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\BitArray' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/BitArray.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\BitMatrix' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/BitMatrix.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\BitUtils' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/BitUtils.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\CharacterSetEci' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/CharacterSetEci.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\EcBlock' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/EcBlock.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\EcBlocks' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/EcBlocks.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\ErrorCorrectionLevel' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/ErrorCorrectionLevel.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\FormatInformation' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/FormatInformation.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\Mode' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/Mode.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\ReedSolomonCodec' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/ReedSolomonCodec.php',
+        'WP2FA_Vendor\\BaconQrCode\\Common\\Version' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Common/Version.php',
+        'WP2FA_Vendor\\BaconQrCode\\Encoder\\BlockPair' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Encoder/BlockPair.php',
+        'WP2FA_Vendor\\BaconQrCode\\Encoder\\ByteMatrix' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Encoder/ByteMatrix.php',
+        'WP2FA_Vendor\\BaconQrCode\\Encoder\\Encoder' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Encoder/Encoder.php',
+        'WP2FA_Vendor\\BaconQrCode\\Encoder\\MaskUtil' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Encoder/MaskUtil.php',
+        'WP2FA_Vendor\\BaconQrCode\\Encoder\\MatrixUtil' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Encoder/MatrixUtil.php',
+        'WP2FA_Vendor\\BaconQrCode\\Encoder\\QrCode' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Encoder/QrCode.php',
+        'WP2FA_Vendor\\BaconQrCode\\Exception\\ExceptionInterface' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Exception/ExceptionInterface.php',
+        'WP2FA_Vendor\\BaconQrCode\\Exception\\InvalidArgumentException' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Exception/InvalidArgumentException.php',
+        'WP2FA_Vendor\\BaconQrCode\\Exception\\OutOfBoundsException' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Exception/OutOfBoundsException.php',
+        'WP2FA_Vendor\\BaconQrCode\\Exception\\RuntimeException' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Exception/RuntimeException.php',
+        'WP2FA_Vendor\\BaconQrCode\\Exception\\UnexpectedValueException' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Exception/UnexpectedValueException.php',
+        'WP2FA_Vendor\\BaconQrCode\\Exception\\WriterException' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Exception/WriterException.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Color\\Alpha' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Color/Alpha.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Color\\Cmyk' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Color/Cmyk.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Color\\ColorInterface' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Color/ColorInterface.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Color\\Gray' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Color/Gray.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Color\\Rgb' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Color/Rgb.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Eye\\CompositeEye' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Eye/CompositeEye.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Eye\\EyeInterface' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Eye/EyeInterface.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Eye\\ModuleEye' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Eye/ModuleEye.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Eye\\SimpleCircleEye' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Eye/SimpleCircleEye.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Eye\\SquareEye' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Eye/SquareEye.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\ImageRenderer' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/ImageRenderer.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Image\\EpsImageBackEnd' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Image/EpsImageBackEnd.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Image\\ImageBackEndInterface' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Image/ImageBackEndInterface.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Image\\ImagickImageBackEnd' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Image/ImagickImageBackEnd.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Image\\SvgImageBackEnd' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Image/SvgImageBackEnd.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Image\\TransformationMatrix' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Image/TransformationMatrix.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Module\\DotsModule' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Module/DotsModule.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Module\\EdgeIterator\\Edge' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Module/EdgeIterator/Edge.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Module\\EdgeIterator\\EdgeIterator' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Module/EdgeIterator/EdgeIterator.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Module\\ModuleInterface' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Module/ModuleInterface.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Module\\RoundnessModule' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Module/RoundnessModule.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Module\\SquareModule' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Module/SquareModule.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Path\\Close' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Path/Close.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Path\\Curve' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Path/Curve.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Path\\EllipticArc' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Path/EllipticArc.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Path\\Line' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Path/Line.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Path\\Move' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Path/Move.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Path\\OperationInterface' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Path/OperationInterface.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\Path\\Path' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/Path/Path.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\PlainTextRenderer' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/PlainTextRenderer.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\RendererInterface' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/RendererInterface.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\RendererStyle\\EyeFill' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/RendererStyle/EyeFill.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\RendererStyle\\Fill' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/RendererStyle/Fill.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\RendererStyle\\Gradient' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/RendererStyle/Gradient.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\RendererStyle\\GradientType' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/RendererStyle/GradientType.php',
+        'WP2FA_Vendor\\BaconQrCode\\Renderer\\RendererStyle\\RendererStyle' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Renderer/RendererStyle/RendererStyle.php',
+        'WP2FA_Vendor\\BaconQrCode\\Writer' => __DIR__ . '/../..' . '/includes/classes/bacon/bacon-qr-code/src/Writer.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\AbstractEnum' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/AbstractEnum.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\EnumMap' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/EnumMap.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\Exception\\CloneNotSupportedException' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/Exception/CloneNotSupportedException.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\Exception\\ExceptionInterface' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/Exception/ExceptionInterface.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\Exception\\ExpectationException' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/Exception/ExpectationException.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\Exception\\IllegalArgumentException' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/Exception/IllegalArgumentException.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\Exception\\MismatchException' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/Exception/MismatchException.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\Exception\\SerializeNotSupportedException' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/Exception/SerializeNotSupportedException.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\Exception\\UnserializeNotSupportedException' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/Exception/UnserializeNotSupportedException.php',
+        'WP2FA_Vendor\\DASPRiD\\Enum\\NullValue' => __DIR__ . '/../..' . '/includes/classes/dasprid/enum/src/NullValue.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit17996::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit17996::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit17996::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit12198::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit12198::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit12198::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage methods
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -17,13 +17,16 @@ declare(strict_types=1);
 
 namespace WP2FA\Methods;
 
+use WP2FA\Admin\Controllers\API\API_Login;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User_Profile;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Methods\Wizards\TOTP_Wizard_Steps;
+use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
 
 /**
  * Class for handling totp codes.
@@ -105,16 +108,74 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			// add the TOTP methods to the list of available methods if enabled.
 			\add_filter(
 				WP_2FA_PREFIX . 'available_2fa_methods',
-				function ( $available_methods ) {
-					if ( ! empty( Settings::get_role_or_default_setting( self::POLICY_SETTINGS_NAME, 'current' ) ) ) {
+				function ( $available_methods, $role ) {
+					if ( ! empty( Settings_Utils::get_setting_role( $role, self::POLICY_SETTINGS_NAME ) ) ) {
 						array_push( $available_methods, self::METHOD_NAME );
 					}
 
 					return $available_methods;
-				}
+				},
+				10,
+				2
 			);
 
+			\add_filter( WP_2FA_PREFIX . 'white_label_default_settings', array( __CLASS__, 'add_whitelabel_settings' ) );
+			\add_action( WP_2FA_PREFIX . 'validate_login_api', array( __CLASS__, 'api_login_validate' ), 10, 3 );
+
+			\add_action( WP_2FA_PREFIX . 'white_label_wizard_options', array( __CLASS__, 'white_label_option_labels' ) );
+
 			TOTP_Wizard_Steps::init();
+		}
+
+		/**
+		 * Checks the provided user and token and validates them. Returns true if valid, false otherwise.
+		 *
+		 * @param array       $valid - The current validation value.
+		 * @param integer     $user_id - The user ID to check for.
+		 * @param string|null $token - The token to validate against user provided.
+		 *
+		 * @return array
+		 *
+		 * @since 3.0.0
+		 */
+		public static function api_login_validate( array $valid, int $user_id, ?string $token ): array {
+
+			if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user_id ), self::METHOD_NAME ) ) {
+				return $valid;
+			}
+
+			if ( self::METHOD_NAME !== User_Helper::get_enabled_method_for_user( $user_id ) ) {
+				return $valid;
+			}
+
+			if ( ! is_array( $valid ) || ! isset( $valid['valid'] ) ) {
+				$valid['valid'] = false;
+			}
+
+			// If the login is valid, return it as it is.
+			if ( true === $valid['valid'] ) {
+				return $valid;
+			}
+
+			if ( ! isset( $token ) || empty( $token ) ) {
+				return $valid;
+			}
+
+			// Sanitize the token to ensure it is safe to use.
+			$sanitized_token = \sanitize_text_field( $token );
+
+			$is_valid = Authentication::is_valid_authcode(
+				self::get_totp_key( User_Helper::get_user( $user_id ) ),
+				$sanitized_token
+			);
+
+			if ( ! $is_valid ) {
+				$valid[ self::METHOD_NAME ]['error'] = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
+			}
+
+			$valid['valid'] = $is_valid;
+
+			return $valid;
 		}
 
 		/**
@@ -189,7 +250,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function totp_provider( array $providers ) {
-			array_push( $providers, self::METHOD_NAME );
+			$providers[ self::class ] = self::METHOD_NAME;
 
 			return $providers;
 		}
@@ -232,7 +293,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function validate_totp_authentication( \WP_User $user = null ) {
+		public static function validate_totp_authentication( ?\WP_User $user = null ): bool {
 			if ( ! empty( $_REQUEST['authcode'] ) ) {  //phpcs:ignore
 				$valid = Authentication::is_valid_authcode(
 					self::get_totp_key( $user ),
@@ -258,7 +319,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function settings_loop( array $loop_settings ) {
+		public static function settings_loop( array $loop_settings ): array {
 			array_push( $loop_settings, self::POLICY_SETTINGS_NAME );
 
 			return $loop_settings;
@@ -267,13 +328,16 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		/**
 		 * Returns the status of the totp method (enabled | disabled)
 		 *
+		 * @param string $role - The name of the role to check for.
+		 *
 		 * @since 2.6.0
+		 * @since 2.9.0 - Added role parameter to check if the Twilio is enabled for the given role.
 		 *
 		 * @return boolean
 		 */
-		public static function is_enabled(): bool {
+		public static function is_enabled( ?string $role = null ): bool {
 			if ( null === self::$totp_enabled ) {
-				self::$totp_enabled = empty( Settings::get_role_or_default_setting( self::POLICY_SETTINGS_NAME, 'current' ) ) ? false : true;
+				self::$totp_enabled = empty( Settings_Utils::get_setting_role( $role, self::POLICY_SETTINGS_NAME ) ) ? false : true;
 			}
 
 			return self::$totp_enabled;
@@ -323,20 +387,8 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function add_default_settings( array $default_settings ) {
-			$default_settings[ self::POLICY_SETTINGS_NAME ]   = self::POLICY_SETTINGS_NAME;
-			$default_settings['method_help_totp_intro']       = '<h3>' . __( 'Setting up TOTP (one-time code via app)', 'wp-2fa' ) . '</h3>';
-			$default_settings['method_help_totp_step_1']      = __( 'Download and start the application of your choice', 'wp-2fa' );
-			$default_settings['method_help_totp_step_2']      = __( 'From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:', 'wp-2fa' );
-			$default_settings['method_help_totp_step_3']      = __( 'Click the "I\'m ready" button below when you complete the application setup process to proceed with the wizard.', 'wp-2fa' );
-			$default_settings['method_verification_totp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code from your chosen authentication app to finalize the setup.', 'wp-2fa' ) . '</p>';
-			$default_settings['totp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} the 2FA App', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working.', 'wp-2fa' ) . '</p>';
-			$default_settings['totp-option-label']            = __( 'One-time code via 2FA app', 'wp-2fa' );
-			$default_settings['totp-option-label-hint']       = sprintf(
-				/* translators: link to the knowledge base website */
-				\esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
-			'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
-			);
+		public static function add_default_settings( array $default_settings ): array {
+			$default_settings[ self::POLICY_SETTINGS_NAME ] = self::POLICY_SETTINGS_NAME;
 
 			return $default_settings;
 		}
@@ -415,7 +467,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 				$key = Open_SSL::decrypt( substr( $key, 4 ) );
 
 				/**
-				 * If for some reason the key is not valid, that means that we have to clear the stored TOTP for the user, and create new on
+				 * If for some reason the key is not valid, that means that we have to clear the stored TOTP for the user, and create new one
 				 * That could happen if the global stored secret (plugin level) is deleted.
 				 *
 				 * Lets check and if that is the case - create new one
@@ -534,6 +586,59 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			}
 
 			return $key;
+		}
+
+		/**
+		 * Fills up the White Label settings array with the method defaults.
+		 *
+		 * @param array $default_settings - The array with the collected white label settings.
+		 *
+		 * @return array
+		 *
+		 * @since 3.0.0
+		 */
+		public static function add_whitelabel_settings( array $default_settings ): array {
+
+			$default_settings['method_help_totp_intro']       = '<h3>' . __( 'Setting up TOTP (one-time code via app)', 'wp-2fa' ) . '</h3>';
+			$default_settings['method_help_totp_step_1']      = __( 'Download and start the application of your choice', 'wp-2fa' );
+			$default_settings['method_help_totp_step_2']      = __( 'From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:', 'wp-2fa' );
+			$default_settings['method_help_totp_step_3']      = __( 'Click the "I\'m ready" button below when you complete the application setup process to proceed with the wizard.', 'wp-2fa' );
+			$default_settings['method_verification_totp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code from your chosen authentication app to finalize the setup.', 'wp-2fa' ) . '</p>';
+			$default_settings['totp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} the 2FA App', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working.', 'wp-2fa' ) . '</p>';
+			$default_settings['totp-option-label']            = __( 'One-time code via 2FA app', 'wp-2fa' );
+			$default_settings['totp-option-label-hint']       = sprintf(
+				/* translators: link to the knowledge base website */
+				\esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
+				'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_2fa_apps_3" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
+			);
+
+			return $default_settings;
+		}
+
+		/**
+		 * Shows the Method option label and hint in the White Label settings.
+		 *
+		 * @return void
+		 *
+		 * @since 2.9.0
+		 */
+		public static function white_label_option_labels() {
+			?>
+			<strong class="description"><?php esc_html_e( 'TOTP (one-time code via app) Option label', 'wp-2fa' ); ?></strong>
+			<br><br>
+			<fieldset>
+				<input type="text" id="totp-option-label" name="wp_2fa_white_label[totp-option-label]" class="large-text" value="<?php echo \esc_attr( WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true ) ); ?>">
+			</fieldset>
+			<br>
+			<strong class="description"><?php esc_html_e( 'TOTP option hint', 'wp-2fa' ); ?></strong>
+			<br>
+			<fieldset>
+				<?php
+					echo Settings_Page_White_Label::create_standard_editor( 'totp-option-label-hint' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				?>
+			</fieldset>
+			<br>
+			<?php
 		}
 	}
 }

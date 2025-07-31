@@ -4,9 +4,11 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
+ *
+ * @since      1.6
  */
 
 declare(strict_types=1);

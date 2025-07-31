@@ -7,7 +7,7 @@
  *
  * @since 2.8.0
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -16,6 +16,9 @@
 declare(strict_types=1);
 
 namespace WP2FA\Admin\FlyOut;
+
+use WP2FA\WP2FA;
+use WP2FA\Admin\Helpers\WP_Helper;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -105,6 +108,12 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 				$config['plugin_screen'] = array( $config['plugin_screen'] );
 			}
 
+			if ( WP_Helper::is_multisite() ) {
+				foreach ( $config['plugin_screen'] as $key => $value ) {
+					$config['plugin_screen'][ $key ] = $value . '-network';
+				}
+			}
+
 			self::$config = $config;
 		}
 
@@ -174,15 +183,15 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 				right: ' . \sanitize_text_field( self::$config['icon_right'] ) . ';
 				bottom: ' . \sanitize_text_field( self::$config['icon_bottom'] ) . ';
 			}';
-			$out .= '#mlp-flyout #mlp-elmnts-image-wrapper {
+			$out .= '#mlp-flyout #mlp-elements-image-wrapper {
 				border: ' . \sanitize_text_field( self::$config['icon_border'] ) . ';
 			}';
-			$out .= '#mlp-flyout #mlp-elmnts-button img {
+			$out .= '#mlp-flyout #mlp-elements-button img {
 				padding: ' . \sanitize_text_field( self::$config['icon_padding'] ) . ';
 				width: ' . \sanitize_text_field( self::$config['icon_size'] ) . ';
 				height: ' . \sanitize_text_field( self::$config['icon_size'] ) . ';
 			}';
-			$out .= '#mlp-flyout .mlp-elmnts-menu-item.accent {
+			$out .= '#mlp-flyout .mlp-elements-menu-item.accent {
 				background: ' . \sanitize_text_field( self::$config['menu_accent_color'] ) . ';
 			}';
 			$out .= \sanitize_text_field( self::$config['custom_css'] );
@@ -204,7 +213,7 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 			}
 
 			$out               = '';
-			$icons_url         = WP_2FA_URL . 'assets/images/';
+			$icons_url         = WP_2FA_URL . 'dist/images/';
 			$default_link_item = array(
 				'class'  => '',
 				'href'   => '#',
@@ -212,40 +221,44 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 				'label'  => '',
 				'icon'   => '',
 				'data'   => '',
+				'type'   => 'all',
 			);
 
 			$out .= '<div id="mlp-overlay"></div>';
 
 			$out .= '<div id="mlp-flyout">';
 
-			$out .= '<a href="#" id="mlp-elmnts-button">';
-			$out .= '<span class="mlp-elmnts-label">Open Quick Links</span>';
-			$out .= '<span id="mlp-elmnts-image-wrapper">';
+			$out .= '<a href="#" id="mlp-elements-button">';
+			$out .= '<span class="mlp-elements-label">Open Quick Links</span>';
+			$out .= '<span id="mlp-elements-image-wrapper">';
 			$out .= '<img src="' . esc_url( $icons_url . self::$config['icon_image'] ) . '" alt="Open Quick Links" title="Open Quick Links">';
 			$out .= '</span>';
 			$out .= '</a>';
 
-			$out .= '<div id="mlp-elmnts-menu">';
+			$out .= '<div id="mlp-elements-menu">';
 			$i    = 0;
 			foreach ( array_reverse( self::$config['menu_items'] ) as $item ) {
-				++$i;
 				$item = array_merge( $default_link_item, $item );
 
-				if ( ! empty( $item['icon'] ) && substr( $item['icon'], 0, 9 ) != 'dashicons' ) {
-					$item['class'] .= ' mlp-elmnts-custom-icon';
-					$item['class']  = trim( $item['class'] );
-				}
+				if ( ( isset( $item['type'] ) && 'all' === $item['type'] ) || ( isset( $item['type'] ) && WP2FA::determine_plugin_type() === $item['type'] ) ) {
+					++$i;
 
-				$out .= '<a ' . $item['data'] . ' href="' . esc_url( $item['href'] ) . '" class="mlp-elmnts-menu-item mlp-elmnts-menu-item-' . $i . ' ' . esc_attr( $item['class'] ) . '" target="_blank">';
-				$out .= '<span class="mlp-elmnts-label visible">' . esc_html( $item['label'] ) . '</span>';
-				if ( substr( $item['icon'], 0, 9 ) == 'dashicons' ) {
-					$out .= '<span class="dashicons ' . sanitize_text_field( $item['icon'] ) . '"></span>';
-				} elseif ( ! empty( $item['icon'] ) ) {
-					$out .= '<span class="mlp-elmnts-icon"><img src="' . esc_url( $icons_url . $item['icon'] ) . '"></span>';
+					if ( ! empty( $item['icon'] ) && \str_starts_with( $item['icon'], 'dashicons' ) ) {
+						$item['class'] .= ' mlp-elements-custom-icon';
+						$item['class']  = trim( $item['class'] );
+					}
+
+					$out .= '<a ' . $item['data'] . ' href="' . esc_url( $item['href'] ) . '" class="mlp-elements-menu-item mlp-elements-menu-item-' . $i . ' ' . esc_attr( $item['class'] ) . '" target="' . esc_attr( $item['target'] ) . '">';
+					$out .= '<span class="mlp-elements-label visible">' . esc_html( $item['label'] ) . '</span>';
+					if ( \str_starts_with( $item['icon'], 'dashicons' ) ) {
+						$out .= '<span class="dashicons ' . sanitize_text_field( $item['icon'] ) . '"></span>';
+					} elseif ( ! empty( $item['icon'] ) ) {
+						$out .= '<span class="mlp-elements-icon"><img src="' . esc_url( $icons_url . $item['icon'] ) . '"></span>';
+					}
+					$out .= '</a>';
 				}
-				$out .= '</a>';
 			} // foreach
-			$out .= '</div>'; // #mlp-elmnts-menu
+			$out .= '</div>'; // #mlp-elements-menu
 
 			$out .= '</div>'; // #mlp-flyout
 

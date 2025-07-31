@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage views
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -16,6 +16,7 @@ use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Utils\Settings_Utils;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -220,7 +221,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		 * @return string
 		 */
 		public static function get_generate_codes_label() {
-			$label = __( 'Backup 2FA methods:', 'wp-2fa' );
+			$label = esc_html__( 'Backup 2FA methods:', 'wp-2fa' );
 
 			return $label . '</th><td>';
 		}
@@ -233,7 +234,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function get_backup_codes_link(): string {
-			return '<a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes ' . WP_Helper::create_data_nonce( self::json_nonce() ) . ' onclick="MicroModal.show( \'configure-2fa-backup-codes\' );">' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</a>';
+			return '<a href="#" class="button button-primary remove-2fa" data-trigger-generate-backup-codes ' . WP_Helper::create_data_nonce( self::json_nonce() ) . ' onclick="(jQuery(\'#wp-2fa-manual-backup-codes\').length ) ?  jQuery(\'#wp-2fa-manual-backup-codes\').attr(\'id\', \'wp-2fa-manual-backup-codes-trigger\') : \'\';MicroModal.show( \'configure-2fa-backup-codes\' );">' . esc_html__( 'Generate list of backup codes', 'wp-2fa' ) . '</a>';
 		}
 
 		/**
@@ -247,45 +248,37 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		 */
 		public static function generated_backup_codes( $backup_only = false ) {
 
-			$redirect = self::determine_redirect_url();
+			$redirect = esc_url( self::determine_redirect_url() );
 
 			?>
-			<div class="step-setting-wrapper align-center<?php echo ( $backup_only ) ? ' active' : ''; ?>" data-step-title="<?php \esc_html_e( 'Your backup codes', 'wp-2fa' ); ?>">
+			<div class="step-setting-wrapper align-center<?php echo ( $backup_only ) ? ' active' : ''; ?>" data-step-title="<?php esc_html_e( 'Your backup codes', 'wp-2fa' ); ?>">
 				<div class="mb-20">
-					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_generated', true ) ); ?>
+					<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_generated', true ) ); ?>
 				</div>
 				<div class="backup-key-wrapper">
 					<textarea id="backup-codes-wrapper" readonly rows="4" cols="50" class="app-key"></textarea>
 				</div>
 				<div class="wp2fa-setup-actions">
 					<?php if ( is_ssl() ) { ?>
-						<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php \esc_attr_e( 'Download', 'wp-2fa' ); ?>" data-trigger-backup-code-copy>
-							<?php \esc_html_e( 'Copy', 'wp-2fa' ); ?>
+						<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php esc_attr_e( 'Download', 'wp-2fa' ); ?>" data-trigger-backup-code-copy>
+							<?php esc_html_e( 'Copy', 'wp-2fa' ); ?>
 						</button>
 					<?php } else { ?>
-						<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php \esc_attr_e( 'Download', 'wp-2fa' ); ?>" data-trigger-backup-code-download data-user="<?php echo \esc_attr( User_Helper::get_user_object()->display_name ); ?>" data-website-url="<?php echo \esc_attr( get_home_url() ); ?>">
-							<?php \esc_html_e( 'Download', 'wp-2fa' ); ?>
+						<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php esc_attr_e( 'Download', 'wp-2fa' ); ?>" data-trigger-backup-code-download data-user="<?php echo esc_attr( User_Helper::get_user_object()->display_name ); ?>" data-website-url="<?php echo esc_attr( get_home_url() ); ?>">
+							<?php esc_html_e( 'Download', 'wp-2fa' ); ?>
 						</button>
 					<?php } ?>
-					<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php \esc_attr_e( 'Print', 'wp-2fa' ); ?>" data-trigger-print <?php echo WP_Helper::create_data_nonce( self::json_nonce() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->display_name ); ?>" data-website-url="<?php echo \esc_attr( get_home_url() ); ?>">
-						<?php \esc_html_e( 'Print', 'wp-2fa' ); ?>
-					</button>
+					<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php esc_attr_e( 'Print', 'wp-2fa' ); ?>" data-trigger-print <?php WP_Helper::create_data_nonce( self::json_nonce() ); ?> data-user-id="<?php echo esc_attr( User_Helper::get_user_object()->display_name ); ?>" data-website-url="<?php echo esc_attr( get_home_url() ); ?>"><?php esc_html_e( 'Print', 'wp-2fa' ); ?></button>
 
-					<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php \esc_attr_e( 'Send me the codes via email', 'wp-2fa' ); ?>" data-trigger-backup-code-email <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-backup-codes-email-nonce' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" data-website-url="<?php echo \esc_attr( get_home_url() ); ?>">
-						<?php \esc_html_e( 'Send me the codes via email', 'wp-2fa' ); ?>
-					</button>
+					<button class="button button-primary wp-2fa-button-primary" type="submit" value="<?php esc_attr_e( 'Send me the codes via email', 'wp-2fa' ); ?>" data-trigger-backup-code-email <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-backup-codes-email-nonce' ); ?> data-user-id="<?php echo esc_attr( User_Helper::get_user_object()->ID ); ?>" data-website-url="<?php echo esc_attr( get_home_url() ); ?>"><?php esc_html_e( 'Send me the codes via email', 'wp-2fa' ); ?></button>
 					<?php
 					if ( ! empty( $redirect ) ) {
 						?>
-						<a href="<?php echo \esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary close-first-time-wizard">
-						<?php \esc_html_e( 'I\'m ready, close the wizard', 'wp-2fa' ); ?>
-						</a>
+						<a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary close-first-time-wizard"><?php esc_html_e( 'I\'m ready, close the wizard', 'wp-2fa' ); ?></a>
 						<?php
 					} else {
 						?>
-					<button class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" type="submit" data-close-2fa-modal-and-refresh>
-						<?php \esc_html_e( 'I\'m ready, close the wizard', 'wp-2fa' ); ?>
-					</button>
+					<button class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" type="submit" data-close-2fa-modal-and-refresh><?php esc_html_e( 'I\'m ready, close the wizard', 'wp-2fa' ); ?></button>
 					<?php } ?>
 				</div>
 			</div>
@@ -308,20 +301,20 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 				return;
 			}
 
-			$redirect = ( '' !== self::determine_redirect_url() ) ? self::determine_redirect_url() : '';
+			$redirect = ( '' !== self::determine_redirect_url() ) ? esc_url( self::determine_redirect_url() ) : '';
 			?>
 
 			<div class="step-setting-wrapper active">
 			<div class="mb-20">
-				<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'no_further_action', true ) ); ?>
+				<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'no_further_action', true ) ); ?>
 			</div>
 			<div class="wp2fa-setup-actions">
 				<?php if ( '' !== trim( $redirect ) ) { ?>
-				<a href="<?php echo \esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
-						<?php \esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
+				<a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
+						<?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
 				</a>
 				<?php } else { ?>
-				<button class="modal__btn wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window"><?php \esc_html_e( 'Close wizard', 'wp-2fa' ); ?></button>
+				<button class="modal__btn wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window"><?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?></button>
 				<?php } ?>
 			</div>
 			</div>
@@ -336,30 +329,30 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		 * @return void
 		 */
 		public static function congratulations_step_plugin_wizard() {
-			$redirect    = ( '' !== self::determine_redirect_url() ) ? self::determine_redirect_url() : get_edit_profile_url( User_Helper::get_user_object()->ID );
-			$slide_title = ( User_Helper::is_excluded( User_Helper::get_user_object()->ID ) ) ? \esc_html__( 'Congratulations.', 'wp-2fa' ) : \esc_html__( 'Congratulations, you\'re almost there...', 'wp-2fa' );
+			$redirect    = ( '' !== self::determine_redirect_url() ) ? esc_url( self::determine_redirect_url() ) : esc_url( get_edit_profile_url( User_Helper::get_user_object()->ID ) );
+			$slide_title = ( User_Helper::is_excluded( User_Helper::get_user_object()->ID ) ) ? esc_html__( 'Congratulations.', 'wp-2fa' ) : esc_html__( 'Congratulations, you\'re almost there...', 'wp-2fa' );
 			?>
-				<h3><?php echo \esc_html( $slide_title ); ?></h3>
-				<p><?php \esc_html_e( 'Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu.', 'wp-2fa' ); ?></p>
+				<h3><?php echo esc_html( $slide_title ); ?></h3>
+				<p><?php esc_html_e( 'Great job, the plugin and 2FA policies are now configured. You can always change the plugin settings and 2FA policies at a later stage from the WP 2FA entry in the WordPress menu.', 'wp-2fa' ); ?></p>
 
 					<?php
 					if ( User_Helper::is_excluded( User_Helper::get_user_object()->ID ) ) {
 						?>
 				<div class="wp2fa-setup-actions">
-					<a href="<?php echo \esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
-							<?php \esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
+					<a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
+							<?php esc_html_e( 'Close wizard', 'wp-2fa' ); ?>
 					</a>
 				</div>
 						<?php
 					} else {
 						?>
-				<p><?php \esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
+				<p><?php esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
 				<div class="wp2fa-setup-actions">
-					<a href="<?php echo \esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-secondary">
-						<?php \esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
+					<a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-secondary">
+						<?php esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
 					</a>
-					<a href="<?php echo \esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
-						<?php \esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
+					<a href="<?php echo esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
+						<?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
 					</a>
 				</div>
 					<?php } ?>
@@ -377,7 +370,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			\do_action( WP_2FA_PREFIX . 'modal_methods' );
+			do_action( WP_2FA_PREFIX . 'modal_methods' );
 		}
 
 		/**
@@ -389,11 +382,11 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function choose_backup_method() {
-			$redirect = self::determine_redirect_url();
+			$redirect = esc_url( self::determine_redirect_url() );
 			?>
 			<div class="wizard-step" id="2fa-wizard-backup-methods">
 				<div class="option-pill mb-20">
-					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_multi', true ) ); ?>
+					<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_multi', true ) ); ?>
 				</div>
 				<div class="radio-cells">
 				<?php
@@ -407,17 +400,17 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 					}
 					$i = 1;
 					?>
-					<div class="option-pill"><label for="<?php echo \esc_attr( $method_name ); ?>"><input name="backup_method_select" data-step="<?php echo \esc_attr( $method['wizard-step'] ); ?>" type="radio" id="<?php echo \esc_attr( $method_name ); ?>" <?php echo $checked; ?>><?php echo $method['button_name']; // phpcs:ignore ?></label><br /></div>
+					<div class="option-pill"><label for="<?php echo esc_attr( $method_name ); ?>"><input name="backup_method_select" data-step="<?php echo esc_attr( $method['wizard-step'] ); ?>" type="radio" id="<?php echo esc_attr( $method_name ); ?>" <?php echo $checked; ?>><?php echo $method['button_name'];  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></label><br /></div>
 					<?php
 				}
 				?>
 				</div>
 				<div class="wp2fa-setup-actions">
-					<a id="select-backup-method" href="<?php echo \esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-primary">
-						<?php \esc_html_e( 'Configure backup 2FA method', 'wp-2fa' ); ?>
+					<a id="select-backup-method" href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-primary">
+						<?php esc_html_e( 'Configure backup 2FA method', 'wp-2fa' ); ?>
 					</a>
-					<a href="<?php echo \esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard"  <?php echo ( ( '' === trim( (string) $redirect ) ) ? 'data-close-it=""' : '' ); ?>  >
-							<?php \esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
+					<a href="<?php echo esc_url( $redirect ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard"  <?php echo ( ( '' === trim( (string) $redirect ) ) ? 'data-close-it=""' : '' ); ?>  >
+							<?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
 					</a>
 					<script>
 						const closeButton = document.querySelector('[data-close-it]');
@@ -446,19 +439,20 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		 */
 		public static function determine_redirect_url(): string {
 			if ( null === self::$redirect_url ) {
-				$redirect_page      = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', User_Helper::get_user_object() );
-				self::$redirect_url = ( '' !== trim( (string) $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
+				$role               = User_Helper::get_user_role();
+				$redirect_page      = Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page-global' );
+				self::$redirect_url = ( '' !== trim( (string) $redirect_page ) ) ? trailingslashit( get_site_url() ) . \sanitize_text_field( $redirect_page ) : '';
 
 				if (
-				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', User_Helper::get_user_object() ) ||
-				'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
+				'yes' === Settings_Utils::get_setting_role( $role, 'create-custom-user-page' ) ||
+				'yes' === Settings_Utils::get_setting_role( null, 'create-custom-user-page' ) ) {
 					if (
-					'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page', User_Helper::get_user_object() ) ) ||
-					'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
-						if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', User_Helper::get_user_object() ) ) {
-							self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', User_Helper::get_user_object() );
+					'' !== trim( (string) Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) ) ||
+					'' !== trim( (string) Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) ) ) {
+						if ( 'yes' === Settings_Utils::get_setting_role( $role, 'create-custom-user-page' ) ) {
+							self::$redirect_url = trailingslashit( get_site_url() ) . \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) );
 						} else {
-							self::$redirect_url = trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
+							self::$redirect_url = trailingslashit( get_site_url() ) . \sanitize_text_field( Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) );
 						}
 					}
 				}
@@ -476,7 +470,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		 */
 		protected static function json_nonce() {
 			if ( null === self::$json_nonce ) {
-				self::$json_nonce = 'wp-2fa-backup-codes-generate-json-' . User_Helper::get_user_object()->ID;
+				self::$json_nonce = 'wp-2fa-backup-codes-generate-json-' . esc_attr( User_Helper::get_user_object()->ID );
 			}
 
 			return self::$json_nonce;

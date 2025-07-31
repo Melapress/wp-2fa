@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -17,8 +17,9 @@ use WP2FA\Admin\SettingsPages\{
 	Settings_Page_General,
 	Settings_Page_Email
 };
-use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
 
 /**
  * Class for handling settings
@@ -42,7 +43,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				null,
-			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ), // phpcs:ignore
+				'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
 				81
 			);
 
@@ -70,27 +71,27 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			\register_setting(
 				WP_2FA_POLICY_SETTINGS_NAME,
 				WP_2FA_POLICY_SETTINGS_NAME,
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'validate_and_sanitize' )
+				array( Settings_Page_Policies::class, 'validate_and_sanitize' )
 			);
 
 			// Register our white label settings.
 			\register_setting(
 				WP_2FA_WHITE_LABEL_SETTINGS_NAME,
 				WP_2FA_WHITE_LABEL_SETTINGS_NAME,
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_White_Label::class, 'validate_and_sanitize' )
+				array( Settings_Page_White_Label::class, 'validate_and_sanitize' )
 			);
 
 			// Register our settings page.
 			\register_setting(
 				WP_2FA_SETTINGS_NAME,
 				WP_2FA_SETTINGS_NAME,
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_General::class, 'validate_and_sanitize' )
+				array( Settings_Page_General::class, 'validate_and_sanitize' )
 			);
 
 			\register_setting(
 				WP_2FA_EMAIL_SETTINGS_NAME,
 				WP_2FA_EMAIL_SETTINGS_NAME,
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_Email::class, 'validate_and_sanitize' )
+				array( Settings_Page_Email::class, 'validate_and_sanitize' )
 			);
 
 			/**
@@ -117,7 +118,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				null,
-			'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ), // phpcs:ignore
+				'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
 				81
 			);
 
@@ -206,7 +207,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		public static function add_plugin_action_links( $links ) {
 			// add link to the external free trial page in free version and also in premium version if license is not active.
 			if ( ! function_exists( 'wp2fa_freemius' ) || ! wp2fa_freemius()->has_active_valid_license() ) {
-				$trial_link = 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa';
+				$trial_link = 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_to_premium_menu';
 				$links      = array_merge(
 					array(
 						'<a style="font-weight:bold" href="' . $trial_link . '" target="_blank">' . __( 'Upgrade to Premium', 'wp-2fa' ) . '</a>',
@@ -240,14 +241,14 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			Settings_Page_General::update_wp2fa_network_options();
 
-			\WP2FA\Admin\SettingsPages\Settings_Page_White_Label::update_wp2fa_network_options();
+			Settings_Page_White_Label::update_wp2fa_network_options();
 
 			/**
 			 * Gives the ability for extensions to set their settings in the plugin.
 			 *
 			 * @since 2.2.0
 			 */
-			do_action( WP_2FA_PREFIX . 'update_network_settings' );
+			\do_action( WP_2FA_PREFIX . 'update_network_settings' );
 		}
 
 		/**
@@ -271,11 +272,11 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			</div>
 				<?php
 			}
-			if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'false' === $_GET['wp_2fa_network_settings_updated'] ) { // phpcs:ignore
+			if ( isset( $_GET['wp_2fa_network_settings_updated'] ) && 'false' === $_GET['wp_2fa_network_settings_updated'] ) {
 				?>
 			<div class="notice notice-error is-dismissible">
 				<?php
-				if ( isset( $_GET['wp_2fa_network_settings_custom_error_message'] ) ) { // phpcs:ignore
+				if ( isset( $_GET['wp_2fa_network_settings_custom_error_message'] ) ) {
 					$error = \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_network_settings_custom_error_message'] ) );
 					?>
 					<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( $error ) ) ); ?></p>
@@ -295,13 +296,13 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			</div>
 				<?php
 			}
-			if ( isset( $_GET['wp_2fa_network_settings_error'] ) ) { // phpcs:ignore
+			if ( isset( $_GET['wp_2fa_network_settings_error'] ) ) {
 				?>
 			<div class="notice notice-error is-dismissible">
 				<?php
 					$error = \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_network_settings_error'] ) );
 
-				if ( true === \strpos( $error, 'http' ) ) {
+				if ( false !== \strpos( $error, 'http' ) ) {
 					?>
 				<p><?php echo \esc_attr( \esc_url_raw( \urldecode_deep( $error ) ) ); ?></p>
 					<?php
@@ -403,15 +404,20 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 */
 		public static function send_email( $recipient_email, $subject, $message ) {
 
+			// Sanitize email inputs.
+			$recipient_email = sanitize_email( $recipient_email );
+			$subject         = sanitize_text_field( $subject );
+			$message         = wp_kses_post( $message );
+
 			// Specify our desired headers.
 			$headers = 'Content-type: text/html;charset=utf-8' . "\r\n";
 
 			if ( 'use-custom-email' === WP2FA::get_wp2fa_email_templates( 'email_from_setting' ) ) {
-				$headers .= 'From: ' . WP2FA::get_wp2fa_email_templates( 'custom_from_display_name' ) . ' <' . WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) . '>' . "\r\n";
+				$from_name  = sanitize_text_field( WP2FA::get_wp2fa_email_templates( 'custom_from_display_name' ) );
+				$from_email = sanitize_email( WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) );
+				$headers   .= 'From: ' . $from_name . ' <' . $from_email . '>' . "\r\n";
 			} else {
-
 				$headers .= 'From: wp2fa <' . self::get_default_email_address() . '>' . "\r\n";
-				// $headers .= 'From: ' . get_bloginfo( 'name' ) . ' <' . get_bloginfo( 'admin_email' ) . '>' . "\r\n";
 			}
 
 			// Fire our email.
@@ -429,15 +435,12 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			$sitename   = wp_parse_url( network_home_url(), PHP_URL_HOST );
 			$from_email = 'wp2fa@';
 
-			if ( null !== $sitename ) {
-				if ( str_starts_with( $sitename, 'www.' ) ) {
-					$sitename = substr( $sitename, 4 );
-				}
-
-				$from_email .= $sitename;
+			if ( ! empty( $sitename ) ) {
+				$sitename    = ltrim( $sitename, 'www.' );
+				$from_email .= sanitize_text_field( $sitename );
 			}
 
-			return $from_email;
+			return sanitize_email( $from_email );
 		}
 
 		/**
@@ -446,33 +449,20 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 * @param mixed $value User role names (slugs) as raw value.
 		 *
 		 * @return string[] List of user role names (slugs).
+		 *
+		 * @since 3.0.0
 		 */
 		public static function extract_roles_from_input( $value ) {
 			if ( is_array( $value ) ) {
-				return $value;
+				return array_map( 'sanitize_text_field', $value );
 			}
 
 			if ( is_string( $value ) && ! empty( $value ) ) {
-				return explode( ',', $value );
+				$roles = explode( ',', $value );
+				return array_map( 'sanitize_text_field', $roles );
 			}
 
 			return array();
-		}
-
-		/**
-		 * Determine if any BG processes are currently running.
-		 *
-		 * @return int|false Number of jobs.
-		 */
-		public static function get_current_number_of_active_bg_processes() {
-			global $wpdb;
-
-			$bg_jobs = $wpdb->get_results( // phpcs:ignore
-				"SELECT option_value FROM $wpdb->options
-				WHERE option_name LIKE '%_2fa_bg_%'"
-			);
-
-			return count( $bg_jobs );
 		}
 
 		/**
@@ -487,11 +477,13 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			if ( ! $is_dismissed ) {
 				$admin_email = null;
 				if ( 'use-custom-email' === WP2FA::get_wp2fa_email_templates( 'email_from_setting' ) ) {
-					$admin_email = WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' );
+					$admin_email = sanitize_email( WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) );
+				} else {
+					$admin_email = self::get_default_email_address();
 				}
 
 				if ( '' === trim( (string) $admin_email ) ) {
-					$email_settings_url = \esc_url(
+					$email_settings_url = esc_url(
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
@@ -502,11 +494,11 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 					);
 					?>
 					<div class="notice notice-error" style="padding-top: 10px; padding-bottom: 10px;">
-						<p class="description" ><?php \esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo \sanitize_email( self::get_default_email_address() ); ?></b> <?php \esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' ); ?></p>
+						<p class="description"><?php esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo sanitize_email( self::get_default_email_address() ); ?></b> <?php esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 						<p>
-							<a class="button button-primary" href="<?php echo \esc_url( $email_settings_url ); ?>"><?php \esc_html_e( 'Change it', 'wp-2fa' ); ?></a>
+							<a class="button button-primary" href="<?php echo esc_url( $email_settings_url ); ?>"><?php esc_html_e( 'Change it', 'wp-2fa' ); ?></a>
 							<a class="button button-secondary 2fa-email-notice" style="margin-left:20px" href="#">
-								<?php \esc_html_e( 'Keep using it', 'wp-2fa' ); ?>
+								<?php esc_html_e( 'Keep using it', 'wp-2fa' ); ?>
 							</a>
 						</p>
 						

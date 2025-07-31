@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -40,11 +40,11 @@ if ( ! class_exists( '\WP2FA\Utils\Generate_Modal' ) ) {
 
 			$buttons = '';
 			$modal   = '';
-			$title   = ( ! empty( $modal_title ) ) ? '<header class="modal__header"><h4 class="modal__title" id="modal-' . \esc_attr( $modal_id ) . '-title">' . $modal_title . '</h4></header>' : false;
+			$title   = ( ! empty( $modal_title ) ) ? '<header class="modal__header"><h4 class="modal__title" id="modal-' . \esc_attr( $modal_id ) . '-title">' . \esc_html( $modal_title ) . '</h4></header>' : false;
 
 			if ( ! empty( $modal_footer_buttons ) ) {
 				foreach ( $modal_footer_buttons as $button_markup ) {
-					$buttons .= $button_markup;
+					$buttons .= wp_kses_post( $button_markup );
 				}
 			}
 
@@ -58,15 +58,15 @@ if ( ! class_exists( '\WP2FA\Utils\Generate_Modal' ) ) {
 				$hidden      = 'true';
 			}
 
-			$max_width_styles = ( ! empty( $max_width ) ) ? 'style="max-width:' . \esc_attr( $max_width ) . '; min-width: 0;"' : false;
+			$max_width_styles = ( ! empty( $max_width ) ) ? 'style="max-width:' . \esc_attr( $max_width ) . '; min-width: 0;"' : '';
 
 			$modal = '
-			<div class="' . $modal_class . '" id="' . \esc_attr( $modal_id ) . '" aria-hidden="' . \esc_attr( $hidden ) . '">
+			<div class="' . esc_attr( $modal_class ) . '" id="' . \esc_attr( $modal_id ) . '" aria-hidden="' . \esc_attr( $hidden ) . '">
 			<div class="modal__overlay" tabindex="-1">
 				<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-' . \esc_attr( $modal_id ) . '-title" ' . $max_width_styles . '>
 					' . $title . '
 				<main class="modal__content wp2fa-form-styles" id="modal-' . \esc_attr( $modal_id ) . '-content">
-					' . wpautop( $modal_content ) . '
+					' . wp_kses_post( wpautop( $modal_content ) ) . '
 				</main>
 				<footer class="modal__footer">
 					' . $buttons . '

@@ -1,6 +1,6 @@
 
 jQuery(document).ready(function () {
-  jQuery('#mlp-elmnts-button').on('click', function (e) {
+  jQuery('#mlp-elements-button').on('click', function (e) {
     e.preventDefault();
 
     jQuery('#mlp-flyout').toggleClass('opened');

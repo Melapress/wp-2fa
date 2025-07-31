@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage short-codes
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -17,10 +17,10 @@ use WP2FA\Core;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User_Notices;
 use WP2FA\Admin\User_Profile;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Re_Login_2FA;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Controllers\Settings;
 
 if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 	/**
@@ -62,7 +62,7 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 
 			$role = User_Helper::get_user_role();
 
-			$re_login = Settings::get_role_or_default_setting( Re_Login_2FA::RE_LOGIN_SETTINGS_NAME, 'current', $role );
+			$re_login = Settings_Utils::get_setting_role( $role, Re_Login_2FA::RE_LOGIN_SETTINGS_NAME );
 
 			$data_array                  = array(
 				'ajaxURL'         => \admin_url( 'admin-ajax.php' ),
@@ -75,19 +75,19 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 				'reLogin'         => $re_login,
 				'reLoginEnabled'  => Re_Login_2FA::ENABLED_SETTING_VALUE,
 			);
-			$redirect_page               = Settings::get_role_or_default_setting( 'redirect-user-custom-page-global', 'current', $role );
+			$redirect_page               = \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page-global' ) );
 			$data_array['redirectToUrl'] = ( '' !== trim( (string) $redirect_page ) ) ? \trailingslashit( get_site_url() ) . $redirect_page : '';
 			// Check and override if custom redirect page is selected and custom redirect is set.
 			if (
-			'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ||
-			'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page' ) ) {
+			'yes' === Settings_Utils::get_setting_role( $role, 'create-custom-user-page' ) ||
+			'yes' === Settings_Utils::get_setting_role( null, 'create-custom-user-page' ) ) {
 				if (
-				'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role ) ) ||
-				'' !== trim( (string) Settings::get_role_or_default_setting( 'redirect-user-custom-page' ) ) ) {
-					if ( 'yes' === Settings::get_role_or_default_setting( 'create-custom-user-page', 'current', $role ) ) {
-						$data_array['redirectToUrl'] = \trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page', 'current', $role );
+				'' !== trim( (string) Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) ) ||
+				'' !== trim( (string) Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) ) ) {
+					if ( 'yes' === Settings_Utils::get_setting_role( $role, 'create-custom-user-page' ) ) {
+						$data_array['redirectToUrl'] = \trailingslashit( get_site_url() ) . \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) );
 					} else {
-						$data_array['redirectToUrl'] = \trailingslashit( get_site_url() ) . Settings::get_role_or_default_setting( 'redirect-user-custom-page' );
+						$data_array['redirectToUrl'] = \trailingslashit( get_site_url() ) . \sanitize_text_field( Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) );
 					}
 				}
 			}
@@ -110,18 +110,18 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 		 * @return string
 		 */
 		public static function user_setup_2fa_form( $atts ) {
-
-			/** Shortcode redirect_after is supported, with which the user can override all other settings */
-			extract( // phpcs:ignore
-				\shortcode_atts(
-					array(
-						'show_preamble'       => 'true',
-						'redirect_after'      => '',
-						'do_not_show_enabled' => 'false',
-					),
-					$atts
-				)
+			$atts = \shortcode_atts(
+				array(
+					'show_preamble'       => 'true',
+					'redirect_after'      => '',
+					'do_not_show_enabled' => 'false',
+				),
+				$atts
 			);
+
+			$show_preamble       = filter_var( $atts['show_preamble'], FILTER_VALIDATE_BOOLEAN );
+			$redirect_after      = sanitize_text_field( $atts['redirect_after'] );
+			$do_not_show_enabled = filter_var( $atts['do_not_show_enabled'], FILTER_VALIDATE_BOOLEAN );
 
 			/**
 			 * Fires when the FE shortcode scripts are registered.
@@ -165,14 +165,14 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 		 * @return string
 		 */
 		public static function user_setup_2fa_notice( $atts ) {
-			extract( // phpcs:ignore
-				\shortcode_atts(
-					array(
-						'configure_2fa_url' => '',
-					),
-					$atts
-				)
+			$atts = \shortcode_atts(
+				array(
+					'configure_2fa_url' => '',
+				),
+				$atts
 			);
+
+			$configure_2fa_url = sanitize_text_field( $atts['configure_2fa_url'] );
 
 			// TODO: is that really necessary?
 			User_Notices::init();

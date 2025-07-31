@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage utils
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -58,6 +58,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * The name of the plugin settings
 		 *
 		 * @var string
+		 *
+		 * @since 1.6.0
 		 */
 		private static $plugin_settings_name = WP_2FA_SETTINGS_NAME;
 
@@ -65,6 +67,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * The name of the plugin policy settings
 		 *
 		 * @var string
+		 *
+		 * @since 1.6.0
 		 */
 		private static $plugin_policy_name = WP_2FA_POLICY_SETTINGS_NAME;
 
@@ -72,6 +76,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * The name of the plugin white label settings
 		 *
 		 * @var string
+		 *
+		 * @since 1.6.0
 		 */
 		private static $plugin_white_label_name = WP_2FA_WHITE_LABEL_SETTINGS_NAME;
 
@@ -79,6 +85,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * The name of the plugin email settings
 		 *
 		 * @var string
+		 *
+		 * @since 1.6.0
 		 */
 		private static $plugin_email_settings_name = WP_2FA_EMAIL_SETTINGS_NAME;
 
@@ -86,6 +94,7 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 1.6.0
 		 *
 		 * @return void
+		 *
 		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_160() {
@@ -100,7 +109,7 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 			foreach ( $settings_to_convert as $setting_name ) {
 				if ( array_key_exists( $setting_name, $settings ) && ! is_array( $settings[ $setting_name ] ) ) {
 					$settings[ $setting_name ] = array_filter(
-						explode( ',', $settings[ $setting_name ] )
+						array_map( 'sanitize_text_field', explode( ',', $settings[ $setting_name ] ) )
 					);
 					$needs_update              = true;
 				}
@@ -121,6 +130,7 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 1.6.2
 		 *
 		 * @return void
+		 *
 		 * @since 1.6.2
 		 */
 		protected static function migrate_up_to_162() {
@@ -135,11 +145,11 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 			foreach ( $settings_to_convert as $setting_name ) {
 				if ( array_key_exists( $setting_name, $settings ) && ! is_array( $settings[ $setting_name ] ) ) {
 					$original_settings_split   = array_filter(
-						explode( ',', $settings[ $setting_name ] )
+						array_map( 'sanitize_text_field', explode( ',', $settings[ $setting_name ] ) )
 					);
 					$settings[ $setting_name ] = array();
 					foreach ( $original_settings_split as $value ) {
-						$settings[ $setting_name ][] = mb_substr( $value, mb_strrpos( $value, ':' ) + 1 );
+						$settings[ $setting_name ][] = sanitize_text_field( mb_substr( $value, mb_strrpos( $value, ':' ) + 1 ) );
 					}
 					$needs_update = true;
 				}
@@ -157,13 +167,15 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 1.5.0
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_150() {
 			$settings = self::get_settings( self::$plugin_settings_name );
 
 			if ( is_array( $settings ) && array_key_exists( 'enforcment-policy', $settings ) ) {
 				// Correct setting name.
-				$settings['enforcement-policy'] = $settings['enforcment-policy'];
+				$settings['enforcement-policy'] = sanitize_text_field( $settings['enforcment-policy'] );
 				// Remove old setting.
 				unset( $settings['enforcment-policy'] );
 				// Update settings.
@@ -175,6 +187,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 1.7.0
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_170() {
 			$settings = self::get_settings( self::$plugin_settings_name );
@@ -208,6 +222,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 *  - White label
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_200() {
 			$settings = self::get_settings( self::$plugin_settings_name );
@@ -255,6 +271,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 2.2.0
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_220() {
 			global $wpdb;
@@ -272,9 +290,9 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 				 WHERE meta_key LIKE %s
 				 ",
 					array(
-						$old_prefix,
-						$new_prefix,
-						$old_prefix . '%',
+						sanitize_key( $old_prefix ),
+						sanitize_key( $new_prefix ),
+						sanitize_key( $old_prefix . '%' ),
 					)
 				)
 			);
@@ -284,6 +302,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 2.3.0
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_230() {
 
@@ -307,6 +327,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 2.4.0
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_240() {
 
@@ -321,6 +343,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 2.6.2
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_262() {
 
@@ -331,6 +355,8 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * Migration for version upto 2.6.3
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		protected static function migrate_up_to_263() {
 
@@ -350,14 +376,28 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		}
 
 		/**
+		 * Migration for version upto 2.8.0
+		 *
+		 * @return void
+		 *
+		 * @since 3.0.0
+		 */
+		protected static function migrate_up_to_300() {
+
+			Settings_Utils::delete_option( 'method_selection_single' );
+		}
+
+		/**
 		 * Returns the plugin settings by a given setting type
 		 *
 		 * @param mixed $setting_name - The setting which needs to be extracted.
 		 *
 		 * @return mixed
+		 *
+		 * @since 1.6.0
 		 */
 		private static function get_settings( $setting_name ) {
-			return Settings_Utils::get_option( $setting_name );
+			return Settings_Utils::get_option( sanitize_key( $setting_name ) );
 		}
 
 		/**
@@ -367,9 +407,11 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * @param mixed $settings - The settings values.
 		 *
 		 * @return void
+		 *
+		 * @since 1.6.0
 		 */
 		private static function set_settings( $setting_name, $settings ) {
-			Settings_Utils::update_option( $setting_name, $settings );
+			Settings_Utils::update_option( sanitize_key( $setting_name ), $settings );
 		}
 	}
 }

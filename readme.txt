@@ -4,10 +4,10 @@ Plugin URI: https://melapress.com/wordpress-2fa/
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, multi step authentication, 2-factor authentication, WordPress authentication, two step authentication
-Requires at least: 5.0
-Tested up to: 6.4.3
+Requires at least: 5.5
+Tested up to: 6.6
 Stable tag: 2.8.0
-Requires PHP: 7.3.0
+Requires PHP: 7.4.0
 
 Harden your website's authentication; add two-factor authentication (2FA) for all your users with this easy-to-use plugin.
 
@@ -32,9 +32,10 @@ Browse our list of [WordPress security and administration plugins](https://melap
 ### WP 2FA key plugin features and capabilities
 - Free Two-factor authentication (2FA) for all users
 - Supports multiple 2FA methods
+- An API that allows you to integrate supplementary 2FA methods
 - Universal 2FA app support – generate codes from Google Authenticator, Authy & any other 2FA app
 - Supports 2FA backup methods
-- Very easy to use and simple to set up
+- Wizard-driven plugin configuration & 2FA setup – no technical knowledge required
 - Use 2FA policies to enforce 2FA with a grace period or require users to instantly setup 2FA upon logging in
 - No WordPress dashboard access is required for users to set up 2FA
 - Fully editable email templates
@@ -45,16 +46,17 @@ Browse our list of [WordPress security and administration plugins](https://melap
 
 The premium version of WP 2FA comes bundled with even more features to take your WordPress website login security to the next level.
 
-With the premium edition of WP 2FA, you get more 2FA methods, 1-click integration with WooCommerce, trusted devices feature, and extensive white labeling capabilities.
+With the premium edition of WP 2FA, you get more 2FA methods, 1-click integration with WooCommerce, trusted devices feature, extensive white labeling capabilities, and much more!
 
 ### Premium features list
 
 -   Everything in the free version
--   Full white labeling capabilities
--   Trusted devices (no 2FA required)
--   Additionl 2FA methods (such as 2FA over SMS)
+-   Full white labeling capabilities (change all the text and look and feel in wizards, emails, SMS and 2FA pages)
+- 	[YubiKey hardware key support](https://melapress.com/support/kb/wp-2fa-hardware-key/?utm_source=wp+repo&utm_medium=repo+link&utm_campaign=wordpress_org&utm_content=wp2fa)
+-   Several other additional 2FA methods (such as 2FA over SMS, link in email & more)
+-   [Trusted devices](https://melapress.com/support/kb/wp-2fa-configure-2fa-trusted-devices/?utm_source=wp+repo&utm_medium=repo+link&utm_campaign=wordpress_org&utm_content=wp2fa) (no 2FA required for a configured period of time)
 -   Require 2FA on password reset
--   One-click integration with WooCommerce
+-   One-click integration to set up [WooCommerce and two-factor authentication (2FA)](https://melapress.com/woocommerce-2fa/?utm_source=wp+repo&utm_medium=repo+link&utm_campaign=wordpress_org&utm_content=wp2fa)
 -   Much more
 
 Refer to the [WP 2FA plugin features and benefits page](https://melapress.com/wordpress-2fa/features/?utm_source=wp+repo&utm_medium=repo+link&utm_campaign=wordpress_org&utm_content=wp2fa) to learn more about the benefits of upgrading to WP 2FA Premium.
@@ -115,14 +117,28 @@ You can find more detailed information about 2FA and its benefits in the links b
 
 == Changelog ==
 
-= 2.6.2 (2024-02-07) =
+= 2.8.0 (2024-07-17) =
 
- * **Improvements**
-	 * Added support for the new plans & pricing (February 2024 update).
-	 * Added support for wp-config.php file in non-default location.
-	
-* **Bug fixes**
-	* Fixed a number of PHP warnings generated when switching to custom "From" email address in the plugin settings.
-	* User still not forced to configure 2FA after removed from the exclusion list.
+**New features**
+	 * Out of the box support for Yubico - [use any YubiKey hardware key by Yubico as a 2FA method to log in to your WordPress website](https://melapress.com/support/kb/wp-2fa-hardware-key/).
+
+ * **Plugin & functionality improvements**
+	 * Bumped up the minimum supported PHP version from 7.2 to 7.3.
+	 * Updated a number of strings in the settings + improved help text.
+	 * The names of debug log file in uploads directory are now randomized.
+	 * Updated the default text in different sections of the wizard to simplify things and improve UX.
+	 * Adjusted the order in which the 2FA methods are listed.
+	 * Updated the features' page in the plugin - added the new features etc.
+	 * Updated all UTM parameters in the plugin's URLs and links.
+
+ * **Bug fixes**
+	 * Fixed: PHP fatal error in class-email-wizard-steps.php in some edge cases.
+	 * Fixed: Apostrophe character shows up as ASCII in email subject.
+	 * Fixed: Error with importing plugin's settings from one website to another in some edge cases.
+	 * Fixed: The grace period expiration setting did not have a default value / setting.
+	 * Removed reference to Premium backup methods in the free edition's wizard.
+	 * Fixed: Redirecting to frontend 2FA page without permalinks set up does not work.
+	 * Fixed: Some user profile 2FA buttons were not functioning properly when used on mobile.
+	 * Fixed: Data was not always / all deleted when the setting "Delete data upon uninstall" was enabled.
 	
 Refer to the complete [plugin changelog](https://melapress.com/support/kb/wp-2fa-plugin-changelog/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.

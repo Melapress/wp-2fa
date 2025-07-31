@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage admin
  *
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -66,7 +66,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Configure different 2FA policies for different user roles', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Many other features', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'No Ads!', 'wp-2fa' ) . '</li></ul>';
-			$banner .= '<a href="https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" class="button button-primary" target="_blank">' . \esc_html__( 'Upgrade to Premium', 'wp-2fa' ) . '</a>';
+			$banner .= '<a href="https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_to_premium_banner" class="button button-primary" target="_blank">' . \esc_html__( 'Upgrade to Premium', 'wp-2fa' ) . '</a>';
 			$banner .= '</div>';
 
 			echo $banner; // phpcs:ignore
@@ -211,7 +211,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 						<li><span class="dashicons dashicons-saved"></span> <?php \esc_html_e( 'Refer to the features matrix below for a detailed list of all the premium features', 'wp-2fa' ); ?></li>
 					</ul>
 					<div class="premium-cta">
-						<a href="<?php echo \esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
+						<a href="<?php echo \esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_to_premium_banner_2' ); ?>" target="_blank" rel="noopener"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
 					</div>		
 				</div>
 				<div class="content-block">
@@ -307,10 +307,20 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 									<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
 								</td>
 							</tr>
-
 							<tr class="c2">
 								<td class="c6" colspan="1" rowspan="1">
 									<p class="c10"><span class="c5"><?php \esc_html_e( 'One-click 2FA login (via link in email)', 'wp-2fa' ); ?></span></p>
+								</td>
+								<td class="c8" colspan="1" rowspan="1">
+									<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+								</td>
+								<td class="c12" colspan="1" rowspan="1">
+									<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
+								</td>
+							</tr>
+							<tr class="c2">
+								<td class="c6" colspan="1" rowspan="1">
+									<p class="c10"><span class="c5"><?php \esc_html_e( 'Allow next login without 2FA', 'wp-2fa' ); ?></span></p>
 								</td>
 								<td class="c8" colspan="1" rowspan="1">
 									<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
@@ -433,7 +443,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 					</table>
 
 					<div class="premium-cta">
-						<a href="<?php echo \esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa' ); ?>" target="_blank" rel="noopener"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
+						<a href="<?php echo \esc_url( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_to_premium_banner_3' ); ?>" target="_blank" rel="noopener"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?></a>
 					</div>		
 				</div>
 
@@ -443,8 +453,8 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 					$text = sprintf(
 						/* translators: 1: Link to our site 2: Link to our contact page */
 						\esc_html__( 'Visit the WP 2FA %1$s for more information or %2$s  with any questions you might have. We look forward to hearing from you.', 'wp-2fa' ),
-						'<a target="_blank" href="' . \esc_url( 'https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa' ) . '">' . \esc_html__( 'plugin website', 'wp-2fa' ) . '</a>',
-						'<a target="_blank" href="' . \esc_url( 'https://melapress.com/contact/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa' ) . '">' . \esc_html__( 'contact us', 'wp-2fa' ) . '</a>'
+						'<a target="_blank" href="' . \esc_url( 'https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_plugin_website' ) . '">' . \esc_html__( 'plugin website', 'wp-2fa' ) . '</a>',
+						'<a target="_blank" href="' . \esc_url( 'https://melapress.com/contact/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_contact_us' ) . '">' . \esc_html__( 'contact us', 'wp-2fa' ) . '</a>'
 					);
 
 				echo $text; // phpcs:ignore -- Visit the WP 2FA plugin website for more information or contact us with any questions you might have. We look forward to hearing from you.

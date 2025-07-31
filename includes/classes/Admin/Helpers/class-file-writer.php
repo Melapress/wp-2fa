@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage helpers
  * @since      2.4.0
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -59,7 +59,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			);
 
 			try {
-				$current_secret = constant( self::SECRET_NAME );
+				$current_secret = defined( self::SECRET_NAME ) ? constant( self::SECRET_NAME ) : null;
 			} catch ( \Error $e ) {
 				$current_secret = null;
 			}
@@ -76,8 +76,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 					$contents = explode( $line_ending, $contents );
 
 					foreach ( $contents as $key => $line ) {
+						if ( stristr( $line, '/** WP 2FA plugin data encryption key. ' ) ) {
+							unset( $contents[ $key ] );
+
+							continue;
+						}
 						if ( stristr( $line, self::SECRET_NAME ) ) {
 							unset( $contents[ $key ] );
+
+							continue;
 						}
 					}
 
@@ -242,6 +249,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 						// Reset the original file permissions if they were modified.
 						self::chmod( $file, $original_file_perms );
 					}
+
+					@clearstatcache( true, $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 					return true;
 				}

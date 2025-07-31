@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -52,6 +52,12 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 		 */
 		public static function user_2fa_options( $user, $additional_args = array() ) {
 
+			\wp_enqueue_script(
+				'jquery-ui-dialog'
+			);
+
+			\wp_enqueue_style( 'wp-jquery-ui-dialog' );
+
 			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
 				$user_id = (int) $_GET['user_id']; // phpcs:ignore
 				$user    = \get_user_by( 'id', $user_id );
@@ -76,7 +82,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			$user_type = User_Utils::determine_user_2fa_status( $user );
 
-			$form_output     = '';
+			$form_output     = '<style> .disabled{ opacity: 0.5; pointer-events: none;}</style>';
 			$form_content    = '';
 			$description     = WP2FA::get_wp2fa_white_label_setting( 'user-profile-form-preamble-desc', true );
 			$show_form_table = true;
@@ -130,6 +136,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						 */
 						$description = \apply_filters( WP_2FA_PREFIX . 'enable_2fa_user_setting_description', $description );
 
+						// $disabled_class = Email::is_enforced() ? 'disabled' : '';
+
 						$styling_class = ( empty( WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ) ) ) ? 'default_styling' : 'enable_styling';
 
 						if ( $show_enable2fa ) {
@@ -147,7 +155,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 							if ( $codes_remaining > 0 ) {
 								$backup_codes_desc = '<span class="description mt-5px">' . \esc_attr( (int) $codes_remaining ) . ' ' . \esc_html__( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 							} elseif ( 0 === $codes_remaining ) {
-								$backup_codes_desc = '<a class="learn_more_link" href="https://melapress.com/2fa-backup-codes/?utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
+								$backup_codes_desc = '<a class="learn_more_link" href="https://melapress.com/2fa-backup-codes/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=backup_codes_user_profile_help" target="_blank">' . \esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 							}
 
 							if ( ! empty( $backup_codes_desc ) ) {
@@ -203,6 +211,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					 */
 					$description = \apply_filters( WP_2FA_PREFIX . 'enable_2fa_user_setting_description', $description );
 
+					// $disabled_class = Email::is_enforced() ? 'disabled' : '';
+
 					$styling_class = ( empty( WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ) ) ) ? 'default_styling' : 'enable_styling';
 
 					if ( $show_enable2fa ) {
@@ -226,22 +236,25 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					array(
 						'action'       => 'remove_user_2fa',
 						'user_id'      => $user->ID,
-						'wp_2fa_nonce' => wp_create_nonce( 'wp-2fa-remove-user-2fa-nonce' ),
+						'wp_2fa_nonce' => \wp_create_nonce( 'wp-2fa-remove-user-2fa-nonce' ),
 						'admin_reset'  => 'yes',
 					),
-					admin_url( 'user-edit.php' )
+					\admin_url( 'user-edit.php' )
 				);
 
 				$form_content .= '<a href="' . \esc_url( $remove_users_2fa_url ) . '" class="button button-primary">' . \esc_html__( 'Reset 2FA configuration', 'wp-2fa' ) . '</a>';
 			}
 
+			// phpcs:disable
+			// phpcs:enable
+
 			// Admin viewing users profile AND users grace period has expired.
 			if ( User_Utils::in_array_all( array( 'can_manage_options', 'grace_has_expired' ), $user_type ) ) {
-				$unlock_user_url = add_query_arg(
+				$unlock_user_url = \add_query_arg(
 					array(
 						'action'       => 'unlock_account',
 						'user_id'      => $user->ID,
-						'wp_2fa_nonce' => wp_create_nonce( 'wp-2fa-unlock-account-nonce' ),
+						'wp_2fa_nonce' => \wp_create_nonce( 'wp-2fa-unlock-account-nonce' ),
 					),
 					admin_url( 'user-edit.php' )
 				);
@@ -259,13 +272,20 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			 * Gives the ability to add more content to the profile page.
 			 *
 			 * @param string $form_content - The parsed HTML of the form.
+			 * @param \WP_USER $user - The user object.
+			 *
+			 * @since 3.0.0
 			 */
-			$form_content = apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content );
+			$form_content = \apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content, $user );
 
 			if ( $show_form_table && ! empty( $form_content ) ) {
 
-				$enabled_methods        = User_Helper::get_enabled_method_for_user( $user );
-				$primary_label          = ( isset( $enabled_methods ) && ! empty( $enabled_methods ) ) ? Settings::get_providers_translate_names()[ $enabled_methods ] : \esc_html__( 'No enabled primary method', 'wp-2fa' );
+				$enabled_methods = User_Helper::get_enabled_method_for_user( $user );
+				$primary_label   = \esc_html__( 'No enabled primary method', 'wp-2fa' );
+				if ( isset( $enabled_methods ) && ! empty( $enabled_methods ) ) {
+					$translated_methods = Settings::get_providers_translate_names();
+					$primary_label      = ( isset( $translated_methods[ $enabled_methods ] ) ) ? $translated_methods[ $enabled_methods ] : \esc_html__( 'No enabled primary method', 'wp-2fa' );
+				}
 				$enabled_backup_methods = User_Helper::get_enabled_backup_methods_for_user( $user );
 				$backup_methods_enabled = \esc_html__( 'No enabled backup methods', 'wp-2fa' );
 
@@ -378,7 +398,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			$styling_class = ( empty( WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ) ) ) ? 'default_styling' : 'enable_styling';
 
-			if ( User_Utils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( User_Helper::USER_UNDETERMINED_STATUS, 'viewing_own_profile' ), $user_type ) ) { ?>
+			if ( User_Utils::in_array_all( array( 'user_needs_to_setup_2fa', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( 'no_required_not_enabled', 'viewing_own_profile' ), $user_type ) || User_Utils::in_array_all( array( User_Helper::USER_UNDETERMINED_STATUS, 'viewing_own_profile' ), $user_type ) ) {
+				?>
 			<div>
 				<div class="wp2fa-modal micromodal-slide <?php echo \esc_attr( $styling_class ); ?>" id="configure-2fa" aria-hidden="true">
 					<div class="modal__overlay" tabindex="-1">
@@ -386,8 +407,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 								<?php
 								echo Generate_Modal::generate_modal( // phpcs:ignore
 									'notify-users',
-									__( 'Are you sure?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-									__( 'Any unsaved changes will be lost!', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+									esc_html__( 'Are you sure?', 'wp-2fa' ),
+									esc_html__( 'Any unsaved changes will be lost!', 'wp-2fa' ),
 									array(
 										'<button class="button wp-2fa-button-primary button-primary button-confirm" aria-label="Close this dialog window and the wizard">' . \esc_html__( 'Yes', 'wp-2fa' ) . '</button>',
 										'<button class="button wp-2fa-button-secondary button-secondary button-decline" data-micromodal-close aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
@@ -399,8 +420,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 							<button class="modal__close modal_cancel" aria-label="Close modal"></button>
 							<main class="modal__content wp2fa-form-styles" id="modal-1-content">
 								<?php
-								$logo_url     = WP2FA::get_wp2fa_white_label_setting( 'logo-code-page', false );
-								$logo_section = ( $logo_url ) ? '<p class="modal-logo-wrapper"><img style="max-height: 60px;margin: 0 auto 30px;" src="' . \esc_url( $logo_url ) . '" /></p>' : '';
+								$logo         = WP2FA::get_wp2fa_white_label_setting( 'logo-code-page', false );
+								$logo_section = ( $logo ) ? '<p class="modal-logo-wrapper"><img style="max-height: 60px;margin: 0 auto 30px;" src="' . \esc_url( $logo ) . '" /></p>' : '';
 								$enable_logo  = WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_logo', false );
 
 								if ( $enable_logo ) {
@@ -417,9 +438,9 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 									if ( count( $available_methods[ User_Helper::get_user_role( $user ) ] ) > 1 ) {
 										$intro_text = WP2FA::replace_wizard_strings( WP2FA::get_wp2fa_white_label_setting( 'method_selection', true ), $user );
 									} elseif ( 1 === count( $available_methods[ User_Helper::get_user_role( $user ) ] ) ) {
-										$intro_text = WP2FA::get_wp2fa_white_label_setting( 'method_selection_single', true );
+										$intro_text = '';
 									} else {
-										$intro_text = '<h3>' . __( 'No available 2FA methods set', 'wp-2fa' ) . '</h3><p>' . __( 'Ask your administrator to enable 2FA methods', 'wp-2fa' ) . '</p>';
+										$intro_text = '<h3>' . esc_html__( 'No available 2FA methods set', 'wp-2fa' ) . '</h3><p>' . esc_html__( 'Ask your administrator to enable 2FA methods', 'wp-2fa' ) . '</p>';
 									}
 
 									if ( ! empty( $optional_welcome ) && $enable_welcome ) {
@@ -443,7 +464,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 										<?php
 										if ( 0 !== count( $available_methods[ User_Helper::get_user_role( $user ) ] ) ) {
 											?>
-										<a href="#" class="button wp-2fa-button-primary button-primary 2fa-choose-method" data-name="next_step_setting_modal_wizard" data-next-step><?php \esc_html_e( 'Next Step', 'wp-2fa' ); ?></a>
+										<a href="#" class="button wp-2fa-button-primary button-primary 2fa-choose-method" data-name="next_step_setting_modal_wizard" ><?php \esc_html_e( 'Next Step', 'wp-2fa' ); ?></a>
 											<?php
 										}
 										?>
@@ -513,6 +534,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			<?php if ( Backup_Codes::are_backup_codes_enabled_for_role( User_Helper::get_user_role( $user ) ) ) { ?>
 			<div>
 				<div class="wp2fa-modal micromodal-slide <?php echo \esc_attr( $styling_class ); ?>" id="configure-2fa-backup-codes" aria-hidden="true">
+					<input type="hidden" id="wp-2fa-manual-backup-codes" />
 					<div class="modal__overlay" tabindex="-1">
 						<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
 						<button class="modal__close modal_cancel" aria-label="Close modal" data-close-2fa-modal></button>
@@ -530,8 +552,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					if ( self::can_user_remove_2fa( $user->ID ) ) :
 						echo Generate_Modal::generate_modal( // phpcs:ignore
 							'confirm-remove-2fa',
-							__( 'Remove 2FA?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							__( 'Are you sure you want to remove two-factor authentication and lower the security of your user account?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+							esc_html__( 'Remove 2FA?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+							esc_html__( 'Are you sure you want to remove two-factor authentication and lower the security of your user account?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							array(
 								'<a href="#" class="button wp-2fa-button-primary" data-trigger-remove-2fa data-user-id="' . \esc_attr( $user->ID ) . '" ' . WP_Helper::create_data_nonce( 'wp-2fa-remove-user-2fa-nonce' ) . '>' . \esc_html__( 'Yes', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 								'<button class="modal__btn  wp-2fa-button-secondary button" data-close-2fa-modal aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
@@ -545,7 +567,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				$output = ob_get_contents();
 				ob_end_clean();
 
-				echo $output; // phpcs:ignore
+				echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		/**
@@ -632,57 +654,51 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			// Ensure we have the inputs we want before we process.
 			// To avoid causing issues with the rest of the user profile.
-			if ( ! is_array( $input ) ) {
+			if ( ! is_array( $input ) || empty( $input ) ) {
 				return;
-			}
-
-			// Assign the input to post, in case we are dealing with saving the data from another page.
-			if ( isset( $input ) ) {
-				$_POST = $input;
 			}
 
 			// Grab current user.
 			$user = wp_get_current_user();
 
-			// phpcs:disable
 			// Grab authcode and ensure its a number.
-			if ( isset( $_POST['wp-2fa-totp-authcode'] ) ) {
-				$_POST['wp-2fa-totp-authcode'] = (int) $_POST['wp-2fa-totp-authcode'];
+			if ( isset( $input['wp-2fa-totp-authcode'] ) ) {
+				$input['wp-2fa-totp-authcode'] = (int) $input['wp-2fa-totp-authcode'];
 			}
-			if ( ( ! isset( $_POST['custom-email-address'] ) || isset( $_POST['custom-email-address'] ) && empty( $_POST['custom-email-address'] ) ) &&
-			( ! isset( $_POST['custom-oob-email-address'] ) || isset( $_POST['custom-oob-email-address'] ) && empty( $_POST['custom-oob-email-address'] ) ) ) {
-				if ( isset( $_POST['email'] ) ) {
-					User_Helper::set_nominated_email_for_user( $_POST['email'], $user );
-				} elseif ( isset( $_POST['wp_2fa_email_address'] ) && isset( $_POST['wp-2fa-totp-authcode'] ) && ! empty( $_POST['wp-2fa-totp-authcode'] ) ) {
-					User_Helper::set_nominated_email_for_user( $_POST['wp_2fa_email_address'], $user );
-				} elseif ( isset( $_POST['wp_2fa_email_oob_address'] ) && isset( $_POST['wp-2fa-oob-authcode'] ) && ! empty( $_POST['wp-2fa-oob-authcode'] ) ) {
-					if ( 'use_custom_email' !== $_POST['wp_2fa_email_oob_address'] ) {
-						User_Helper::set_nominated_email_for_user( $_POST['wp_2fa_email_oob_address'], $user );
+			if ( ( ! isset( $input['custom-email-address'] ) || isset( $input['custom-email-address'] ) && empty( $input['custom-email-address'] ) ) &&
+			( ! isset( $input['custom-oob-email-address'] ) || isset( $input['custom-oob-email-address'] ) && empty( $input['custom-oob-email-address'] ) ) ) {
+				if ( isset( $input['email'] ) ) {
+					User_Helper::set_nominated_email_for_user( sanitize_email( $input['email'] ), $user );
+				} elseif ( isset( $input['wp_2fa_email_address'] ) && isset( $input['wp-2fa-totp-authcode'] ) && ! empty( $input['wp-2fa-totp-authcode'] ) ) {
+					User_Helper::set_nominated_email_for_user( sanitize_email( $input['wp_2fa_email_address'] ), $user );
+				} elseif ( isset( $input['wp_2fa_email_oob_address'] ) && isset( $input['wp-2fa-oob-authcode'] ) && ! empty( $input['wp-2fa-oob-authcode'] ) ) {
+					if ( 'use_custom_email' !== $input['wp_2fa_email_oob_address'] ) {
+						User_Helper::set_nominated_email_for_user( sanitize_email( $input['wp_2fa_email_oob_address'] ), $user );
 					}
 				}
-			} elseif ( isset( $_POST['custom-email-address'] ) && ! empty( $_POST['custom-email-address'] ) ) {
-				User_Helper::set_nominated_email_for_user( $_POST['custom-email-address'], $user );
-			} elseif ( isset( $_POST['custom-oob-email-address'] ) && ! empty( $_POST['custom-oob-email-address'] ) ) {
-				User_Helper::set_nominated_email_for_user( $_POST['custom-oob-email-address'], $user );
+			} elseif ( isset( $input['custom-email-address'] ) && ! empty( $input['custom-email-address'] ) ) {
+				User_Helper::set_nominated_email_for_user( sanitize_email( $input['custom-email-address'] ), $user );
+			} elseif ( isset( $input['custom-oob-email-address'] ) && ! empty( $input['custom-oob-email-address'] ) ) {
+				User_Helper::set_nominated_email_for_user( sanitize_email( $input['custom-oob-email-address'] ), $user );
 			}
 
 			// Check its one of our options.
-			if ( ( isset( $_POST['wp_2fa_enabled_methods'] ) && TOTP::METHOD_NAME === $_POST['wp_2fa_enabled_methods'] ) ||
-			( isset( $_POST['wp_2fa_enabled_methods'] ) && Email::METHOD_NAME === $_POST['wp_2fa_enabled_methods'] ) ||
-			( isset( $_POST['wp_2fa_enabled_methods'] ) && ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $_POST['wp_2fa_enabled_methods'] ) ) ) {
-				User_Helper::set_enabled_method_for_user(sanitize_text_field( wp_unslash( $_POST['wp_2fa_enabled_methods'] ) ), $user);
+			if ( ( isset( $input['wp_2fa_enabled_methods'] ) && TOTP::METHOD_NAME === $input['wp_2fa_enabled_methods'] ) ||
+			( isset( $input['wp_2fa_enabled_methods'] ) && Email::METHOD_NAME === $input['wp_2fa_enabled_methods'] ) ||
+			( isset( $input['wp_2fa_enabled_methods'] ) && ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $input['wp_2fa_enabled_methods'] ) ) ) {
+				User_Helper::set_enabled_method_for_user( sanitize_text_field( wp_unslash( $input['wp_2fa_enabled_methods'] ) ), $user );
 				self::delete_expire_and_enforced_keys( $user->ID );
 				User_Helper::set_user_status( $user );
 			}
 
-			if ( isset( $_POST['wp-2fa-email-authcode'] ) && ! empty( $_POST['wp-2fa-email-authcode'] ) ) {
+			if ( isset( $input['wp-2fa-email-authcode'] ) && ! empty( $input['wp-2fa-email-authcode'] ) ) {
 				User_Helper::set_enabled_method_for_user( Email::METHOD_NAME, $user );
 				self::delete_expire_and_enforced_keys( $user->ID );
 				User_Helper::set_user_status( $user );
 			}
 
-			if ( isset( $_POST['wp-2fa-totp-authcode'] ) && ! empty( $_POST['wp-2fa-totp-authcode'] ) ) {
-				$totp_key = $_POST['wp-2fa-totp-key'];
+			if ( isset( $input['wp-2fa-totp-authcode'] ) && ! empty( $input['wp-2fa-totp-authcode'] ) ) {
+				$totp_key = sanitize_text_field( $input['wp-2fa-totp-key'] );
 				if ( Authentication::is_valid_key( $totp_key ) ) {
 					if ( Open_SSL::is_ssl_available() ) {
 						$totp_key = Open_SSL::SECRET_KEY_PREFIX . Open_SSL::encrypt( $totp_key );
@@ -691,7 +707,6 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					TOTP::set_user_method( $user, $totp_key );
 				}
 			}
-			// phpcs:enable
 		}
 
 		/**
@@ -705,6 +720,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			User_Helper::remove_user_expiry_date( $user_id );
 			User_Helper::remove_user_enforced_instantly( $user_id );
 			User_Helper::remove_grace_period( $user_id );
+			User_Helper::remove_meta( User_Helper::USER_LOCKED_STATUS, $user_id );
 		}
 
 		/**
@@ -791,16 +807,16 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 		 */
 		public static function can_user_remove_2fa( $user_id ) {
 			// check the "Hide the Remove 2FA button" setting.
-			if ( Settings::get_role_or_default_setting( 'hide_remove_button', $user_id ) ) {
+			if ( Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'hide_remove_button' ) ) {
 				return false;
 			}
 
 			// check grace period policy.
-			$grace_policy = Settings::get_role_or_default_setting( 'grace-policy', $user_id );
+			$grace_policy = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-policy' );
 			if ( 'no-grace-period' === $grace_policy ) {
 				// we only need to run further checks to find out if the 2FA is enforced for the user in question if there
 				// is no grace period.
-				$enforcement_policy = WP2FA::get_wp2fa_setting( 'enforcement-policy' );
+				$enforcement_policy = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'enforcement-policy' );
 
 				if ( 'all-users' === $enforcement_policy ) {
 					// enforced for all users, target user is definitely included.
@@ -810,6 +826,11 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				if ( 'certain-roles-only' === $enforcement_policy && ! User_Helper::is_enforced( $user_id ) ) {
 					// Users specific role is not enforced, allow removal.
 					return true;
+				}
+
+				if ( 'certain-roles-only' === $enforcement_policy && User_Helper::is_enforced( $user_id ) ) {
+					// Users specific role is not enforced, allow removal.
+					return false;
 				}
 
 				if ( 'do-not-enforce' !== $enforcement_policy ) {
@@ -834,7 +855,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				jQuery( document ).on( 'click', '.dismiss-user-configure-nag', function() {
 					const thisNotice = jQuery( this ).closest( '.notice' );
 					jQuery.ajax( {
-						url: '<?php echo admin_url( 'admin-ajax.php' ); // phpcs:ignore ?>',
+						url: '<?php echo \admin_url( 'admin-ajax.php' ); // phpcs:ignore ?>',
 						data: {
 							action: 'dismiss_nag'
 						},

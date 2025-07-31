@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage admin_controllers
- * @copyright  2024 Melapress
+ * @copyright  2025 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  * @since      2.2.0
@@ -139,14 +139,14 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 
 				if ( empty( self::$setup_page_link ) ) {
 					if ( WP_Helper::is_multisite() ) {
-						self::$setup_page_link = add_query_arg( 'show', self::$setup_page_name, get_admin_url( get_current_blog_id(), 'profile.php' ) );
+						self::$setup_page_link = \add_query_arg( 'show', self::$setup_page_name, \get_admin_url( \get_current_blog_id(), 'profile.php' ) );
 					} else {
-						self::$setup_page_link = add_query_arg( 'show', self::$setup_page_name, admin_url( 'profile.php' ) );
+						self::$setup_page_link = \add_query_arg( 'show', self::$setup_page_name, \network_admin_url( 'profile.php' ) );
 					}
 				}
 			}
 
-			return apply_filters( WP_2FA_PREFIX . 'setup_page_link', self::$setup_page_link );
+			return \apply_filters( WP_2FA_PREFIX . 'setup_page_link', self::$setup_page_link );
 		}
 
 		/**
@@ -163,25 +163,21 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				self::$custom_setup_page_link = self::get_role_or_default_setting( 'custom-user-page-id', $user );
 
 				if ( ! empty( self::$custom_setup_page_link ) ) {
-					$custom_slug = '';
 					if ( WP_Helper::is_multisite() ) {
 						\switch_to_blog( get_main_site_id() );
 
-						// $custom_slug                  = get_post_field( 'post_name', get_post( self::$custom_setup_page_link ) );
-						$new_page_permalink = get_permalink( get_post( self::$custom_setup_page_link ) );
-						self::$custom_setup_page_link = $new_page_permalink;//trailingslashit( get_site_url() ) . $custom_slug;
+						$new_page_permalink           = \esc_url( \get_permalink( \get_post( self::$custom_setup_page_link ) ) );
+						self::$custom_setup_page_link = $new_page_permalink;
 
 						\restore_current_blog();
 					} else {
-						//$custom_slug                  = get_post_field( 'post_name', get_post( self::$custom_setup_page_link ) );
-
-						$new_page_permalink = get_permalink( get_post( self::$custom_setup_page_link ) );
+						$new_page_permalink           = \esc_url( \get_permalink( \get_post( self::$custom_setup_page_link ) ) );
 						self::$custom_setup_page_link = $new_page_permalink;
 					}
 				} else {
 					$custom_user_page_id = (int) self::get_custom_settings_page_id( '', $user );
 					if ( ! empty( $custom_user_page_id ) ) {
-						self::$custom_setup_page_link = \get_permalink( $custom_user_page_id );
+						self::$custom_setup_page_link = \esc_url( \get_permalink( $custom_user_page_id ) );
 					}
 				}
 			}
@@ -202,7 +198,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 			$roles = WP_Helper::get_roles();
 
 			foreach ( $roles as $role ) {
-				if ( ! empty( WP2FA::get_wp2fa_setting( $setting_name, false, false, $role ) ) ) {
+				$setting_value = WP2FA::get_wp2fa_setting( $setting_name, false, false, $role );
+				if ( ! empty( $setting_value ) ) {
 					return true;
 				}
 			}
@@ -299,7 +296,10 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			return apply_filters( WP_2FA_PREFIX . 'backup_methods_enabled', $backup_methods, $user );
+			$backup_methods = apply_filters( WP_2FA_PREFIX . 'backup_methods_enabled', $backup_methods, $user );
+
+			// Sanitize the backup methods array.
+			return $backup_methods;
 		}
 
 		/**
@@ -318,11 +318,11 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 			if ( WP_Helper::is_role_exists( $role ) ) {
 				self::get_all_roles_providers();
 
-				return self::$all_providers_for_roles[ $role ];
+				return array_map( 'esc_html', self::$all_providers_for_roles[ $role ] );
 			} elseif ( '' === $role ) {
 				return array();
 			} else {
-				throw new \Exception( 'Role provided does not exists - "' . $role . '"' ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				throw new \Exception( esc_html( 'Role provided does not exist - "' . $role . '"' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 		}
 
@@ -350,7 +350,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				return false;
 			}
 
-			throw new \Exception( 'Non existing provider ' . $provider ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new \Exception( esc_html( 'Non existing provider ' . $provider ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		/**
@@ -370,13 +370,13 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 					self::$all_providers_for_roles[ $role ] = array();
 					foreach ( $providers as $provider ) {
 						if ( Backup_Codes::METHOD_NAME === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( $provider . '_enabled', false, false, $role );
+							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( $provider . '_enabled', false, false, $role ) );
 						} elseif ( 'backup_email' === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable-email-backup', false, false, $role );
+							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( 'enable-email-backup', false, false, $role ) );
 						} elseif ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role );
+							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role ) );
 						} else {
-							self::$all_providers_for_roles[ $role ][ $provider ] = WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role );
+							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role ) );
 						}
 					}
 					self::$all_providers_for_roles[ $role ] = array_filter( self::$all_providers_for_roles[ $role ] );
@@ -406,7 +406,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				self::$all_providers_names_translated = apply_filters( WP_2FA_PREFIX . 'providers_translated_names', self::$all_providers_names_translated );
 			}
 
-			return self::$all_providers_names_translated;
+			return array_map( 'esc_html', self::$all_providers_names_translated );
 		}
 
 		/**
@@ -426,10 +426,10 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				 *
 				 * @param array $provider array if available options.
 				 */
-				self::$all_providers = apply_filters( WP_2FA_PREFIX . 'providers', self::$all_providers );
+				self::$all_providers = \apply_filters( WP_2FA_PREFIX . 'providers', self::$all_providers );
 			}
 
-			return self::$all_providers;
+			return array_map( 'esc_html', self::$all_providers );
 		}
 
 		/**
@@ -444,19 +444,19 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 */
 		public static function get_custom_settings_page_id( $role = '', $user = '' ) {
 			if ( ! empty( $role ) ) {
-				$page_slug = self::get_role_or_default_setting( 'custom-user-page-url', '', $role );
+				$page_slug = \esc_html( self::get_role_or_default_setting( 'custom-user-page-url', '', $role ) );
 			} elseif ( ! empty( $user ) ) {
-				$page_slug = self::get_role_or_default_setting( 'custom-user-page-url', $user );
+				$page_slug = \esc_html( self::get_role_or_default_setting( 'custom-user-page-url', $user ) );
 			} else {
-				$page_slug = self::get_role_or_default_setting( 'custom-user-page-url', '', '' );
+				$page_slug = \esc_html( self::get_role_or_default_setting( 'custom-user-page-url', '', '' ) );
 			}
 
 			if ( ! empty( $role ) ) {
-				$separate_page = self::get_role_or_default_setting( 'separate-multisite-page-url', '', $role );
+				$separate_page = esc_html( self::get_role_or_default_setting( 'separate-multisite-page-url', '', $role ) );
 			} elseif ( ! empty( $user ) ) {
-				$separate_page = self::get_role_or_default_setting( 'separate-multisite-page-url', $user );
+				$separate_page = esc_html( self::get_role_or_default_setting( 'separate-multisite-page-url', $user ) );
 			} else {
-				$separate_page = self::get_role_or_default_setting( 'separate-multisite-page-url', '', '' );
+				$separate_page = esc_html( self::get_role_or_default_setting( 'separate-multisite-page-url', '', '' ) );
 			}
 
 			$new_page_id = '';
@@ -490,7 +490,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				}
 			}
 
-			return $new_page_id;
+			return (int) $new_page_id;
 		}
 	}
 }

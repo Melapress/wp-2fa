@@ -2,12 +2,12 @@
 /**
  * WP 2FA - Two-factor authentication for WordPress .
  *
- * @copyright Copyright (C) 2013-2024, Melapress - support@melapress.com
+ * @copyright Copyright (C) 2013-2025, Melapress - support@melapress.com
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     2.8.0
+ * Version:     2.9.0
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -15,8 +15,8 @@
  * Text Domain: wp-2fa
  * Domain Path: /languages/
  * License:     GPL v3
- * Requires at least: 5.0
- * Requires PHP: 7.3
+ * Requires at least: 5.5
+ * Requires PHP: 7.4
  * Network: true
  *
  * @package WP2FA
@@ -54,7 +54,7 @@ if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '2.8.0' );
+	define( 'WP_2FA_VERSION', '2.9.0' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -70,6 +70,8 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 	define( 'WP_2FA_EMAIL_SETTINGS_NAME', WP_2FA_PREFIX . 'email_settings' );
 
 	define( 'WP_2FA_PREFIX_PAGE', 'wp-2fa-' );
+
+	define( 'WP_2FA_TEXTDOMAIN', 'wp-2fa' );
 }
 
 // phpcs:disable
@@ -87,20 +89,20 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 
 		// Setup_Wizard.
 		if ( WP_Helper::is_multisite() ) {
-			add_action( 'network_admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'network_admin_menus' ), 10 );
-			add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
+			\add_action( 'network_admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'network_admin_menus' ), 10 );
+			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
 		} else {
-			add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
+			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
 		}
 
 		// Activation/Deactivation.
-		register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
-		register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
+		\register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
+		\register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
 		// Register our uninstallation hook.
-		register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
+		\register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
 
-		add_filter( 'plugins_loaded', array( '\WP2FA\WP2FA', 'init' ) );
-		add_action( 'plugins_loaded', array( '\WP2FA\WP2FA', 'add_wizard_actions' ), 10 );
+		\add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
+		\add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
 
 
 		// phpcs:disable
@@ -131,7 +133,7 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 		check_ssl();
 	}
 
-	register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
+	\register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
 }
 // phpcs:disable
 /* @free:end */
@@ -144,7 +146,7 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
  *
  * @since 2.2.0
  */
-add_action(
+\add_action(
 	'upgrader_process_complete',
 	function () {
 		delete_transient( 'wp_2fa_config_file_hash' );
@@ -152,6 +154,101 @@ add_action(
 	10,
 	2
 );
+
+\add_action( 'doing_it_wrong_trigger_error', 'wp_2fa_trigger_error', 10, 4 );
+\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 0, 3 );
+\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 20, 3 );
+
+if ( ! function_exists( 'wp_2f_is_just_in_time_for_2fa_domain' ) ) {
+	/**
+	 * Whether it is the just_in_time_error for wp-2fa domains.
+	 *
+	 * @since 2.9.0
+	 *
+	 * @param string $status        Status of the error.
+	 * @param string $function_name Function name.
+	 * @param string $message       Message.
+	 *
+	 * @return bool
+	 */
+	function wp_2f_is_just_in_time_for_2fa_domain( $status, string $function_name, string $message ): bool {
+
+		return '_load_textdomain_just_in_time' === $function_name && strpos( $message, '<code>' . WP_2FA_TEXTDOMAIN ) !== false;
+	}
+}
+
+if ( ! function_exists( 'wp_2fa_trigger_error' ) ) {
+	/**
+	 * Catches errors which come from the doing_it_wrong() function, WP core does not provide much information about what is really going on and where, this method adds some more information to the error log.
+	 *
+	 * @param bool   $status - Whether to trigger the error for _doing_it_wrong() calls. Default true.
+	 * @param string $function_name - The name of the function that triggered the error (this is the WP function which is not called right, not the real function that actually called it).
+	 * @param string $errstr - The WP error string (message).
+	 * @param string $version - Since which WP version given error was added.
+	 * @param int    $errno - The number of the error (type of the error - that probably never get set by WP and always falls to the default which is E_USER_NOTICE).
+	 *
+	 * @return bool
+	 *
+	 * @since 2.9.0
+	 */
+	function wp_2fa_trigger_error( $status, string $function_name, $errstr, $version, $errno = E_USER_NOTICE ) {
+
+		if ( false === $status ) {
+			return $status;
+		}
+
+		if ( wp_2f_is_just_in_time_for_2fa_domain( '', $function_name, $errstr ) ) {
+			// This error code is not included in error_reporting, so let it fall.
+			// through to the standard PHP error handler.
+			return false;
+		}
+	}
+}
+
+if ( ! function_exists( 'wp_2fa_action_doing_it_wrong_run' ) ) {
+	/**
+	 * Action for _doing_it_wrong() calls.
+	 *
+	 * @since 2.9.0
+	 *
+	 * @param string $function_name The function that was called.
+	 * @param string $message       A message explaining what has been done incorrectly.
+	 * @param string $version       The version of WordPress where the message was added.
+	 *
+	 * @return void
+	 */
+	function wp_2fa_action_doing_it_wrong_run( $function_name, $message, $version ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+
+		global $wp_filter;
+
+		$function_name = (string) $function_name;
+		$message       = (string) $message;
+
+		if ( ! class_exists( '\QM_Collectors', false ) || ! wp_2f_is_just_in_time_for_2fa_domain( '', $function_name, $message ) ) {
+			return;
+		}
+
+		$qm_collector_doing_it_wrong = \QM_Collectors::get( 'doing_it_wrong' );
+		$current_priority            = $wp_filter['doing_it_wrong_run']->current_priority();
+
+		if ( null === $qm_collector_doing_it_wrong || false === $current_priority ) {
+			return;
+		}
+
+		switch ( $current_priority ) {
+			case 0:
+				\remove_action( 'doing_it_wrong_run', array( $qm_collector_doing_it_wrong, 'action_doing_it_wrong_run' ) );
+				break;
+
+			case 20:
+				\add_action( 'doing_it_wrong_run', array( $qm_collector_doing_it_wrong, 'action_doing_it_wrong_run' ), 10, 3 );
+				break;
+
+			default:
+				break;
+		}
+	}
+}
 
 if ( ! function_exists( 'check_ssl' ) ) {
 	/**
@@ -164,11 +261,11 @@ if ( ! function_exists( 'check_ssl' ) ) {
 	function check_ssl() {
 		if ( ! \WP2FA\Authenticator\Open_SSL::is_ssl_available() ) {
 			$html = '<div class="updated notice is-dismissible">
-			<p>' . \esc_html__( 'This plugin requires OpenSSL. Contact your web host or website administrator so they can enable OpenSSL. Re-activate the plugin once the library has been enabled.', 'wp-2fa' )
-			. '</p>
-		</div>';
+				<p>' . \esc_html__( 'This plugin requires OpenSSL. Contact your web host or website administrator so they can enable OpenSSL. Re-activate the plugin once the library has been enabled.', 'wp-2fa' )
+				. '</p>
+			</div>';
 
-			echo $html; // phpcs:ignore
+			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 			exit();
 		}
@@ -176,7 +273,8 @@ if ( ! function_exists( 'check_ssl' ) ) {
 }
 
 if ( \PHP_VERSION_ID < 80000 && ! \interface_exists( 'Stringable' ) ) {
-	interface Stringable { // phpcs:ignore
+	// phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed
+	interface Stringable {
 		/**
 		 * Mockup function for PHP versions lower than 8.
 		 *

@@ -6,16 +6,8 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'WP2FA_Vendor\\Zxing\\' => array($vendorDir . '/khanamiryan/qrcode-detector-decoder/lib'),
-    'WP2FA_Vendor\\Twilio\\' => array($vendorDir . '/twilio/sdk/src/Twilio'),
-    'WP2FA_Vendor\\Symfony\\Component\\PropertyAccess\\' => array($vendorDir . '/symfony/property-access'),
-    'WP2FA_Vendor\\Symfony\\Component\\Inflector\\' => array($vendorDir . '/symfony/inflector'),
-    'WP2FA_Vendor\\MyCLabs\\Enum\\' => array($vendorDir . '/myclabs/php-enum/src'),
     'WP2FA_Vendor\\Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
-    'WP2FA_Vendor\\Endroid\\QrCode\\' => array($vendorDir . '/endroid/qr-code/src'),
-    'WP2FA_Vendor\\DASPRiD\\Enum\\' => array($vendorDir . '/dasprid/enum/src'),
     'WP2FA_Vendor\\Clickatell\\' => array($vendorDir . '/arcturial/clickatell/src', $vendorDir . '/arcturial/clickatell/test'),
-    'WP2FA_Vendor\\BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
     'WP2FA\\Extensions\\' => array($baseDir . '/extensions'),
     'WP2FA\\' => array($baseDir . '/includes/classes'),
 );
