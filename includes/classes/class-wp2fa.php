@@ -111,6 +111,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 					'grace-period-denominator'         => 'days',
 					'enable_destroy_session'           => '',
 					'limit_access'                     => '',
+					'enable_rest'                      => false,
 					'brute_force_disable'              => '',
 					'2fa_settings_last_updated_by'     => '',
 					'2fa_main_user'                    => '',
@@ -168,15 +169,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			Methods_Helper::init();
 
-			/**
-			 * Enables the API endpoints for the plugin.
-			 *
-			 * @since 2.9.0
-			 */
-			if ( \apply_filters( \WP_2FA_PREFIX . 'enable_api_endpoints', true ) ) {
-				Endpoints::init();
-			}
-
 			self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ]      = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() );
 			self::$plugin_settings[ WP_2FA_SETTINGS_NAME ]             = Settings_Utils::get_option( WP_2FA_SETTINGS_NAME, array() );
 			self::$plugin_settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] = ( ! empty( Settings_Utils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME, array() ) ) ) ? Settings_Utils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME, array() ) : White_Label::get_default_settings();
@@ -219,6 +211,8 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			Plugin_Updated_Notice::init();
 
 			self::add_actions();
+
+			Endpoints::init();
 
 			// Inits all the additional free app extensions.
 			$free_extensions = Classes_Helper::get_classes_by_namespace( 'WP2FA\\App\\' );
@@ -545,51 +539,30 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			$login_code_body .= '<p>' . \esc_html__( 'You are trying to log in to {site_name} using the username {user_login_name}. To complete your login, please enter the following one-time 2FA code:', 'wp-2fa' ) . '</p>';
 			$login_code_body .= '<p>' . \esc_html__( '{login_code}', 'wp-2fa' ) . '</p>';
 			$login_code_body .= '<p>' . \esc_html__( 'Enter this code on the login page to finish the authentication process and access your account.', 'wp-2fa' ) . '</p>';
-			$login_code_body .= '<p>' . \esc_html__( 'If you encounter any issues logging in, feel free to contact us at {admin_email}.', 'wp-2fa' ) . '</p>';
+			$login_code_body .= '<p>' . \esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ) . '</p>';
+			$login_code_body .= '<p>' . \esc_html__( 'If you encounter any other issues logging in, feel free to contact us at {admin_email}.', 'wp-2fa' ) . '</p>';
 			$login_code_body .= '<p>' . \esc_html__(
 				'Kind regards,
 				The {site_name} Team',
 				'wp-2fa'
 			) . '</p>';
 
-			// $login_code_body .= '<p>' . sprintf(
-			// // translators: The login code provided from the plugin.
-			// \esc_html__( 'Enter %1$1s to log in.', 'wp-2fa' ),
-			// '<strong>{login_code}</strong>'
-			// );
-			// $login_code_body .= '</p>';
-			// $login_code_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
-			// $login_code_body .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-			// $login_code_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
-			// $login_code_body .= '</p>';
 
-			// Create Reset PW Code Message.
-			$reset_password_code_subject = __( '2FA code for password reset', 'wp-2fa' );
 
-			$reset_password_code_body = '<p>' . \esc_html__( 'Hello,', 'wp-2fa' ) . '</p>';
+			$login_code_setup_subject = __( 'Your 2FA Setup Verification Code for {site_name}', 'wp-2fa' );
 
-			$reset_password_code_body = '<p>' . sprintf(
+			$login_code_setup_body  = '<p>' . \esc_html__( 'Hello {user_display_name},', 'wp-2fa' ) . '</p>';
+			$login_code_setup_body .= '<p>' . \esc_html__( 'You have requested to set up two-factor authentication for your user {user_login_name} on the website {site_name} ({site_url}).', 'wp-2fa' ) . '</p>';
+
+			$login_code_setup_body .= '<p>' . sprintf(
 			// translators: The login code provided from the plugin.
-				\esc_html__( 'Someone from the IP address %1$1s has requested a password reset for the user %2$2s on the website %3$3s. If this was you please use the below code to proceed with the password reset:', 'wp-2fa' ),
-				'{user_ip_address}',
-				'{user_login_name}',
-				'{site_url}'
-			);
-
-			$reset_password_code_body .= '<p><strong>{login_code}</strong></p>';
-
-			$reset_password_code_body .= '</p>';
-			$reset_password_code_body .= '<p>' . \esc_html__( 'If this was not you, ignore this email and contact your website administrator.', 'wp-2fa' ) . '</p>';
-
-			$login_code_setup_body = '<p>' . sprintf(
-			// translators: The login code provided from the plugin.
-				\esc_html__( 'Please enter this code to confirm 2FA setup: %1$1s', 'wp-2fa' ),
+				\esc_html__( 'Please enter the following code to complete your setup: %1$1s', 'wp-2fa' ),
 				'<strong>{login_code}</strong>'
 			);
 			$login_code_setup_body .= '</p>';
+			$login_code_setup_body .= '<p>' . \esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ) . '</p>';
 			$login_code_setup_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
-			$login_code_setup_body .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-			$login_code_setup_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link_2" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$login_code_setup_body .= '<p>' . \esc_html__( 'The {site_name} Team', 'wp-2fa' );
 			$login_code_setup_body .= '</p>';
 
 			// Create User Locked Message.
@@ -639,9 +612,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'custom_from_display_name'            => '',
 				'login_code_email_subject'            => $login_code_subject,
 				'login_code_email_body'               => $login_code_body,
-				'reset_password_code_email_subject'   => $reset_password_code_subject,
-				'reset_password_code_email_body'      => $reset_password_code_body,
-				'login_code_setup_email_subject'      => $login_code_subject,
+				'login_code_setup_email_subject'      => $login_code_setup_subject,
 				'login_code_setup_email_body'         => $login_code_setup_body,
 				'user_account_locked_email_subject'   => $user_locked_subject,
 				'user_account_locked_email_body'      => $user_locked_body,

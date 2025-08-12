@@ -202,11 +202,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 					\esc_html__( 'User account unlocked email', 'wp-2fa' ),
 					\esc_html__( 'This is the email sent to a user when the user\'s account has been unlocked.', 'wp-2fa' )
 				),
-				new Email_Template(
-					'reset_password_code',
-					\esc_html__( 'User reset password code email', 'wp-2fa' ),
-					\esc_html__( 'This is the email sent to a user when a password reset is requested.', 'wp-2fa' )
-				),
 				$backup_codes,
 			);
 
@@ -345,13 +340,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				$output['user_account_unlocked_email_body'] = \wpautop( \wp_kses_post( \wp_unslash( $_POST['user_account_unlocked_email_body'] ) ) );
 			}
 
-			if ( isset( $_POST['reset_password_code_email_body'] ) ) {
-				$output['reset_password_code_email_body'] = \wpautop( \wp_kses_post( \wp_unslash( $_POST['reset_password_code_email_body'] ) ) );
-			}
-
-			if ( isset( $_POST['reset_password_code_email_subject'] ) ) {
-				$output['reset_password_code_email_subject'] = \wp_kses_post( \wp_unslash( $_POST['reset_password_code_email_subject'] ) );
-			}
 
 			$output['send_account_locked_email'] = '';
 			if ( isset( $_POST['send_account_locked_email'] ) && 'enable_account_locked_email' === $_POST['send_account_locked_email'] ) {
