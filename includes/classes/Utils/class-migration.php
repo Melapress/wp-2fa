@@ -376,15 +376,24 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		}
 
 		/**
-		 * Migration for version upto 2.8.0
+		 * Migration for version upto 2.9.2
 		 *
 		 * @return void
 		 *
-		 * @since 3.0.0
+		 * @since 2.9.2
 		 */
-		protected static function migrate_up_to_300() {
+		protected static function migrate_up_to_292() {
 
 			Settings_Utils::delete_option( 'method_selection_single' );
+
+			$settings = self::get_settings( self::$plugin_settings_name );
+
+			if ( \is_array( $settings ) && isset( $settings['enable_rest'] ) ) {
+
+				$settings['enable_rest'] = false;
+
+				self::set_settings( self::$plugin_settings_name, $settings );
+			}
 		}
 
 		/**

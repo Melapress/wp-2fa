@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace WP2FA\Admin\Controllers;
 
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\Classes_Helper;
 use WP2FA\Admin\Controllers\API\API_Login;
+use WP2FA\WP2FA;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -95,7 +97,14 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 		public static function init() {
 
 			\add_action( 'rest_api_init', array( __CLASS__, 'init_endpoints' ) );
-			\add_action( 'login_enqueue_scripts', array( __CLASS__, 'dequeue_style' ), PHP_INT_MAX );
+			/**
+			 * Enables the API endpoints for the plugin.
+			 *
+			 * @since 2.9.1
+			 */
+			if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_general_setting( 'enable_rest' ) ) ) {
+				\add_action( 'login_enqueue_scripts', array( __CLASS__, 'dequeue_style' ), PHP_INT_MAX );
+			}
 
 			$api_classes = Classes_Helper::get_classes_by_namespace( 'WP2FA\Admin\Controllers\API' );
 

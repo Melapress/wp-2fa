@@ -1240,14 +1240,15 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * validation if a new token has been generated and sent.
 		 *
 		 * @param  \WP_User $user \WP_User object of the logged-in user.
+		 * @param bool     $is_reset_protection - That call is for reset code.
 		 *
 		 * @return boolean
 		 *
 		 * @since 3.0.0
 		 */
-		public static function pre_process_email_authentication( $user ) {
+		public static function pre_process_email_authentication( $user, $is_reset_protection = false ) {
 			if ( isset( $user->ID ) && isset( $_REQUEST[ self::INPUT_NAME_RESEND_CODE ] ) ) { //phpcs:ignore -- nonce
-				Setup_Wizard::send_authentication_setup_email( $user->ID );
+				Setup_Wizard::send_authentication_setup_email( $user->ID, 'nominated_email_address', $is_reset_protection );
 				return true;
 			}
 			return false;

@@ -620,25 +620,23 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 
 			if ( $is_reset_protection ) {
-				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'reset_password_code_email_subject' ), $user->ID ) );
-				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'reset_password_code_email_body' ), $user->ID, $token ) );
 			} elseif ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
 				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_setup_email_subject' ), $user->ID ) );
 				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_setup_email_body' ), $user->ID, $token ) );
 			} else {
 				$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
 				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
-
-				// phpcs:disable
-				/* @free:start */
-				// phpcs:enable
-				$message         .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-				$message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
-				$message .= '</p>';
-				// phpcs:disable
-				/* @free:end */
-				// phpcs:enable
 			}
+
+			// phpcs:disable
+			/* @free:start */
+			// phpcs:enable
+			$message         .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
+			$message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$message .= '</p>';
+			// phpcs:disable
+			/* @free:end */
+			// phpcs:enable
 
 			// If we have a nonce posted, check it.
 			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {

@@ -123,7 +123,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 			?>
 			<h3><?php \esc_html_e( 'Do you want to require 2FA when users reset their password?', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php \esc_html_e( 'When you enable this setting users will be required to enter a one-time code sent to them via email when resetting the password.', 'wp-2fa' ); ?>
+				<?php \esc_html_e( 'When enabled, users who reset their password via the “Lost/Forgot Password” process will need to enter a one-time code sent to their email before completing the reset. This does not apply to password changes made while logged in.', 'wp-2fa' ); ?>
 			</p>
 
 			<table class="form-table">

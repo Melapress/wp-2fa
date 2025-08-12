@@ -296,7 +296,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				$show_enabled = true;
 
 				if ( isset( $additional_args ) && ! empty( $additional_args ) && isset( $additional_args['options'] ) && ! empty( $additional_args['options'] ) ) {
-					if ( isset( $additional_args['options']['do_not_show_enabled'] ) && 'false' !== $additional_args['options']['do_not_show_enabled'] ) {
+					if ( isset( $additional_args['options']['do_not_show_enabled'] ) && false !== (bool) $additional_args['options']['do_not_show_enabled'] ) {
 						$show_enabled = false;
 					}
 				}
@@ -308,7 +308,6 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					$form_output .= '
 					<table id="2fa-currently-configured-methods" class="form-table wp-2fa-user-profile-form" role="presentation">
 						<tbody>
-							<tr>
 								<th><label>' . \esc_html__( 'Primary method:', 'wp-2fa' ) . '</label></th>
 								<td>
 								' . $primary_label . '
