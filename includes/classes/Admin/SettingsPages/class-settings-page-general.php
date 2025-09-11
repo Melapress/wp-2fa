@@ -42,6 +42,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			self::no_method_exists();
 			self::disable_brute_force_settings();
 			self::limit_settings_access();
+			self::disable_rest();
 			self::enable_rest();
 			self::remove_data_upon_uninstall();
 			submit_button( null, 'primary', WP_2FA_SETTINGS_NAME . '[submit]' );
@@ -68,6 +69,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'enable_destroy_session',
 				'limit_access',
 				'enable_rest',
+				'disable_rest',
 				'brute_force_disable',
 				'delete_data_upon_uninstall',
 				'method_invalid_setting',
@@ -86,6 +88,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'enable_destroy_session',
 				'limit_access',
 				'enable_rest',
+				'disable_rest',
 				'brute_force_disable',
 				'delete_data_upon_uninstall',
 			);
@@ -93,11 +96,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			foreach ( $simple_settings_we_can_loop as $simple_setting ) {
 				if ( ! in_array( $simple_setting, $settings_to_turn_into_bools, true ) ) {
 					// Is item is not one of our possible settings we want to turn into a bool, process.
-					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( (string) sanitize_text_field( $input[ $simple_setting ] ) ) : false;
+					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( (string) \sanitize_text_field( $input[ $simple_setting ] ) ) : false;
 				} else {
 					// This item is one we treat as a bool, so process correctly.
 					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? true : false;
 				}
+			}
+
+			if ( true === $output['disable_rest'] ) {
+				$output['enable_rest'] = false;
 			}
 
 			if ( isset( $input['2fa_settings_last_updated_by'] ) && ! empty( $input['2fa_settings_last_updated_by'] ) ) {
@@ -257,10 +264,58 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 *
 		 * @since 2.9.1
 		 */
+		private static function disable_rest() {
+			?>
+			<br>
+			<h3><?php \esc_html_e( 'Disable the REST API endpoints for 2FA', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'The WP 2FA REST API endpoints are enabled by default. They are used for integrations and do not impact your website’s performance, functionality, or security. If you prefer, you can disable these endpoints by using this setting.', 'wp-2fa' ); ?>
+			</p>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="disable_rest"></label></th>
+						<td>
+							<fieldset>
+								<input type="checkbox" id="disable_rest" name="wp_2fa_settings[disable_rest]" value="disable_rest"
+								<?php \checked( true, Settings_Utils::string_to_bool( WP2FA::get_wp2fa_general_setting( 'disable_rest' ) ) ); ?>
+								>
+								<label for="disable_rest"><?php \esc_html_e( 'disable the REST API endpoints', 'wp-2fa' ); ?></label>
+							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+					<script type="text/javascript">
+						//<![CDATA[
+						jQuery(document).ready(function( $ ) {
+							jQuery( 'body' ).on( 'click', '#disable_rest', function ( e ) {
+								// e.preventDefault();
+								if ( jQuery(this).is(":checked"))  {
+									jQuery('#select_verification_method').addClass('disabled');
+								} else {
+									jQuery('#select_verification_method').removeClass('disabled');
+								}
+							});
+						});
+						//]]>
+					</script>
+
+			<?php
+		}
+
+		/**
+		 * Enable REST API
+		 *
+		 * @return void
+		 *
+		 * @since 2.9.1
+		 */
 		private static function enable_rest() {
 			?>
 			<br>
-			<h3><?php \esc_html_e( 'Enable the REST API endpoints for 2FA', 'wp-2fa' ); ?></h3>
+			<div id="select_verification_method" class=<?php echo \esc_attr( true === Settings_Utils::string_to_bool( WP2FA::get_wp2fa_general_setting( 'disable_rest' ) ) ? 'disabled' : '' ); ?>>
+			<h3><?php \esc_html_e( 'Select the 2FA verification mechanism', 'wp-2fa' ); ?></h3>
 			<p class="description">
 				<?php \esc_html_e( 'Choose how WP 2FA verifies the 2FA by default. The native method works for most setups, but you can switch to REST API verification if needed. Only change this setting if you are experiencing issues with the default method.', 'wp-2fa' ); ?>
 			</p>
@@ -284,6 +339,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 					</tr>
 				</tbody>
 			</table>
+		</div>
 			<?php
 		}
 

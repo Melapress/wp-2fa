@@ -42,7 +42,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 		 *
 		 * @var string
 		 *
-		 * @since 2.9.2
+		 * @since 2.9.3
 		 */
 		private static $logging_attempts_meta_key = WP_2FA_PREFIX . 'api-reset-password-attempts';
 
