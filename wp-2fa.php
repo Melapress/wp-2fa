@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     2.9.2
+ * Version:     2.9.3
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -52,9 +52,14 @@ if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
 	return;
 }
 
+\add_action( 'doing_it_wrong_trigger_error', 'wp_2fa_trigger_error', 10, 4 );
+\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 0, 3 );
+\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 20, 3 );
+\add_action( 'aadvana_trigger_error_doing_it_wrong', 'wp_2fa_trigger_error', 0, 4 );
+
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '2.9.2' );
+	define( 'WP_2FA_VERSION', '2.9.3' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -154,10 +159,6 @@ if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
 	10,
 	2
 );
-
-\add_action( 'doing_it_wrong_trigger_error', 'wp_2fa_trigger_error', 10, 4 );
-\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 0, 3 );
-\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 20, 3 );
 
 if ( ! function_exists( 'wp_2f_is_just_in_time_for_2fa_domain' ) ) {
 	/**

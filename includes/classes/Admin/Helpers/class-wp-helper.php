@@ -15,6 +15,8 @@
 
 namespace WP2FA\Admin\Helpers;
 
+use WP2FA\Utils\Settings_Utils;
+
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 /*
@@ -71,9 +73,13 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		public static function init() {
 			if ( self::is_multisite() ) {
 				\add_action( 'network_admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
+				\add_action( 'network_admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ) );
 			} else {
 				\add_action( 'admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
+				\add_action( 'admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ) );
 			}
+
+			\add_action( 'wp_ajax_dismiss_survey_notice', array( __CLASS__, 'dismiss_survey_notice' ) );
 		}
 
 		/**
@@ -136,6 +142,109 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				 */
 				\do_action( WP_2FA_PREFIX . 'critical_notice' );
 			}
+		}
+
+		/**
+		 * Shows critical notices to the admin.
+		 *
+		 * @return void
+		 *
+		 * @since 2.2.0
+		 */
+		public static function show_2025_security_survey_admin_notice() {
+			if ( User_Helper::is_admin() && true === Settings_Utils::string_to_bool(Settings_Utils::get_option( 'wp_2fa_survey_notice_needed', true ))
+ ) {
+				global $current_screen;
+
+				if ( isset( $current_screen->id ) && in_array(
+					$current_screen->id,
+					array(
+						'wp-2fa_page_wp-2fa-settings',
+						'wp-2fa_page_wp-2fa-settings-network',
+						'toplevel_page_wp-2fa-policies',
+						'toplevel_page_wp-2fa-policies-network',
+						'wp-2fa_page_wp-2fa-reports',
+						'wp-2fa_page_wp-2fa-reports-network',
+						'wp-2fa_page_wp-2fa-help-contact-us',
+						'wp-2fa_page_wp-2fa-help-contact-us-network',
+						'wp-2fa_page_wp-2fa-premium-features',
+						'wp-2fa_page_wp-2fa-premium-features-network',
+						'wp-2fa_page_wp-2fa-policies-account',
+						'wp-2fa_page_wp-2fa-policies-account-network',
+					),
+					true
+				) ) {
+
+					?>
+				<div style="border-left-color: #3660FF !important;" id="dismiss_survey_notice" class="notice notice-success is-dismissible" data-dismiss-nonce="<?php echo \esc_attr( \wp_create_nonce( 'wp_2fa_dismiss_survey_notice_nonce' ) ); ?>">
+					<h4><?php \esc_html_e( 'Want to know what the state of WordPress security is in 2025?', 'wp-2fa' ); ?></h4>
+					<p><?php \esc_html_e( 'Discover the latest insights in our 2025 WordPress Security Survey Report.', 'wp-2fa' ); ?></p>
+					<button type="button" class="notice-dismiss">
+						<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
+					</button>
+					<p>
+					<?php
+					printf(
+					/* Translators: survey link */
+						esc_html__( '%1$sRead the survey%2$s', 'wp-2fa' ),
+						'<a class="button" style="color:white !important;background:#3660FF" href="https://melapress.com/wordpress-security-survey-2025/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=survey+promo+banner" target="_blank">',
+						'</a>'
+					);
+					?>
+					</p>
+					<script type="text/javascript">
+						//<![CDATA[
+						jQuery(document).ready(function( $ ) {
+							jQuery( 'body' ).on( 'click', '#dismiss_survey_notice .notice-dismiss', function ( e ) {
+								e.preventDefault();
+								var nonce  = jQuery( '#dismiss_survey_notice' ).data( 'dismiss-nonce' );
+								
+								jQuery.ajax({
+									type: 'POST',
+									url: '<?php echo \esc_url( \admin_url( 'admin-ajax.php' ) ); ?>',
+									data: {
+										action: 'dismiss_survey_notice',
+										nonce : nonce,
+									},
+									success: function ( result ) {		
+										jQuery( '#dismiss_survey_notice' ).slideUp( 300 );
+									}
+								});
+							});
+						});
+						//]]>
+					</script>
+
+				</div>
+					<?php
+				}
+			}
+		}
+
+
+		/**
+		 * Handle notice dismissal.
+		 *
+		 * @since 2.9.3
+		 * 
+		 * @return void
+		 */
+		public static function dismiss_survey_notice() {
+			// Grab POSTed data.
+			$nonce_check = \check_ajax_referer( 'wp_2fa_dismiss_survey_notice_nonce', 'nonce' );
+
+			if ( ! $nonce_check ) {
+				\wp_send_json_error( esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
+			}
+			// $nonce = isset( $_POST['nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ) : false;
+			// Check nonce.
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				\wp_send_json_error( esc_html__( 'Not enough privileges.', 'wp-2fa' ) );
+			}
+
+			Settings_Utils::update_option( 'wp_2fa_survey_notice_needed', 0 );
+
+			\wp_send_json_success( \esc_html__( 'Complete.', 'wp-2fa' ) );
 		}
 
 		/**

@@ -212,7 +212,9 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			self::add_actions();
 
-			Endpoints::init();
+			if ( false === Settings_Utils::string_to_bool( self::get_wp2fa_general_setting( 'disable_rest' ) ) ) {
+				Endpoints::init();
+			}
 
 			// Inits all the additional free app extensions.
 			$free_extensions = Classes_Helper::get_classes_by_namespace( 'WP2FA\\App\\' );
