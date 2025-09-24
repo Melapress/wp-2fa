@@ -24,10 +24,9 @@ use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Controllers\API\API_Login;
+use WP2FA\Admin\Methods\Traits\Providers;
 use WP2FA\Methods\Wizards\Email_Wizard_Steps;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
-
-use function WP2FA\Core\i18n;
 
 /**
  * Class for handling email codes.
@@ -43,6 +42,8 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 	 * @since 2.6.0
 	 */
 	class Email {
+
+		use Providers;
 
 		/**
 		 * The name of the method.
@@ -60,7 +61,7 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public const POLICY_SETTINGS_NAME = 'enable_email';
+		public const POLICY_SETTINGS_NAME = 'enable_' . self::METHOD_NAME;
 
 		/**
 		 * Is the mail enabled
@@ -69,7 +70,7 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 *
 		 * @var bool
 		 */
-		private static $email_enabled = null;
+		private static $enabled = null;
 
 		/**
 		 * Is the mail enforced
@@ -89,9 +90,9 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 */
 		public static function init() {
 
-			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'email_provider_name_translated' ) );
+			self::always_init();
 
-			\add_filter( WP_2FA_PREFIX . 'providers', array( __CLASS__, 'email_provider' ) );
+			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'provider_name_translated' ) );
 
 			\add_filter( WP_2FA_PREFIX . 'default_settings', array( __CLASS__, 'add_default_settings' ) );
 
@@ -194,23 +195,8 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function email_provider_name_translated( array $providers ) {
+		public static function provider_name_translated( array $providers ) {
 			$providers[ self::METHOD_NAME ] = \esc_html__( 'HOTP (Email)', 'wp-2fa' );
-
-			return $providers;
-		}
-
-		/**
-		 * Adds email as a provider
-		 *
-		 * @param array $providers - Array with all currently supported providers.
-		 *
-		 * @return array
-		 *
-		 * @since 2.6.0
-		 */
-		public static function email_provider( array $providers ) {
-			$providers[ self::class ] = self::METHOD_NAME;
 
 			return $providers;
 		}
@@ -282,59 +268,12 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 * @return boolean
 		 */
 		public static function is_enabled( ?string $role = null ): bool {
-			if ( null === self::$email_enabled ) {
-				self::$email_enabled = ! empty( Settings_Utils::get_setting_role( $role, 'enable_email' ) );
+			if ( null === self::$enabled || ! isset( self::$enabled[ $role ] ) ) {
+				self::$enabled[ $role ] = empty( Settings_Utils::get_setting_role( $role, self::POLICY_SETTINGS_NAME ) ) ? false : true;
 			}
 
-			return self::$email_enabled;
+			return self::$enabled[ $role ];
 		}
-
-		/**
-		 * Returns the status of the mail method enforcement (enabled | disabled) for the current user role.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @return boolean
-		 */
-		// public static function is_enforced(): bool {
-		// 	if ( ! self::is_enabled() ) {
-		// 		return false;
-		// 	}
-
-		// 	if ( null === self::$email_enforced ) {
-		// 		self::$email_enforced = ! empty( Settings_Utils::get_setting_role( User_Helper::get_user_role(), 'enforce-email_hotp' ) );
-		// 	}
-
-		// 	return self::$email_enforced;
-		// }
-
-		/**
-		 * If email HOPT is enforced, the option to specify email is disabled - this method makes sure of this. It is called when roles settings are saved and when the main policy settings are saved, that's why it hase such a logic.
-		 *
-		 * @param array $settings - The array with all the collected settings.
-		 *
-		 * @return array
-		 *
-		 * @since 3.0.0
-		 */
-		// public static function set_email_settings_when_enforced( array $settings ): array {
-		// 	foreach ( $settings as $key => &$value ) {
-		// 		if ( \is_array( $value ) ) {
-		// 			if ( isset( $value['enforce-email_hotp'] ) && 'enforce-email_hotp' === $value['enforce-email_hotp'] ) {
-		// 				$value['specify-email_hotp'] = false;
-		// 			}
-		// 		} else {
-		// 			if ( isset( $settings['enforce-email_hotp'] ) && 'enforce-email_hotp' === $settings['enforce-email_hotp'] ) {
-		// 				$settings['specify-email_hotp'] = false;
-		// 			}
-
-		// 			break;
-		// 		}
-		// 	}
-		// 	unset( $value );
-
-		// 	return $settings;
-		// }
 
 		/**
 		 * Fills up the White Label settings array with the method defaults.

@@ -68,7 +68,14 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 
 			$no_enforced_methods = false;
 			if ( 'do-not-enforce' === Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'enforcement-policy' ) ) {
-				$no_enforced_methods = true;
+				/**
+				 * Filter that gives methods ability to make themselves enforced even the global enforcement is off.
+				 *
+				 * @param bool - at this point this is true.
+				 *
+				 * @since 3.0.0
+				 */
+				$no_enforced_methods = \apply_filters( WP_2FA_PREFIX . 'is_method_enforced', true, $user );
 			}
 
 			$user_type = array();

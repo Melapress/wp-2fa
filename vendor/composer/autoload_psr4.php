@@ -6,7 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'WP2FA_Vendor\\Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
     'WP2FA_Vendor\\Clickatell\\' => array($vendorDir . '/arcturial/clickatell/src', $vendorDir . '/arcturial/clickatell/test'),
     'WP2FA\\Extensions\\' => array($baseDir . '/extensions'),
     'WP2FA\\' => array($baseDir . '/includes/classes'),

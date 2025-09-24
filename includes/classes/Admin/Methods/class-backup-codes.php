@@ -24,6 +24,7 @@ use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Methods\Traits\Login_Attempts;
+use WP2FA\Admin\Methods\Traits\Providers;
 
 /**
  * Class for handling backup codes.
@@ -41,6 +42,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 	class Backup_Codes {
 
 		use Login_Attempts;
+		use Providers;
 
 		public const POLICY_SETTINGS_NAME = 'backup_codes_enabled';
 
@@ -117,6 +119,8 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function init() {
+			self::always_init();
+
 			\add_filter( WP_2FA_PREFIX . 'backup_methods_list', array( __CLASS__, 'add_backup_method' ), 10, 2 );
 			\add_filter( WP_2FA_PREFIX . 'backup_methods_enabled', array( __CLASS__, 'check_backup_method_for_role' ), 10, 2 );
 			\add_action( 'wp_ajax_wp2fa_run_ajax_generate_json', array( __CLASS__, 'run_ajax_generate_json' ) );
@@ -126,8 +130,6 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			\add_filter( WP_2FA_PREFIX . 'loop_settings', array( __CLASS__, 'settings_loop' ), 10, 2 );
 
 			\add_filter( WP_2FA_PREFIX . 'default_settings', array( __CLASS__, 'add_default_settings' ) );
-
-			\add_filter( WP_2FA_PREFIX . 'providers', array( __CLASS__, 'backup_codes_provider' ) );
 
 			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'fill_providers_array_with_method_name_translated' ) );
 
@@ -211,7 +213,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			}
 
 			for ( $i = 0; $i < $num_codes; ++$i ) {
-				$code           = Authentication::get_code();
+				$code           = Authentication::get_code( 16 );
 				$codes_hashed[] = \wp_hash_password( $code );
 				$codes[]        = $code;
 				unset( $code );
@@ -242,21 +244,6 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		}
 
 		/**
-		 * Adds Backup codes as a provider.
-		 *
-		 * @param array $providers - Array with all currently supported providers.
-		 *
-		 * @return array
-		 *
-		 * @since 2.6.0
-		 */
-		public static function backup_codes_provider( array $providers ) {
-			$providers[ self::class ] = self::METHOD_NAME;
-
-			return $providers;
-		}
-
-		/**
 		 * Adds Backup code as a provider.
 		 *
 		 * @param array $providers - Array with all currently supported providers and their translated names.
@@ -279,7 +266,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function get_translated_name(): string {
-			return esc_html__( 'Backup codes', 'wp-2fa' );
+			return \esc_html__( 'Backup codes', 'wp-2fa' );
 		}
 
 		/**
@@ -306,16 +293,16 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function run_ajax_generate_json() {
-			$user = wp_get_current_user();
+			$user = \wp_get_current_user();
 
-			check_ajax_referer( 'wp-2fa-backup-codes-generate-json-' . $user->ID, 'nonce' );
+			\check_ajax_referer( 'wp-2fa-backup-codes-generate-json-' . $user->ID, 'nonce' );
 
 			// Setup the return data.
 			$codes = self::generate_codes( $user );
 
 			$count = self::codes_remaining_for_user( $user );
 			$i18n  = array(
-				'count' => esc_html(
+				'count' => \esc_html(
 					sprintf(
 						/* translators: %s: count */
 						_n( '%s unused code remaining.', '%s unused codes remaining.', $count, 'wp-2fa' ),
@@ -323,11 +310,11 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 					)
 				),
 				/* translators: %s: the site's domain */
-				'title' => esc_html__( 'Two-Factor Backup Codes for %s', 'wp-2fa' ),
+				'title' => \esc_html__( 'Two-Factor Backup Codes for %s', 'wp-2fa' ),
 			);
 
 			// Send the response.
-			wp_send_json_success(
+			\wp_send_json_success(
 				array(
 					'codes' => $codes,
 					'i18n'  => $i18n,

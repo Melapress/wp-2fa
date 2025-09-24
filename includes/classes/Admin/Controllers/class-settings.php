@@ -370,13 +370,13 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 					self::$all_providers_for_roles[ $role ] = array();
 					foreach ( $providers as $provider ) {
 						if ( Backup_Codes::METHOD_NAME === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( $provider . '_enabled', false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( $provider . '_enabled', false, false, $role ) );
 						} elseif ( 'backup_email' === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( 'enable-email-backup', false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( 'enable-email-backup', false, false, $role ) );
 						} elseif ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role ) );
 						} else {
-							self::$all_providers_for_roles[ $role ][ $provider ] = esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role ) );
 						}
 					}
 					self::$all_providers_for_roles[ $role ] = array_filter( self::$all_providers_for_roles[ $role ] );

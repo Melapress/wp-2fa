@@ -87,6 +87,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 
 			$output['custom-text-app-code-page']            = WP2FA::get_wp2fa_white_label_setting( 'custom-text-app-code-page', false, false );
 			$output['custom-text-email-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-email-code-page', false, false );
+			$output['custom-text-zero-email-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-zero-email-code-page', false, false );
 			$output['custom-text-authy-code-page-intro']    = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-intro', false, false );
 			$output['custom-text-authy-code-page-awaiting'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-awaiting', false, false );
 			$output['custom-text-authy-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page', false, false );
@@ -98,6 +99,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 
 			if ( isset( $input['custom-text-email-code-page'] ) && '' !== trim( (string) $input['custom-text-email-code-page'] ) ) {
 				$output['custom-text-email-code-page'] = \wp_strip_all_tags( $input['custom-text-email-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-zero-email-code-page'] ) && '' !== trim( (string) $input['custom-text-zero-email-code-page'] ) ) {
+				$output['custom-text-zero-email-code-page'] = \wp_strip_all_tags( $input['custom-text-zero-email-code-page'] );
 			}
 
 			if ( isset( $input['custom-text-authy-code-page'] ) && '' !== trim( (string) $input['custom-text-authy-code-page'] ) ) {

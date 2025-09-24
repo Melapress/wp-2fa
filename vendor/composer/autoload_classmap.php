@@ -22,6 +22,7 @@ return array(
     'WP2FA\\Admin\\Helpers\\WP_Helper' => $baseDir . '/includes/classes/Admin/Helpers/class-wp-helper.php',
     'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
     'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
+    'WP2FA\\Admin\\Methods\\Traits\\Providers' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-provider-trait.php',
     'WP2FA\\Admin\\Plugin_Updated_Notice' => $baseDir . '/includes/classes/Admin/class-plugin-updated-notice.php',
     'WP2FA\\Admin\\Premium_Features' => $baseDir . '/includes/classes/Admin/class-premium-features.php',
     'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => $baseDir . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
@@ -46,6 +47,9 @@ return array(
     'WP2FA\\Authenticator\\Open_SSL' => $baseDir . '/includes/classes/Authenticator/class-open-ssl.php',
     'WP2FA\\Authenticator\\Reset_Password' => $baseDir . '/includes/classes/Authenticator/class-reset-password.php',
     'WP2FA\\Email_Template' => $baseDir . '/includes/classes/class-email-template.php',
+    
+    
+    
     
     
     

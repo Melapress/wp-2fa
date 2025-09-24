@@ -403,89 +403,89 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			}
 			$email_template_definitions = self::get_email_notification_definitions();
 			?>
-		<h1><?php \esc_html_e( 'Email Templates', 'wp-2fa' ); ?></h1>
-			<?php foreach ( $email_template_definitions as $email_template ) : ?>
-				<?php $template_id = $email_template->get_id(); ?>
-		<h3><?php echo \esc_html( $email_template->get_title() ); ?></h3>
-		<p class="description"><?php echo $email_template->get_description(); // phpcs:ignore ?></p>
-		<table class="form-table">
-			<tbody>
-				<?php if ( $email_template->can_be_toggled() ) : ?>
-				<tr>
-					<th><label for="send_<?php echo \esc_attr( $template_id ); ?>_email"><?php \esc_html_e( 'Send this email', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset>
-							<input type="checkbox" id="send_<?php echo \esc_attr( $template_id ); ?>_email" name="send_<?php echo \esc_attr( $template_id ); ?>_email" value="enable_<?php echo \esc_attr( $template_id ); ?>_email"
-							<?php \checked( 'enable_' . $template_id . '_email', WP2FA::get_wp2fa_email_templates( 'send_' . $template_id . '_email' ) ); ?>
-							>
-							<label for="send_<?php echo \esc_attr( $template_id ); ?>_email"><?php \esc_html_e( 'Uncheck to disable this message.', 'wp-2fa' ); ?></label>
-						</fieldset>
-					</td>
-				</tr>
-			<?php endif; ?>
-				<?php $template_id = $email_template->get_email_content_id(); ?>
-				<tr>
-					<th><label for="<?php echo \esc_attr( $template_id ); ?>_email_subject"><?php \esc_html_e( 'Email subject', 'wp-2fa' ); ?></label></th>
-					<td>
-						<fieldset>
-							<input type="text" id="<?php echo \esc_attr( $template_id ); ?>_email_subject" name="<?php echo \esc_attr( $template_id ); ?>_email_subject" class="large-text" value="<?php echo \esc_attr( WP2FA::get_wp2fa_email_templates( $template_id . '_email_subject' ) ); ?>">
-						</fieldset>
-					</td>
-				</tr>
-				<tr>
-					<th>
-						<label for="<?php echo \esc_attr( $template_id ); ?>_email_body"><?php \esc_html_e( 'Email body', 'wp-2fa' ); ?></label>
-						</br>
-						<label for="<?php echo \esc_attr( $template_id ); ?>_email_tags" style="font-weight: 400;"><?php \esc_html_e( 'Available template tags:', 'wp-2fa' ); ?></label>
-						</br>
-						</br>
-						<span style="font-weight: 400;">
-							{site_url}</br>
-							{site_name}</br>
-							{grace_period}</br>
-							{user_login_name}</br>
-							{user_first_name}</br>
-							{user_last_name}</br>
-							{user_display_name}</br>
-							{login_code}</br>
-							{user_ip_address}</br>
-							{backup_codes}
-							{admin_email}
-							<?php
-							if ( ! empty( $custom_user_page_id ) ) {
-								echo '</br>{2fa_settings_page_url}';
-							}
-							?>
-						</span>
-					</th>
-					<td>
-						<fieldset>
-							<?php
-							$message   = WP2FA::get_wp2fa_email_templates( $template_id . '_email_body' );
-							$content   = $message;
-							$editor_id = $template_id . '_email_body';
-							$settings  = array(
-								'media_buttons' => false,
-								'editor_height' => 200,
-							);
-							\wp_editor( $content, $editor_id, $settings );
-							?>
-						</fieldset>
-						<p>
-							<button type="button" name="test_email_<?php echo \esc_attr( $template_id ); ?>"
-									class="button js-button-test-email-trigger"
-									data-email-id="<?php echo \esc_attr( $template_id ); ?>"
-									<?php echo WP_Helper::create_data_nonce( 'wp-2fa-email-test-' . $template_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-								<?php \esc_html_e( 'Send test email', 'wp-2fa' ); ?>
-							</button>
-						</p>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<br>
-		<hr>
-		<?php endforeach; ?>
+			<h1><?php \esc_html_e( 'Email Templates', 'wp-2fa' ); ?></h1>
+				<?php foreach ( $email_template_definitions as $email_template ) { ?>
+					<?php $template_id = $email_template->get_id(); ?>
+					<h3><?php echo \esc_html( $email_template->get_title() ); ?></h3>
+					<p class="description"><?php echo $email_template->get_description();  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+					<table class="form-table">
+						<tbody>
+							<?php if ( $email_template->can_be_toggled() ) { ?>
+							<tr>
+								<th><label for="send_<?php echo \esc_attr( $template_id ); ?>_email"><?php \esc_html_e( 'Send this email', 'wp-2fa' ); ?></label></th>
+								<td>
+									<fieldset>
+										<input type="checkbox" id="send_<?php echo \esc_attr( $template_id ); ?>_email" name="send_<?php echo \esc_attr( $template_id ); ?>_email" value="enable_<?php echo \esc_attr( $template_id ); ?>_email"
+										<?php \checked( 'enable_' . $template_id . '_email', WP2FA::get_wp2fa_email_templates( 'send_' . $template_id . '_email' ) ); ?>
+										>
+										<label for="send_<?php echo \esc_attr( $template_id ); ?>_email"><?php \esc_html_e( 'Uncheck to disable this message.', 'wp-2fa' ); ?></label>
+									</fieldset>
+								</td>
+							</tr>
+						<?php } ?>
+							<?php $template_id = $email_template->get_email_content_id(); ?>
+							<tr>
+								<th><label for="<?php echo \esc_attr( $template_id ); ?>_email_subject"><?php \esc_html_e( 'Email subject', 'wp-2fa' ); ?></label></th>
+								<td>
+									<fieldset>
+										<input type="text" id="<?php echo \esc_attr( $template_id ); ?>_email_subject" name="<?php echo \esc_attr( $template_id ); ?>_email_subject" class="large-text" value="<?php echo \esc_attr( WP2FA::get_wp2fa_email_templates( $template_id . '_email_subject' ) ); ?>">
+									</fieldset>
+								</td>
+							</tr>
+							<tr>
+								<th>
+									<label for="<?php echo \esc_attr( $template_id ); ?>_email_body"><?php \esc_html_e( 'Email body', 'wp-2fa' ); ?></label>
+									</br>
+									<label for="<?php echo \esc_attr( $template_id ); ?>_email_tags" style="font-weight: 400;"><?php \esc_html_e( 'Available template tags:', 'wp-2fa' ); ?></label>
+									</br>
+									</br>
+									<span style="font-weight: 400;">
+										{site_url}</br>
+										{site_name}</br>
+										{grace_period}</br>
+										{user_login_name}</br>
+										{user_first_name}</br>
+										{user_last_name}</br>
+										{user_display_name}</br>
+										{login_code}</br>
+										{user_ip_address}</br>
+										{backup_codes}
+										{admin_email}
+										<?php
+										if ( ! empty( $custom_user_page_id ) ) {
+											echo '</br>{2fa_settings_page_url}';
+										}
+										?>
+									</span>
+								</th>
+								<td>
+									<fieldset>
+										<?php
+										$message   = WP2FA::get_wp2fa_email_templates( $template_id . '_email_body' );
+										$content   = $message;
+										$editor_id = $template_id . '_email_body';
+										$settings  = array(
+											'media_buttons' => false,
+											'editor_height' => 200,
+										);
+										\wp_editor( $content, $editor_id, $settings );
+										?>
+									</fieldset>
+									<p>
+										<button type="button" name="test_email_<?php echo \esc_attr( $template_id ); ?>"
+												class="button js-button-test-email-trigger"
+												data-email-id="<?php echo \esc_attr( $template_id ); ?>"
+												<?php echo WP_Helper::create_data_nonce( 'wp-2fa-email-test-' . $template_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+											<?php \esc_html_e( 'Send test email', 'wp-2fa' ); ?>
+										</button>
+									</p>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<br>
+					<hr>
+				<?php } ?>
 			<?php
 			$additional_content = \apply_filters( WP_2FA_PREFIX . 'append_to_email_and_sms_template_settings', '' );
 			echo \wp_kses_post( $additional_content );

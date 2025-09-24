@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace WP2FA\Admin\Views;
 
+use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Utils\Settings_Utils;
 
 if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
@@ -36,7 +37,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function init() {
-			if ( is_admin() ) {
+			if ( \is_admin() ) {
 				\add_filter( WP_2FA_PREFIX . 'before_grace_period', array( __CLASS__, 're_login_setting' ), 11, 5 );
 				\add_filter( WP_2FA_PREFIX . 'loop_settings', array( __CLASS__, 'add_setting_value' ) );
 				\add_action( 'wp_ajax_custom_ajax_logout', array( __CLASS__, 'redirect_after_logout' ) );
@@ -52,6 +53,10 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function redirect_after_logout() {
+			$enabled_method = User_Helper::get_enabled_method_for_user();
+			if ( empty( $enabled_method ) ) {
+				\wp_send_json_error();
+			}
 			\wp_logout();
 			ob_clean(); // probably overkill for this, but good habit.
 			\wp_send_json_success();

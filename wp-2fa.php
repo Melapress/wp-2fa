@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     2.9.3
+ * Version:     3.0.0
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -52,14 +52,9 @@ if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
 	return;
 }
 
-\add_action( 'doing_it_wrong_trigger_error', 'wp_2fa_trigger_error', 10, 4 );
-\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 0, 3 );
-\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 20, 3 );
-\add_action( 'aadvana_trigger_error_doing_it_wrong', 'wp_2fa_trigger_error', 0, 4 );
-
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '2.9.3' );
+	define( 'WP_2FA_VERSION', '3.0.0' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -78,87 +73,6 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 
 	define( 'WP_2FA_TEXTDOMAIN', 'wp-2fa' );
 }
-
-// phpcs:disable
-		// phpcs:enable
-		// Include files.
-		require_once WP_2FA_INC . 'functions/core.php';
-
-		// Require Composer autoloader if it exists.
-		if ( file_exists( WP_2FA_PATH . 'vendor/autoload.php' ) ) {
-			require_once WP_2FA_PATH . 'vendor/autoload.php';
-		}
-
-		// run any required update routines.
-		Migration::migrate();
-
-		// Setup_Wizard.
-		if ( WP_Helper::is_multisite() ) {
-			\add_action( 'network_admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'network_admin_menus' ), 10 );
-			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
-		} else {
-			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
-		}
-
-		// Activation/Deactivation.
-		\register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
-		\register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
-		// Register our uninstallation hook.
-		\register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
-
-		\add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
-		\add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
-
-
-		// phpcs:disable
-// phpcs:enable
-
-if ( ! defined( File_Writer::SECRET_NAME ) ) {
-	define( File_Writer::SECRET_NAME, WP2FA::get_secret_key() );
-
-	define( 'WP2FA_SECRET_IS_IN_DB', true );
-}
-
-// phpcs:disable
-/* @free:start */
-// phpcs:enable
-if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
-	/**
-	 * Takes care of deactivation of the premium plugin when the free plugin is activated.
-	 *
-	 * Note: This code MUST NOT be present in the premium version an is removed automatically during the build process.
-	 *
-	 * @since 2.0.0
-	 */
-	function wp2fa_free_on_plugin_activation() {
-		$premium_version_slug = 'wp-2fa-premium/wp-2fa.php';
-		if ( is_plugin_active( $premium_version_slug ) ) {
-			deactivate_plugins( $premium_version_slug, true );
-		}
-		check_ssl();
-	}
-
-	\register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
-}
-// phpcs:disable
-/* @free:end */
-// phpcs:enable
-
-/*
- * Clears the config cache from the DB
- *
- * @return void
- *
- * @since 2.2.0
- */
-\add_action(
-	'upgrader_process_complete',
-	function () {
-		delete_transient( 'wp_2fa_config_file_hash' );
-	},
-	10,
-	2
-);
 
 if ( ! function_exists( 'wp_2f_is_just_in_time_for_2fa_domain' ) ) {
 	/**
@@ -203,6 +117,8 @@ if ( ! function_exists( 'wp_2fa_trigger_error' ) ) {
 			// through to the standard PHP error handler.
 			return false;
 		}
+
+		return $status;
 	}
 }
 
@@ -250,6 +166,86 @@ if ( ! function_exists( 'wp_2fa_action_doing_it_wrong_run' ) ) {
 		}
 	}
 }
+
+\add_action( 'doing_it_wrong_trigger_error', 'wp_2fa_trigger_error', 0, 4 );
+
+\add_action( 'aadvana_trigger_error_doing_it_wrong', 'wp_2fa_trigger_error', 0, 4 );
+
+\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 0, 3 );
+\add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 20, 3 );
+
+		// Include files.
+		require_once WP_2FA_INC . 'functions/core.php';
+
+		// Require Composer autoloader if it exists.
+		if ( file_exists( WP_2FA_PATH . 'vendor/autoload.php' ) ) {
+			require_once WP_2FA_PATH . 'vendor/autoload.php';
+		}
+
+		// run any required update routines.
+		Migration::migrate();
+
+		// Setup_Wizard.
+		if ( WP_Helper::is_multisite() ) {
+			\add_action( 'network_admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'network_admin_menus' ), 10 );
+			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
+		} else {
+			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
+		}
+
+		// Activation/Deactivation.
+		\register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
+		\register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
+		// Register our uninstallation hook.
+		\register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
+
+		\add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
+		\add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
+
+
+
+if ( ! defined( File_Writer::SECRET_NAME ) ) {
+	define( File_Writer::SECRET_NAME, WP2FA::get_secret_key() );
+
+	define( 'WP2FA_SECRET_IS_IN_DB', true );
+}
+
+// @free:start
+if ( ! function_exists( 'wp2fa_free_on_plugin_activation' ) ) {
+	/**
+	 * Takes care of deactivation of the premium plugin when the free plugin is activated.
+	 *
+	 * Note: This code MUST NOT be present in the premium version an is removed automatically during the build process.
+	 *
+	 * @since 2.0.0
+	 */
+	function wp2fa_free_on_plugin_activation() {
+		$premium_version_slug = 'wp-2fa-premium/wp-2fa.php';
+		if ( is_plugin_active( $premium_version_slug ) ) {
+			deactivate_plugins( $premium_version_slug, true );
+		}
+		check_ssl();
+	}
+
+	\register_activation_hook( __FILE__, 'wp2fa_free_on_plugin_activation' );
+}
+// @free:end
+
+/*
+ * Clears the config cache from the DB
+ *
+ * @return void
+ *
+ * @since 2.2.0
+ */
+\add_action(
+	'upgrader_process_complete',
+	function () {
+		delete_transient( 'wp_2fa_config_file_hash' );
+	},
+	10,
+	2
+);
 
 if ( ! function_exists( 'check_ssl' ) ) {
 	/**

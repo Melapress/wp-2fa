@@ -72,7 +72,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( empty( $enabled_methods ) ) {
 				$new_page_modal_content  = '<h3>' . \esc_html__( 'Exclude yourself?', 'wp-2fa' ) . '</h3>';
-				$new_page_modal_content .= '</p>' . \esc_html__( 'You are about to enforce 2FA instantly on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' ) . '</p>';
+				$new_page_modal_content .= '<p id="wp-2fa-exclude-text">' . \esc_html__( 'You are about to enforce 2FA instantly on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' ) . '</p>';
 
 				echo Generate_Modal::generate_modal( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					'exclude-self-from-instant-2fa',
@@ -216,7 +216,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function validate_and_sanitize( $input ) {
-			Debugging::log( 'The following settings will be processed (Policy): ' . "\n" . wp_json_encode( $input ) );
+			Debugging::log( 'The following settings will be processed (Policy): ' . "\n" . \wp_json_encode( $input ) );
 
 			/*
 			 * Adds the ability to check the referer and act accordingly.
@@ -244,7 +244,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$no_methods_set = \apply_filters( WP_2FA_PREFIX . 'save_additional_enabled_methods', true, $input );
 
 				if ( $no_methods_set ) {
-					add_settings_error(
+					\add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
 						\esc_attr( 'enable_email_settings_error' ),
 						\esc_html__( 'No global 2FA methods enabled.', 'wp-2fa' ),
@@ -326,7 +326,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					unset( $site );
 				} elseif ( isset( $input['enforcement-policy'] ) && 'enforce-on-multisite' === $input['enforcement-policy'] && empty( $input['included_sites'] ) ) {
 
-					add_settings_error(
+					\add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
 						\esc_attr( 'included_sites_settings_error' ),
 						\esc_html__( 'You must specify at least one sub-site', 'wp-2fa' ),
@@ -346,7 +346,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( isset( $input['grace-period'] ) ) {
 				if ( 0 === (int) $input['grace-period'] ) {
-					add_settings_error(
+					\add_settings_error(
 						WP_2FA_POLICY_SETTINGS_NAME,
 						\esc_attr( 'grace_settings_error' ),
 						\esc_html__( 'Grace period must be at least 1 day/hour', 'wp-2fa' ),
@@ -404,7 +404,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						}
 					}
 				} else {
-					$output['custom-user-page-url'] = sanitize_title_with_dashes( $input['custom-user-page-url'] );
+					$output['custom-user-page-url'] = \sanitize_title_with_dashes( $input['custom-user-page-url'] );
 					$output['custom-user-page-id']  = WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
 					if ( is_null( get_post( $output['custom-user-page-id'] ) ) ) {
 						$create_page                   = self::generate_custom_user_profile_page( $output['custom-user-page-url'] );
@@ -424,7 +424,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			if ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] && empty( $input['custom-user-page-url'] ) ) {
-				add_settings_error(
+				\add_settings_error(
 					WP_2FA_POLICY_SETTINGS_NAME,
 					\esc_attr( 'no_page_slug_provided' ),
 					\esc_html__( 'You must provide a new page slug.', 'wp-2fa' ),
@@ -437,7 +437,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$create_a_string = $output['grace-period'] . ' ' . $output['grace-period-denominator'];
 				// Turn that string into a time.
 				$grace_expiry                       = strtotime( $create_a_string );
-				$output['grace-period-expiry-time'] = sanitize_text_field( $grace_expiry );
+				$output['grace-period-expiry-time'] = \sanitize_text_field( $grace_expiry );
 			}
 
 			// Process main policy.

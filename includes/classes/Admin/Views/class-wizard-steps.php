@@ -61,7 +61,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 				</div>
 
 				<div class="wp2fa-setup-actions">
-					<a href="#" class="button wp-2fa-button-primary button-primary" data-name="next_step_setting_modal_wizard" data-next-step="choose-2fa-method"><?php \esc_html_e( 'Next Step', 'wp-2fa' ); ?></a>
+					<button type="button" class="button wp-2fa-button-primary button-primary" data-name="next_step_setting_modal_wizard" data-next-step="choose-2fa-method"><?php \esc_html_e( 'Next Step', 'wp-2fa' ); ?></buttona>
 					<button class="wp-2fa-button-secondary button button-secondary wp-2fa-button-secondary" data-close-2fa-modal aria-label="Close this dialog window"><?php \esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
 				</div>
 			</div>
@@ -362,15 +362,22 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		/**
 		 * Shows the methods in the modal wizard, so the user can choose from the available ones
 		 *
+		 * @param \WP_User $user - WP User object.
+		 *
 		 * @return void
+		 *
+		 * @since 3.0.0
 		 */
-		public static function show_modal_methods() {
+		public static function show_modal_methods( $user ) {
 			/**
 			 * Add an option for external providers to add their own modal methods options.
 			 *
+			 * @param \WP_user $user - WP User object.
+			 *
 			 * @since 2.0.0
+			 * @since 3.0.0 - Added $user parameter.
 			 */
-			do_action( WP_2FA_PREFIX . 'modal_methods' );
+			\do_action( WP_2FA_PREFIX . 'modal_methods', $user );
 		}
 
 		/**

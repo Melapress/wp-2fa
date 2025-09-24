@@ -61,7 +61,7 @@
 
   var MicroModal = function () {
 
-    var FOCUSABLE_ELEMENTS = ['a[href]', 'area[href]', 'input:not([disabled]):not([type="hidden"]):not([aria-hidden])', 'select:not([disabled]):not([aria-hidden])', 'textarea:not([disabled]):not([aria-hidden])', 'button:not([disabled]):not([aria-hidden])', 'iframe', 'object', 'embed', '[contenteditable]', '[tabindex]:not([tabindex^="-"])'];
+    var FOCUSABLE_ELEMENTS = ['a[href]', 'area[href]', 'input:not([disabled]):not([type="hidden"]):not([aria-hidden])', 'select:not([disabled]):not([aria-hidden])', 'textarea:not([disabled]):not([aria-hidden])', 'button:not([disabled]):not([aria-hidden]):not(.modal__close)', 'iframe', 'object', 'embed', '[contenteditable]', '[tabindex]:not([tabindex^="-"])'];
 
     var Modal = /*#__PURE__*/function () {
       function Modal(_ref) {
@@ -242,13 +242,39 @@
 
           if (event.keyCode === 13) { // enter
             var modal = jQuery('#' + this.modal.id);
-            modal.find('.button:visible:first').click();
+            if (document.activeElement.tagName.toLowerCase() === 'button' || (" "+document.activeElement.className+" ").indexOf(" button ") > -1) {
+              document.activeElement.click();
+            } else {
+              if ( modal.find('.button:visible:first').length > 0 ) {
+                modal.find('.button:visible:first').click();
+              }
+            }
           }
         }
       }, {
         key: "getFocusableNodes",
         value: function getFocusableNodes() {
           var nodes = this.modal.querySelectorAll(FOCUSABLE_ELEMENTS);
+          var visibleElements = new Array();
+
+          for (var i = 0; i < nodes.length; i++) {
+              var currentElement = nodes[i];
+              var $style = window.getComputedStyle(currentElement, null);
+
+              if (!currentElement) {
+                  return false;
+
+              } else if (!$style) {
+                  return false;
+              } else if ($style.display === 'none') {
+                  return false;
+              } else {
+                  if (currentElement.offsetParent !== null)
+                  visibleElements.push(currentElement);
+              }
+          }
+          nodes = visibleElements;
+
           return Array.apply(void 0, _toConsumableArray(nodes));
         }
         /**
@@ -264,14 +290,18 @@
           if (this.config.disableFocus) return;
           var focusableNodes = this.getFocusableNodes(); // no focusable nodes
 
+
           if (focusableNodes.length === 0) return; // remove nodes on whose click, the modal closes
           // could not think of a better name :(
 
           var nodesWhichAreNotCloseTargets = focusableNodes.filter(function (node) {
             return !node.hasAttribute(_this3.config.closeTrigger);
           });
-          if (nodesWhichAreNotCloseTargets.length > 0) nodesWhichAreNotCloseTargets[0].focus();
-          if (nodesWhichAreNotCloseTargets.length === 0) focusableNodes[0].focus();
+          //this.activeElement.blur();
+          focusableNodes[0].focus();
+          //jQuery('#basic').focus();
+          // if (nodesWhichAreNotCloseTargets.length > 0) nodesWhichAreNotCloseTargets[0].focus();
+          // if (nodesWhichAreNotCloseTargets.length === 0) focusableNodes[0].focus();
         }
       }, {
         key: "retainFocus",

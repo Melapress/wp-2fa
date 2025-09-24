@@ -183,7 +183,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 				?>
 
 				<?php
-				/* @free:start */
+				// @free:start
 					echo '<label>';
 					printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						'%1$s <a href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a> %4$s',
@@ -193,7 +193,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 						\esc_html__( 'to give your users more options.', 'wp-2fa' )
 					);
 					echo '<label>';
-				/* @free:end */
+				// @free:end
 				?>
 			</fieldset>
 				<?php
@@ -527,7 +527,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 			if ( $testing ) {
 				$grace_max = 600;
 			} else {
-				$grace_max = 10;
+				$grace_max = 90;
 			}
 			?>
 			<fieldset class="contains-hidden-inputs">
@@ -580,12 +580,12 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 					 *
 					 * @param bool - Default at this point is true - no method is selected.
 					 */
-					$testing = apply_filters( WP_2FA_PREFIX . 'allow_grace_period_in_seconds', false );
+					$testing = \apply_filters( WP_2FA_PREFIX . 'allow_grace_period_in_seconds', false );
 					if ( $testing ) {
 						?>
 						<label class="radio-inline">
 							<input class="js-nested" type="radio" name="wp_2fa_policy[grace-period-denominator]" value="seconds"
-							<?php checked( WP2FA::get_wp2fa_setting( 'grace-period-denominator' ), 'seconds' ); ?>
+							<?php \checked( WP2FA::get_wp2fa_setting( 'grace-period-denominator' ), 'seconds' ); ?>
 							>
 							<?php \esc_html_e( 'Seconds', 'wp-2fa' ); ?>
 						</label>
@@ -593,7 +593,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 					}
 
 					if ( $setup_wizard ) {
-						$user                         = wp_get_current_user();
+						$user                         = \wp_get_current_user();
 						$last_user_to_update_settings = $user->ID;
 
 						?>

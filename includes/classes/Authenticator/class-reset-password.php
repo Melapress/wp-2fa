@@ -23,6 +23,7 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Views\Password_Reset_2FA;
 use WP2FA\Admin\Methods\Traits\Login_Attempts;
+use WP2FA\WP2FA;
 
 /**
  * Responsible for user login process.
@@ -42,7 +43,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 		 *
 		 * @var string
 		 *
-		 * @since 2.9.3
+		 * @since 2.9.2
 		 */
 		private static $logging_attempts_meta_key = WP_2FA_PREFIX . 'api-reset-password-attempts';
 
@@ -57,13 +58,36 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 		 *
 		 * @since 2.5.0
 		 */
-		public static function lostpassword_post( $errors, $user_data ) {
+		public static function lostpassword_post( $errors, $user_data = null ) {
 			if ( $errors->has_errors() ) {
 				return $errors;
 			}
 			if ( false === $user_data ) {
 				return $errors;
 			}
+			if ( null === $user_data ) {
+
+				\add_filter(
+					'lostpassword_errors',
+					function( $errors ) {
+						$errors->add(
+							WP_2FA_PREFIX . 'password_reset',
+							\wp_sprintf(
+							// translators: anchor link, contact us text, closing anchor.
+								__( 'This process cannot be completed because one or more parameters are missing from the request. This could be caused by outdated plugins. Ensure all the plugins are up to date. If the problem persists %1$1s%2$2s%3$3s - WP 2FA.', 'wp-2fa' ),
+								'<a href="mailto:support@melapress.com">',
+								__( 'contact us', 'wp-2fa' ),
+								'</a>'
+							)
+						);
+
+						return $errors;
+					}
+				);
+
+				return $errors;
+			}
+
 			if ( ! ( $user_data instanceof \WP_User ) ) {
 				return $errors;
 			}
@@ -138,41 +162,41 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				echo '<div id="login_error"><strong>' . \esc_html( \apply_filters( 'login_errors', \esc_html( $error_msg ) ) ) . '</strong><br /></div>';
 			}
 			?>
-		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo \esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
-			<input type="hidden" name="wp-auth-id"    id="wp-auth-id"    value="<?php echo \esc_attr( $user->ID ); ?>" />
-			<input type="hidden" name="wp-auth-nonce" id="wp-auth-nonce" value="<?php echo \esc_attr( $login_nonce ); ?>" />
-			<input type="hidden" name="reset"      id="reset"      value="<?php echo \esc_attr( 'reset-2fa' ); ?>" />
-			<input type="hidden" name="redirect_to" value="<?php echo \esc_attr( $redirect_to ); ?>" />
-			<?php
-			// Check to see what provider is set and give the relevant authentication page.
+			<form name="lostpasswordform" id="lostpasswordform" action="<?php echo \esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">
+				<input type="hidden" name="wp-auth-id"    id="wp-auth-id"    value="<?php echo \esc_attr( $user->ID ); ?>" />
+				<input type="hidden" name="wp-auth-nonce" id="wp-auth-nonce" value="<?php echo \esc_attr( $login_nonce ); ?>" />
+				<input type="hidden" name="reset"      id="reset"      value="<?php echo \esc_attr( 'reset-2fa' ); ?>" />
+				<input type="hidden" name="redirect_to" value="<?php echo \esc_attr( $redirect_to ); ?>" />
+				<?php
+				// Check to see what provider is set and give the relevant authentication page.
 
-			Login::email_authentication_page( $user, true );
-			?>
-				<p>
-			<?php
+				Login::email_authentication_page( $user, true );
+				?>
+					<p>
+				<?php
 
-			/**
-			 * Using that filter, the default text of the login button could be changed
-			 *
-			 * @param callback - Callback function which is responsible for text manipulation.
-			 *
-			 * @since 2.0.0
-			 */
-			$button_text = apply_filters( WP_2FA_PREFIX . 'new_password_button_text', \esc_html__( 'Get New Password', 'wp-2fa' ) );
-			?>
+				/**
+				 * Using that filter, the default text of the login button could be changed
+				 *
+				 * @param callback - Callback function which is responsible for text manipulation.
+				 *
+				 * @since 2.0.0
+				 */
+				$button_text = apply_filters( WP_2FA_PREFIX . 'new_password_button_text', \esc_html__( 'Get New Password', 'wp-2fa' ) );
+				?>
 
-					<p class="submit">
-						<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php echo \esc_attr( $button_text ); ?>" />
+						<p class="submit">
+							<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php echo \esc_attr( $button_text ); ?>" />
+						</p>
 					</p>
-				</p>
 
-				<p class="2fa-email-resend">
-					<input type="submit" class="button"
-					name="<?php echo \esc_attr( Login::INPUT_NAME_RESEND_CODE ); ?>"
-					value="<?php \esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
-				</p>
+					<p class="2fa-email-resend">
+						<input type="submit" class="button"
+						name="<?php echo \esc_attr( Login::INPUT_NAME_RESEND_CODE ); ?>"
+						value="<?php \esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
+					</p>
 
-		</form>
+			</form>
 			<?php
 			if ( function_exists( 'login_footer' ) ) {
 				\login_footer( 'user_login' );

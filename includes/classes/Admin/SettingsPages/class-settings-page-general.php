@@ -274,33 +274,32 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			<table class="form-table">
 				<tbody>
 					<tr>
-						<th><label for="disable_rest"></label></th>
+						<th><label for="disable_rest"><?php \esc_html_e( 'Disable the REST API endpoints for 2FA', 'wp-2fa' ); ?></label></th>
 						<td>
 							<fieldset>
 								<input type="checkbox" id="disable_rest" name="wp_2fa_settings[disable_rest]" value="disable_rest"
 								<?php \checked( true, Settings_Utils::string_to_bool( WP2FA::get_wp2fa_general_setting( 'disable_rest' ) ) ); ?>
 								>
-								<label for="disable_rest"><?php \esc_html_e( 'disable the REST API endpoints', 'wp-2fa' ); ?></label>
+								<label for="disable_rest"><?php \esc_html_e( 'Disable the REST API endpoints', 'wp-2fa' ); ?></label>
 							</fieldset>
 						</td>
 					</tr>
 				</tbody>
 			</table>
-					<script type="text/javascript">
-						//<![CDATA[
-						jQuery(document).ready(function( $ ) {
-							jQuery( 'body' ).on( 'click', '#disable_rest', function ( e ) {
-								// e.preventDefault();
-								if ( jQuery(this).is(":checked"))  {
-									jQuery('#select_verification_method').addClass('disabled');
-								} else {
-									jQuery('#select_verification_method').removeClass('disabled');
-								}
-							});
-						});
-						//]]>
-					</script>
-
+			<script type="text/javascript">
+				//<![CDATA[
+				jQuery(document).ready(function( $ ) {
+					jQuery( 'body' ).on( 'click', '#disable_rest', function ( e ) {
+						// e.preventDefault();
+						if ( jQuery(this).is(":checked"))  {
+							jQuery('#select_verification_method').addClass('disabled');
+						} else {
+							jQuery('#select_verification_method').removeClass('disabled');
+						}
+					});
+				});
+				//]]>
+			</script>
 			<?php
 		}
 

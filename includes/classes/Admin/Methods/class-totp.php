@@ -24,6 +24,7 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\Methods\Traits\Providers;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Methods\Wizards\TOTP_Wizard_Steps;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
@@ -42,6 +43,8 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 	 * @since 2.6.0
 	 */
 	class TOTP {
+
+		use Providers;
 
 		/**
 		 * The name of the method.
@@ -68,7 +71,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public const POLICY_SETTINGS_NAME = 'enable_totp';
+		public const POLICY_SETTINGS_NAME = 'enable_' . self::METHOD_NAME;
 
 		/**
 		 * Is the totp method enabled
@@ -77,7 +80,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 *
 		 * @var bool
 		 */
-		private static $totp_enabled = null;
+		private static $enabled = null;
 
 		/**
 		 * Totp key assigned to user
@@ -95,9 +98,9 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 */
 		public static function init() {
 
-			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'totp_provider_name_translated' ) );
+			self::always_init();
 
-			\add_filter( WP_2FA_PREFIX . 'providers', array( __CLASS__, 'totp_provider' ) );
+			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'provider_name_translated' ) );
 
 			\add_filter( WP_2FA_PREFIX . 'default_settings', array( __CLASS__, 'add_default_settings' ) );
 
@@ -187,7 +190,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function totp_provider_name_translated( array $providers ) {
+		public static function provider_name_translated( array $providers ) {
 			$providers[ self::METHOD_NAME ] = esc_html__( 'TOTP (one-time code via app)', 'wp-2fa' );
 
 			return $providers;
@@ -238,21 +241,6 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			self::set_user_totp_key( $totp_key, $user );
 			User_Profile::delete_expire_and_enforced_keys( $user->ID );
 			User_Helper::set_user_status( $user );
-		}
-
-		/**
-		 * Adds TOTP as a provider
-		 *
-		 * @param array $providers - Array with all currently supported providers.
-		 *
-		 * @return array
-		 *
-		 * @since 2.6.0
-		 */
-		public static function totp_provider( array $providers ) {
-			$providers[ self::class ] = self::METHOD_NAME;
-
-			return $providers;
 		}
 
 		/**
@@ -336,11 +324,11 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 * @return boolean
 		 */
 		public static function is_enabled( ?string $role = null ): bool {
-			if ( null === self::$totp_enabled ) {
-				self::$totp_enabled = empty( Settings_Utils::get_setting_role( $role, self::POLICY_SETTINGS_NAME ) ) ? false : true;
+			if ( null === self::$enabled || ! isset( self::$enabled[ $role ] ) ) {
+				self::$enabled[ $role ] = empty( Settings_Utils::get_setting_role( $role, self::POLICY_SETTINGS_NAME ) ) ? false : true;
 			}
 
-			return self::$totp_enabled;
+			return self::$enabled[ $role ];
 		}
 
 		/**

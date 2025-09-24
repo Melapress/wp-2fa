@@ -204,7 +204,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 		 *
 		 * @since 2.7.0
 		 */
-		private static function get_methods(): array {
+		public static function get_methods(): array {
 			if ( empty( self::$methods ) ) {
 				/**
 				 * Gives the ability to add classes to the Class_Helper array.

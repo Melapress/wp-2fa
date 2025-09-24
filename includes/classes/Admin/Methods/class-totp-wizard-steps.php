@@ -69,7 +69,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 		 */
 		public static function init() {
 			\add_filter( WP_2FA_PREFIX . 'methods_modal_options', array( __CLASS__, 'totp_option' ), 10, 2 );
-			\add_action( WP_2FA_PREFIX . 'modal_methods', array( __CLASS__, 'totp_modal_configure' ) );
+			\add_action( WP_2FA_PREFIX . 'modal_methods', array( __CLASS__, 'modal_configure' ) );
 			\add_filter( WP_2FA_PREFIX . 'methods_re_configure', array( __CLASS__, 'totp_re_configure' ), 10, 2 );
 			\add_filter( WP_2FA_PREFIX . 'methods_settings', array( __CLASS__, 'totp_wizard_settings' ), 10, 4 );
 		}
@@ -153,18 +153,21 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 		/**
 		 * Shows the TOTP modal configuration.
 		 *
+		 * @param \WP_User $user - WP User object.
+		 *
 		 * @return void
 		 *
 		 * @since 2.6.0
+		 * @since 3.0.0 - Added $user parameter.
 		 */
-		public static function totp_modal_configure() {
-			if ( TOTP::is_enabled() ) {
+		public static function modal_configure( $user ) {
+			if ( TOTP::is_enabled( User_Helper::get_user_role( $user ) ) ) {
 				?>
-			<div class="wizard-step" id="2fa-wizard-totp">
-				<fieldset>
-					<?php self::totp_configure(); ?>
-				</fieldset>
-			</div>
+				<div class="wizard-step" id="2fa-wizard-totp">
+					<fieldset>
+						<?php self::totp_configure( $user ); ?>
+					</fieldset>
+				</div>
 				<?php
 			}
 		}
@@ -172,13 +175,16 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 		/**
 		 * Reconfigures the totp form
 		 *
+		 * @param \WP_User $user - WP User object.
+		 *
 		 * @since 2.6.0
+		 * @since 3.0.0 - $user parameter is added.
 		 *
 		 * @return void
 		 */
-		public static function totp_configure() {
+		public static function totp_configure( $user ) {
 
-			if ( ! TOTP::is_enabled() ) {
+			if ( ! TOTP::is_enabled( User_Helper::get_user_role( $user ) ) ) {
 				return;
 			}
 
@@ -313,11 +319,27 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 				$data_role    = 'data-role="' . $role . '"';
 				$role_id      = '-' . $role;
 			}
+
+			/**
+			 * Filter to check if the interface has to disable this method.
+			 *
+			 * @param bool - Should we disable the method - default false.
+			 * @param Providers - The current method class.
+			 * @param null|string - The role name for which the status must be checked.
+			 *
+			 * @since 2.9.2
+			 */
+			$method_disabled_class = \apply_filters( WP_2FA_PREFIX . 'method_settings_disabled', false, self::$main_class, $role );
+
+			if ( $method_disabled_class ) {
+				$method_disabled_class = 'disabled';
+			}
+
 			\ob_start();
 			?>
 			<div id="<?php echo \esc_attr( TOTP::METHOD_NAME ); ?>-method-wrapper" class="method-wrapper">
 				<?php echo self::hidden_order_setting( $role ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				<label for="totp<?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 0 !important;">
+				<label class="<?php echo \esc_html( $method_disabled_class ); ?>" for="totp<?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 0 !important;">
 					<input type="checkbox" id="totp<?php echo \esc_attr( $role_id ); ?>" name="<?php echo \esc_attr( $name_prefix ); ?>[enable_totp]" value="enable_totp"
 					<?php echo $data_role; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 

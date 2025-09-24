@@ -75,7 +75,7 @@ if ( ! class_exists( '\WP2FA\Utils\Settings_Utils' ) ) {
 			$new_value             = $new_value;
 			$prefixed_setting_name = self::setting_prefixer( $setting_name );
 
-			return ( WP_Helper::is_multisite() ) ? \update_network_option( null, $prefixed_setting_name, $new_value ) : \update_option( $prefixed_setting_name, $new_value, true );
+			return ( WP_Helper::is_multisite() ) ? \update_network_option( null, $prefixed_setting_name, $new_value ) : \update_option( $prefixed_setting_name, $new_value, false );
 		}
 
 		/**
@@ -150,8 +150,8 @@ if ( ! class_exists( '\WP2FA\Utils\Settings_Utils' ) ) {
 		 * @since 3.0.0
 		 */
 		public static function get_setting_role( ?string $role, string $setting_name, bool $default = false ) {
-			$role         = sanitize_key( $role );
-			$setting_name = sanitize_key( $setting_name );
+			$role         = \sanitize_key( $role );
+			$setting_name = \sanitize_key( $setting_name );
 
 			if ( class_exists( Role_Settings_Controller::class, false ) ) {
 				return Role_Settings_Controller::get_setting( $role, $setting_name, $default );

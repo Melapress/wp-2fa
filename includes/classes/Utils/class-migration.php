@@ -376,6 +376,19 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		}
 
 		/**
+		 * Migration for version upto 3.0.0
+		 *
+		 * @return void
+		 *
+		 * @since 3.0.0
+		 */
+		protected static function migrate_up_to_300() {
+
+			Settings_Utils::delete_option( 'update_redirection_needed' );
+			Settings_Utils::delete_option( 'update_notice_needed' );
+		}
+
+		/**
 		 * Migration for version upto 2.9.2
 		 *
 		 * @return void
