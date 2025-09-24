@@ -63,7 +63,7 @@ if ( ! class_exists( '\WP2FA\Utils\Generate_Modal' ) ) {
 			$modal = '
 			<div class="' . esc_attr( $modal_class ) . '" id="' . \esc_attr( $modal_id ) . '" aria-hidden="' . \esc_attr( $hidden ) . '">
 			<div class="modal__overlay" tabindex="-1">
-				<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-' . \esc_attr( $modal_id ) . '-title" ' . $max_width_styles . '>
+				<div class="modal__container" role="dialog" aria-dialog="true" aria-labelledby="modal-' . \esc_attr( $modal_id ) . '-title" ' . $max_width_styles . '>
 					' . $title . '
 				<main class="modal__content wp2fa-form-styles" id="modal-' . \esc_attr( $modal_id ) . '-content">
 					' . wp_kses_post( wpautop( $modal_content ) ) . '

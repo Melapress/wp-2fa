@@ -28,6 +28,7 @@ use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Extensions\OutOfBand\Out_Of_Band;
+use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
 
 /**
  * User_Profile class responsible for the profile page operations
@@ -124,8 +125,9 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						 * @param bool - The status of the settings.
 						 *
 						 * @since 2.2.2
+						 * @since 2.9.2 - Added user ID parameter.
 						 */
-						$show_enable2fa = \apply_filters( WP_2FA_PREFIX . 'enable_2fa_user_setting', true );
+						$show_enable2fa = \apply_filters( WP_2FA_PREFIX . 'enable_2fa_user_setting', true, $user->ID );
 
 						/**
 						 * Gives the ability to change the user profile description message.
@@ -198,8 +200,9 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					 * @param bool - The status of the settings.
 					 *
 					 * @since 2.2.2
+					 * @since 2.9.2 - Added user ID parameter.
 					 */
-					$show_enable2fa = \apply_filters( WP_2FA_PREFIX . 'enable_2fa_user_setting', true );
+					$show_enable2fa = \apply_filters( WP_2FA_PREFIX . 'enable_2fa_user_setting', true, $user->ID );
 
 
 					/**
@@ -245,8 +248,6 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				$form_content .= '<a href="' . \esc_url( $remove_users_2fa_url ) . '" class="button button-primary">' . \esc_html__( 'Reset 2FA configuration', 'wp-2fa' ) . '</a>';
 			}
 
-			// phpcs:disable
-			// phpcs:enable
 
 			// Admin viewing users profile AND users grace period has expired.
 			if ( User_Utils::in_array_all( array( 'can_manage_options', 'grace_has_expired' ), $user_type ) ) {
@@ -279,6 +280,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			$form_content = \apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content, $user );
 
 			if ( $show_form_table && ! empty( $form_content ) ) {
+
 
 				$enabled_methods = User_Helper::get_enabled_method_for_user( $user );
 				$primary_label   = \esc_html__( 'No enabled primary method', 'wp-2fa' );
@@ -364,7 +366,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						</tbody>
 					</table>';
 
-				if ( ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) || User_Helper::get_user_enforced_instantly( $user ) ) { // phpcs:ignore
+				if ( ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) || User_Helper::get_user_enforced_instantly( $user ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 					$form_output .= '
 					<script>
 					window.addEventListener("load", function() {
@@ -402,7 +404,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			<div>
 				<div class="wp2fa-modal micromodal-slide <?php echo \esc_attr( $styling_class ); ?>" id="configure-2fa" aria-hidden="true">
 					<div class="modal__overlay" tabindex="-1">
-						<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+						<div class="modal__container" role="dialog" aria-dialog aria-labelledby="modal-1-title">
 								<?php
 								echo Generate_Modal::generate_modal( // phpcs:ignore
 									'notify-users',
@@ -486,7 +488,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 									</div>
 								<?php } ?>
 
-									<?php Wizard_Steps::show_modal_methods(); ?>
+									<?php Wizard_Steps::show_modal_methods( $user ); ?>
 								<?php
 
 								$backup_methods = Settings::get_enabled_backup_methods_for_user_role( $user );
@@ -535,7 +537,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				<div class="wp2fa-modal micromodal-slide <?php echo \esc_attr( $styling_class ); ?>" id="configure-2fa-backup-codes" aria-hidden="true">
 					<input type="hidden" id="wp-2fa-manual-backup-codes" />
 					<div class="modal__overlay" tabindex="-1">
-						<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+						<div class="modal__container" role="dialog" aria-dialog aria-labelledby="modal-1-title">
 						<button class="modal__close modal_cancel" aria-label="Close modal" data-close-2fa-modal></button>
 						<main class="modal__content wp2fa-form-styles" id="modal-1-content">
 							<?php Wizard_Steps::generated_backup_codes( true ); ?>
@@ -838,7 +840,14 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				}
 			}
 
-			return true;
+			/**
+			 * Gives the ability to remove the "Remove" button from the user profile page.
+			 *
+			 * @param bool - The status of the settings.
+			 *
+			 * @since 2.9.2
+			 */
+			return \apply_filters( WP_2FA_PREFIX . 'can_user_remove_2fa', \true, $user_id );
 		}
 
 		/**

@@ -11,6 +11,7 @@
 
 namespace WP2FA\Admin;
 
+use WP2FA\Utils\Abstract_Migration;
 use WP2FA\Utils\Settings_Utils;
 
 /**
@@ -30,10 +31,11 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function init() {
-			add_action( 'admin_init', array( __CLASS__, 'on_plugin_update' ), 10 );
-			add_action( 'admin_notices', array( __CLASS__, 'plugin_update_banner' ) );
-			add_action( 'network_admin_notices', array( __CLASS__, 'plugin_update_banner' ) );
-			add_action( 'wp_ajax_dismiss_update_notice', array( __CLASS__, 'dismiss_update_notice' ) );
+			\add_action( 'admin_notices', array( __CLASS__, 'plugin_update_banner' ) );
+			\add_action( 'network_admin_notices', array( __CLASS__, 'plugin_update_banner' ) );
+			if ( Settings_Utils::get_option( Abstract_Migration::UPGRADE_NOTICE, false ) ) {
+				\add_action( 'wp_ajax_dismiss_update_notice', array( __CLASS__, 'dismiss_update_notice' ) );
+			}
 		}
 
 		/**
@@ -43,26 +45,30 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 		 * @return void
 		 */
 		public static function plugin_update_banner() {
-			$screen         = get_current_screen();
-			$correct_screen = ( 'toplevel_page_wp-2fa-policies-network' === $screen->base || 'toplevel_page_wp-2fa-policies' === $screen->base );
+			global $current_screen;
 
-			if ( $correct_screen && Settings_Utils::get_option( 'wp_2fa_update_notice_needed', false ) ) {
-				/* translators: %s: version number. */
-				printf(
-					'<div id="wp_2fa_update_notice" class="notice notice-success is-dismissible"><img src="%1$s"><p><strong>%2$s</strong></p><p>%3$s</p><a href="https://melapress.com/wordpress-2fa/releases/" target="_blank" class="button button-primary dismiss_update_notice" data-dismiss-nonce="%4$s">%5$s</a></p></div>',
-					esc_url( WP_2FA_URL . 'dist/images/wp-2fa-square.png' ),
-					esc_html__( 'Thank you for updating WP 2FA.', 'wp-2fa' ),
-					sprintf( esc_html__( 'This is version %s. Check out the release notes to see what is new and improved in this update.', 'wp-2fa' ), esc_html( WP_2FA_VERSION ) ),
-					esc_attr( wp_create_nonce( 'wp_2fa_dismiss_update_notice_nonce' ) ),
-					esc_html__( 'Release notes', 'wp-2fa' )
-				);
+			if ( ! isset( $current_screen ) ) {
+				return;
+			}
+
+			$screen = \get_current_screen();
+
+			$correct_screen = ( 'toplevel_page_wp-2fa-policies-network' === $screen->base || 'toplevel_page_wp-2fa-policies' === $screen->base ||
+			'wp-2fa_page_wp-2fa-settings' === $screen->base || 'wp-2fa_page_wp-2fa-settings-network' === $screen->base ||
+			'wp-2fa_page_wp-2fa-reports' === $screen->base || 'wp-2fa_page_wp-2fa-reports-network' === $screen->base ||
+			'wp-2fa_page_wp-2fa-help-contact-us' === $screen->base || 'wp-2fa_page_wp-2fa-help-contact-us-network' === $screen->base ||
+			'wp-2fa_page_wp-2fa-premium-features' === $screen->base || 'wp-2fa_page_wp-2fa-premium-features-network' === $screen->base ||
+			'wp-2fa_page_wp-2fa-policies-account' === $screen->base || 'wp-2fa_page_wp-2fa-policies-account' === $screen->base );
+
+			if ( $correct_screen && Settings_Utils::get_option( Abstract_Migration::UPGRADE_NOTICE, false ) ) {
+				include_once WP_2FA_PATH . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'Free' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'plugin-update-card.php';
 				?>
 					<script type="text/javascript">
 					//<![CDATA[
 					jQuery(document).ready(function( $ ) {
-						jQuery( 'body' ).on( 'click', 'a.dismiss_update_notice, #wp_2fa_update_notice .notice-dismiss', function ( e ) {
+						jQuery( 'body' ).on( 'click', '.wp-2fa-plugin-update-close', function ( e ) {
 							e.preventDefault();
-							var nonce  = jQuery( '#wp_2fa_update_notice [data-dismiss-nonce]' ).data( 'dismiss-nonce' );
+							var nonce  = jQuery( '.wp-2fa-plugin-update' ).data( 'nonce' );
 							
 							jQuery.ajax({
 								type: 'POST',
@@ -72,47 +78,14 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 									nonce : nonce,
 								},
 								success: function ( result ) {		
-									jQuery( '#wp_2fa_update_notice' ).slideUp( 300 );
+									jQuery( '.wp-2fa-plugin-update' ).slideUp( 300 );
 								}
 							});
 						});
 					});
 					//]]>
 					</script>
-					<style>
-						#wp_2fa_update_notice {
-							border: 2px solid #0f5cf2
-						}
-						#wp_2fa_update_notice .button-primary {
-							background: #0f5cf2;
-							border-color: #0f5cf2;
-						}
-						#wp_2fa_update_notice img {
-							float: left;
-							max-width: 100px;
-							margin: 10px 12px 10px 0;
-						}
-					</style>
 				<?php
-			}
-		}
-
-		/**
-		 * Redirects user to admin on plugin update.
-		 *
-		 * @since 2.7.0
-		 * @return void
-		 */
-		public static function on_plugin_update() {
-			if ( Settings_Utils::get_option( 'wp_2fa_update_redirection_needed', false ) ) {
-				delete_site_option( 'wp_2fa_update_redirection_needed' );
-				update_site_option( 'wp_2fa_update_notice_needed', true );
-				$args = array(
-					'page' => 'wp-2fa-policies',
-				);
-				$url  = add_query_arg( $args, network_admin_url( 'admin.php' ) );
-				wp_safe_redirect( $url );
-				exit;
 			}
 		}
 
@@ -124,15 +97,15 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 		 */
 		public static function dismiss_update_notice() {
 			// Grab POSTed data.
-			$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : false;
+			$nonce = isset( $_POST['nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ) : false;
 			// Check nonce.
-			if ( ! current_user_can( 'manage_options' ) || empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wp_2fa_dismiss_update_notice_nonce' ) ) {
-				wp_send_json_error( esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
+			if ( ! \current_user_can( 'manage_options' ) || empty( $nonce ) || ! \wp_verify_nonce( $nonce, 'dismiss_upgrade_notice' ) ) {
+				\wp_send_json_error( esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
 			}
 
-			delete_site_option( 'wp_2fa_update_notice_needed' );
+			Settings_Utils::delete_option( Abstract_Migration::UPGRADE_NOTICE );
 
-			wp_send_json_success( esc_html__( 'Complete.', 'wp-2fa' ) );
+			\wp_send_json_success( esc_html__( 'Complete.', 'wp-2fa' ) );
 		}
 	}
 }

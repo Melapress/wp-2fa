@@ -489,38 +489,41 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 					<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
 					<div class="step-setting-wrapper active" data-step-title="<?php \esc_html_e( '2FA methods', 'wp-2fa' ); ?>">
 						<?php First_Time_Wizard_Steps::select_method( true ); ?>
+						<div>
+							<p class="description"><?php \esc_html_e( 'These are the most commonly used two-factor authentication methods. WP 2FA also supports additional methods, which you can set up later from the plugin settings after finishing or skipping this wizard.', 'wp-2fa' ); ?></p>
+						</div>
 						<div class="wp2fa-setup-actions">
-							<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+							<button type="button" class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></button>
 						</div>
 					</div>
 					<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Alternative methods', 'wp-2fa' ); ?>">
 						<?php First_Time_Wizard_Steps::backup_method( true ); ?>
 						<div class="wp2fa-setup-actions">
-							<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+							<button type="button" class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></button>
 						</div>
 					</div>
 					<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( '2FA policy', 'wp-2fa' ); ?>">
 						<?php First_Time_Wizard_Steps::enforcement_policy( true ); ?>
 						<div class="wp2fa-setup-actions">
-							<a class="button button-primary continue-wizard hidden" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+							<button type="button" class="button button-primary continue-wizard hidden" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></button>
 							<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php \esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php \esc_html_e( 'All done', 'wp-2fa' ); ?></button>
 						</div>
 					</div>
 					<div class="step-setting-wrapper hidden" data-step-title="<?php \esc_html_e( 'Exclude users', 'wp-2fa' ); ?>">
 					<?php First_Time_Wizard_Steps::exclude_users( true ); ?>
 						<div class="wp2fa-setup-actions">
-							<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+							<button type="button" class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></button>
 						</div>
 					</div>
 
-					<?php if ( WP_Helper::is_multisite() ) : ?>
+					<?php if ( WP_Helper::is_multisite() ) { ?>
 						<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Exclude sites', 'wp-2fa' ); ?>">
 						<?php First_Time_Wizard_Steps::excluded_network_sites( true ); ?>
 							<div class="wp2fa-setup-actions">
-								<a class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></a>
+								<button type="button" class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></button>
 							</div>
 						</div>
-					<?php endif; ?>
+					<?php } ?>
 
 					<div class="step-setting-wrapper hidden" data-step-title="<?php \esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
 						<h3><?php \esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
@@ -628,15 +631,11 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
 			}
 
-			// phpcs:disable
-			/* @free:start */
-			// phpcs:enable
+			// @free:start
 			$message         .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
 			$message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
 			$message .= '</p>';
-			// phpcs:disable
-			/* @free:end */
-			// phpcs:enable
+			// @free:end
 
 			// If we have a nonce posted, check it.
 			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {

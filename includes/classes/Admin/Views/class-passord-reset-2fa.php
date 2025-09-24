@@ -36,8 +36,6 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Password_Reset_2FA' ) ) {
 		 * @since 2.5.0
 		 */
 		public static function init() {
-			// phpcs:disable
-			// phpcs:enable
 		}
 
 		/**

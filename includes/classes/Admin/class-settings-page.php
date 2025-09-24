@@ -173,6 +173,12 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_unlocked_email_subject' ) ) );
 			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_unlocked_email_body' ), $user_id ) );
 
+			// @free:start
+			$message         .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
+			$message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$message .= '</p>';
+			// @free:end
+
 			return self::send_email( $email, $subject, $message );
 		}
 
@@ -417,7 +423,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				$from_email = sanitize_email( WP2FA::get_wp2fa_email_templates( 'custom_from_email_address' ) );
 				$headers   .= 'From: ' . $from_name . ' <' . $from_email . '>' . "\r\n";
 			} else {
-				$headers .= 'From: wp2fa <' . self::get_default_email_address() . '>' . "\r\n";
+				$headers .= 'From: WP 2FA from Melapress <' . self::get_default_email_address() . '>' . "\r\n";
 			}
 
 			// Fire our email.

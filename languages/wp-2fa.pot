@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v3.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 2.9.3\n"
+"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 3.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-2fa\n"
 "Last-Translator: WP White Security <info@wpwhitesecurity.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-09-11T07:17:43+00:00\n"
+"POT-Creation-Date: 2025-09-24T04:21:31+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wp-2fa\n"
@@ -33,6 +33,204 @@ msgstr ""
 #. Author of the plugin
 #: wp-2fa.php
 msgid "Melapress"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-render.php:75
+#: extensions/authy/class-authy-render.php:141
+#: extensions/clickatell/class-clickatell-render.php:149
+#: extensions/clickatell/class-clickatell-wizard-steps.php:218
+#: extensions/email-backup/class-email-backup-render.php:158
+#: extensions/twilio/class-twilio-render.php:165
+#: extensions/twilio/class-twilio-wizard-steps.php:217
+#: extensions/yubico/class-yubico-render.php:149
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:348
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:282
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:401
+#: includes/classes/Authenticator/class-login.php:1209
+#: includes/classes/Authenticator/class-login.php:1268
+msgid "Verification Code:"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:124
+#: extensions/authy/class-authy-wizard-steps.php:321
+#: extensions/clickatell/class-clickatell-wizard-steps.php:312
+#: extensions/twilio/class-twilio-wizard-steps.php:311
+msgid "Please verify credentials to enable."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:127
+msgid "Zero-setup email 2FA"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:133
+msgid "When this method is enabled and enforced via policies, users are automatically enrolled—no setup or configuration is required, hence why the other methods are disabled when this is enabled. Upon their next login, they will receive a one-time code via email, which they must enter to complete the login process. "
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:138
+msgid "Zero-setup Email 2FA works differently from other methods. When enabled, it takes precedence and automatically applies to all users covered by the policy, unless specific users or roles are excluded. This means that existing custom role policies (e.g. different rules for administrators or editors) still apply, and excluded users/roles remain unaffected."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:139
+msgid "This method immediately enforces 2FA for all applicable users. Even users who already set up another 2FA method will be switched to Zero-setup Email 2FA if the policy requires it. At their next login, they’ll be asked to enter the one-time code sent by email."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:140
+msgid "Users cannot disable this method or remove 2FA themselves. Only administrators can exclude users or roles via the policy settings."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:146
+msgid "IMPORTANT: "
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email-wizard-steps.php:147
+msgid "The 2FA codes are sent via email. Therefore, reliable email delivery is essential. Please test email functionality before enabling."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:186
+#: extensions/0-setup-email/class-zero-setup-email.php:537
+#: extensions/authy/class-authy.php:175
+#: extensions/authy/class-authy.php:742
+#: extensions/clickatell/class-clickatell.php:180
+#: extensions/clickatell/class-clickatell.php:737
+#: extensions/email-backup/class-email-backup.php:142
+#: extensions/email-backup/class-email-backup.php:389
+#: extensions/twilio/class-twilio.php:198
+#: extensions/twilio/class-twilio.php:821
+#: extensions/yubico/class-yubico.php:181
+#: extensions/yubico/class-yubico.php:714
+#: includes/classes/Admin/Methods/class-email.php:170
+#: includes/classes/Admin/Methods/class-totp.php:176
+#: includes/classes/Authenticator/class-login.php:1004
+#: includes/classes/Authenticator/class-login.php:1057
+#: includes/classes/Authenticator/class-reset-password.php:261
+msgid "ERROR: Invalid verification code."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:195
+#: extensions/0-setup-email/class-zero-setup-email.php:539
+#: includes/classes/Admin/Methods/class-email.php:179
+#: includes/classes/Authenticator/class-login.php:1059
+msgid " For security reasons you have been sent a new code via email. Please use this new code to log in."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:215
+msgid "Zero Setup Email"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:318
+#: includes/classes/Admin/Methods/class-email.php:289
+msgid "Setting up HOTP (one-time code via email)"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:318
+#: includes/classes/Admin/Methods/class-email.php:289
+msgid "Please select the email address where the one-time code should be sent:"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:319
+#: includes/classes/Admin/Methods/class-email.php:290
+msgid "To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:320
+#: includes/classes/Admin/Methods/class-email.php:291
+msgid "IMPORTANT"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:320
+#: includes/classes/Admin/Methods/class-email.php:291
+msgid "To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is {from_email}"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:321
+#: extensions/authy/class-authy.php:860
+#: extensions/clickatell/class-clickatell.php:826
+#: extensions/out-of-band/class-out-of-band.php:951
+#: extensions/twilio/class-twilio.php:1022
+#: extensions/yubico/class-yubico.php:802
+#: includes/classes/Admin/Methods/class-email.php:292
+#: includes/classes/Admin/Methods/class-totp.php:594
+msgid "Almost there…"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:321
+#: includes/classes/Admin/Methods/class-email.php:292
+msgid "Please type in the one-time code sent to your email address to finalize the setup"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:322
+#: includes/classes/Admin/Methods/class-email.php:293
+msgid "{reconfigure_or_configure_capitalized} one-time code over email method"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:322
+#: includes/classes/Admin/Methods/class-email.php:293
+msgid "Click the below button to {reconfigure_or_configure} the email address where the one-time code should be sent."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:323
+#: includes/classes/Admin/Methods/class-email.php:294
+msgid "One-time code via email"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:325
+#: includes/classes/Utils/class-white-label.php:156
+#: includes/classes/Utils/class-white-label.php:161
+#: includes/classes/Utils/class-white-label.php:162
+msgid "Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:325
+#: includes/classes/Utils/class-white-label.php:156
+#: includes/classes/Utils/class-white-label.php:161
+#: includes/classes/Utils/class-white-label.php:162
+msgid "Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:339
+#: includes/classes/Admin/Methods/class-email.php:309
+msgid "Email option label"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:345
+#: includes/classes/Admin/Methods/class-email.php:315
+msgid "Email option hint"
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:514
+#: extensions/0-setup-email/class-zero-setup-email.php:531
+#: extensions/authy/class-authy.php:735
+#: extensions/clickatell/class-clickatell.php:730
+#: extensions/email-backup/class-email-backup.php:377
+#: extensions/twilio/class-twilio.php:814
+#: extensions/yubico/class-yubico.php:707
+#: includes/classes/Authenticator/class-login.php:216
+#: includes/classes/Authenticator/class-login.php:568
+#: includes/classes/Authenticator/class-login.php:983
+#: includes/classes/Authenticator/class-login.php:1000
+#: includes/classes/Authenticator/class-login.php:1025
+#: includes/classes/Authenticator/class-login.php:1051
+#: includes/classes/Authenticator/class-reset-password.php:113
+#: includes/classes/Authenticator/class-reset-password.php:236
+#: includes/classes/Authenticator/class-reset-password.php:253
+msgid "Failed to create a login nonce."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:525
+#: extensions/twilio/class-twilio.php:808
+#: extensions/yubico/class-yubico.php:701
+#: includes/classes/Authenticator/class-login.php:994
+#: includes/classes/Authenticator/class-login.php:1020
+#: includes/classes/Authenticator/class-login.php:1045
+#: includes/classes/Authenticator/class-reset-password.php:247
+msgid "<strong>Error</strong>: User can not be authenticated."
+msgstr ""
+
+#: extensions/0-setup-email/class-zero-setup-email.php:535
+#: extensions/email-backup/class-email-backup.php:387
+#: includes/classes/Authenticator/class-login.php:1055
+#: includes/classes/Authenticator/class-reset-password.php:259
+msgid "A new code has been sent."
 msgstr ""
 
 #: extensions/authy/class-authy-api.php:175
@@ -63,7 +261,7 @@ msgid "Authy Production API key"
 msgstr ""
 
 #: extensions/authy/class-authy-render.php:73
-#: extensions/authy/class-authy-wizard-steps.php:339
+#: extensions/authy/class-authy-wizard-steps.php:361
 msgid "Verify the Production API Key"
 msgstr ""
 
@@ -76,21 +274,6 @@ msgstr ""
 
 #: extensions/authy/class-authy-render.php:138
 msgid "OR"
-msgstr ""
-
-#: extensions/authy/class-authy-render.php:141
-#: extensions/clickatell/class-clickatell-render.php:149
-#: extensions/clickatell/class-clickatell-wizard-steps.php:215
-#: extensions/email-backup/class-email-backup-render.php:147
-#: extensions/twilio/class-twilio-render.php:165
-#: extensions/twilio/class-twilio-wizard-steps.php:214
-#: extensions/yubico/class-yubico-render.php:149
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:325
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:276
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:379
-#: includes/classes/Authenticator/class-login.php:1211
-#: includes/classes/Authenticator/class-login.php:1270
-msgid "Verification Code:"
 msgstr ""
 
 #: extensions/authy/class-authy-user.php:83
@@ -113,26 +296,26 @@ msgstr ""
 #: extensions/clickatell/class-clickatell-user.php:152
 #: extensions/clickatell/class-clickatell-user.php:219
 #: extensions/clickatell/class-clickatell-user.php:232
-#: extensions/clickatell/class-clickatell.php:193
-#: extensions/clickatell/class-clickatell.php:206
-#: extensions/clickatell/class-clickatell.php:239
-#: extensions/clickatell/class-clickatell.php:252
-#: extensions/clickatell/class-clickatell.php:802
-#: extensions/clickatell/class-clickatell.php:815
+#: extensions/clickatell/class-clickatell.php:197
+#: extensions/clickatell/class-clickatell.php:210
+#: extensions/clickatell/class-clickatell.php:243
+#: extensions/clickatell/class-clickatell.php:256
+#: extensions/clickatell/class-clickatell.php:791
+#: extensions/clickatell/class-clickatell.php:804
 #: extensions/twilio/class-twilio-user.php:143
 #: extensions/twilio/class-twilio-user.php:219
-#: extensions/twilio/class-twilio.php:235
-#: extensions/twilio/class-twilio.php:265
-#: extensions/twilio/class-twilio.php:286
-#: extensions/twilio/class-twilio.php:884
-#: extensions/twilio/class-twilio.php:897
+#: extensions/twilio/class-twilio.php:240
+#: extensions/twilio/class-twilio.php:270
+#: extensions/twilio/class-twilio.php:291
+#: extensions/twilio/class-twilio.php:874
+#: extensions/twilio/class-twilio.php:887
 #: extensions/yubico/class-yubico-user.php:141
 #: extensions/yubico/class-yubico-user.php:232
-#: extensions/yubico/class-yubico.php:202
-#: extensions/yubico/class-yubico.php:224
-#: extensions/yubico/class-yubico.php:245
-#: extensions/yubico/class-yubico.php:764
-#: includes/classes/Utils/class-user-utils.php:323
+#: extensions/yubico/class-yubico.php:207
+#: extensions/yubico/class-yubico.php:229
+#: extensions/yubico/class-yubico.php:250
+#: extensions/yubico/class-yubico.php:754
+#: includes/classes/Utils/class-user-utils.php:330
 msgid "Not allowed"
 msgstr ""
 
@@ -145,21 +328,21 @@ msgstr ""
 #: extensions/authy/class-authy.php:834
 #: extensions/clickatell/class-clickatell-user.php:146
 #: extensions/clickatell/class-clickatell-user.php:226
-#: extensions/clickatell/class-clickatell.php:200
-#: extensions/clickatell/class-clickatell.php:246
-#: extensions/clickatell/class-clickatell.php:809
-#: extensions/out-of-band/class-out-of-band.php:417
+#: extensions/clickatell/class-clickatell.php:204
+#: extensions/clickatell/class-clickatell.php:250
+#: extensions/clickatell/class-clickatell.php:798
+#: extensions/out-of-band/class-out-of-band.php:422
 #: extensions/twilio/class-twilio-user.php:137
 #: extensions/twilio/class-twilio-user.php:213
-#: extensions/twilio/class-twilio.php:229
-#: extensions/twilio/class-twilio.php:280
-#: extensions/twilio/class-twilio.php:891
+#: extensions/twilio/class-twilio.php:234
+#: extensions/twilio/class-twilio.php:285
+#: extensions/twilio/class-twilio.php:881
 #: extensions/yubico/class-yubico-user.php:135
 #: extensions/yubico/class-yubico-user.php:226
-#: extensions/yubico/class-yubico.php:196
-#: extensions/yubico/class-yubico.php:239
-#: extensions/yubico/class-yubico.php:758
-#: includes/classes/Admin/class-setup-wizard.php:582
+#: extensions/yubico/class-yubico.php:201
+#: extensions/yubico/class-yubico.php:244
+#: extensions/yubico/class-yubico.php:748
+#: includes/classes/Admin/class-setup-wizard.php:585
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:183
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:231
 msgid "Nonce checking failed"
@@ -172,20 +355,20 @@ msgstr ""
 #: extensions/authy/class-authy.php:567
 #: extensions/clickatell/class-clickatell-user.php:149
 #: extensions/clickatell/class-clickatell-user.php:229
-#: extensions/clickatell/class-clickatell.php:203
-#: extensions/clickatell/class-clickatell.php:249
-#: extensions/clickatell/class-clickatell.php:812
-#: extensions/out-of-band/class-out-of-band.php:420
+#: extensions/clickatell/class-clickatell.php:207
+#: extensions/clickatell/class-clickatell.php:253
+#: extensions/clickatell/class-clickatell.php:801
+#: extensions/out-of-band/class-out-of-band.php:425
 #: extensions/twilio/class-twilio-user.php:140
 #: extensions/twilio/class-twilio-user.php:216
-#: extensions/twilio/class-twilio.php:232
-#: extensions/twilio/class-twilio.php:283
-#: extensions/twilio/class-twilio.php:894
+#: extensions/twilio/class-twilio.php:237
+#: extensions/twilio/class-twilio.php:288
+#: extensions/twilio/class-twilio.php:884
 #: extensions/yubico/class-yubico-user.php:138
 #: extensions/yubico/class-yubico-user.php:229
-#: extensions/yubico/class-yubico.php:199
-#: extensions/yubico/class-yubico.php:242
-#: extensions/yubico/class-yubico.php:761
+#: extensions/yubico/class-yubico.php:204
+#: extensions/yubico/class-yubico.php:247
+#: extensions/yubico/class-yubico.php:751
 msgid "Nonce is not provided"
 msgstr ""
 
@@ -223,7 +406,7 @@ msgstr ""
 
 #: extensions/authy/class-authy-wizard-steps.php:105
 #: extensions/clickatell/class-clickatell-wizard-steps.php:107
-#: extensions/email-backup/class-email-backup-render.php:110
+#: extensions/email-backup/class-email-backup-render.php:121
 #: extensions/twilio/class-twilio-wizard-steps.php:106
 #: extensions/yubico/class-yubico-wizard-steps.php:106
 #: includes/classes/Admin/Views/class-wizard-steps.php:175
@@ -235,17 +418,17 @@ msgid "Close wizard"
 msgstr ""
 
 #: extensions/authy/class-authy-wizard-steps.php:120
-#: extensions/authy/class-authy-wizard-steps.php:209
+#: extensions/authy/class-authy-wizard-steps.php:212
 #: extensions/clickatell/class-clickatell-wizard-steps.php:121
-#: extensions/clickatell/class-clickatell-wizard-steps.php:205
-#: extensions/out-of-band/class-oob-wizard-steps.php:202
+#: extensions/clickatell/class-clickatell-wizard-steps.php:208
+#: extensions/out-of-band/class-oob-wizard-steps.php:205
 #: extensions/twilio/class-twilio-wizard-steps.php:118
-#: extensions/twilio/class-twilio-wizard-steps.php:204
+#: extensions/twilio/class-twilio-wizard-steps.php:207
 #: extensions/yubico/class-yubico-wizard-steps.php:118
-#: extensions/yubico/class-yubico-wizard-steps.php:203
+#: extensions/yubico/class-yubico-wizard-steps.php:206
 #: includes/classes/Admin/Methods/class-email-wizard-steps.php:97
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:314
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:266
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:337
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:272
 msgid "I'm Ready"
 msgstr ""
 
@@ -255,125 +438,101 @@ msgstr ""
 msgid "Change phone"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:202
+#: extensions/authy/class-authy-wizard-steps.php:205
 msgid "Authy phone"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:210
-#: extensions/authy/class-authy-wizard-steps.php:231
-#: extensions/clickatell/class-clickatell-wizard-steps.php:222
-#: extensions/out-of-band/class-oob-wizard-steps.php:203
-#: extensions/out-of-band/class-oob-wizard-steps.php:229
+#: extensions/authy/class-authy-wizard-steps.php:213
+#: extensions/authy/class-authy-wizard-steps.php:234
+#: extensions/clickatell/class-clickatell-wizard-steps.php:225
+#: extensions/out-of-band/class-oob-wizard-steps.php:206
+#: extensions/out-of-band/class-oob-wizard-steps.php:232
 #: extensions/settings-import-export/class-settings-import-export.php:398
-#: extensions/twilio/class-twilio-wizard-steps.php:221
-#: extensions/yubico/class-yubico-wizard-steps.php:220
-#: includes/classes/Admin/class-user-profile.php:470
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:315
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:341
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:267
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:290
+#: extensions/twilio/class-twilio-wizard-steps.php:224
+#: extensions/yubico/class-yubico-wizard-steps.php:223
+#: includes/classes/Admin/class-user-profile.php:472
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:338
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:364
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:273
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:296
 #: includes/classes/Admin/Views/class-wizard-steps.php:65
 msgid "Cancel"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:214
-#: extensions/clickatell/class-clickatell-wizard-steps.php:209
-#: extensions/out-of-band/class-oob-wizard-steps.php:207
-#: extensions/twilio/class-twilio-wizard-steps.php:208
-#: extensions/yubico/class-yubico-wizard-steps.php:207
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:319
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:270
+#: extensions/authy/class-authy-wizard-steps.php:217
+#: extensions/clickatell/class-clickatell-wizard-steps.php:212
+#: extensions/out-of-band/class-oob-wizard-steps.php:210
+#: extensions/twilio/class-twilio-wizard-steps.php:211
+#: extensions/yubico/class-yubico-wizard-steps.php:210
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:342
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:276
 msgid "Verify configuration"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:224
-#: extensions/yubico/class-yubico-wizard-steps.php:213
+#: extensions/authy/class-authy-wizard-steps.php:227
+#: extensions/yubico/class-yubico-wizard-steps.php:216
 msgid "Verification code:"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:230
-#: extensions/clickatell/class-clickatell-wizard-steps.php:221
-#: extensions/out-of-band/class-oob-wizard-steps.php:225
-#: extensions/twilio/class-twilio-wizard-steps.php:220
-#: extensions/yubico/class-yubico-wizard-steps.php:219
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:337
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:289
+#: extensions/authy/class-authy-wizard-steps.php:233
+#: extensions/clickatell/class-clickatell-wizard-steps.php:224
+#: extensions/out-of-band/class-oob-wizard-steps.php:228
+#: extensions/twilio/class-twilio-wizard-steps.php:223
+#: extensions/yubico/class-yubico-wizard-steps.php:222
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:360
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:295
 msgid "Validate & Save"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:299
-#: extensions/clickatell/class-clickatell-wizard-steps.php:286
-#: extensions/twilio/class-twilio-wizard-steps.php:285
-msgid "Please verify credentials to enable."
-msgstr ""
-
-#: extensions/authy/class-authy-wizard-steps.php:302
+#: extensions/authy/class-authy-wizard-steps.php:324
 msgid "Push notification via Authy App"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:308
+#: extensions/authy/class-authy-wizard-steps.php:330
 msgid "When using this method, users will receive a notification on their Authy app to confirm the log in. "
 msgstr ""
 
 #. Translators: Authy service documentation
-#: extensions/authy/class-authy-wizard-steps.php:312
+#: extensions/authy/class-authy-wizard-steps.php:334
 msgid "Once they tap / approve the notification they log in to the website. Refer to the %s for more information on how to use the Authy with WP 2FA for two-factor authentication on your website."
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:313
+#: extensions/authy/class-authy-wizard-steps.php:335
 msgid "Authy integration documentation"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:322
-#: extensions/clickatell/class-clickatell-wizard-steps.php:309
-#: extensions/twilio/class-twilio-wizard-steps.php:308
+#: extensions/authy/class-authy-wizard-steps.php:344
+#: extensions/clickatell/class-clickatell-wizard-steps.php:335
+#: extensions/twilio/class-twilio-wizard-steps.php:334
 #: includes/classes/Admin/class-settings-page.php:63
 #: includes/classes/Admin/class-settings-page.php:138
 msgid "Settings"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:324
-#: extensions/clickatell/class-clickatell-wizard-steps.php:311
-#: extensions/twilio/class-twilio-wizard-steps.php:310
+#: extensions/authy/class-authy-wizard-steps.php:346
+#: extensions/clickatell/class-clickatell-wizard-steps.php:337
+#: extensions/twilio/class-twilio-wizard-steps.php:336
 msgid "Configure connection details"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:324
-#: extensions/clickatell/class-clickatell-wizard-steps.php:311
-#: extensions/twilio/class-twilio-wizard-steps.php:310
+#: extensions/authy/class-authy-wizard-steps.php:346
+#: extensions/clickatell/class-clickatell-wizard-steps.php:337
+#: extensions/twilio/class-twilio-wizard-steps.php:336
 msgid "Delete connection details"
 msgstr ""
 
-#: extensions/authy/class-authy-wizard-steps.php:335
+#: extensions/authy/class-authy-wizard-steps.php:357
 msgid "Authy Production API"
 msgstr ""
 
-#: extensions/authy/class-authy.php:175
-#: extensions/authy/class-authy.php:742
-#: extensions/clickatell/class-clickatell.php:176
-#: extensions/clickatell/class-clickatell.php:748
-#: extensions/email-backup/class-email-backup.php:141
-#: extensions/email-backup/class-email-backup.php:418
-#: extensions/twilio/class-twilio.php:193
-#: extensions/twilio/class-twilio.php:831
-#: extensions/yubico/class-yubico.php:176
-#: extensions/yubico/class-yubico.php:724
-#: includes/classes/Admin/Methods/class-email.php:169
-#: includes/classes/Admin/Methods/class-totp.php:173
-#: includes/classes/Authenticator/class-login.php:1006
-#: includes/classes/Authenticator/class-login.php:1059
-#: includes/classes/Authenticator/class-reset-password.php:237
-msgid "ERROR: Invalid verification code."
-msgstr ""
-
 #: extensions/authy/class-authy.php:232
-#: extensions/clickatell/class-clickatell.php:311
-#: extensions/twilio/class-twilio.php:349
-#: extensions/yubico/class-yubico.php:299
+#: extensions/clickatell/class-clickatell.php:315
+#: extensions/twilio/class-twilio.php:354
+#: extensions/yubico/class-yubico.php:304
 #: includes/classes/Admin/SettingsPages/class-settings-page-general.php:154
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:563
 #: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:37
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:239
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:244
 msgid "You do not have sufficient permissions to access this page."
 msgstr ""
 
@@ -381,39 +540,39 @@ msgstr ""
 #: extensions/authy/class-authy.php:351
 #: extensions/authy/class-authy.php:352
 #: extensions/authy/class-authy.php:353
-#: extensions/clickatell/class-clickatell.php:449
 #: extensions/clickatell/class-clickatell.php:453
-#: extensions/clickatell/class-clickatell.php:454
-#: extensions/clickatell/class-clickatell.php:455
-#: extensions/twilio/class-twilio.php:480
-#: extensions/twilio/class-twilio.php:484
+#: extensions/clickatell/class-clickatell.php:457
+#: extensions/clickatell/class-clickatell.php:458
+#: extensions/clickatell/class-clickatell.php:459
 #: extensions/twilio/class-twilio.php:485
-#: extensions/twilio/class-twilio.php:486
-#: extensions/yubico/class-yubico.php:416
-#: extensions/yubico/class-yubico.php:420
+#: extensions/twilio/class-twilio.php:489
+#: extensions/twilio/class-twilio.php:490
+#: extensions/twilio/class-twilio.php:491
 #: extensions/yubico/class-yubico.php:421
-#: extensions/yubico/class-yubico.php:422
+#: extensions/yubico/class-yubico.php:425
+#: extensions/yubico/class-yubico.php:426
+#: extensions/yubico/class-yubico.php:427
 msgid "Invalid number"
 msgstr ""
 
 #: extensions/authy/class-authy.php:348
-#: extensions/clickatell/class-clickatell.php:450
-#: extensions/twilio/class-twilio.php:481
-#: extensions/yubico/class-yubico.php:417
+#: extensions/clickatell/class-clickatell.php:454
+#: extensions/twilio/class-twilio.php:486
+#: extensions/yubico/class-yubico.php:422
 msgid "Invalid country code"
 msgstr ""
 
 #: extensions/authy/class-authy.php:349
-#: extensions/clickatell/class-clickatell.php:451
-#: extensions/twilio/class-twilio.php:482
-#: extensions/yubico/class-yubico.php:418
+#: extensions/clickatell/class-clickatell.php:455
+#: extensions/twilio/class-twilio.php:487
+#: extensions/yubico/class-yubico.php:423
 msgid "Too short"
 msgstr ""
 
 #: extensions/authy/class-authy.php:350
-#: extensions/clickatell/class-clickatell.php:452
-#: extensions/twilio/class-twilio.php:483
-#: extensions/yubico/class-yubico.php:419
+#: extensions/clickatell/class-clickatell.php:456
+#: extensions/twilio/class-twilio.php:488
+#: extensions/yubico/class-yubico.php:424
 msgid "Too long"
 msgstr ""
 
@@ -427,9 +586,9 @@ msgid "Authy"
 msgstr ""
 
 #: extensions/authy/class-authy.php:405
-#: extensions/clickatell/class-clickatell.php:510
-#: extensions/twilio/class-twilio.php:541
-#: extensions/yubico/class-yubico.php:465
+#: extensions/clickatell/class-clickatell.php:514
+#: extensions/twilio/class-twilio.php:546
+#: extensions/yubico/class-yubico.php:470
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:119
 #: includes/classes/Admin/SettingsPages/class-settings-page-render.php:128
 #: includes/classes/Admin/SettingsPages/class-settings-page-render.php:149
@@ -437,12 +596,12 @@ msgid "Use the settings below to configure the properties of the two-factor auth
 msgstr ""
 
 #: extensions/authy/class-authy.php:406
-#: extensions/clickatell/class-clickatell.php:511
+#: extensions/clickatell/class-clickatell.php:515
 #: extensions/integrations/class-wp2fa-integrations.php:104
 #: extensions/settings-import-export/class-settings-import-exporter.php:246
-#: extensions/twilio/class-twilio.php:542
+#: extensions/twilio/class-twilio.php:547
 #: extensions/user-licensing/class-wp2fa-user-licensing.php:74
-#: extensions/yubico/class-yubico.php:466
+#: extensions/yubico/class-yubico.php:471
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:120
 #: includes/classes/Admin/SettingsPages/class-settings-page-render.php:129
 #: includes/classes/Admin/SettingsPages/class-settings-page-render.php:150
@@ -459,33 +618,16 @@ msgid "Authy API key is not provided"
 msgstr ""
 
 #: extensions/authy/class-authy.php:729
-#: extensions/clickatell/class-clickatell.php:735
-#: extensions/email-backup/class-email-backup.php:400
+#: extensions/clickatell/class-clickatell.php:724
+#: extensions/email-backup/class-email-backup.php:371
 msgid "<strong>Error</strong>: User cannot be authenticated."
 msgstr ""
 
-#: extensions/authy/class-authy.php:735
-#: extensions/clickatell/class-clickatell.php:741
-#: extensions/email-backup/class-email-backup.php:406
-#: extensions/twilio/class-twilio.php:824
-#: extensions/yubico/class-yubico.php:717
-#: includes/classes/Authenticator/class-login.php:219
-#: includes/classes/Authenticator/class-login.php:571
-#: includes/classes/Authenticator/class-login.php:985
-#: includes/classes/Authenticator/class-login.php:1002
-#: includes/classes/Authenticator/class-login.php:1027
-#: includes/classes/Authenticator/class-login.php:1053
-#: includes/classes/Authenticator/class-reset-password.php:89
-#: includes/classes/Authenticator/class-reset-password.php:212
-#: includes/classes/Authenticator/class-reset-password.php:229
-msgid "Failed to create a login nonce."
-msgstr ""
-
 #: extensions/authy/class-authy.php:739
-#: extensions/clickatell/class-clickatell.php:745
-#: extensions/email-backup/class-email-backup.php:410
-#: extensions/twilio/class-twilio.php:828
-#: extensions/yubico/class-yubico.php:721
+#: extensions/clickatell/class-clickatell.php:734
+#: extensions/email-backup/class-email-backup.php:381
+#: extensions/twilio/class-twilio.php:818
+#: extensions/yubico/class-yubico.php:711
 msgid "One of the required parameters is missing."
 msgstr ""
 
@@ -517,16 +659,6 @@ msgstr ""
 
 #: extensions/authy/class-authy.php:859
 msgid "The 2FA service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method."
-msgstr ""
-
-#: extensions/authy/class-authy.php:860
-#: extensions/clickatell/class-clickatell.php:837
-#: extensions/out-of-band/class-out-of-band.php:961
-#: extensions/twilio/class-twilio.php:1032
-#: extensions/yubico/class-yubico.php:812
-#: includes/classes/Admin/Methods/class-email.php:353
-#: includes/classes/Admin/Methods/class-totp.php:606
-msgid "Almost there…"
 msgstr ""
 
 #: extensions/authy/class-authy.php:860
@@ -575,20 +707,20 @@ msgid "how to get the Clickatell Production SID key"
 msgstr ""
 
 #: extensions/clickatell/class-clickatell-render.php:72
-#: extensions/clickatell/class-clickatell-wizard-steps.php:322
+#: extensions/clickatell/class-clickatell-wizard-steps.php:348
 msgid "API key"
 msgstr ""
 
 #: extensions/clickatell/class-clickatell-render.php:80
-#: extensions/clickatell/class-clickatell-wizard-steps.php:330
+#: extensions/clickatell/class-clickatell-wizard-steps.php:356
 #: extensions/twilio/class-twilio-render.php:96
-#: extensions/twilio/class-twilio-wizard-steps.php:345
-#: extensions/yubico/class-yubico-wizard-steps.php:342
+#: extensions/twilio/class-twilio-wizard-steps.php:371
+#: extensions/yubico/class-yubico-wizard-steps.php:368
 msgid "Verify the details"
 msgstr ""
 
 #: extensions/clickatell/class-clickatell-render.php:82
-#: extensions/clickatell/class-clickatell-wizard-steps.php:332
+#: extensions/clickatell/class-clickatell-wizard-steps.php:358
 msgid "Verify the Clickatell API key"
 msgstr ""
 
@@ -609,234 +741,230 @@ msgstr ""
 msgid "Phone number is required"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell-wizard-steps.php:198
-#: extensions/twilio/class-twilio-wizard-steps.php:197
+#: extensions/clickatell/class-clickatell-wizard-steps.php:201
+#: extensions/twilio/class-twilio-wizard-steps.php:200
 msgid "Phone number"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell-wizard-steps.php:289
+#: extensions/clickatell/class-clickatell-wizard-steps.php:315
 msgid "One-time code via SMS (with Clickatell)"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell-wizard-steps.php:295
-#: extensions/twilio/class-twilio-wizard-steps.php:294
-#: extensions/yubico/class-yubico-wizard-steps.php:288
+#: extensions/clickatell/class-clickatell-wizard-steps.php:321
+#: extensions/twilio/class-twilio-wizard-steps.php:320
+#: extensions/yubico/class-yubico-wizard-steps.php:314
 msgid "When using this method, users will receive an SMS message with the one-time code. "
 msgstr ""
 
 #. Translators: Clickatell service documentation
-#: extensions/clickatell/class-clickatell-wizard-steps.php:299
+#: extensions/clickatell/class-clickatell-wizard-steps.php:325
 msgid "Refer to the %s for more information on how to use the Clickatell with WP 2FA for two-factor authentication on your website."
 msgstr ""
 
-#: extensions/clickatell/class-clickatell-wizard-steps.php:300
+#: extensions/clickatell/class-clickatell-wizard-steps.php:326
 msgid "Clickatell integration documentation"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:227
-#: extensions/clickatell/class-clickatell.php:262
+#: extensions/clickatell/class-clickatell.php:231
+#: extensions/clickatell/class-clickatell.php:266
 msgid "Invalid Clickatell SID"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:260
+#: extensions/clickatell/class-clickatell.php:264
 msgid "Clickatell credentials are valid"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:265
+#: extensions/clickatell/class-clickatell.php:269
 msgid "Clickatell SID is not provided"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:324
+#: extensions/clickatell/class-clickatell.php:328
 msgid "Provided Clickatell settings are invalid"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:459
+#: extensions/clickatell/class-clickatell.php:463
 msgid "The Clickatell connection has been configured successfully."
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:460
+#: extensions/clickatell/class-clickatell.php:464
 msgid "Clickatell SMS service configuration"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:832
+#: extensions/clickatell/class-clickatell.php:821
 msgid "{reconfigure_or_configure_capitalized} SMS method (Clickatell)"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:832
+#: extensions/clickatell/class-clickatell.php:821
 msgid "Please select the phone where code should be sent:"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:833
-#: extensions/twilio/class-twilio.php:1031
+#: extensions/clickatell/class-clickatell.php:822
+#: extensions/twilio/class-twilio.php:1021
 msgid "{reconfigure_or_configure_capitalized} SMS method"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:833
-#: extensions/twilio/class-twilio.php:1031
+#: extensions/clickatell/class-clickatell.php:822
+#: extensions/twilio/class-twilio.php:1021
 msgid "The 2FA over SMS service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method."
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:834
-#: extensions/twilio/class-twilio.php:1028
+#: extensions/clickatell/class-clickatell.php:823
+#: extensions/twilio/class-twilio.php:1018
 msgid "Enter the 2FA code you have received over SMS."
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:835
-#: extensions/twilio/class-twilio.php:1033
-#: extensions/yubico/class-yubico.php:814
+#: extensions/clickatell/class-clickatell.php:824
+#: extensions/twilio/class-twilio.php:1023
+#: extensions/yubico/class-yubico.php:804
 msgid "{user_login_code}"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:836
-#: extensions/twilio/class-twilio.php:1029
+#: extensions/clickatell/class-clickatell.php:825
+#: extensions/twilio/class-twilio.php:1019
 msgid "Setting up 2FA over SMS"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:836
-#: extensions/twilio/class-twilio.php:1029
+#: extensions/clickatell/class-clickatell.php:825
+#: extensions/twilio/class-twilio.php:1019
 msgid "When you use 2FA over SMS to log in to this website you will receive your one-time code via an SMS on your cellphone. Therefore please enter the cellphone number of where you would like to receive the SMS below."
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:837
-#: extensions/twilio/class-twilio.php:1032
+#: extensions/clickatell/class-clickatell.php:826
+#: extensions/twilio/class-twilio.php:1022
 msgid "Please type in the one-time code sent via SMS to your phone to confirm your phone number."
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:838
+#: extensions/clickatell/class-clickatell.php:827
 msgid "One-time code via SMS (Clickatell)"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:854
+#: extensions/clickatell/class-clickatell.php:843
 msgid "Clickatell option label"
 msgstr ""
 
-#: extensions/clickatell/class-clickatell.php:860
+#: extensions/clickatell/class-clickatell.php:849
 msgid "Clickatell option hint"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:87
+#: extensions/email-backup/class-email-backup-render.php:98
 msgid "Use my user email "
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:96
-#: extensions/out-of-band/class-oob-wizard-steps.php:193
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:288
+#: extensions/email-backup/class-email-backup-render.php:107
+#: extensions/out-of-band/class-oob-wizard-steps.php:196
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:311
 msgid "Use a different email address:"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:97
-#: extensions/out-of-band/class-oob-wizard-steps.php:194
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:289
+#: extensions/email-backup/class-email-backup-render.php:108
+#: extensions/out-of-band/class-oob-wizard-steps.php:197
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:312
 msgid "Email address"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:105
+#: extensions/email-backup/class-email-backup-render.php:116
 msgid "Save email backup options"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:106
+#: extensions/email-backup/class-email-backup-render.php:117
 msgid "Save 2FA backup email address"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:190
+#: extensions/email-backup/class-email-backup-render.php:201
 msgid "Or, send me a code to my email."
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:234
+#: extensions/email-backup/class-email-backup-render.php:260
 msgid "Allow users to use email based 2FA as secondary backup method to"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:237
+#: extensions/email-backup/class-email-backup-render.php:263
 msgid "By enabling this feature users can also configure and use the \"one-time code via email\" 2FA method as a secondary backup method. This allows them to receive a one-time login code via email if they need to login to the website and cannot generate the login code from their 2FA app, lost their hardware key (Yubikey) or cannot access the SMS with the codes on their smartphones."
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:240
-#: extensions/out-of-band/class-oob-wizard-steps.php:314
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:203
+#: extensions/email-backup/class-email-backup-render.php:266
+#: extensions/out-of-band/class-oob-wizard-steps.php:336
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:221
 msgid "Allow user to specify the email address of choice"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:246
-#: extensions/email-backup/class-email-backup-render.php:299
-#: extensions/out-of-band/class-oob-wizard-steps.php:320
+#: extensions/email-backup/class-email-backup-render.php:272
+#: extensions/email-backup/class-email-backup-render.php:325
+#: extensions/out-of-band/class-oob-wizard-steps.php:342
 #: extensions/role-settings/class-role-settings-render.php:546
-#: includes/classes/Admin/class-user-profile.php:412
-#: includes/classes/Admin/class-user-profile.php:557
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:210
+#: includes/classes/Admin/class-user-profile.php:414
+#: includes/classes/Admin/class-user-profile.php:559
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:228
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:721
 msgid "Yes"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:250
-#: extensions/email-backup/class-email-backup-render.php:300
-#: extensions/out-of-band/class-oob-wizard-steps.php:324
+#: extensions/email-backup/class-email-backup-render.php:276
+#: extensions/email-backup/class-email-backup-render.php:326
+#: extensions/out-of-band/class-oob-wizard-steps.php:346
 #: extensions/role-settings/class-role-settings-render.php:556
-#: includes/classes/Admin/class-user-profile.php:413
-#: includes/classes/Admin/class-user-profile.php:558
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:214
+#: includes/classes/Admin/class-user-profile.php:415
+#: includes/classes/Admin/class-user-profile.php:560
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:232
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:728
 msgid "No"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:288
+#: extensions/email-backup/class-email-backup-render.php:314
 msgid "Configure backup email"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:290
+#: extensions/email-backup/class-email-backup-render.php:316
 msgid "Remove backup email method"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:296
+#: extensions/email-backup/class-email-backup-render.php:322
 msgid "Remove 2FA backup mail?"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:297
+#: extensions/email-backup/class-email-backup-render.php:323
 msgid "Are you sure you want to remove the backup email method?"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:344
+#: extensions/email-backup/class-email-backup-render.php:370
 msgid "Email backup page text"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:349
-#: extensions/white-labeling/class-white-labeling-render.php:758
+#: extensions/email-backup/class-email-backup-render.php:375
+#: extensions/white-labeling/class-white-labeling-render.php:762
 #: includes/classes/Admin/class-user-notices.php:209
 #: includes/classes/Admin/class-user-notices.php:218
 #: includes/classes/Admin/class-user-notices.php:227
 #: includes/classes/Admin/class-user-notices.php:236
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:326
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:337
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:331
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:342
 msgid "Note:"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup-render.php:349
+#: extensions/email-backup/class-email-backup-render.php:375
 #: includes/classes/Admin/class-user-notices.php:209
 #: includes/classes/Admin/class-user-notices.php:218
 #: includes/classes/Admin/class-user-notices.php:227
 #: includes/classes/Admin/class-user-notices.php:236
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:326
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:337
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:331
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:342
 msgid "Only plain text is allowed."
 msgstr ""
 
-#: extensions/email-backup/class-email-backup.php:157
-msgid "Enter a backup email code."
-msgstr ""
-
-#: extensions/email-backup/class-email-backup.php:183
+#: extensions/email-backup/class-email-backup.php:173
 msgid "Backup Email"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup.php:259
+#: extensions/email-backup/class-email-backup.php:230
 msgid "Receive code over email: you will receive a one-time code via email which you need to login and you cannot generate a code from the app."
 msgstr ""
 
-#: extensions/email-backup/class-email-backup.php:275
-#: extensions/twilio/class-twilio.php:879
+#: extensions/email-backup/class-email-backup.php:246
+#: extensions/twilio/class-twilio.php:869
 msgid "You must be logged in to perform this action."
 msgstr ""
 
-#: extensions/email-backup/class-email-backup.php:343
+#: extensions/email-backup/class-email-backup.php:314
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:52
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:99
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:138
@@ -847,21 +975,19 @@ msgstr ""
 msgid "Nonce verification failed."
 msgstr ""
 
-#: extensions/email-backup/class-email-backup.php:416
-#: includes/classes/Authenticator/class-login.php:1057
-#: includes/classes/Authenticator/class-reset-password.php:235
-msgid "A new code has been sent."
-msgstr ""
-
-#: extensions/email-backup/class-email-backup.php:584
-#: includes/classes/Admin/Methods/class-backup-codes.php:670
-#: includes/classes/Admin/Methods/class-backup-codes.php:671
-#: includes/classes/Admin/Methods/class-backup-codes.php:672
+#: extensions/email-backup/class-email-backup.php:555
+#: includes/classes/Admin/Methods/class-backup-codes.php:657
+#: includes/classes/Admin/Methods/class-backup-codes.php:658
+#: includes/classes/Admin/Methods/class-backup-codes.php:659
 msgid "Your login just got more secure"
 msgstr ""
 
-#: extensions/email-backup/class-email-backup.php:584
+#: extensions/email-backup/class-email-backup.php:555
 msgid "Well done on configuring 2FA, your login has just got more secure. To make sure you never get locked out you are required to confirm your email address and use email as an alternative and backup 2FA method in case your primary method is unavailable. Please confirm your email address below"
+msgstr ""
+
+#: extensions/email-backup/class-email-backup.php:556
+msgid "Enter a backup email code."
 msgstr ""
 
 #: extensions/integrations/class-wp2fa-integrations-render.php:48
@@ -898,180 +1024,180 @@ msgstr ""
 msgid "Custom 2FA menu label in account page"
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:184
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:279
+#: extensions/out-of-band/class-oob-wizard-steps.php:187
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:302
 msgid "Use my user email ("
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:184
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:279
+#: extensions/out-of-band/class-oob-wizard-steps.php:187
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:302
 msgid ")"
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:200
+#: extensions/out-of-band/class-oob-wizard-steps.php:203
 msgid "Note: you should be able to access the mailbox of the email address to complete the following step."
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:213
+#: extensions/out-of-band/class-oob-wizard-steps.php:216
 msgid "Verification Code"
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:227
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:339
+#: extensions/out-of-band/class-oob-wizard-steps.php:230
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:362
 msgid "Send me another code"
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:283
-#: extensions/out-of-band/class-out-of-band.php:963
+#: extensions/out-of-band/class-oob-wizard-steps.php:305
+#: extensions/out-of-band/class-out-of-band.php:953
 msgid "Link via email"
 msgstr ""
 
 #. translators: link to the knowledge base website
-#: extensions/out-of-band/class-oob-wizard-steps.php:291
+#: extensions/out-of-band/class-oob-wizard-steps.php:313
 msgid "When using this method, users will receive a link in an email, and once they click on the link they log in. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the emails are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin's settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin %s. Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone."
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:292
+#: extensions/out-of-band/class-oob-wizard-steps.php:314
 msgid "WP Mail SMTP"
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:306
+#: extensions/out-of-band/class-oob-wizard-steps.php:328
 msgid "Link will be valid for: "
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:308
+#: extensions/out-of-band/class-oob-wizard-steps.php:330
 msgid "minutes"
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:384
-#: extensions/out-of-band/class-out-of-band.php:964
+#: extensions/out-of-band/class-oob-wizard-steps.php:406
+#: extensions/out-of-band/class-out-of-band.php:954
 msgid "When using this method email deliverability is very important. If you are not sure your website's email systems works well, refer to the guide on "
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:386
-#: extensions/out-of-band/class-out-of-band.php:964
+#: extensions/out-of-band/class-oob-wizard-steps.php:408
+#: extensions/out-of-band/class-out-of-band.php:954
 msgid "how to improve and ensure email deliverability on WordPress websites"
 msgstr ""
 
-#: extensions/out-of-band/class-oob-wizard-steps.php:387
-#: extensions/out-of-band/class-out-of-band.php:964
+#: extensions/out-of-band/class-oob-wizard-steps.php:409
+#: extensions/out-of-band/class-out-of-band.php:954
 msgid "to ensure you can receive emails"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:387
+#: extensions/out-of-band/class-out-of-band.php:392
 msgid "Usage of this filter is deprecated."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:434
-#: extensions/out-of-band/class-out-of-band.php:498
+#: extensions/out-of-band/class-out-of-band.php:439
+#: extensions/out-of-band/class-out-of-band.php:503
 msgid "User is not provided"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:458
+#: extensions/out-of-band/class-out-of-band.php:463
 msgid "Your 2FA setup code"
 msgstr ""
 
 #. translators: Test oob code.
-#: extensions/out-of-band/class-out-of-band.php:462
+#: extensions/out-of-band/class-out-of-band.php:467
 msgid "Please enter this code to confirm the 2FA setup: %s"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:484
+#: extensions/out-of-band/class-out-of-band.php:489
 msgid "this link"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:626
+#: extensions/out-of-band/class-out-of-band.php:631
 msgid "Your login confirmation link for {site_name}"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:629
+#: extensions/out-of-band/class-out-of-band.php:634
 msgid "Someone from {user_ip_address} is trying to log in to {site_name}."
 msgstr ""
 
 #. translators: The login code
-#: extensions/out-of-band/class-out-of-band.php:633
+#: extensions/out-of-band/class-out-of-band.php:638
 msgid "Verify the login by clicking %1$s. If this is not you, please ignore this email and contact your website administrator."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:637
+#: extensions/out-of-band/class-out-of-band.php:642
 msgid "Note: as a security precaution, the login verification link only works when the link is clicked from the same browser and device combination from where you are trying to log in. If this is not the same browser and device, please copy the link and manually paste it in the address bar of the browser which you are using to log in to the website."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:638
-#: includes/classes/Admin/class-setup-wizard.php:634
-#: includes/classes/class-wp2fa.php:584
-#: includes/classes/class-wp2fa.php:598
-#: includes/classes/class-wp2fa.php:608
+#: extensions/out-of-band/class-out-of-band.php:643
+#: includes/classes/Admin/class-settings-page.php:177
+#: includes/classes/Admin/class-setup-wizard.php:635
+#: includes/classes/Admin/Helpers/class-user-helper.php:1354
 msgid "Email sent by"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:639
-#: includes/classes/Admin/class-setup-wizard.php:635
-#: includes/classes/class-wp2fa.php:585
+#: extensions/out-of-band/class-out-of-band.php:644
+#: includes/classes/Admin/class-settings-page.php:178
+#: includes/classes/Admin/class-setup-wizard.php:636
+#: includes/classes/Admin/Helpers/class-user-helper.php:1355
 msgid "WP 2FA plugin."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:661
-#: includes/classes/Admin/class-user-profile.php:740
+#: extensions/out-of-band/class-out-of-band.php:666
+#: includes/classes/Admin/class-user-profile.php:742
 msgid "No form"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:672
-#: extensions/out-of-band/class-out-of-band.php:679
-#: includes/classes/Admin/class-user-profile.php:763
+#: extensions/out-of-band/class-out-of-band.php:677
+#: extensions/out-of-band/class-out-of-band.php:684
+#: includes/classes/Admin/class-user-profile.php:765
 msgid "Invalid Two Factor Authentication code."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:677
-#: includes/classes/Admin/class-user-profile.php:775
+#: extensions/out-of-band/class-out-of-band.php:682
+#: includes/classes/Admin/class-user-profile.php:777
 msgid "Please enter the code to finalize the 2FA setup."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:703
+#: extensions/out-of-band/class-out-of-band.php:708
 msgid "No code is presented."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:842
+#: extensions/out-of-band/class-out-of-band.php:847
 msgid "Login link email"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:843
+#: extensions/out-of-band/class-out-of-band.php:848
 msgid "This is the email sent to a user when an email with a login link is required"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:875
+#: extensions/out-of-band/class-out-of-band.php:865
 msgid "Out-of-band"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:959
+#: extensions/out-of-band/class-out-of-band.php:949
 msgid "An email with a verification link has been sent to your email address. If you are using the same browser and device, please click on the link to verify the login. If you are not, please copy the link and paste it in the address bar above."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:960
+#: extensions/out-of-band/class-out-of-band.php:950
 msgid "Setting up Link over email 2FA"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:960
+#: extensions/out-of-band/class-out-of-band.php:950
 msgid "Please select the email address to where the out-of-band link should be sent:"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:961
+#: extensions/out-of-band/class-out-of-band.php:951
 msgid "Please type in the one-time code sent to your email address to finalize the setup. Once the code is confirmed and 2FA is set up, you only have to verify a login by clicking on a link sent to you via email."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:962
+#: extensions/out-of-band/class-out-of-band.php:952
 msgid "{reconfigure_or_configure_capitalized} link over email method"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:962
+#: extensions/out-of-band/class-out-of-band.php:952
 msgid "Click the below button to {reconfigure_or_configure} the email address where the link should be sent."
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:979
+#: extensions/out-of-band/class-out-of-band.php:969
 msgid "Out Of Band option label"
 msgstr ""
 
-#: extensions/out-of-band/class-out-of-band.php:985
+#: extensions/out-of-band/class-out-of-band.php:975
 msgid "Out Of Band option hint"
 msgstr ""
 
@@ -1170,7 +1296,7 @@ msgid "Secondary 2FA methods:"
 msgstr ""
 
 #: extensions/role-settings/class-role-settings-render.php:245
-#: includes/classes/Admin/Methods/class-backup-codes.php:282
+#: includes/classes/Admin/Methods/class-backup-codes.php:269
 #: includes/classes/Admin/Views/class-first-time-wizard-steps.php:93
 #: includes/classes/Admin/Views/class-first-time-wizard-steps.php:171
 msgid "Backup codes"
@@ -1198,7 +1324,7 @@ msgid "Learn more."
 msgstr ""
 
 #: extensions/role-settings/class-role-settings-render.php:413
-#: includes/classes/Admin/class-setup-wizard.php:525
+#: includes/classes/Admin/class-setup-wizard.php:528
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:923
 msgid "Grace period"
 msgstr ""
@@ -1355,7 +1481,7 @@ msgstr ""
 
 #: extensions/settings-import-export/class-settings-import-export.php:213
 #: extensions/settings-import-export/class-settings-import-export.php:240
-#: includes/classes/Admin/class-plugin-updated-notice.php:130
+#: includes/classes/Admin/class-plugin-updated-notice.php:103
 #: includes/classes/Admin/Helpers/class-wp-helper.php:237
 msgid "Nonce Verification Failed."
 msgstr ""
@@ -1464,7 +1590,7 @@ msgid "Filter"
 msgstr ""
 
 #. Translators: The number of days
-#: extensions/trusted-devices/class-core.php:89
+#: extensions/trusted-devices/class-core.php:88
 msgid "Remember this device for %d days"
 msgstr ""
 
@@ -1509,7 +1635,7 @@ msgstr ""
 msgid "When cookie is not found or when the cookie is found but the IP address is different"
 msgstr ""
 
-#: extensions/twilio/class-twilio-api.php:98
+#: extensions/twilio/class-twilio-api.php:99
 msgid "Twilio is not set correctly"
 msgstr ""
 
@@ -1527,22 +1653,22 @@ msgid "how to get the Twilio Production SID key"
 msgstr ""
 
 #: extensions/twilio/class-twilio-render.php:72
-#: extensions/twilio/class-twilio-wizard-steps.php:321
+#: extensions/twilio/class-twilio-wizard-steps.php:347
 msgid "Account SID"
 msgstr ""
 
 #: extensions/twilio/class-twilio-render.php:80
-#: extensions/twilio/class-twilio-wizard-steps.php:329
+#: extensions/twilio/class-twilio-wizard-steps.php:355
 msgid "Auth token"
 msgstr ""
 
 #: extensions/twilio/class-twilio-render.php:88
-#: extensions/twilio/class-twilio-wizard-steps.php:337
+#: extensions/twilio/class-twilio-wizard-steps.php:363
 msgid "Twilio number or Alphanumeric ID"
 msgstr ""
 
 #: extensions/twilio/class-twilio-render.php:98
-#: extensions/twilio/class-twilio-wizard-steps.php:347
+#: extensions/twilio/class-twilio-wizard-steps.php:373
 msgid "Verify the Twilio keys"
 msgstr ""
 
@@ -1550,100 +1676,91 @@ msgstr ""
 msgid "Unfortunately there is a problem with Twilio configuration. Contact the Administrator for further assistance."
 msgstr ""
 
-#: extensions/twilio/class-twilio-wizard-steps.php:288
+#: extensions/twilio/class-twilio-wizard-steps.php:314
 msgid "One-time code via SMS (with Twilio)"
 msgstr ""
 
 #. Translators: Twilio service documentation
-#: extensions/twilio/class-twilio-wizard-steps.php:298
+#: extensions/twilio/class-twilio-wizard-steps.php:324
 msgid "Refer to the %s for more information on how to use the Twilio with WP 2FA for two-factor authentication on your website."
 msgstr ""
 
-#: extensions/twilio/class-twilio-wizard-steps.php:299
+#: extensions/twilio/class-twilio-wizard-steps.php:325
 msgid "Twilio integration documentation"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:362
+#: extensions/twilio/class-twilio.php:367
 msgid "Provided Twilio settings are invalid"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:490
+#: extensions/twilio/class-twilio.php:495
 msgid "The Twilio connection has been configured successfully."
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:491
+#: extensions/twilio/class-twilio.php:496
 msgid "Twilio SMS service configuration"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:818
-#: extensions/yubico/class-yubico.php:711
-#: includes/classes/Authenticator/class-login.php:996
-#: includes/classes/Authenticator/class-login.php:1022
-#: includes/classes/Authenticator/class-login.php:1047
-#: includes/classes/Authenticator/class-reset-password.php:223
-msgid "<strong>Error</strong>: User can not be authenticated."
-msgstr ""
-
-#: extensions/twilio/class-twilio.php:920
+#: extensions/twilio/class-twilio.php:910
 msgid "SMS Templates"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:921
-#: extensions/twilio/class-twilio.php:927
+#: extensions/twilio/class-twilio.php:911
+#: extensions/twilio/class-twilio.php:917
 msgid "SMS Registration text"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:922
+#: extensions/twilio/class-twilio.php:912
 msgid "This is the template for the SMS message sent during the 2FA setup for users to confirm their mobile number."
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:929
-#: extensions/twilio/class-twilio.php:964
-#: extensions/white-labeling/class-white-labeling-render.php:1024
-#: extensions/white-labeling/class-white-labeling-render.php:1045
-#: extensions/white-labeling/class-white-labeling-render.php:1066
-#: extensions/white-labeling/class-white-labeling-render.php:1097
-#: extensions/white-labeling/class-white-labeling-render.php:1128
-#: extensions/white-labeling/class-white-labeling-render.php:1159
-#: extensions/white-labeling/class-white-labeling-render.php:1180
+#: extensions/twilio/class-twilio.php:919
+#: extensions/twilio/class-twilio.php:954
+#: extensions/white-labeling/class-white-labeling-render.php:1028
+#: extensions/white-labeling/class-white-labeling-render.php:1049
+#: extensions/white-labeling/class-white-labeling-render.php:1070
+#: extensions/white-labeling/class-white-labeling-render.php:1101
+#: extensions/white-labeling/class-white-labeling-render.php:1132
+#: extensions/white-labeling/class-white-labeling-render.php:1163
+#: extensions/white-labeling/class-white-labeling-render.php:1184
 #: includes/classes/Admin/SettingsPages/class-settings-page-email.php:439
 msgid "Available template tags:"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:956
+#: extensions/twilio/class-twilio.php:946
 msgid "SMS code text"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:957
+#: extensions/twilio/class-twilio.php:947
 msgid "This is the template for the SMS message with the one-time code sent to users when authenticating."
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:962
+#: extensions/twilio/class-twilio.php:952
 msgid "SMS Code text"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:1030
+#: extensions/twilio/class-twilio.php:1020
 msgid "{reconfigure_or_configure_capitalized} SMS method (Twilio)"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:1030
+#: extensions/twilio/class-twilio.php:1020
 msgid "Click the below button to {reconfigure_or_configure} the mobile phone number where the one-time code should be sent."
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:1034
-#: extensions/yubico/class-yubico.php:813
+#: extensions/twilio/class-twilio.php:1024
+#: extensions/yubico/class-yubico.php:803
 msgid "2FA login code: {user_login_code}"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:1035
+#: extensions/twilio/class-twilio.php:1025
 msgid "One-time code via SMS (Twilio)"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:1050
+#: extensions/twilio/class-twilio.php:1040
 msgid "SMS over Twilio option label"
 msgstr ""
 
-#: extensions/twilio/class-twilio.php:1056
+#: extensions/twilio/class-twilio.php:1046
 msgid "Twilio option hint"
 msgstr ""
 
@@ -1668,7 +1785,7 @@ msgid "User Licensing"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:75
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:319
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:324
 msgid "2FA code page text"
 msgstr ""
 
@@ -1693,576 +1810,580 @@ msgid "2FA via app"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:109
-#: includes/classes/Admin/class-premium-features.php:268
+#: includes/classes/Admin/class-premium-features.php:269
 msgid "2FA code over email"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:115
-msgid "2FA link over email"
+msgid "2FA code over email (zero-setup email method)"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:121
-msgid "2FA code over SMS"
+msgid "2FA link over email"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:127
-msgid "2FA with Push Notification - Intro"
+msgid "2FA code over SMS"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:133
-msgid "2FA with Push Notification - Awaiting Response"
+msgid "2FA with Push Notification - Intro"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:139
-msgid "2FA with Push Notification"
+msgid "2FA with Push Notification - Awaiting Response"
 msgstr ""
 
 #: extensions/white-labeling/class-white-labeling-render.php:145
+msgid "2FA with Push Notification"
+msgstr ""
+
+#: extensions/white-labeling/class-white-labeling-render.php:151
 msgid "2FA with Yubico"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:172
+#: extensions/white-labeling/class-white-labeling-render.php:178
 msgid "Log in"
 msgstr ""
 
 #. translators: support email.
-#: extensions/white-labeling/class-white-labeling-render.php:282
+#: extensions/white-labeling/class-white-labeling-render.php:288
 msgid "Use the settings below to customize the looks of the 2FA code page so it meets your branding requirements. If you have any questions send us an email at %1$s."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:288
+#: extensions/white-labeling/class-white-labeling-render.php:294
 msgid "Change the background color"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:290
+#: extensions/white-labeling/class-white-labeling-render.php:296
 msgid "This is the background color selector, from here you can change the form background color."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:295
+#: extensions/white-labeling/class-white-labeling-render.php:301
 msgid "2FA background color"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:304
+#: extensions/white-labeling/class-white-labeling-render.php:310
 msgid "Change the logo"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:306
+#: extensions/white-labeling/class-white-labeling-render.php:312
 msgid "This is the logo image selector, from here you can change the form logo."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:311
+#: extensions/white-labeling/class-white-labeling-render.php:317
 msgid "Logo on page"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:318
+#: extensions/white-labeling/class-white-labeling-render.php:324
 msgid "Select"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:335
+#: extensions/white-labeling/class-white-labeling-render.php:341
 msgid "Logo link"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:348
+#: extensions/white-labeling/class-white-labeling-render.php:354
 msgid "Change the font type"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:350
+#: extensions/white-labeling/class-white-labeling-render.php:356
 msgid "This is the font type color selector, from here you can change the form font type."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:355
+#: extensions/white-labeling/class-white-labeling-render.php:361
 msgid "Font type"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:364
+#: extensions/white-labeling/class-white-labeling-render.php:370
 msgid "Change the button color"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:366
+#: extensions/white-labeling/class-white-labeling-render.php:372
 msgid "This is the button color selector, from here you can change the form button color."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:371
+#: extensions/white-labeling/class-white-labeling-render.php:377
 msgid "2FA button background color"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:380
+#: extensions/white-labeling/class-white-labeling-render.php:386
 msgid "Change the button text on 2FA code page"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:382
+#: extensions/white-labeling/class-white-labeling-render.php:388
 msgid "This is the button text, from here you can change the form button text."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:387
+#: extensions/white-labeling/class-white-labeling-render.php:393
 msgid "Button text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:397
+#: extensions/white-labeling/class-white-labeling-render.php:403
 msgid "Change the styling of the code input area"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:399
+#: extensions/white-labeling/class-white-labeling-render.php:405
 msgid "By default, the user code entry screen uses the default WP CSS, use the below field to add your own CSS to this area."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:405
+#: extensions/white-labeling/class-white-labeling-render.php:411
 msgid "Login Custom CSS"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:412
+#: extensions/white-labeling/class-white-labeling-render.php:418
 msgid "- Text above code field"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:425
+#: extensions/white-labeling/class-white-labeling-render.php:431
 msgid "Disable Login CSS"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:431
+#: extensions/white-labeling/class-white-labeling-render.php:437
 msgid "Disable ALL WP 2FA styling from login page"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:470
-#: extensions/white-labeling/class-white-labeling-render.php:600
+#: extensions/white-labeling/class-white-labeling-render.php:476
+#: extensions/white-labeling/class-white-labeling-render.php:606
 msgid "Welcome & Initial Message"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:471
-#: extensions/white-labeling/class-white-labeling-render.php:601
+#: extensions/white-labeling/class-white-labeling-render.php:477
+#: extensions/white-labeling/class-white-labeling-render.php:607
 msgid "2FA Method Selection"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:472
-#: extensions/white-labeling/class-white-labeling-render.php:602
+#: extensions/white-labeling/class-white-labeling-render.php:478
+#: extensions/white-labeling/class-white-labeling-render.php:608
 msgid "2FA Method Verification"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:473
-#: extensions/white-labeling/class-white-labeling-render.php:603
+#: extensions/white-labeling/class-white-labeling-render.php:479
+#: extensions/white-labeling/class-white-labeling-render.php:609
 msgid "Backup Codes & Final Steps"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:474
-#: extensions/white-labeling/class-white-labeling-render.php:604
+#: extensions/white-labeling/class-white-labeling-render.php:480
+#: extensions/white-labeling/class-white-labeling-render.php:610
 msgid "2FA Method Reconfiguration"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:475
-#: extensions/white-labeling/class-white-labeling-render.php:752
+#: extensions/white-labeling/class-white-labeling-render.php:481
+#: extensions/white-labeling/class-white-labeling-render.php:758
 msgid "Custom CSS & Styling"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:547
+#: extensions/white-labeling/class-white-labeling-render.php:553
 msgid "Here you can control the look and feel of user areas as well as their content. Use the settings under 2FA Code page design to customize the styling of user wizards and log in messages. To edit the content of the wizard steps, select an area from the dropdown provided and use the text editors to set the content as you wish."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:556
+#: extensions/white-labeling/class-white-labeling-render.php:562
 msgid "2FA Code page design"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:565
+#: extensions/white-labeling/class-white-labeling-render.php:571
 msgid "User 2FA setup wizard"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:654
+#: extensions/white-labeling/class-white-labeling-render.php:660
 msgid "optional welcome & initial message"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:655
+#: extensions/white-labeling/class-white-labeling-render.php:661
 msgid "You can add an extra slide at the beginning of the user 2FA wizard. This slide will be shown to the users as the first slide when they launch the 2FA configuration wizard to configure 2FA for their users."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:659
+#: extensions/white-labeling/class-white-labeling-render.php:665
 msgid "Enable \"Welcome & initial message\""
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:665
+#: extensions/white-labeling/class-white-labeling-render.php:671
 msgid "Enable to display optional welcome message."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:671
+#: extensions/white-labeling/class-white-labeling-render.php:677
 msgid "optional welcome content"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:674
+#: extensions/white-labeling/class-white-labeling-render.php:680
 msgid "Use the below editor to enter the text that is to be used in the first slide."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:700
+#: extensions/white-labeling/class-white-labeling-render.php:706
 msgid "2FA Code page design settings"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:703
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:358
+#: extensions/white-labeling/class-white-labeling-render.php:709
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:363
 msgid "Change the styling of the user 2FA wizards"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:705
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:360
+#: extensions/white-labeling/class-white-labeling-render.php:711
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:365
 msgid "By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website's theme."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:710
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:365
+#: extensions/white-labeling/class-white-labeling-render.php:716
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:370
 msgid "Enable styling"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:716
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:371
+#: extensions/white-labeling/class-white-labeling-render.php:722
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:376
 msgid "Enable our CSS within user wizards"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:723
+#: extensions/white-labeling/class-white-labeling-render.php:729
 msgid "Display logo in the user 2FA wizards"
 msgstr ""
 
 #. translators: Link to logo settings in the plugin.
-#: extensions/white-labeling/class-white-labeling-render.php:728
+#: extensions/white-labeling/class-white-labeling-render.php:734
 msgid "Enable this setting to display your logo in the user 2FA wizards. To provide a logo, please use the Logo settings on the %s."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:739
+#: extensions/white-labeling/class-white-labeling-render.php:745
 msgid "Display logo"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:745
+#: extensions/white-labeling/class-white-labeling-render.php:751
 msgid "Display logo on user 2FA modals"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:753
+#: extensions/white-labeling/class-white-labeling-render.php:759
 msgid "In this section you can add your own styling to the user 2FA setup wizard via CSS. For your reference we have included a number of easy to use selectors. They are listed below the Custom CSS placeholder."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:758
+#: extensions/white-labeling/class-white-labeling-render.php:762
 msgid "Only plain text CSS is allowed. Use of \"!important\" is recommended."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:763
+#: extensions/white-labeling/class-white-labeling-render.php:767
 msgid "Custom CSS"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:770
-#: extensions/white-labeling/class-white-labeling-render.php:771
+#: extensions/white-labeling/class-white-labeling-render.php:774
+#: extensions/white-labeling/class-white-labeling-render.php:775
 msgid "- Primary button selector"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:772
+#: extensions/white-labeling/class-white-labeling-render.php:776
 msgid "- Common heading text (unless altered with custom markup)"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:773
+#: extensions/white-labeling/class-white-labeling-render.php:777
 msgid "- Common content text (unless altered with custom markup)"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:793
+#: extensions/white-labeling/class-white-labeling-render.php:797
 msgid "2FA method selection"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:794
+#: extensions/white-labeling/class-white-labeling-render.php:798
 msgid "Here you can customize the messages shown to users when selecting, settings up and reconfiguring 2FA."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:799
+#: extensions/white-labeling/class-white-labeling-render.php:803
 msgid "2FA required"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:802
+#: extensions/white-labeling/class-white-labeling-render.php:806
 msgid "This message is shown to users when logging in when 2FA is required."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:810
+#: extensions/white-labeling/class-white-labeling-render.php:814
 msgid "Inital setup text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:813
+#: extensions/white-labeling/class-white-labeling-render.php:817
 msgid "This message is shown to users when configuring 2FA with no previous configuration."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:818
+#: extensions/white-labeling/class-white-labeling-render.php:822
 msgid "this displays the number of 2FA methods available."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:838
+#: extensions/white-labeling/class-white-labeling-render.php:842
 msgid "Method selection label"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:839
+#: extensions/white-labeling/class-white-labeling-render.php:843
 msgid "Here you can customize the label shown for each method when choosing a 2FA method."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:845
+#: extensions/white-labeling/class-white-labeling-render.php:849
 msgid "Wizard option labels"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:859
+#: extensions/white-labeling/class-white-labeling-render.php:863
 msgid "Method help text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:860
+#: extensions/white-labeling/class-white-labeling-render.php:864
 msgid "Here you can customize the help text shown when setting up a chosen method to suit your needs."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:866
+#: extensions/white-labeling/class-white-labeling-render.php:870
 msgid "One-time code via 2FA app help text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:869
+#: extensions/white-labeling/class-white-labeling-render.php:873
 msgid "This message is shown to users when configuring one-time code via 2FA App"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:874
+#: extensions/white-labeling/class-white-labeling-render.php:878
 msgid "One-time code via 2FA app help step 1"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:880
+#: extensions/white-labeling/class-white-labeling-render.php:884
 msgid "One-time code via 2FA app help step 2"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:886
+#: extensions/white-labeling/class-white-labeling-render.php:890
 msgid "One-time code via 2FA app help step 3"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:899
+#: extensions/white-labeling/class-white-labeling-render.php:903
 msgid "Enable the display of a help icon inside the setup wizard, with additional guidance for users setting up 2FA via an authenticator app or email link."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:905
+#: extensions/white-labeling/class-white-labeling-render.php:909
 msgid "Show the help text to assist users with the 2FA app configuration."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:916
+#: extensions/white-labeling/class-white-labeling-render.php:920
 msgid "One-time code via email help text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:919
+#: extensions/white-labeling/class-white-labeling-render.php:923
 msgid "This message is shown to users when configuring One-time code via email."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:925
+#: extensions/white-labeling/class-white-labeling-render.php:929
 msgid "Email confirmation help"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:930
+#: extensions/white-labeling/class-white-labeling-render.php:934
 msgid "Emai address confirmation help."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:943
+#: extensions/white-labeling/class-white-labeling-render.php:947
 msgid "Authy 2FA service help text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:946
+#: extensions/white-labeling/class-white-labeling-render.php:950
 msgid "This message is shown to users when configuring Authy 2FA service."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:959
+#: extensions/white-labeling/class-white-labeling-render.php:963
 msgid "SMS service help text (Twilio & Clickatell)"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:962
+#: extensions/white-labeling/class-white-labeling-render.php:966
 msgid "This messaged is shown to users when configuring 2FA over SMS via Twilio or Clickatell."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:975
+#: extensions/white-labeling/class-white-labeling-render.php:979
 msgid "YubiKey service help text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:978
+#: extensions/white-labeling/class-white-labeling-render.php:982
 msgid "This messaged is shown to users when configuring 2FA via YubiKey."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:991
+#: extensions/white-labeling/class-white-labeling-render.php:995
 msgid "Link via email help text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:994
+#: extensions/white-labeling/class-white-labeling-render.php:998
 msgid "This message is shown to users when configuring Link via email."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1015
+#: extensions/white-labeling/class-white-labeling-render.php:1019
 msgid "2FA method reconfiguration"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1016
+#: extensions/white-labeling/class-white-labeling-render.php:1020
 msgid "From here you can customize the wizard text shown to users when they already have 2FA configured and they want to reconfigure 2FA from their user profile page."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1021
+#: extensions/white-labeling/class-white-labeling-render.php:1025
 msgid "Reconfigure one-time code via 2FA App intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1033
+#: extensions/white-labeling/class-white-labeling-render.php:1037
 msgid "This message is shown to users when reconfiguring One-time code via 2FA app."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1042
+#: extensions/white-labeling/class-white-labeling-render.php:1046
 msgid "Reconfigure one-time code via email intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1054
+#: extensions/white-labeling/class-white-labeling-render.php:1058
 msgid "This message is shown to users when reconfiguring One-time code via email."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1063
+#: extensions/white-labeling/class-white-labeling-render.php:1067
 msgid "Reconfigure Authy 2FA service intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1075
+#: extensions/white-labeling/class-white-labeling-render.php:1079
 msgid "This message is shown to users when reconfiguring Authy 2FA service."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1085
+#: extensions/white-labeling/class-white-labeling-render.php:1089
 msgid "This message is shown to users when reconfiguring Authy 2FA service, but Authy 2FA service service is unavailable."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1094
+#: extensions/white-labeling/class-white-labeling-render.php:1098
 msgid "Reconfigure Twilio 2FA service intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1106
+#: extensions/white-labeling/class-white-labeling-render.php:1110
 msgid "This message is shown to users when reconfiguring Twilio 2FA service."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1116
+#: extensions/white-labeling/class-white-labeling-render.php:1120
 msgid "This message is shown to users when reconfiguring Twilio 2FA service, but SMS 2FA service is unavailable."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1125
+#: extensions/white-labeling/class-white-labeling-render.php:1129
 msgid "Reconfigure Clickatell 2FA service intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1137
+#: extensions/white-labeling/class-white-labeling-render.php:1141
 msgid "This message is shown to users when reconfiguring Clickatell 2FA service."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1147
+#: extensions/white-labeling/class-white-labeling-render.php:1151
 msgid "This message is shown to users when reconfiguring Clickatell 2FA service, but SMS 2FA service is unavailable."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1156
+#: extensions/white-labeling/class-white-labeling-render.php:1160
 msgid "Reconfigure Link via email intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1168
+#: extensions/white-labeling/class-white-labeling-render.php:1172
 msgid "This message is shown to users when reconfiguring Link via email."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1177
+#: extensions/white-labeling/class-white-labeling-render.php:1181
 msgid "Reconfigure 2FA with YubiKey intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1189
+#: extensions/white-labeling/class-white-labeling-render.php:1193
 msgid "This message is shown to users when configuring or reconfiguring 2FA with YubiKey."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1199
+#: extensions/white-labeling/class-white-labeling-render.php:1203
 msgid "This message is shown to users when reconfiguring YubiKey 2FA service, but SMS 2FA service is unavailable."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1221
+#: extensions/white-labeling/class-white-labeling-render.php:1225
 msgid "2FA method verification"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1222
+#: extensions/white-labeling/class-white-labeling-render.php:1226
 msgid "Here you can customize the messages shown to users when during the submission and verification of codes during setup."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1227
+#: extensions/white-labeling/class-white-labeling-render.php:1231
 msgid "One-time code via 2FA app pre-submission text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1230
+#: extensions/white-labeling/class-white-labeling-render.php:1234
 msgid "This message is shown to users prior to configuring one-time code via 2FA app method."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1243
+#: extensions/white-labeling/class-white-labeling-render.php:1247
 msgid "One-time code via email pre-submission text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1246
+#: extensions/white-labeling/class-white-labeling-render.php:1250
 msgid "This message is shown to users prior to configuring one-time code via email method."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1259
+#: extensions/white-labeling/class-white-labeling-render.php:1263
 msgid "Link via email pre-submission text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1262
+#: extensions/white-labeling/class-white-labeling-render.php:1266
 msgid "This message is shown to users prior to configuring Link via email method."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1275
+#: extensions/white-labeling/class-white-labeling-render.php:1279
 msgid "Authy 2FA service pre-submission text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1283
+#: extensions/white-labeling/class-white-labeling-render.php:1287
 msgid "This message is shown to users prior to configuring Authy 2FA service method."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1296
+#: extensions/white-labeling/class-white-labeling-render.php:1300
 msgid "2FA over SMS service pre-submission text (Twilio & Clickatell)"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1299
+#: extensions/white-labeling/class-white-labeling-render.php:1303
 msgid "This message is shown to users prior to configuring 2FA over SMS service method."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1312
+#: extensions/white-labeling/class-white-labeling-render.php:1316
 msgid "YubiKey 2FA service pre-submission text"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1315
+#: extensions/white-labeling/class-white-labeling-render.php:1319
 msgid "This message is shown to users prior to configuring 2FA via YubiKey."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1336
+#: extensions/white-labeling/class-white-labeling-render.php:1340
 msgid "Backup 2FA methods & final steps"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1337
+#: extensions/white-labeling/class-white-labeling-render.php:1341
 msgid "Here you can customize the messages shown to users once setup is complete."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1343
+#: extensions/white-labeling/class-white-labeling-render.php:1347
 msgid "No further action"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1346
+#: extensions/white-labeling/class-white-labeling-render.php:1350
 msgid "This message is shown to users when 2FA has been configured and no further actions are available."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1359
+#: extensions/white-labeling/class-white-labeling-render.php:1363
 msgid "Choose backup method"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1362
+#: extensions/white-labeling/class-white-labeling-render.php:1366
 msgid "This message is shown to users when more than one backup method is available."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1371
+#: extensions/white-labeling/class-white-labeling-render.php:1375
 msgid "This message is shown to users when once setup is complete and backup codes are not available."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1380
+#: extensions/white-labeling/class-white-labeling-render.php:1384
 msgid "This message is shown to users when once setup is complete and backup codes are optional."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1389
+#: extensions/white-labeling/class-white-labeling-render.php:1393
 msgid "This message is shown to users when only email 2FA backup is available."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1402
+#: extensions/white-labeling/class-white-labeling-render.php:1406
 msgid "Back codes generation intro"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1405
+#: extensions/white-labeling/class-white-labeling-render.php:1409
 msgid "This message is shown to users prior to generation of backup codes."
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1414
+#: extensions/white-labeling/class-white-labeling-render.php:1418
 msgid "Back codes generated"
 msgstr ""
 
-#: extensions/white-labeling/class-white-labeling-render.php:1417
+#: extensions/white-labeling/class-white-labeling-render.php:1421
 msgid "This message is shown to users when backup codes have been generated."
 msgstr ""
 
@@ -2284,22 +2405,22 @@ msgid "how to implement Yubico integration"
 msgstr ""
 
 #: extensions/yubico/class-yubico-render.php:71
-#: extensions/yubico/class-yubico-wizard-steps.php:317
+#: extensions/yubico/class-yubico-wizard-steps.php:343
 msgid "Client ID"
 msgstr ""
 
 #: extensions/yubico/class-yubico-render.php:79
-#: extensions/yubico/class-yubico-wizard-steps.php:325
+#: extensions/yubico/class-yubico-wizard-steps.php:351
 msgid "Secret Key"
 msgstr ""
 
 #: extensions/yubico/class-yubico-render.php:87
-#: extensions/yubico/class-yubico-wizard-steps.php:333
+#: extensions/yubico/class-yubico-wizard-steps.php:359
 msgid "API Endpoint"
 msgstr ""
 
 #: extensions/yubico/class-yubico-render.php:91
-#: extensions/yubico/class-yubico-wizard-steps.php:337
+#: extensions/yubico/class-yubico-wizard-steps.php:363
 msgid "Leave blank to use YubiCloud servers."
 msgstr ""
 
@@ -2315,84 +2436,84 @@ msgstr ""
 msgid "Change code"
 msgstr ""
 
-#: extensions/yubico/class-yubico-wizard-steps.php:196
+#: extensions/yubico/class-yubico-wizard-steps.php:199
 msgid "YubiKey OTP:"
 msgstr ""
 
-#: extensions/yubico/class-yubico-wizard-steps.php:282
+#: extensions/yubico/class-yubico-wizard-steps.php:308
 msgid "One-time password via hardware key (with YubiKey)"
 msgstr ""
 
 #. Translators: Yubico service documentation
-#: extensions/yubico/class-yubico-wizard-steps.php:292
+#: extensions/yubico/class-yubico-wizard-steps.php:318
 msgid "Refer to the %s for more information on how to use the YubiKey with WP 2FA for two-factor authentication on your website."
 msgstr ""
 
-#: extensions/yubico/class-yubico-wizard-steps.php:293
+#: extensions/yubico/class-yubico-wizard-steps.php:319
 msgid "Yubico integration documentation"
 msgstr ""
 
-#: extensions/yubico/class-yubico-wizard-steps.php:344
+#: extensions/yubico/class-yubico-wizard-steps.php:370
 msgid "Verify the Yubico configuration"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:312
+#: extensions/yubico/class-yubico.php:317
 msgid "Provided Yubico settings are invalid"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:425
+#: extensions/yubico/class-yubico.php:430
 msgid "The Yubico connection has been configured successfully."
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:426
+#: extensions/yubico/class-yubico.php:431
 msgid "Yubico OTP configuration"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:808
+#: extensions/yubico/class-yubico.php:798
 msgid "Please insert the YubiKey in a USB port and touch / click the button on the YubiKey to generate the OTP required to log in."
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:809
+#: extensions/yubico/class-yubico.php:799
 msgid "Setting up 2FA with YubiKey"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:809
+#: extensions/yubico/class-yubico.php:799
 msgid "Insert your YubiKey into the computer's / mobile's USB port"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:809
+#: extensions/yubico/class-yubico.php:799
 msgid "Touch / press the button on your YubiKey to generate the OTP code, which is automatically populated below"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:810
+#: extensions/yubico/class-yubico.php:800
 msgid "{reconfigure_or_configure_capitalized} 2FA over YubiKey"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:810
+#: extensions/yubico/class-yubico.php:800
 msgid "Click the below button to {reconfigure_or_configure} the YubiKey associated with your user."
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:811
+#: extensions/yubico/class-yubico.php:801
 msgid " {reconfigure_or_configure_capitalized} 2FA over YubiKey"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:811
+#: extensions/yubico/class-yubico.php:801
 msgid "The Yubico service you want to use is currently unavailable. Please try again later or restart the wizard to choose another method."
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:812
+#: extensions/yubico/class-yubico.php:802
 msgid "Touch the YubiKey again to generate the OTP code to confirm the setup. Once the code is populated below, it should be automatically saved and verified. If that does not happen by any reason, once the secret key was pasted, click \"Validate & save\" button below to manually save and complete the configuration."
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:815
+#: extensions/yubico/class-yubico.php:805
 msgid "One-time password via YubiKey"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:830
+#: extensions/yubico/class-yubico.php:820
 msgid "Yubico option label"
 msgstr ""
 
-#: extensions/yubico/class-yubico.php:836
+#: extensions/yubico/class-yubico.php:826
 msgid "Yubico option hint"
 msgstr ""
 
@@ -2485,19 +2606,7 @@ msgstr ""
 msgid "Automatically identify unauthorized file changes on your WordPress site."
 msgstr ""
 
-#: includes/classes/Admin/class-plugin-updated-notice.php:54
-msgid "Thank you for updating WP 2FA."
-msgstr ""
-
-#: includes/classes/Admin/class-plugin-updated-notice.php:55
-msgid "This is version %s. Check out the release notes to see what is new and improved in this update."
-msgstr ""
-
-#: includes/classes/Admin/class-plugin-updated-notice.php:57
-msgid "Release notes"
-msgstr ""
-
-#: includes/classes/Admin/class-plugin-updated-notice.php:135
+#: includes/classes/Admin/class-plugin-updated-notice.php:108
 #: includes/classes/Admin/Helpers/class-wp-helper.php:247
 msgid "Complete."
 msgstr ""
@@ -2523,176 +2632,182 @@ msgid "Add & manage trusted devices (\"Remember this device\" option)"
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:63
-msgid "Add alternative 2FA methods ensuring no user is ever locked out"
+#: includes/classes/Admin/class-premium-features.php:313
+msgid "Enable 2FA instantly with email – enroll all users automatically, no setup required."
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:64
-msgid "One-click 2FA integration with WooCommerce"
+msgid "Add alternative 2FA methods ensuring no user is ever locked out"
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:65
-msgid "Completely whitelabel the 2FA user experience including the 2FA code page, email & wizards text"
+msgid "One-click 2FA integration with WooCommerce"
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:66
-msgid "Configure different 2FA policies for different user roles"
+msgid "Completely whitelabel the 2FA user experience including the 2FA code page, email & wizards text"
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:67
-msgid "Many other features"
+msgid "Configure different 2FA policies for different user roles"
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:68
-#: includes/classes/Admin/class-premium-features.php:433
-msgid "No Ads!"
+msgid "Many other features"
 msgstr ""
 
 #: includes/classes/Admin/class-premium-features.php:69
-#: includes/classes/Admin/class-premium-features.php:214
-#: includes/classes/Admin/class-premium-features.php:446
-#: includes/classes/Admin/class-settings-page.php:213
+#: includes/classes/Admin/class-premium-features.php:445
+msgid "No Ads!"
+msgstr ""
+
+#: includes/classes/Admin/class-premium-features.php:70
+#: includes/classes/Admin/class-premium-features.php:215
+#: includes/classes/Admin/class-premium-features.php:458
+#: includes/classes/Admin/class-settings-page.php:219
 msgid "Upgrade to Premium"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:194
+#: includes/classes/Admin/class-premium-features.php:195
 msgid "Upgrade to Premium and benefit more!"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:201
+#: includes/classes/Admin/class-premium-features.php:202
 msgid "WP 2FA is your trusted gatekeeper, keeping your website, users, customers, team members, and anyone who accesses your website, including you, secure and better protected than ever before."
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:202
+#: includes/classes/Admin/class-premium-features.php:203
 msgid "Upgrade to WP 2FA Premium to add more secure authentication options and automate more, encouraging all your website users to utilize 2FA to its fullest extent and give your users more flexibility by allowing them to work from anywhere without compromising on security."
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:206
+#: includes/classes/Admin/class-premium-features.php:207
 msgid "Upgrade to Premium and start benefiting from value-added features such as:"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:208
+#: includes/classes/Admin/class-premium-features.php:209
 msgid "More 2FA methods, including SMS, push notifications & one-click login"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:209
+#: includes/classes/Admin/class-premium-features.php:210
 msgid "Trusted devices: Allow users to add trusted devices so they do not have to manually enter the 2FA code each time they log in"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:210
+#: includes/classes/Admin/class-premium-features.php:211
 msgid "White labeling features: Gain increased trust by extending your business’ branding and tone of voice to all 2FA pages, wizards & emails"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:211
+#: includes/classes/Admin/class-premium-features.php:212
 msgid "Refer to the features matrix below for a detailed list of all the premium features"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:218
+#: includes/classes/Admin/class-premium-features.php:219
 msgid "WP 2FA plugin features"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:219
+#: includes/classes/Admin/class-premium-features.php:220
 msgid "Take advantage of these benefits and many others, with prices starting from as little as $29 for 5 users per year. "
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:227
+#: includes/classes/Admin/class-premium-features.php:228
 msgid "Premium"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:230
+#: includes/classes/Admin/class-premium-features.php:231
 msgid "Free"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:235
+#: includes/classes/Admin/class-premium-features.php:236
 msgid "Support"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:238
+#: includes/classes/Admin/class-premium-features.php:239
 msgid "1-to-1 emails, forums"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:241
+#: includes/classes/Admin/class-premium-features.php:242
 msgid "forums"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:246
+#: includes/classes/Admin/class-premium-features.php:247
 msgid "Out of the box support for e-commerce, membership & third party plugins (no code required)"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:257
+#: includes/classes/Admin/class-premium-features.php:258
 msgid "2FA code via mobile app"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:279
+#: includes/classes/Admin/class-premium-features.php:280
 msgid "2FA login with hardware key (YubiKey)"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:290
+#: includes/classes/Admin/class-premium-features.php:291
 msgid "2FA login with push notification (Authy)"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:301
+#: includes/classes/Admin/class-premium-features.php:302
 msgid "2FA Login with SMS (with Twilio or Clickatell)"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:312
+#: includes/classes/Admin/class-premium-features.php:324
 msgid "One-click 2FA login (via link in email)"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:323
+#: includes/classes/Admin/class-premium-features.php:335
 msgid "Allow next login without 2FA"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:334
+#: includes/classes/Admin/class-premium-features.php:346
 msgid "Different 2FA policies per user role"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:345
+#: includes/classes/Admin/class-premium-features.php:357
 msgid "Trusted devices (remember devices)"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:356
+#: includes/classes/Admin/class-premium-features.php:368
 msgid "Alternative 2FA methods"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:362
+#: includes/classes/Admin/class-premium-features.php:374
 msgid "Backup codes only"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:367
+#: includes/classes/Admin/class-premium-features.php:379
 msgid "White labeling (logo, wizards, email, colours, fonts & custom CSS)"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:378
+#: includes/classes/Admin/class-premium-features.php:390
 msgid "One-click 2FA integration in WooCommerce user page"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:389
+#: includes/classes/Admin/class-premium-features.php:401
 msgid "Reports & Statistics"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:400
+#: includes/classes/Admin/class-premium-features.php:412
 msgid "Configurable 2FA code expiration time"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:411
+#: includes/classes/Admin/class-premium-features.php:423
 msgid "Sortable users' 2FA status"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:422
+#: includes/classes/Admin/class-premium-features.php:434
 msgid "Export/import plugin settings"
 msgstr ""
 
 #. translators: 1: Link to our site 2: Link to our contact page
-#: includes/classes/Admin/class-premium-features.php:455
+#: includes/classes/Admin/class-premium-features.php:467
 msgid "Visit the WP 2FA %1$s for more information or %2$s  with any questions you might have. We look forward to hearing from you."
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:456
+#: includes/classes/Admin/class-premium-features.php:468
 msgid "plugin website"
 msgstr ""
 
-#: includes/classes/Admin/class-premium-features.php:457
+#: includes/classes/Admin/class-premium-features.php:469
 #: includes/classes/Admin/SettingsPages/class-settings-page-email.php:145
+#: includes/classes/Authenticator/class-reset-password.php:79
 msgid "contact us"
 msgstr ""
 
@@ -2718,23 +2833,23 @@ msgstr ""
 msgid "WP 2FA Settings"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:223
+#: includes/classes/Admin/class-settings-page.php:229
 msgid "Configure 2FA Settings"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:268
-#: includes/classes/Admin/class-settings-page.php:347
+#: includes/classes/Admin/class-settings-page.php:274
+#: includes/classes/Admin/class-settings-page.php:353
 msgid "2FA Settings Updated"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:270
-#: includes/classes/Admin/class-settings-page.php:284
-#: includes/classes/Admin/class-settings-page.php:291
-#: includes/classes/Admin/class-settings-page.php:314
-#: includes/classes/Admin/class-settings-page.php:339
-#: includes/classes/Admin/class-settings-page.php:349
-#: includes/classes/Admin/class-settings-page.php:360
-#: includes/classes/Admin/class-settings-page.php:370
+#: includes/classes/Admin/class-settings-page.php:276
+#: includes/classes/Admin/class-settings-page.php:290
+#: includes/classes/Admin/class-settings-page.php:297
+#: includes/classes/Admin/class-settings-page.php:320
+#: includes/classes/Admin/class-settings-page.php:345
+#: includes/classes/Admin/class-settings-page.php:355
+#: includes/classes/Admin/class-settings-page.php:366
+#: includes/classes/Admin/class-settings-page.php:376
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:385
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:401
 #: includes/classes/Admin/Helpers/class-ajax-helper.php:417
@@ -2742,28 +2857,28 @@ msgstr ""
 msgid "Dismiss this notice."
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:289
-#: includes/classes/Admin/class-settings-page.php:358
+#: includes/classes/Admin/class-settings-page.php:295
+#: includes/classes/Admin/class-settings-page.php:364
 msgid "Please ensure both custom email address and display name are provided."
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:389
+#: includes/classes/Admin/class-settings-page.php:395
 msgid "WP 2FA User Page"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:497
+#: includes/classes/Admin/class-settings-page.php:503
 msgid "By default, the plugin uses "
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:497
+#: includes/classes/Admin/class-settings-page.php:503
 msgid "as the \"from address\" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:499
+#: includes/classes/Admin/class-settings-page.php:505
 msgid "Change it"
 msgstr ""
 
-#: includes/classes/Admin/class-settings-page.php:501
+#: includes/classes/Admin/class-settings-page.php:507
 msgid "Keep using it"
 msgstr ""
 
@@ -2847,47 +2962,51 @@ msgid "2FA methods"
 msgstr ""
 
 #: includes/classes/Admin/class-setup-wizard.php:493
-#: includes/classes/Admin/class-setup-wizard.php:499
-#: includes/classes/Admin/class-setup-wizard.php:505
-#: includes/classes/Admin/class-setup-wizard.php:512
-#: includes/classes/Admin/class-setup-wizard.php:520
-msgid "Continue Setup"
+msgid "These are the most commonly used two-factor authentication methods. WP 2FA also supports additional methods, which you can set up later from the plugin settings after finishing or skipping this wizard."
 msgstr ""
 
 #: includes/classes/Admin/class-setup-wizard.php:496
+#: includes/classes/Admin/class-setup-wizard.php:502
+#: includes/classes/Admin/class-setup-wizard.php:508
+#: includes/classes/Admin/class-setup-wizard.php:515
+#: includes/classes/Admin/class-setup-wizard.php:523
+msgid "Continue Setup"
+msgstr ""
+
+#: includes/classes/Admin/class-setup-wizard.php:499
 msgid "Alternative methods"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:502
+#: includes/classes/Admin/class-setup-wizard.php:505
 msgid "2FA policy"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:506
-#: includes/classes/Admin/class-setup-wizard.php:530
+#: includes/classes/Admin/class-setup-wizard.php:509
+#: includes/classes/Admin/class-setup-wizard.php:533
 msgid "All done"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:509
+#: includes/classes/Admin/class-setup-wizard.php:512
 msgid "Exclude users"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:517
+#: includes/classes/Admin/class-setup-wizard.php:520
 msgid "Exclude sites"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:526
+#: includes/classes/Admin/class-setup-wizard.php:529
 msgid "How long should the grace period for your users be?"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:527
+#: includes/classes/Admin/class-setup-wizard.php:530
 msgid "When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you'd like to use:"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:645
+#: includes/classes/Admin/class-setup-wizard.php:644
 msgid "Email sending failed"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:667
+#: includes/classes/Admin/class-setup-wizard.php:666
 msgid "Welcome to WP 2FA"
 msgstr ""
 
@@ -2896,29 +3015,29 @@ msgid "2FA Status"
 msgstr ""
 
 #: includes/classes/Admin/class-user-listing.php:131
-#: includes/classes/Admin/class-user-profile.php:148
+#: includes/classes/Admin/class-user-profile.php:150
 msgid "Remove 2FA"
 msgstr ""
 
 #: includes/classes/Admin/class-user-listing.php:132
-#: includes/classes/Admin/class-user-listing.php:184
+#: includes/classes/Admin/class-user-listing.php:182
 msgid "Reset list of 2FA trusted devices"
 msgstr ""
 
 #. translators: The number of the affected users.
-#: includes/classes/Admin/class-user-listing.php:204
+#: includes/classes/Admin/class-user-listing.php:200
 msgid "Removed 2FA from %d users."
 msgstr ""
 
 #. translators: The number of the affected users.
-#: includes/classes/Admin/class-user-listing.php:214
+#: includes/classes/Admin/class-user-listing.php:210
 msgid "Removed 2FA trusted devices from %d users."
 msgstr ""
 
 #: includes/classes/Admin/class-user-notices.php:142
 #: includes/classes/Admin/class-user-notices.php:165
 #: includes/classes/Admin/Views/class-wizard-steps.php:352
-#: includes/classes/Authenticator/class-login.php:304
+#: includes/classes/Authenticator/class-login.php:301
 msgid "Configure 2FA now"
 msgstr ""
 
@@ -2931,7 +3050,7 @@ msgid "The 2FA method you were using is no longer allowed on this website. Pleas
 msgstr ""
 
 #: includes/classes/Admin/class-user-notices.php:166
-#: includes/classes/Authenticator/class-login.php:305
+#: includes/classes/Authenticator/class-login.php:302
 msgid "I'll do it later"
 msgstr ""
 
@@ -2951,126 +3070,126 @@ msgstr ""
 msgid "User profile 2FA configuration area description"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:98
+#: includes/classes/Admin/class-user-profile.php:99
 msgid "This user is required to setup 2FA but has not yet done so."
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:102
+#: includes/classes/Admin/class-user-profile.php:103
 msgid "This user is excluded from configuring 2FA."
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:144
+#: includes/classes/Admin/class-user-profile.php:146
 msgid "Change 2FA settings"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:156
+#: includes/classes/Admin/class-user-profile.php:158
 msgid "unused backup codes remaining."
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:158
+#: includes/classes/Admin/class-user-profile.php:160
 msgid "Learn more about backup codes"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:221
+#: includes/classes/Admin/class-user-profile.php:224
 msgid "Configure 2FA"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:225
+#: includes/classes/Admin/class-user-profile.php:228
 msgid "Configure Two-factor authentication (2FA)"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:233
+#: includes/classes/Admin/class-user-profile.php:236
 msgid "The user has already configured 2FA. When you reset the user's current 2FA configuration, the user can log back in with just the username and password."
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:245
+#: includes/classes/Admin/class-user-profile.php:248
 msgid "Reset 2FA configuration"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:261
+#: includes/classes/Admin/class-user-profile.php:262
 msgid "Unlock user and reset the grace period"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:284
-#: includes/classes/Admin/class-user-profile.php:287
+#: includes/classes/Admin/class-user-profile.php:286
+#: includes/classes/Admin/class-user-profile.php:289
 msgid "No enabled primary method"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:290
+#: includes/classes/Admin/class-user-profile.php:292
 msgid "No enabled backup methods"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:306
+#: includes/classes/Admin/class-user-profile.php:308
 msgid "Currently configured:"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:311
+#: includes/classes/Admin/class-user-profile.php:313
 msgid "Primary method:"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:319
+#: includes/classes/Admin/class-user-profile.php:321
 msgid "Secondary method(s):"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:330
+#: includes/classes/Admin/class-user-profile.php:332
 msgid "2FA configuration:"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:340
+#: includes/classes/Admin/class-user-profile.php:342
 msgid "Show QR code"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:346
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:244
+#: includes/classes/Admin/class-user-profile.php:348
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:250
 msgid "COPY"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:359
+#: includes/classes/Admin/class-user-profile.php:361
 msgid "2FA Setup:"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:409
+#: includes/classes/Admin/class-user-profile.php:411
 msgid "Are you sure?"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:410
+#: includes/classes/Admin/class-user-profile.php:412
 msgid "Any unsaved changes will be lost!"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:442
+#: includes/classes/Admin/class-user-profile.php:444
 msgid "No available 2FA methods set"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:442
+#: includes/classes/Admin/class-user-profile.php:444
 msgid "Ask your administrator to enable 2FA methods"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:466
+#: includes/classes/Admin/class-user-profile.php:468
 #: includes/classes/Admin/Views/class-wizard-steps.php:64
 msgid "Next Step"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:554
+#: includes/classes/Admin/class-user-profile.php:556
 msgid "Remove 2FA?"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:555
+#: includes/classes/Admin/class-user-profile.php:557
 msgid "Are you sure you want to remove two-factor authentication and lower the security of your user account?"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:637
+#: includes/classes/Admin/class-user-profile.php:639
 msgid "Unlock user"
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:766
+#: includes/classes/Admin/class-user-profile.php:768
 msgid "Invalid Two Factor Authentication secret key."
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:772
+#: includes/classes/Admin/class-user-profile.php:774
 msgid "Invalid Email Authentication code."
 msgstr ""
 
-#: includes/classes/Admin/class-user-profile.php:793
+#: includes/classes/Admin/class-user-profile.php:795
 msgid "Error processing form"
 msgstr ""
 
@@ -3193,61 +3312,61 @@ msgstr ""
 msgid "Not enough privileges."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:181
-#: includes/classes/Authenticator/class-login.php:1032
+#: includes/classes/Admin/Methods/class-backup-codes.php:183
+#: includes/classes/Authenticator/class-login.php:1030
 msgid "ERROR: Invalid backup code."
 msgstr ""
 
 #. translators: %s: count
-#: includes/classes/Admin/Methods/class-backup-codes.php:321
+#: includes/classes/Admin/Methods/class-backup-codes.php:308
 msgid "%s unused code remaining."
 msgid_plural "%s unused codes remaining."
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: the site's domain
-#: includes/classes/Admin/Methods/class-backup-codes.php:326
+#: includes/classes/Admin/Methods/class-backup-codes.php:313
 msgid "Two-Factor Backup Codes for %s"
 msgstr ""
 
 #. translators: URL with more information about the backup codes
-#: includes/classes/Admin/Methods/class-backup-codes.php:418
+#: includes/classes/Admin/Methods/class-backup-codes.php:405
 msgid "Login with a backup code: you will get 10 backup codes and you can use one of them when you need to login and you cannot generate a code from the app. %s"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:419
+#: includes/classes/Admin/Methods/class-backup-codes.php:406
 msgid "More information."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:670
+#: includes/classes/Admin/Methods/class-backup-codes.php:657
 msgid "It is recommended to configure a backup 2FA method in case you do not have access to the primary 2FA method to generate a code to log in. You can configure any of the below. You can always configure any or both from your user profile page later."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:671
-#: includes/classes/Admin/Methods/class-backup-codes.php:672
+#: includes/classes/Admin/Methods/class-backup-codes.php:658
+#: includes/classes/Admin/Methods/class-backup-codes.php:659
 msgid "Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:672
+#: includes/classes/Admin/Methods/class-backup-codes.php:659
 msgid "You should now generate the list of backup method. Although this is optional, it is highly recommended to have a secondary 2FA method. This can be used as a backup should the primary 2FA method fail. This can happen if, for example, you forget your smartphone, the smartphone runs out of battery, or there are email deliverability problems."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:673
+#: includes/classes/Admin/Methods/class-backup-codes.php:660
 #: includes/classes/Admin/Views/class-wizard-steps.php:155
 #: includes/classes/Admin/Views/class-wizard-steps.php:205
 #: includes/classes/Admin/Views/class-wizard-steps.php:237
 msgid "Generate list of backup codes"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:673
+#: includes/classes/Admin/Methods/class-backup-codes.php:660
 msgid "It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:674
+#: includes/classes/Admin/Methods/class-backup-codes.php:661
 msgid "Backup codes generated"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-backup-codes.php:674
+#: includes/classes/Admin/Methods/class-backup-codes.php:661
 msgid "Here are your backup codes:"
 msgstr ""
 
@@ -3255,149 +3374,100 @@ msgstr ""
 msgid "Change email address"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:183
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:199
 msgid "One-time code via email (HOTP)"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:184
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:200
 msgid " - ensure email deliverability with the free plugin "
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:190
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:206
 msgid "When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin's settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin "
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-email-wizard-steps.php:190
+#: includes/classes/Admin/Methods/class-email-wizard-steps.php:206
 msgid "Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-email.php:178
-#: includes/classes/Authenticator/class-login.php:1061
-msgid " For security reasons you have been sent a new code via email. Please use this new code to log in."
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:198
+#: includes/classes/Admin/Methods/class-email.php:199
 msgid "HOTP (Email)"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:350
-msgid "Setting up HOTP (one-time code via email)"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:350
-msgid "Please select the email address where the one-time code should be sent:"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:351
-msgid "To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:352
-msgid "IMPORTANT"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:352
-msgid "To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is {from_email}"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:353
-msgid "Please type in the one-time code sent to your email address to finalize the setup"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:354
-msgid "{reconfigure_or_configure_capitalized} one-time code over email method"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:354
-msgid "Click the below button to {reconfigure_or_configure} the email address where the one-time code should be sent."
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:355
-msgid "One-time code via email"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:370
-msgid "Email option label"
-msgstr ""
-
-#: includes/classes/Admin/Methods/class-email.php:376
-msgid "Email option hint"
 msgstr ""
 
 #: includes/classes/Admin/Methods/class-totp-wizard-steps.php:97
 msgid "Reset Key"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:257
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:263
 msgid "Click on the icon of the app that you are using for a detailed guide on how to set it up."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:328
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:350
 msgid "One-time code via 2FA App (TOTP) - "
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:328
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:350
 msgid "complete list of supported 2FA apps."
 msgstr ""
 
 #. translators: link to the knowledge base website
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:335
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:357
 msgid "When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:336
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:345
-#: includes/classes/Admin/Methods/class-totp.php:612
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:358
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:367
+#: includes/classes/Admin/Methods/class-totp.php:600
 msgid "guide on how to set up 2FA apps"
 msgstr ""
 
 #. translators: link to the knowledge base website
-#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:344
-#: includes/classes/Admin/Methods/class-totp.php:611
+#: includes/classes/Admin/Methods/class-totp-wizard-steps.php:366
+#: includes/classes/Admin/Methods/class-totp.php:599
 msgid "Refer to the %s for more information on how to setup these apps and which apps are supported."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:191
+#: includes/classes/Admin/Methods/class-totp.php:194
 msgid "TOTP (one-time code via app)"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:602
+#: includes/classes/Admin/Methods/class-totp.php:590
 msgid "Setting up TOTP (one-time code via app)"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:603
+#: includes/classes/Admin/Methods/class-totp.php:591
 msgid "Download and start the application of your choice"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:604
+#: includes/classes/Admin/Methods/class-totp.php:592
 msgid "From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:605
+#: includes/classes/Admin/Methods/class-totp.php:593
 msgid "Click the \"I'm ready\" button below when you complete the application setup process to proceed with the wizard."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:606
+#: includes/classes/Admin/Methods/class-totp.php:594
 msgid "Please type in the one-time code from your chosen authentication app to finalize the setup."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:607
+#: includes/classes/Admin/Methods/class-totp.php:595
 msgid "{reconfigure_or_configure_capitalized} the 2FA App"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:607
+#: includes/classes/Admin/Methods/class-totp.php:595
 msgid "Click the below button to {reconfigure_or_configure} the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working."
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:608
+#: includes/classes/Admin/Methods/class-totp.php:596
 msgid "One-time code via 2FA app"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:627
+#: includes/classes/Admin/Methods/class-totp.php:615
 msgid "TOTP (one-time code via app) Option label"
 msgstr ""
 
-#: includes/classes/Admin/Methods/class-totp.php:633
+#: includes/classes/Admin/Methods/class-totp.php:621
 msgid "TOTP option hint"
 msgstr ""
 
@@ -3570,6 +3640,7 @@ msgid "Hide settings from other administrators"
 msgstr ""
 
 #: includes/classes/Admin/SettingsPages/class-settings-page-general.php:270
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:277
 msgid "Disable the REST API endpoints for 2FA"
 msgstr ""
 
@@ -3578,63 +3649,63 @@ msgid "The WP 2FA REST API endpoints are enabled by default. They are used for i
 msgstr ""
 
 #: includes/classes/Admin/SettingsPages/class-settings-page-general.php:283
-msgid "disable the REST API endpoints"
+msgid "Disable the REST API endpoints"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:318
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:317
 msgid "Select the 2FA verification mechanism"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:320
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:319
 msgid "Choose how WP 2FA verifies the 2FA by default. The native method works for most setups, but you can switch to REST API verification if needed. Only change this setting if you are experiencing issues with the default method."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:325
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:324
 msgid "Select the default 2FA verification mechanism"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:331
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:330
 msgid "Native"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:336
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:335
 msgid "REST API"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:356
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:355
 msgid "Disable 2FA code brute force protection"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:358
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:357
 msgid "When using email and SMS 2FA, the plugin sends the users a new one-time code whenever they enter the wrong code when logging in. This is a security enhancement, a sort of brute force protection. You can disable this feature from the below setting, however, it is not recommended."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:363
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:362
 msgid "Disable one-time code brute force protection"
 msgstr ""
 
 #. translators: support email.
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:390
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:389
 msgid "Use this setting below to configure the properties of the two-factor authentication on your website and how users use it. If you have any questions send us an email at %1$s."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:395
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:394
 msgid "What should the plugin do if the 2FA method used during a user login is unavailable"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:397
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:396
 msgid "There may be cases in which the 2FA service is unavailable when a user is trying to log in. For example, the service is unreachable or there are no credits to complete the action. In this case you can configure the plugin to either block the login process, or allow the user to log in without 2FA authentication."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:402
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:401
 msgid "Select action"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:409
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:408
 msgid "Block the login."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:417
+#: includes/classes/Admin/SettingsPages/class-settings-page-general.php:416
 msgid "Allow the login without 2FA"
 msgstr ""
 
@@ -3643,6 +3714,8 @@ msgid "Exclude yourself?"
 msgstr ""
 
 #: includes/classes/Admin/SettingsPages/class-settings-page-policies.php:75
+#: assets/js/admin/settings.js:73
+#: dist/js/admin.js:6
 msgid "You are about to enforce 2FA instantly on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?"
 msgstr ""
 
@@ -3715,23 +3788,23 @@ msgstr ""
 msgid "Use the settings below to configure the emails which are sent to users as part of the 2FA plugin. If you have any questions send us an email at"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:184
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:189
 msgid "Markup is not allowed in Login area CSS."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:311
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:316
 msgid "Change the default text used in the 2FA code page"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:313
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:318
 msgid "This is the text shown to the users on the page when they are asked to enter the 2FA code. To change the default text, simply type it in the below placeholder."
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:330
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:335
 msgid "Backup code page text"
 msgstr ""
 
-#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:342
+#: includes/classes/Admin/SettingsPages/class-settings-page-white-label.php:347
 msgid "Text for logged out users trying to access the 2FA configuration page"
 msgstr ""
 
@@ -3886,35 +3959,35 @@ msgstr ""
 msgid "Show a notification on a page on its own after the user authenticates and before accessing the dashboard"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-passord-reset-2fa.php:68
+#: includes/classes/Admin/Views/class-passord-reset-2fa.php:66
 msgid "Require 2FA on password reset"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-passord-reset-2fa.php:124
+#: includes/classes/Admin/Views/class-passord-reset-2fa.php:122
 msgid "Do you want to require 2FA when users reset their password?"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-passord-reset-2fa.php:126
+#: includes/classes/Admin/Views/class-passord-reset-2fa.php:124
 msgid "When enabled, users who reset their password via the “Lost/Forgot Password” process will need to enter a one-time code sent to their email before completing the reset. This does not apply to password changes made while logged in."
 msgstr ""
 
-#: includes/classes/Admin/Views/class-passord-reset-2fa.php:132
+#: includes/classes/Admin/Views/class-passord-reset-2fa.php:130
 msgid "Password reset"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-re-login-2fa.php:84
+#: includes/classes/Admin/Views/class-re-login-2fa.php:89
 msgid "Log out user after 2FA setup"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-re-login-2fa.php:141
+#: includes/classes/Admin/Views/class-re-login-2fa.php:146
 msgid "Do you want to logout users after setting up 2FA on their account?"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-re-login-2fa.php:143
+#: includes/classes/Admin/Views/class-re-login-2fa.php:148
 msgid "When you enable this setting users will be logged out automatically after configuring 2FA and they will need to log back in."
 msgstr ""
 
-#: includes/classes/Admin/Views/class-re-login-2fa.php:149
+#: includes/classes/Admin/Views/class-re-login-2fa.php:154
 msgid "Re-login"
 msgstr ""
 
@@ -4004,11 +4077,11 @@ msgid "Now you need to configure 2FA for your own user account. You can do this 
 msgstr ""
 
 #: includes/classes/Admin/Views/class-wizard-steps.php:355
-#: includes/classes/Admin/Views/class-wizard-steps.php:413
+#: includes/classes/Admin/Views/class-wizard-steps.php:420
 msgid "Close wizard & configure 2FA later"
 msgstr ""
 
-#: includes/classes/Admin/Views/class-wizard-steps.php:410
+#: includes/classes/Admin/Views/class-wizard-steps.php:417
 msgid "Configure backup 2FA method"
 msgstr ""
 
@@ -4024,228 +4097,295 @@ msgstr ""
 msgid "Lock the user (administrators have to manually unlock them)"
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:486
+#: includes/classes/Authenticator/class-login.php:483
 msgid "Error: API login for user disabled."
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:525
+#: includes/classes/Authenticator/class-login.php:522
 msgid "Your user account has been locked because you have not configured 2FA within the grace period. Please contact the website administrator to unlock your user and you can configure 2FA."
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:623
+#: includes/classes/Authenticator/class-login.php:620
 msgid "Cheatin&#8217; uh?"
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:743
+#: includes/classes/Authenticator/class-login.php:740
 msgid "Log In"
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:766
-#: includes/classes/Authenticator/class-reset-password.php:172
+#: includes/classes/Authenticator/class-login.php:763
+#: includes/classes/Authenticator/class-reset-password.php:196
 msgid "Resend Code"
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:800
+#: includes/classes/Authenticator/class-login.php:798
 msgid "Or, use a backup code."
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:823
+#: includes/classes/Authenticator/class-login.php:821
 msgid "Are you lost?"
 msgstr ""
 
 #. translators: %s: site name.
-#: includes/classes/Authenticator/class-login.php:828
+#: includes/classes/Authenticator/class-login.php:826
 msgid "&larr; Back to %s"
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:978
+#: includes/classes/Authenticator/class-login.php:976
 msgid "<p> <strong>WP-2FA</strong>: Please contact the administrator for further assistance!</p>"
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:978
+#: includes/classes/Authenticator/class-login.php:976
 msgid "Invalid provider."
 msgstr ""
 
-#: includes/classes/Authenticator/class-login.php:1106
+#: includes/classes/Authenticator/class-login.php:1104
 msgid "You have logged in successfully."
 msgstr ""
 
-#: includes/classes/Authenticator/class-reset-password.php:161
+#. translators: anchor link, contact us text, closing anchor.
+#: includes/classes/Authenticator/class-reset-password.php:77
+msgid "This process cannot be completed because one or more parameters are missing from the request. This could be caused by outdated plugins. Ensure all the plugins are up to date. If the problem persists %1$1s%2$2s%3$3s - WP 2FA."
+msgstr ""
+
+#: includes/classes/Authenticator/class-reset-password.php:185
 msgid "Get New Password"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:538
+#: includes/classes/class-wp2fa.php:537
 msgid "Your login confirmation code for {site_name}"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:540
-#: includes/classes/class-wp2fa.php:556
+#: includes/classes/class-wp2fa.php:539
+#: includes/classes/class-wp2fa.php:554
 msgid "Hello {user_display_name},"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:541
+#: includes/classes/class-wp2fa.php:540
 msgid "You are trying to log in to {site_name} using the username {user_login_name}. To complete your login, please enter the following one-time 2FA code:"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:542
+#: includes/classes/class-wp2fa.php:541
 msgid "{login_code}"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:543
+#: includes/classes/class-wp2fa.php:542
 msgid "Enter this code on the login page to finish the authentication process and access your account."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:544
-#: includes/classes/class-wp2fa.php:565
+#: includes/classes/class-wp2fa.php:543
+#: includes/classes/class-wp2fa.php:563
 msgid "This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:545
+#: includes/classes/class-wp2fa.php:544
 msgid "If you encounter any other issues logging in, feel free to contact us at {admin_email}."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:546
+#: includes/classes/class-wp2fa.php:545
 msgid ""
 "Kind regards,\n"
 "\t\t\t\tThe {site_name} Team"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:554
+#: includes/classes/class-wp2fa.php:552
 msgid "Your 2FA Setup Verification Code for {site_name}"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:557
+#: includes/classes/class-wp2fa.php:555
 msgid "You have requested to set up two-factor authentication for your user {user_login_name} on the website {site_name} ({site_url})."
 msgstr ""
 
 #. translators: The login code provided from the plugin.
-#: includes/classes/class-wp2fa.php:561
+#: includes/classes/class-wp2fa.php:559
 msgid "Please enter the following code to complete your setup: %1$1s"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:566
-#: includes/classes/class-wp2fa.php:583
-#: includes/classes/class-wp2fa.php:598
+#: includes/classes/class-wp2fa.php:564
+#: includes/classes/class-wp2fa.php:581
+#: includes/classes/class-wp2fa.php:593
 msgid "Thank you."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:567
+#: includes/classes/class-wp2fa.php:565
 msgid "The {site_name} Team"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:571
+#: includes/classes/class-wp2fa.php:569
 msgid "Your user on {site_name} has been locked"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:573
+#: includes/classes/class-wp2fa.php:571
 msgid "Hello."
 msgstr ""
 
 #. translators: %2s - the name of the site.
-#: includes/classes/class-wp2fa.php:577
+#: includes/classes/class-wp2fa.php:575
 msgid "Since you have not enabled two-factor authentication for the user %1$1s on the website %2$2s within the grace period, your account has been locked."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:582
+#: includes/classes/class-wp2fa.php:580
 msgid "Contact your website administrator to unlock your account."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:589
+#: includes/classes/class-wp2fa.php:584
 msgid "Your user on {site_name} has been unlocked"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:592
-#: includes/classes/class-wp2fa.php:604
+#: includes/classes/class-wp2fa.php:587
+#: includes/classes/class-wp2fa.php:599
 msgid "Hello,"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:592
+#: includes/classes/class-wp2fa.php:587
 msgid "Your user"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:592
-#: includes/classes/class-wp2fa.php:604
+#: includes/classes/class-wp2fa.php:587
+#: includes/classes/class-wp2fa.php:599
 msgid "on the website"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:592
+#: includes/classes/class-wp2fa.php:587
 msgid "has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:595
+#: includes/classes/class-wp2fa.php:590
 msgid "You can configure 2FA from this page:"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:598
-#: includes/classes/class-wp2fa.php:608
-msgid "WP 2FA plugin"
-msgstr ""
-
-#: includes/classes/class-wp2fa.php:601
+#: includes/classes/class-wp2fa.php:596
 msgid "2FA backup codes for user {user_login_name} on {site_name}"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:604
+#: includes/classes/class-wp2fa.php:599
 msgid "Below please find the 2FA backup codes for your user"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:604
+#: includes/classes/class-wp2fa.php:599
 msgid "The website's URL is"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:608
+#: includes/classes/class-wp2fa.php:603
 msgid "Thank you for enabling 2FA on your account and helping us keeping the website secure."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:753
+#: includes/classes/class-wp2fa.php:748
 msgid "Reconfigure"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:753
+#: includes/classes/class-wp2fa.php:748
 msgid "Configure"
 msgstr ""
 
 #. translators: The username.
-#: includes/classes/class-wp2fa.php:953
-msgid "User %1$s logged in without 2FA"
+#: includes/classes/class-wp2fa.php:949
+msgid "2FA not configured on enforced user – action required"
 msgstr ""
 
 #. translators: the site name.
-#: includes/classes/class-wp2fa.php:963
-msgid "2FA is enforced on the user %1$s on the website %2$s. However, since the WP 2FA plugin has not been configured properly it cannot enforce the user to configure 2FA, so the user logged in without 2FA."
+#: includes/classes/class-wp2fa.php:959
+msgid "Two-factor authentication (2FA) is currently enforced for the user %1$s on your site %2$s, but the user was able to log in without completing the 2FA process."
+msgstr ""
+
+#. translators: the site name.
+#: includes/classes/class-wp2fa.php:970
+msgid "This can happen in cases such as:"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:977
+msgid "Automatic login after registration via WooCommerce or membership plugins"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:978
+msgid "Users being logged in automatically after placing an order"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:979
+msgid "2FA not yet being configured for front-end login flows"
 msgstr ""
 
 #. translators: the support e-mail.
-#: includes/classes/class-wp2fa.php:973
-msgid "To enforce 2FA on users logging in from non default WordPress login pages please configure the %1$s. If you need assistance, please contact us at %2$s."
+#: includes/classes/class-wp2fa.php:985
+msgid "To address this, please enable and configure the Front-end 2FA Page:%1$s"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1164
+#: includes/classes/class-wp2fa.php:989
+msgid "Configure Front-end 2FA Page"
+msgstr ""
+
+#. translators: the site name.
+#: includes/classes/class-wp2fa.php:995
+msgid "If you're using the Premium edition, you can take advantage of:"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:1002
+msgid "One-click WooCommerce integration (adds 2FA setup to the “My Account” area)"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:1003
+msgid "Option to disable this type of notification email"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:1004
+msgid "Additional 2FA methods (e.g. SMS via Twilio/Clickatell, one-time email links, YubiKey, etc.)"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:1005
+msgid "A Trusted Devices (“Remember Me”) functionality to reduce 2FA prompts"
+msgstr ""
+
+#. translators: the support e-mail.
+#: includes/classes/class-wp2fa.php:1011
+msgid "If you need assistance with any of the setup, feel free to reach out to us at %1$s."
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:1018
+msgid "Best Regards,"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:1018
+msgid "The Melapress Team"
+msgstr ""
+
+#: includes/classes/class-wp2fa.php:1196
 msgid "For security reasons WP 2FA needs to store the private key in the wp-config.php file. However, it is unable to. This can happen because of restrictive permissions, or the file is not in the default location. To fix this you can:"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1165
+#: includes/classes/class-wp2fa.php:1197
 msgid "Option A) allow the plugin to write to the wp-config.php file temporarily by changing the wp-config.php permissions to 755. Once ready, click the button to proceed."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1166
+#: includes/classes/class-wp2fa.php:1198
 msgid "Option B) Add the encryption key to the wp-config.php file yourself by "
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1167
+#: includes/classes/class-wp2fa.php:1199
 msgid "following these instructions."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1168
+#: includes/classes/class-wp2fa.php:1200
 msgid "Once you complete any of the above, please click the button below."
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1173
+#: includes/classes/class-wp2fa.php:1205
 msgid "Write key to file now / Check for the key in file"
 msgstr ""
 
-#: includes/classes/class-wp2fa.php:1175
+#: includes/classes/class-wp2fa.php:1207
 msgid "I am aware of the risks. Please do not alert me again about this."
+msgstr ""
+
+#: includes/classes/Free/assets/plugin-update-card.php:133
+msgid "WP 2FA has been updated to version "
+msgstr ""
+
+#: includes/classes/Free/assets/plugin-update-card.php:135
+msgid "You are now running the latest version of WP 2FA. To see what's been included in this update, refer to the plugin's release notes and change log where we list all new features, updates, and bug fixes."
+msgstr ""
+
+#: includes/classes/Free/assets/plugin-update-card.php:137
+msgid "Read the release notes"
 msgstr ""
 
 #: includes/classes/Shortcodes/class-shortcodes.php:56
@@ -4275,40 +4415,28 @@ msgstr ""
 msgid "Current memory usage: "
 msgstr ""
 
-#: includes/classes/Utils/class-user-utils.php:319
+#: includes/classes/Utils/class-user-utils.php:326
 msgid "Configured"
 msgstr ""
 
-#: includes/classes/Utils/class-user-utils.php:320
+#: includes/classes/Utils/class-user-utils.php:327
 msgid "Required but not configured"
 msgstr ""
 
-#: includes/classes/Utils/class-user-utils.php:321
+#: includes/classes/Utils/class-user-utils.php:328
 msgid "Configured (but not required)"
 msgstr ""
 
-#: includes/classes/Utils/class-user-utils.php:322
+#: includes/classes/Utils/class-user-utils.php:329
 msgid "Not required & not configured"
 msgstr ""
 
-#: includes/classes/Utils/class-user-utils.php:324
+#: includes/classes/Utils/class-user-utils.php:331
 msgid "Locked"
 msgstr ""
 
-#: includes/classes/Utils/class-user-utils.php:325
+#: includes/classes/Utils/class-user-utils.php:332
 msgid "User has not logged in yet, 2FA status is unknown"
-msgstr ""
-
-#: includes/classes/Utils/class-white-label.php:156
-#: includes/classes/Utils/class-white-label.php:161
-#: includes/classes/Utils/class-white-label.php:162
-msgid "Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email."
-msgstr ""
-
-#: includes/classes/Utils/class-white-label.php:156
-#: includes/classes/Utils/class-white-label.php:161
-#: includes/classes/Utils/class-white-label.php:162
-msgid "Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code."
 msgstr ""
 
 #: includes/classes/Utils/class-white-label.php:157
@@ -4397,15 +4525,30 @@ msgstr ""
 msgid "Validating your license, please wait..."
 msgstr ""
 
-#: wp-2fa.php:265
+#: wp-2fa.php:261
 msgid "This plugin requires OpenSSL. Contact your web host or website administrator so they can enable OpenSSL. Re-activate the plugin once the library has been enabled."
 msgstr ""
 
-#: assets/js/admin/common.js:812
-#: assets/js/admin/common.js:829
-#: dist/js/admin.js:48
-#: dist/js/admin.js:49
-#: dist/js/wp-2fa.js:37
-#: dist/js/wp-2fa.js:38
+#: assets/js/admin/common.js:898
+#: assets/js/admin/common.js:915
+#: dist/js/admin.js:53
+#: dist/js/admin.js:54
+#: dist/js/wp-2fa.js:42
+#: dist/js/wp-2fa.js:43
 msgid "Copied"
+msgstr ""
+
+#: assets/js/admin/settings.js:88
+#: dist/js/admin.js:6
+msgid "You are enabling Zero-setup email 2FA. This will enforce 2FA for all users, including your own account, replacing any current 2FA method enabled. That means you will be asked for a one-time code sent by email the next time you log in."
+msgstr ""
+
+#: assets/js/admin/settings.js:88
+#: dist/js/admin.js:6
+msgid "If you don’t want this applied to your account, you can exclude yourself from the 2FA policies before continuing."
+msgstr ""
+
+#: assets/js/admin/settings.js:88
+#: dist/js/admin.js:6
+msgid "Note: After closing this prompt, don’t forget to save your settings for the changes to take effect."
 msgstr ""

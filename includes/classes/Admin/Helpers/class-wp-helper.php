@@ -225,7 +225,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		/**
 		 * Handle notice dismissal.
 		 *
-		 * @since 2.9.3
+		 * @since 3.0.0
 		 * 
 		 * @return void
 		 */

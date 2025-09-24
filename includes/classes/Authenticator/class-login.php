@@ -26,6 +26,7 @@ use WP2FA\Authenticator\Authentication;
 use WP2FA\Methods\Wizards\TOTP_Wizard_Steps;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
 use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
+use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
 use WP2FA\Utils\Settings_Utils;
 
 /**
@@ -44,8 +45,8 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 *
 		 * @var string
 		 */
-		const USER_META_NONCE_KEY    = 'wp_2fa_nonce';
-		const INPUT_NAME_RESEND_CODE = 'wp-2fa-email-code-resend';
+		public const USER_META_NONCE_KEY    = 'wp_2fa_nonce';
+		public const INPUT_NAME_RESEND_CODE = 'wp-2fa-email-code-resend';
 
 		/**
 		 * Keep track of all the password-based authentication sessions that
@@ -133,8 +134,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				}
 			}
 
-			// phpcs:disable
-			// phpcs:enable
 
 			$user_status = User_Helper::get_2fa_status( $user );
 
@@ -164,8 +163,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			// leave if the user has already got 2FA authentication configured.
 			if ( ! $users_method_removed && User_Helper::is_user_using_two_factor( $user->ID ) ) {
-				// phpcs:disable
-				// phpcs:enable				
 				try {
 					Settings::is_provider_enabled_for_role( User_Helper::get_user_role(), User_Helper::get_enabled_method_for_user( $user ) );
 					self::clear_session_and_show_2fa_form( $user );
@@ -194,7 +191,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			// redirect to 2FA setup page if the 2FA configuration is enforced to happen instantly.
 			$is_user_instantly_enforced = User_Helper::get_user_enforced_instantly( $user );
 			if ( true === (bool) $is_user_instantly_enforced ) {
-				wp_safe_redirect(
+				\wp_safe_redirect(
 				self::get_2fa_setup_url( $user ) . ( ( isset( $_REQUEST['_wp_http_referer'] ) && ! empty( $_REQUEST['_wp_http_referer'] ) ) ? '?return=' . urlencode( \esc_url_raw( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ) ) : '' ) // phpcs:ignore
 				);
 				exit();
@@ -216,7 +213,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 						$login_nonce = self::create_login_nonce( $user->ID );
 						if ( ! $login_nonce ) {
-							wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+							\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 						}
 
 						if ( isset( $_REQUEST['_wp_http_referer'] ) && ! empty( $_REQUEST['_wp_http_referer'] ) ) {
@@ -380,7 +377,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			self::destroy_current_session_for_user( $user );
 
 			// Also clear the cookies which are no longer valid.
-			wp_clear_auth_cookie();
+			\wp_clear_auth_cookie();
 
 			self::show_two_factor_login( $user );
 			exit;
@@ -563,7 +560,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 */
 		public static function show_two_factor_login( $user ) {
 			if ( ! $user ) {
-				$user = wp_get_current_user();
+				$user = \wp_get_current_user();
 			}
 
 			$login_nonce = self::create_login_nonce( $user->ID );
@@ -574,7 +571,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			$redirect_to = isset( $_REQUEST['redirect_to'] ) ? \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : network_admin_url();
 
 			if ( self::is_woocommerce_activated() ) {
-				$redirect_to = isset( $_REQUEST['redirect'] ) ? \esc_url_raw( wp_unslash( $_REQUEST['redirect'] ) ) : network_admin_url();
+				$redirect_to = isset( $_REQUEST['redirect'] ) ? \esc_url_raw( \wp_unslash( $_REQUEST['redirect'] ) ) : \network_admin_url();
 			}
 
 			self::login_html( $user, $login_nonce['key'], $redirect_to );
@@ -705,7 +702,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 					 *
 					 * @since 2.0.0
 					 */
-					do_action( WP_2FA_PREFIX . 'login_form', $user, $provider );
+					\do_action( WP_2FA_PREFIX . 'login_form', $user, $provider );
 				}
 
 				/**
@@ -727,7 +724,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 					 *
 					 * @since 2.0.0
 					 */
-					do_action( WP_2FA_PREFIX . 'login_before_submit_button', $user, $provider );
+					\do_action( WP_2FA_PREFIX . 'login_before_submit_button', $user, $provider );
 					?>
 					<p>
 					<?php
@@ -767,6 +764,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 						</p>
 						<?php
 					}
+
 				} // submit button not disabled
 
 				/**
@@ -777,7 +775,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				 *
 				 * @since 2.0.0
 				 */
-				do_action( WP_2FA_PREFIX . 'login_html_before_end', $user, $provider );
+				\do_action( WP_2FA_PREFIX . 'login_html_before_end', $user, $provider );
 				?>
 			</form>
 
@@ -959,14 +957,14 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			}
 
 			$auth_id = (int) $_POST['wp-auth-id']; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$user    = get_userdata( $auth_id );
+			$user    = \get_userdata( $auth_id );
 			if ( ! $user ) {
 				return;
 			}
 
 			$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			if ( true !== self::verify_login_nonce( $user->ID, $nonce ) ) {
-				\wp_safe_redirect( get_bloginfo( 'url' ) );
+				\wp_safe_redirect( \get_bloginfo( 'url' ) );
 				exit;
 			}
 
@@ -982,13 +980,13 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			if ( Email::METHOD_NAME === $provider && true !== self::pre_process_email_authentication( $user ) ) {
 				$login_nonce = self::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
-					wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
 			}
 
 			// Validate TOTP.
 			if ( TOTP::METHOD_NAME === $provider && true !== TOTP::validate_totp_authentication( $user ) ) {
-				do_action(
+				\do_action(
 					'wp_login_failed',
 					$user->user_login,
 					new \WP_Error(
@@ -1024,7 +1022,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				);
 				$login_nonce = self::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
-					wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
 
 				if ( Backup_Codes::check_number_of_attempts( $user ) ) {
@@ -1039,7 +1037,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			// Validate Email.
 			if ( Email::METHOD_NAME === $provider && true !== self::validate_email_authentication( $user ) ) {
-				do_action(
+				\do_action(
 					'wp_login_failed',
 					$user->user_login,
 					new \WP_Error(
@@ -1050,7 +1048,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 				$login_nonce = self::create_login_nonce( $user->ID );
 				if ( ! $login_nonce ) {
-					wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
 
 				if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) { //phpcs:ignore

@@ -128,8 +128,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 * @since 2.2.2
 		 */
 		public static function add_bulk_action( $bulk_actions ): array {
-			$bulk_actions['remove-2fa']         = esc_html__( 'Remove 2FA', 'wp-2fa' );
-			$bulk_actions['remove-2fa-trusted'] = esc_html__( 'Reset list of 2FA trusted devices', 'wp-2fa' );
+			$bulk_actions['remove-2fa']         = \esc_html__( 'Remove 2FA', 'wp-2fa' );
+			$bulk_actions['remove-2fa-trusted'] = \esc_html__( 'Reset list of 2FA trusted devices', 'wp-2fa' );
 
 			return $bulk_actions;
 		}
@@ -163,8 +163,6 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 				Core::remove_trusted_devices_for_users( (array) $user_ids );
 				$redirect_url = add_query_arg( '2fa-trusted-removed', count( (array) $user_ids ), $redirect_url );
 			}
-			// phpcs:disable
-			// phpcs:enable
 
 			return esc_url_raw( $redirect_url );
 		}
@@ -183,8 +181,6 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 			if ( class_exists( '\WP2FA\Extensions\TrustedDevices\Core' ) ) {
 				$actions['remove-2fa-trusted'] = "<a class='resetpassword' href='" . \esc_url( \wp_nonce_url( "users.php?action=remove-2fa-trusted&amp;users=$user_object->ID", 'bulk-users' ) ) . "'>" . \esc_html__( 'Reset list of 2FA trusted devices', 'wp-2fa' ) . '</a>';
 			}
-			// phpcs:disable
-			// phpcs:enable
 			return $actions;
 		}
 

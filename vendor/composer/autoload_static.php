@@ -4,12 +4,11 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit17049
+class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
 {
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
-            'WP2FA_Vendor\\Firebase\\JWT\\' => 26,
             'WP2FA_Vendor\\Clickatell\\' => 24,
             
             'WP2FA\\' => 6,
@@ -17,10 +16,6 @@ class ComposerStaticInit17049
     );
 
     public static $prefixDirsPsr4 = array (
-        'WP2FA_Vendor\\Firebase\\JWT\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
-        ),
         'WP2FA_Vendor\\Clickatell\\' => 
         array (
             0 => __DIR__ . '/..' . '/arcturial/clickatell/src',
@@ -53,6 +48,7 @@ class ComposerStaticInit17049
         'WP2FA\\Admin\\Helpers\\WP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-wp-helper.php',
         'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
         'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
+        'WP2FA\\Admin\\Methods\\Traits\\Providers' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-provider-trait.php',
         'WP2FA\\Admin\\Plugin_Updated_Notice' => __DIR__ . '/../..' . '/includes/classes/Admin/class-plugin-updated-notice.php',
         'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
         'WP2FA\\Admin\\SettingsPages\\Settings_Page_Email' => __DIR__ . '/../..' . '/includes/classes/Admin/SettingsPages/class-settings-page-email.php',
@@ -77,6 +73,9 @@ class ComposerStaticInit17049
         'WP2FA\\Authenticator\\Open_SSL' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-open-ssl.php',
         'WP2FA\\Authenticator\\Reset_Password' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-reset-password.php',
         'WP2FA\\Email_Template' => __DIR__ . '/../..' . '/includes/classes/class-email-template.php',
+        
+        
+        
         
         
         
@@ -216,9 +215,9 @@ class ComposerStaticInit17049
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit17049::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit17049::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit17049::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit8e4bd40c69c1806ec5256455413aac71::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit8e4bd40c69c1806ec5256455413aac71::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit8e4bd40c69c1806ec5256455413aac71::$classMap;
 
         }, null, ClassLoader::class);
     }

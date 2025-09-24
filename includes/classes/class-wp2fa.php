@@ -326,6 +326,9 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			// User Register.
 			\add_action( 'set_user_role', array( User_Registered::class, 'check_user_upon_role_change' ), 10, 3 );
 
+			// User is removed from multisite.
+			\add_action( 'remove_user_from_blog', array( User_Helper::class, 'remove_global_settings_hash_for_user' ) );
+
 			// Block users from admin if needed.
 			$user_block_hook = is_admin() || is_network_admin() ? 'init' : 'wp';
 			\add_action( $user_block_hook, array( __CLASS__, 'block_unconfigured_users_from_admin' ), 10 );
@@ -333,16 +336,12 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			// Help & Contact Us.
 			\add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( '\WP2FA\Admin\Help_Contact_Us', 'add_extra_menu_item' ) );
 
-			// phpcs:disable
-			/* @free:start */
-			// phpcs:enable
+			// @free:start
 			// Premium Features.
 			\add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( Premium_Features::class, 'add_extra_menu_item' ) );
 			\add_action( WP_2FA_PREFIX . 'before_plugin_settings', array( Premium_Features::class, 'add_settings_banner' ) );
 			\add_action( 'admin_footer', array( Premium_Features::class, 'pricing_new_tab_js' ) );
-			// phpcs:disable
-			/* @free:end */
-			// phpcs:enable
+			// @free:end
 
 			\add_action( 'admin_footer', array( User_Profile::class, 'dismiss_nag_notice' ) );
 
@@ -550,7 +549,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			) . '</p>';
 
 
-
 			$login_code_setup_subject = __( 'Your 2FA Setup Verification Code for {site_name}', 'wp-2fa' );
 
 			$login_code_setup_body  = '<p>' . \esc_html__( 'Hello {user_display_name},', 'wp-2fa' ) . '</p>';
@@ -581,9 +579,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			$user_locked_body .= '</p>';
 			$user_locked_body .= '<p>' . \esc_html__( 'Contact your website administrator to unlock your account.', 'wp-2fa' ) . '</p>';
 			$user_locked_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
-			$user_locked_body .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
-			$user_locked_body .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link_3" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
-			$user_locked_body .= '</p>';
 
 			// Create User unlocked Message.
 			$user_unlocked_subject = __( 'Your user on {site_name} has been unlocked', 'wp-2fa' );
@@ -595,7 +590,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				$user_unlocked_body .= '<p>' . __( 'You can configure 2FA from this page:', 'wp-2fa' ) . ' <a href="{2fa_settings_page_url}" target="_blank">{2fa_settings_page_url}.</a></p>';
 			}
 
-			$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link_4" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
+			$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p>';
 
 			// Create User backup codes Message.
 			$user_backup_codes_subject = __( '2FA backup codes for user {user_login_name} on {site_name}', 'wp-2fa' );
@@ -605,7 +600,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			$user_backup_codes_body .= '{backup_codes}';
 
-			$user_backup_codes_body .= '<p>' . __( 'Thank you for enabling 2FA on your account and helping us keeping the website secure.', 'wp-2fa' ) . '</p><p>' . __( 'Email sent by', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link_5" target="_blank">' . __( 'WP 2FA plugin', 'wp-2fa' ) . '</a></p>';
+			$user_backup_codes_body .= '<p>' . __( 'Thank you for enabling 2FA on your account and helping us keeping the website secure.', 'wp-2fa' ) . '</p>';
 
 			// Array of defaults, now we have things setup above.
 			$default_settings = array(
@@ -945,55 +940,92 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 							}
 						}
 
-						// Nothing suitable found - notify the admin and bail.
-						$transient_name = WP_2FA_PREFIX . '_notified_admin_mail_nowhere_to_redirect_' . $user->ID;
-						if ( false === \get_transient( $transient_name ) ) {
-							$subject = sprintf(
-							// translators: The username.
-								\esc_html__(
-									'User %1$s logged in without 2FA',
-									'wp-2fa'
-								),
-								$user->user_login,
-							);
 
-							$text = sprintf(
-							// translators: The username.
-							// translators: the site name.
-								\esc_html__(
-									'2FA is enforced on the user %1$s on the website %2$s. However, since the WP 2FA plugin has not been configured properly it cannot enforce the user to configure 2FA, so the user logged in without 2FA.',
-									'wp-2fa'
-								),
-								$user->user_login,
-								\get_bloginfo( 'name' )
-							);
-							$text .= '<p>' . sprintf(
-							// translators: the settings page.
-							// translators: the support e-mail.
-								\esc_html__(
-									'To enforce 2FA on users logging in from non default WordPress login pages please configure the %1$s. If you need assistance, please contact us at %2$s.',
-									'wp-2fa'
-								),
-								'<a href="' . \esc_url(
-									\add_query_arg(
-										array(
-											'page' => 'wp-2fa-settings',
-											'tab'  => 'integrations',
-										),
-										\network_admin_url( 'admin.php' )
+							// Nothing suitable found - notify the admin and bail.
+							$transient_name = WP_2FA_PREFIX . '_notified_admin_mail_nowhere_to_redirect_' . $user->ID;
+							if ( false === \get_transient( $transient_name ) ) {
+								$subject = sprintf(
+								// translators: The username.
+									\esc_html__(
+										'2FA not configured on enforced user – action required',
+										'wp-2fa'
+									),
+									// $user->user_login,
+								);
+
+								$text = sprintf(
+								// translators: The username.
+								// translators: the site name.
+									\esc_html__(
+										'Two-factor authentication (2FA) is currently enforced for the user %1$s on your site %2$s, but the user was able to log in without completing the 2FA process.',
+										'wp-2fa'
+									),
+									$user->user_login,
+									\get_bloginfo( 'name' )
+								);
+
+								$text .= sprintf(
+								// translators: The username.
+								// translators: the site name.
+									\esc_html__(
+										'This can happen in cases such as:',
+										'wp-2fa'
 									)
-								) . '">front-end 2FA page</a>',
-								'<a href="mailto:support@melapress.com">support@melapress.com</a>'
-							) . '</p>';
+								);
 
-							Settings_Page::send_email(
-								\get_option( 'admin_email' ),
-								$subject,
-								$text
-							);
+								$text .= '<p><ul>';
+								$text .= '<li>' . \esc_html__( 'Automatic login after registration via WooCommerce or membership plugins', 'wp-2fa' ) . '</li>';
+								$text .= '<li>' . \esc_html__( 'Users being logged in automatically after placing an order', 'wp-2fa' ) . '</li>';
+								$text .= '<li>' . \esc_html__( '2FA not yet being configured for front-end login flows', 'wp-2fa' ) . '</li>';
+								$text .= '</ul></p>';
 
-							\set_transient( $transient_name, 'sent', DAY_IN_SECONDS * 2 );
-						}
+								$text .= '<p>' . sprintf(
+								// translators: the settings page.
+								// translators: the support e-mail.
+									\esc_html__(
+										'To address this, please enable and configure the Front-end 2FA Page:%1$s',
+										'wp-2fa'
+									),
+									'<br><a href="https://woo-wp2fa-test.instawp.xyz/wp-admin/admin.php?page=wp-2fa-settings&tab=integrations">' . \esc_html__( 'Configure Front-end 2FA Page', 'wp-2fa' ) . '</a>'
+								) . '</p>';
+
+								$text .= sprintf(
+								// translators: The username.
+								// translators: the site name.
+									\esc_html__(
+										'If you\'re using the Premium edition, you can take advantage of:',
+										'wp-2fa'
+									)
+								);
+
+								$text .= '<p><ul>';
+								$text .= '<li>' . \esc_html__( 'One-click WooCommerce integration (adds 2FA setup to the “My Account” area)', 'wp-2fa' ) . '</li>';
+								$text .= '<li>' . \esc_html__( 'Option to disable this type of notification email', 'wp-2fa' ) . '</li>';
+								$text .= '<li>' . \esc_html__( 'Additional 2FA methods (e.g. SMS via Twilio/Clickatell, one-time email links, YubiKey, etc.)', 'wp-2fa' ) . '</li>';
+								$text .= '<li>' . \esc_html__( 'A Trusted Devices (“Remember Me”) functionality to reduce 2FA prompts', 'wp-2fa' ) . '</li>';
+								$text .= '</ul></p>';
+
+								$text .= '<p>' . sprintf(
+								// translators: the settings page.
+								// translators: the support e-mail.
+									\esc_html__(
+										'If you need assistance with any of the setup, feel free to reach out to us at %1$s.',
+										'wp-2fa'
+									),
+									'<a href="mailto:support@melapress.com">support@melapress.com</a>'
+								) . '</p>';
+
+								$text .= '<p>' . \esc_html__( 'Best Regards,', 'wp-2fa' ) . '<br>' . \esc_html__( 'The Melapress Team', 'wp-2fa' ) . '</p>';
+
+								Settings_Page::send_email(
+									\get_option( 'admin_email' ),
+									$subject,
+									$text
+								);
+
+								\set_transient( $transient_name, 'sent', DAY_IN_SECONDS * 2 );
+							}
+
 
 						return;
 					}

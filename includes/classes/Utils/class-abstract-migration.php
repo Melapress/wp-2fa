@@ -52,6 +52,11 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 	class Abstract_Migration {
 
 		/**
+		 * That is a global constant used for showing the upgrade notice.
+		 */
+		public const UPGRADE_NOTICE = 'upgrade-notice-show';
+
+		/**
 		 * Extracted version from the DB (WP option)
 		 *
 		 * @var string
@@ -135,11 +140,6 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 					}
 				}
 
-				// If we have a previous version, its an update so flag notice.
-				if ( ! empty( Settings_Utils::get_option( static::$version_option_name ) ) ) {
-					Settings_Utils::update_option( 'wp_2fa_update_redirection_needed', true );
-				}
-
 				self::store_updated_version();
 			}
 
@@ -181,6 +181,10 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 		 */
 		private static function store_updated_version() {
 			Settings_Utils::update_option( static::$version_option_name, \constant( static::$const_name_of_plugin_version ) );
+
+			if ( '0.0.0' !== (string) static::$stored_version ) {
+				Settings_Utils::update_option( self::UPGRADE_NOTICE, 1 );
+			}
 		}
 
 		/**

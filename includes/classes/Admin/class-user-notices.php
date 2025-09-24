@@ -237,8 +237,6 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 				</td>
 			</tr>
 			<?php
-			// phpcs:disable
-			// phpcs:enable
 			?>
 			<?php
 		}

@@ -60,6 +60,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 			$banner .= '<p>' . \esc_html__( 'Upgrade to Premium & benefit:', 'wp-2fa' ) . '</p>';
 			$banner .= '<ul><li><span class="dashicons dashicons-yes-alt"></span>' . \esc_html__( 'Login with 2FA via SMS, push notification or with a simple mouse click', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span>' . \esc_html__( 'Add & manage trusted devices ("Remember this device" option)', 'wp-2fa' ) . '</li>';
+			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Enable 2FA instantly with email – enroll all users automatically, no setup required.', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Add alternative 2FA methods ensuring no user is ever locked out', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'One-click 2FA integration with WooCommerce', 'wp-2fa' ) . '</li>';
 			$banner .= '<li><span class="dashicons dashicons-yes-alt"></span> ' . \esc_html__( 'Completely whitelabel the 2FA user experience including the 2FA code page, email & wizards text', 'wp-2fa' ) . '</li>';
@@ -299,6 +300,17 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 							<tr class="c2">
 								<td class="c6" colspan="1" rowspan="1">
 									<p class="c10"><span class="c5"><?php \esc_html_e( '2FA Login with SMS (with Twilio or Clickatell)', 'wp-2fa' ); ?></span></p>
+								</td>
+								<td class="c8" colspan="1" rowspan="1">
+									<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
+								</td>
+								<td class="c12" colspan="1" rowspan="1">
+									<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
+								</td>
+							</tr>
+							<tr class="c2">
+								<td class="c6" colspan="1" rowspan="1">
+									<p class="c10"><span class="c5"><?php \esc_html_e( 'Enable 2FA instantly with email – enroll all users automatically, no setup required.', 'wp-2fa' ); ?></span></p>
 								</td>
 								<td class="c8" colspan="1" rowspan="1">
 									<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>

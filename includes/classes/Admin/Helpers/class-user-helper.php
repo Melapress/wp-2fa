@@ -20,7 +20,6 @@ namespace WP2FA\Admin\Helpers;
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 use WP2FA\WP2FA;
-use WP2FA\Methods\Email;
 use WP2FA\Utils\User_Utils;
 use WP2FA\Extensions_Loader;
 use WP2FA\Admin\Settings_Page;
@@ -28,6 +27,7 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
 
 /*
  * User's settings class
@@ -927,11 +927,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 					$wp_roles = WP_Helper::get_roles_wp();
 					foreach ( $wp_roles as $role_name => $wp_role ) {
 
-						$role = \get_role( $role_name );
-						if ( \is_a( $role, '\WP_Role' ) ) {
+						$role_to_check = \get_role( $role_name );
+						if ( \is_a( $role_to_check, '\WP_Role' ) ) {
 
 							$admin_role_set = \get_role( $role_name )->capabilities;
-							if ( $admin_role_set['manage_options'] ) {
+							if ( isset( $admin_role_set['manage_options'] ) ) {
 								$role = $role_name;
 
 								break;
@@ -1305,8 +1305,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::remove_all_2fa_meta_for_user( $user );
 		}
 
-		// phpcs:disable
-		// phpcs:enable
 
 		/**
 		 * Figures out the correct 2FA status of a user and stores it against the user in DB. The method is static
@@ -1351,6 +1349,12 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 
 			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_subject' ), $user_id ) );
 			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
+
+			// @free:start
+			$message .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
+			$message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
+			$message .= '</p>';
+			// @free:end
 
 			return Settings_Page::send_email( $email, $subject, $message );
 		}
@@ -1646,7 +1650,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 * @return bool True if the user is enforced based on current plugin settings.
 		 *
 		 * @since 2.0.0
-		 *
 		 * @since 2.5.0 added params $roles, $user_login, $user_id . $user is with highest priority
 		 */
 		public static function run_user_enforcement_check( $user = null, $roles = null, $user_login = null, $user_id = null ) {
@@ -1662,6 +1665,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				$user_roles           = $roles;
 			}
 
+			if ( empty( $user_id ) || empty( $user_login ) ) {
+				return false;
+			}
+
 			$current_policy = Settings_Utils::get_setting_role( self::get_user_role( $user_id ), 'enforcement-policy' );
 			$enabled_method = self::get_enabled_method_for_user( $user_id );
 			$user_eligible  = false;
@@ -1669,6 +1676,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ) ) && \is_super_admin( $user_id ) ) {
 				return false;
 			}
+
+
 
 			// Let's check the policy settings and if the user has setup totp/email by checking for the usermeta.
 			if ( empty( $enabled_method ) && WP_Helper::is_multisite() && 'superadmins-only' === $current_policy ) {
@@ -1798,26 +1807,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			} elseif ( 'all-users' === $current_policy && ! empty( $enabled_method ) ) {
 				return true;
 			}
-
-			/**
-			 * Email method is enforced for this user ?
-			 */
-			// if ( Email::is_enforced() ) {
-			// **
-			// * Email is enforced - lets check if the user has the email set as its method - if not clear and re-assign.
-			// */
-			// if ( ! empty( $enabled_method ) && Email::METHOD_NAME !== $enabled_method ) {
-			// self::remove_enabled_method_for_user();
-			// self::set_enabled_method_for_user( Email::METHOD_NAME, $user );
-			// self::remove_nominated_email_for_user( $user );
-			// } elseif ( ! empty( $enabled_method ) && Email::METHOD_NAME === $enabled_method ) {
-			// self::remove_nominated_email_for_user( $user );
-			// } elseif ( empty( $enabled_method ) ) {
-			// self::set_enabled_method_for_user( Email::METHOD_NAME, $user );
-			// }
-
-			// return true;
-			// }
 
 			return false;
 		}
