@@ -55,6 +55,23 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 		 * @since 2.8.0
 		 */
 		public static function add_settings_banner() {
+
+			$today_date = gmdate( 'Y-m-d' );
+			$today_date = gmdate( 'Y-m-d', strtotime( $today_date ) );
+
+			$event_date_begin = gmdate( 'Y-m-d', strtotime( '11/21/2025' ) );
+			$event_date_end   = gmdate( 'Y-m-d', strtotime( '12/01/2025' ) );
+
+			if ( ( $today_date >= $event_date_begin ) && ( $today_date <= $event_date_end ) ) {
+				?>
+				<style>
+					#wp-2fa-side-banner {
+						background: url(<?php echo esc_url( WP_2FA_URL . 'dist/images/bf-corner-notice.svg' ); ?>) no-repeat 100% 0 #fff;
+					}
+				</style>
+				<?php
+			}
+
 			$banner  = '<div id="wp-2fa-side-banner">';
 			$banner .= '<img src="' . \esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
 			$banner .= '<p>' . \esc_html__( 'Upgrade to Premium & benefit:', 'wp-2fa' ) . '</p>';

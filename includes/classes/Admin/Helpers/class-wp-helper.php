@@ -15,6 +15,7 @@
 
 namespace WP2FA\Admin\Helpers;
 
+use WP2FA\Admin\Plugin_Updated_Notice;
 use WP2FA\Utils\Settings_Utils;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
@@ -29,6 +30,22 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 	 * @since 2.2.0
 	 */
 	class WP_Helper {
+
+		public const PLUGIN_PAGES = array(
+			'wp-2fa_page_wp-2fa-settings',
+			'wp-2fa_page_wp-2fa-settings-network',
+			'toplevel_page_wp-2fa-policies',
+			'toplevel_page_wp-2fa-policies-network',
+			'wp-2fa_page_wp-2fa-reports',
+			'wp-2fa_page_wp-2fa-reports-network',
+			'wp-2fa_page_wp-2fa-help-contact-us',
+			'wp-2fa_page_wp-2fa-help-contact-us-network',
+			'wp-2fa_page_wp-2fa-premium-features',
+			'wp-2fa_page_wp-2fa-premium-features-network',
+			'wp-2fa_page_wp-2fa-policies-account',
+			'wp-2fa_page_wp-2fa-policies-account-network',
+		);
+
 		/**
 		 * Hold the user roles as array - Human readable is used for key of the array, and the internal role name is the value.
 		 *
@@ -71,13 +88,51 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function init() {
+			// @free:start
+			$today_date = gmdate( 'Y-m-d' );
+			$today_date = gmdate( 'Y-m-d', strtotime( $today_date ) );
+
+			$event_date_begin = gmdate( 'Y-m-d', strtotime( '11/21/2025' ) );
+			$event_date_end   = gmdate( 'Y-m-d', strtotime( '12/01/2025' ) );
+
+			$event_ending_date = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date', false );
+
+			$extra_event_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
+			$extra_event_banner_super_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed', false );
+
+			if ( gmdate( 'Y-m-d', strtotime( '11/28/2025' ) ) === $today_date && $extra_event_banner_dismissed && ! $extra_event_banner_super_dismissed ) {
+				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed' );
+			}
+
+			if ( ( $today_date >= $event_date_begin ) && ( $today_date <= $event_date_end ) && ( false === $event_ending_date || strtotime( $event_ending_date ) < strtotime( $today_date ) ) ) {
+				$extra_event_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
+				if ( ! $extra_event_banner_dismissed ) {
+					\update_site_option( WP_2FA_PREFIX . '_extra_event_banner', true );
+					\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date', strtotime( $event_date_end ) );
+					\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
+				}
+			} else {
+				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner' );
+				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date' );
+				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed' );
+				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed' );
+			}
+			// @free:end
+
 			if ( self::is_multisite() ) {
 				\add_action( 'network_admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
-				\add_action( 'network_admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ) );
+				// @free:start
+				\add_action( 'network_admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ), 20 );
+				// @free:end
 			} else {
 				\add_action( 'admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
-				\add_action( 'admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ) );
+				// @free:start
+				\add_action( 'admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ), 20 );
+				// @free:end
 			}
+			// @free:start
+			\add_action( 'wp_ajax_wp_2fa_dismiss_extra_event_banner', array( __CLASS__, 'dismiss_extra_event_banner' ) );
+			// @free:end
 
 			\add_action( 'wp_ajax_dismiss_survey_notice', array( __CLASS__, 'dismiss_survey_notice' ) );
 		}
@@ -152,81 +207,258 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function show_2025_security_survey_admin_notice() {
-			if ( User_Helper::is_admin() && true === Settings_Utils::string_to_bool(Settings_Utils::get_option( 'wp_2fa_survey_notice_needed', true ))
- ) {
-				global $current_screen;
+			$screen                       = \get_current_screen();
+			$show_extra_event_banner      = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner', false );
+			$extra_event_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
 
-				if ( isset( $current_screen->id ) && in_array(
-					$current_screen->id,
-					array(
-						'wp-2fa_page_wp-2fa-settings',
-						'wp-2fa_page_wp-2fa-settings-network',
-						'toplevel_page_wp-2fa-policies',
-						'toplevel_page_wp-2fa-policies-network',
-						'wp-2fa_page_wp-2fa-reports',
-						'wp-2fa_page_wp-2fa-reports-network',
-						'wp-2fa_page_wp-2fa-help-contact-us',
-						'wp-2fa_page_wp-2fa-help-contact-us-network',
-						'wp-2fa_page_wp-2fa-premium-features',
-						'wp-2fa_page_wp-2fa-premium-features-network',
-						'wp-2fa_page_wp-2fa-policies-account',
-						'wp-2fa_page_wp-2fa-policies-account-network',
-					),
-					true
-				) ) {
-
-					?>
-				<div style="border-left-color: #3660FF !important;" id="dismiss_survey_notice" class="notice notice-success is-dismissible" data-dismiss-nonce="<?php echo \esc_attr( \wp_create_nonce( 'wp_2fa_dismiss_survey_notice_nonce' ) ); ?>">
-					<h4><?php \esc_html_e( 'Want to know what the state of WordPress security is in 2025?', 'wp-2fa' ); ?></h4>
-					<p><?php \esc_html_e( 'Discover the latest insights in our 2025 WordPress Security Survey Report.', 'wp-2fa' ); ?></p>
-					<button type="button" class="notice-dismiss">
-						<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
-					</button>
-					<p>
-					<?php
-					printf(
-					/* Translators: survey link */
-						esc_html__( '%1$sRead the survey%2$s', 'wp-2fa' ),
-						'<a class="button" style="color:white !important;background:#3660FF" href="https://melapress.com/wordpress-security-survey-2025/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=survey+promo+banner" target="_blank">',
-						'</a>'
-					);
-					?>
-					</p>
-					<script type="text/javascript">
-						//<![CDATA[
-						jQuery(document).ready(function( $ ) {
-							jQuery( 'body' ).on( 'click', '#dismiss_survey_notice .notice-dismiss', function ( e ) {
-								e.preventDefault();
-								var nonce  = jQuery( '#dismiss_survey_notice' ).data( 'dismiss-nonce' );
-								
-								jQuery.ajax({
-									type: 'POST',
-									url: '<?php echo \esc_url( \admin_url( 'admin-ajax.php' ) ); ?>',
-									data: {
-										action: 'dismiss_survey_notice',
-										nonce : nonce,
-									},
-									success: function ( result ) {		
-										jQuery( '#dismiss_survey_notice' ).slideUp( 300 );
-									}
-								});
-							});
-						});
-						//]]>
-					</script>
-
-				</div>
-					<?php
+			if ( $show_extra_event_banner ) {
+				$event_ending_date = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date', false );
+				if ( $event_ending_date && ( \time() > (int) ( $event_ending_date ) ) ) {
+					$show_extra_event_banner = false;
+					\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner' );
+					\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date' );
+					\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed' );
 				}
 			}
+			if ( in_array( $screen->base, self::PLUGIN_PAGES, true ) && $show_extra_event_banner && ! $extra_event_banner_dismissed ) {
+				\remove_action( 'admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
+				\remove_action( 'network_admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
+				?>
+				<!-- Copy START -->
+				<div class="black-friday wp-2fa-extra-event-banner" style="margin-top: 20px; margin-right: 20px;">
+					<!-- SVG Icon on the Left -->
+					<img class="black-friday-svg" src="<?php echo esc_url( WP_2FA_URL . 'dist/images/upgrade-plugin-icon.svg' ); ?>" alt="Premium Plugin" width="113" height="101">
+					
+					<!-- Text Content -->
+					<div class="black-friday-content">
+					<h2 class="black-friday-title"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?><br>
+						<span class="bf-title-line-2"><span class="bf-underline"><?php \esc_html_e( 'Black Friday', 'wp-2fa' ); ?></span> <?php \esc_html_e( ' Sale Now Live!', 'wp-2fa' ); ?></span>
+					</h2>
+					<a href="https://melapress.com/black-friday-cyber-monday/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=BFCM2025" target="_blank" class="bf-cta-link"><?php \esc_html_e( 'Get Offer Now', 'wp-2fa' ); ?></a>
+					</div>
+					
+					<!-- Close Button -->
+					<button aria-label="Close button" class="wp-2fa-extra-event-banner-close black-friday-close" data-dismiss-nonce="<?php echo \esc_attr( \wp_create_nonce( 'wp_2fa_dismiss_extra_event_banner_nonce' ) ); ?>"></button>
+				</div>
+				<!-- Copy END -->
+				
+				<script type="text/javascript">
+				jQuery(document).ready(function( $ ) {
+					jQuery( 'body' ).on( 'click', '.wp-2fa-extra-event-banner-close', function ( e ) {
+						var nonce  = jQuery( '.wp-2fa-extra-event-banner [data-dismiss-nonce]' ).attr( 'data-dismiss-nonce' );
+						
+						jQuery.ajax({
+							type: 'POST',
+							url: '<?php echo \esc_url( \admin_url( 'admin-ajax.php' ) ); ?>',
+							async: true,
+							data: {
+								action: 'wp_2fa_dismiss_extra_event_banner',
+								nonce : nonce,
+							},
+							success: function ( result ) {		
+								jQuery( '.wp-2fa-extra-event-banner' ).slideUp( 300 );
+							}
+						});
+					});
+				});
+				</script>
+				<style>
+					@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Quicksand:wght@600;700&display=swap');
+
+					:root {
+					--color-coral: #FF8977;
+					--color-deep: #020E26;
+					--color-pale-blue: #D9E4FD;
+					--color-light-blue: #8AAAF1;
+					--color-wp-2fa-maroon: #7A262A;
+					--color-wp-2fa-red: #DD2B10;
+					--ease-out-expo: cubic-bezier(0.32, 1, 0.3, 1);
+					--ease-out-back: cubic-bezier(0.64, 0.69, 0.1, 1);
+					}
+
+					/* ==================== Black Friday Banner ==================== */
+					.black-friday {
+					background-color: var(--color-deep);
+					font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+					-webkit-font-smoothing: subpixel-antialiased;
+					color: #fff;
+					display: flex;
+					align-items: center;
+					padding: 1.66rem;
+					position: relative;
+					overflow: hidden;
+					transition: all 0.2s ease-in-out;
+					border: none;
+					border-left: 4px solid var(--color-coral);
+					gap: 1.5rem; /* Space between SVG and text */
+					}
+
+					.black-friday-svg {
+					flex-shrink: 0;
+					width: 134px;
+					height: 101px;
+					z-index: 1;
+					margin-right: 32px;
+					}
+
+					.black-friday-content {
+					max-width: 45%;
+					z-index: 1;
+					}
+
+					.black-friday-title {
+					font-family: Inter, sans-serif;
+					font-size: 2.2em;
+					letter-spacing: .5px;
+					text-transform: uppercase;
+					color: var(--color-coral);
+					line-height: .7em;
+					font-weight: 900;
+					margin-bottom: 4px;
+					}
+
+					.bf-title-line-2 {
+					color: #fff;
+					font-size: .725em;
+					}
+
+					.bf-underline {
+					text-decoration: underline;
+					}
+
+					.black-friday-text {
+					margin: .25rem 0 0;
+					font-size: 13px;
+					line-height: 1.3125rem;
+					}
+
+					.bf-link {
+					color: #fff;
+					font-weight: 400;
+					text-decoration: underline;
+					font-size: 0.875rem;
+					padding: 0.675rem 1.3rem .7rem 0;
+					transition: all 0.2s ease-in-out;
+					display: inline-block;
+					margin: .5rem 0 0;
+					}
+
+					.bf-link:hover {
+					color: #D9E4FD;
+					}
+
+					.bf-cta-link {
+					border-radius: 0.25rem;
+					background: #D9E4FD;
+					color: #454BF7;
+					font-weight: bold;
+					text-decoration: none;
+					font-size: 0.875rem;
+					padding: 0.675rem 1.3rem .7rem 1.3rem;
+					transition: all 0.2s ease-in-out;
+					display: inline-block;
+					margin: .5rem 0 0;
+					}
+
+					.bf-cta-link:hover {
+					background: #454BF7;
+					color: #D9E4FD;
+					}
+
+					.black-friday-close {
+					background-image: url('<?php echo esc_url( WP_2FA_URL . 'dist/images/close-icon-reverse.svg' ); ?>');
+					background-size: cover;
+					width: 12px;
+					height: 12px;
+					border: none;
+					cursor: pointer;
+					position: absolute;
+					top: 20px;
+					right: 20px;
+					background-color: transparent;
+					z-index: 1;
+					}
+
+					.black-friday {
+					background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 182 127"><path d="M181.413 -165.636L134.391 234.514L0 234.514L2.19345e-05 -165.636L181.413 -165.636Z" fill="%23B6C3F2"/></svg>');
+					background-repeat: no-repeat;
+					background-position: -20px 0;
+					}
+
+					/* Z-index for layered elements */
+					.plugin-update-content,
+					.wp-2fa-svg,
+					.plugin-update-close,
+					.black-friday-content,
+					.black-friday-svg,
+					.black-friday-close {
+					z-index: 1;
+					}
+
+					/* ==================== Responsive Design ==================== */
+					@media (max-width: 1200px) {
+					.plugin-update,
+					.black-friday {
+						background-image: none;
+						flex-direction: column;
+						text-align: center;
+						gap: 1rem;
+					}
+
+					.wp-2fa-svg,
+					.black-friday-svg {
+						width: 90px;
+						height: 80px;
+						margin: 0;
+					}
+
+					.plugin-update-content,
+					.black-friday-content {
+						max-width: 100%;
+					}
+					}
+				</style>
+
+				<?php
+			}
 		}
+
+		/**
+		 * Handle event banner dismissal.
+		 *
+		 * @return void
+		 *
+		 * @since 3.0.1
+		 */
+		public static function dismiss_extra_event_banner() {
+			// Grab POSTed data.
+			$nonce = isset( $_POST['nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ) : false;
+
+			// Check nonce.
+			if ( ! \current_user_can( 'manage_options' ) || empty( $nonce ) || ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_2fa_dismiss_extra_event_banner_nonce' ) ) {
+				\wp_send_json_error( \esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
+			}
+
+			\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner' );
+			\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', 'yes' );
+
+			$today_date = gmdate( 'Y-m-d' );
+			$today_date = gmdate( 'Y-m-d', strtotime( $today_date ) );
+
+			if ( gmdate( 'Y-m-d', strtotime( '11/28/2025' ) ) === $today_date ) {
+				\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed', 'yes' );
+			}
+
+			\wp_send_json_success( \esc_html__( 'Complete.', 'wp-2fa' ) );
+		}
+
 
 
 		/**
 		 * Handle notice dismissal.
 		 *
 		 * @since 3.0.0
-		 * 
+		 *
 		 * @return void
 		 */
 		public static function dismiss_survey_notice() {

@@ -43,7 +43,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				null,
-				'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
+				' data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
 				81
 			);
 
