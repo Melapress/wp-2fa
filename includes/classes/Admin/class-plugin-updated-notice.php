@@ -31,8 +31,8 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function init() {
-			\add_action( 'admin_notices', array( __CLASS__, 'plugin_update_banner' ) );
-			\add_action( 'network_admin_notices', array( __CLASS__, 'plugin_update_banner' ) );
+			\add_action( 'admin_notices', array( __CLASS__, 'plugin_update_banner' ), 30 );
+			\add_action( 'network_admin_notices', array( __CLASS__, 'plugin_update_banner' ), 30 );
 			if ( Settings_Utils::get_option( Abstract_Migration::UPGRADE_NOTICE, false ) ) {
 				\add_action( 'wp_ajax_dismiss_update_notice', array( __CLASS__, 'dismiss_update_notice' ) );
 			}
@@ -65,6 +65,9 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 				?>
 					<script type="text/javascript">
 					//<![CDATA[
+					if ('scrollRestoration' in history) {
+						history.scrollRestoration = 'manual';
+					}
 					jQuery(document).ready(function( $ ) {
 						jQuery( 'body' ).on( 'click', '.wp-2fa-plugin-update-close', function ( e ) {
 							e.preventDefault();

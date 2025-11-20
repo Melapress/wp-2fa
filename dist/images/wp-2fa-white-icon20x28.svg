@@ -1,2 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44.08 65.72"><defs><style>.cls-1{fill:#fff;}</style></defs><g id="Layer_1-2"><polygon class="cls-1" points="14.69 21.87 25.72 10.93 36.74 0 18.37 0 0 0 0 10.93 0 21.87 3.67 18.22 7.35 14.58 11.02 18.22 14.69 21.87"/><polygon class="cls-1" points="44.08 65.72 44.08 51.09 44.08 36.45 29.39 51.03 14.69 65.61 29.39 65.67 44.08 65.72"/><polygon class="cls-1" points="14.69 36.45 11.02 32.8 7.35 29.16 3.67 25.51 0 21.87 0 36.45 0 51.03 3.67 47.38 7.35 43.74 11.02 47.38 14.69 51.03 25.72 40.09 36.74 29.16 40.41 32.8 44.08 36.45 44.08 21.87 44.08 7.29 29.39 21.87 14.69 36.45"/></g></svg>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13.31 20">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: currentColor;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g id="wp_2fa_mark" data-name="wp 2fa mark">
+      <g id="uuid-0ff8129c-8319-43f5-a59a-dee2fa5a0064" data-name="Layer 1-2">
+        <g id="wp2fa_icon" data-name="wp2fa icon">
+          <polygon class="cls-1" points="4.44 6.66 7.76 3.33 11.09 0 5.54 0 0 0 0 3.33 0 6.66 1.11 5.54 2.22 4.44 3.33 5.54 4.44 6.66"/>
+          <polygon class="cls-1" points="13.31 20 13.31 15.55 13.31 11.09 8.87 15.53 4.44 19.97 8.87 19.98 13.31 20"/>
+          <polygon class="cls-1" points="4.44 11.09 3.33 9.98 2.22 8.87 1.11 7.76 0 6.66 0 11.09 0 15.53 1.11 14.42 2.22 13.31 3.33 14.42 4.44 15.53 7.76 12.2 11.09 8.87 12.2 9.98 13.31 11.09 13.31 6.66 13.31 2.22 8.87 6.66 4.44 11.09"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

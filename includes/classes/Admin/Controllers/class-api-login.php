@@ -198,6 +198,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 
 					$redirect_to = \apply_filters( WP_2FA_PREFIX . 'post_login_user_redirect', $redirect_to, $user );
 
+					self::clear_login_attempts( $user );
+
 				} else {
 					$provider = \sanitize_text_field( $request_parameters['provider'] ?? '' );
 					if ( $provider && isset( $valid[ $provider ] ) && isset( $valid[ $provider ]['error'] ) ) {
@@ -214,7 +216,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 				array(
 					'status'      => $valid['valid'],
 					'message'     => $message,
-					'redirect_to' => esc_url_raw( $redirect_to ),
+					'redirect_to' => \esc_url_raw( $redirect_to ),
 				)
 			);
 		}
