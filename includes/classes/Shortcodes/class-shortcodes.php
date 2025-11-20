@@ -42,7 +42,7 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 		 */
 		public static function register_2fa_shortcode_scripts() {
 			// Add our front end stuff, which we only want to load when the shortcode is present.
-			\wp_register_script( 'wp_2fa_frontend_scripts', Core\script_url( 'wp-2fa', 'admin' ), array( 'jquery', 'wp_2fa_micro_modals' ), WP_2FA_VERSION, true );
+			\wp_register_script( 'wp_2fa_frontend_scripts', Core\script_url( 'wp-2fa', 'admin' ), array( 'jquery', 'wp_2fa_micro_modals', 'wp-i18n' ), WP_2FA_VERSION, true );
 			\wp_register_script( 'wp_2fa_micro_modals', Core\script_url( 'micromodal', 'admin' ), array(), WP_2FA_VERSION, true );
 			\wp_register_style( 'wp_2fa_styles', Core\style_url( 'styles', 'frontend' ), array(), WP_2FA_VERSION );
 

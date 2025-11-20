@@ -569,13 +569,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$settings_errors = get_settings_errors( WP_2FA_POLICY_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
 					// redirect back to our options page.
-					wp_safe_redirect(
-						add_query_arg(
+					\wp_safe_redirect(
+						\add_query_arg(
 							array(
 								'page' => Settings_Page::TOP_MENU_SLUG,
-								'wp_2fa_network_settings_error' => urlencode_deep( $settings_errors[0]['message'] ),
+								'wp_2fa_network_settings_error' => \urlencode_deep( $settings_errors[0]['message'] ),
 							),
-							network_admin_url( 'admin.php' )
+							\network_admin_url( 'admin.php' )
 						)
 					);
 					exit;
