@@ -98,7 +98,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		}
 
 		/**
-		 * Checks if given methog is enabled for given role and returns true or false.
+		 * Checks if given method is enabled for given role and returns true or false.
 		 *
 		 * @param string $provider_name - The name of the method.
 		 * @param string $role - The name of the role to check for. Default is 'global.

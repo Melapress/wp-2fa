@@ -83,11 +83,11 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 									?>
 								<div class="method-title"><em><?php \esc_html_e( 'Secondary 2FA methods:', 'wp-2fa' ); ?></em></div>
 								<br>
-								<label for="backup-codes" class=" <?php echo $class; // phpcs:ignore ?>">
+								<label for="backup-codes" class=" <?php echo \esc_attr( $class ); ?>">
 									<input type="checkbox" class="<?php echo \esc_attr( $class ); ?>" id="backup-codes" name="wp_2fa_policy[backup_codes_enabled]" 
-									<?php echo $data_role; // phpcs:ignore ?>
+									<?php echo esc_attr( $data_role ); ?>
 									value="yes"
-									<?php checked( WP2FA::get_wp2fa_setting( Backup_Codes::get_settings_name() ), Backup_Codes::get_settings_default_value() ); ?>
+									<?php \checked( WP2FA::get_wp2fa_setting( Backup_Codes::get_settings_name() ), Backup_Codes::get_settings_default_value() ); ?>
 									>
 									<?php
 									\esc_html_e( 'Backup codes', 'wp-2fa' );

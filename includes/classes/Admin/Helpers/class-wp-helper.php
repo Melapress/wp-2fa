@@ -97,7 +97,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 
 			$event_ending_date = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date', false );
 
-			$extra_event_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
+			$extra_event_banner_dismissed       = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
 			$extra_event_banner_super_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed', false );
 
 			if ( gmdate( 'Y-m-d', strtotime( '11/28/2025' ) ) === $today_date && $extra_event_banner_dismissed && ! $extra_event_banner_super_dismissed ) {
@@ -428,7 +428,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return void
 		 *
-		 * @since 3.0.1
+		 * @since 3.1.0
 		 */
 		public static function dismiss_extra_event_banner() {
 			// Grab POSTed data.
@@ -452,8 +452,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			\wp_send_json_success( \esc_html__( 'Complete.', 'wp-2fa' ) );
 		}
 
-
-
 		/**
 		 * Handle notice dismissal.
 		 *
@@ -468,7 +466,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			if ( ! $nonce_check ) {
 				\wp_send_json_error( esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
 			}
-			// $nonce = isset( $_POST['nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ) : false;
 			// Check nonce.
 			if ( ! \current_user_can( 'manage_options' ) ) {
 				\wp_send_json_error( esc_html__( 'Not enough privileges.', 'wp-2fa' ) );
@@ -528,6 +525,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 					'SELECT blog_id, domain FROM ' . $wpdb->blogs . ( ! is_null( $limit ) ? ' LIMIT ' . $limit : '' );
 
 				// Execute query.
+				// Direct DB query used for performance/scoping. SQL is controlled and
+				// not influenced by user input here; ignore PHPCS DB preparation
+				// warnings for this internal helper.
 				$res = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 
 				// Modify result.
@@ -557,7 +557,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			$nonce = $now->getTimestamp();
 
 			$pk_hash               = hash( 'sha512', $data['license_key'] . '|' . $nonce );
-			$authentication_string = base64_encode( $pk_hash . '|' . $nonce );
+			$authentication_string = base64_encode( $pk_hash . '|' . $nonce ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 
 			return $authentication_string;
 		}
@@ -578,7 +578,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				return true;
 			}
 
-			return ( in_array( $abs_path . 'wp-login.php', get_included_files() ) || in_array( $abs_path . 'wp-register.php', get_included_files() ) ) || ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) || '/wp-login.php' == $_SERVER['PHP_SELF']; // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+			// Legacy check using server globals; input is only used for detection
+			// not for state changes. Ignore strict-equals and input-validation
+			// PHPCS warnings for this read-only check.
+			return ( in_array( $abs_path . 'wp-login.php', get_included_files() ) || in_array( $abs_path . 'wp-register.php', get_included_files() ) ) || ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) || '/wp-login.php' == $_SERVER['PHP_SELF']; // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.PHP.StrictInArray.MissingTrueStrict
 		}
 
 		/**
@@ -590,8 +593,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 *
 		 * @return bool
 		 */
-		public static function is_admin_page( $slug = array() ) { // phpcs:ignore Generic.Metrics.NestingLevel.MaxExceeded
+		public static function is_admin_page( $slug = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 
+			// We're reading the `page` GET var for routing only; nonce
+			// verification is not required here. Ignore the PHPCS nonce
+			// recommendation for this read-only usage.
 			$cur_page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$check    = WP_2FA_PREFIX_PAGE;
 
@@ -646,7 +652,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 
 				return $domain;
 			}
-			$urlparts = parse_url( $url_to_check );
+			$urlparts = parse_url( $url_to_check ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 			$domain   = $urlparts ['host'];
 
 			// get the TLD and domain.
@@ -709,6 +715,113 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 
 				self::$user_roles = array_flip( $wp_roles->get_names() );
 			}
+		}
+
+		/**
+		 * Get the high level domain from a given URL using the Public Suffix List.
+		 *
+		 * @param string $url - The URL to extract the high level domain from.
+		 *
+		 * @return string|false - The high level domain or false on failure.
+		 *
+		 * @since 3.0.0
+		 */
+		public static function wp_get_high_level_domain( $url ) {
+
+			// === CONFIGURATION ===
+			$psl_url        = 'https://publicsuffix.org/list/public_suffix_list.dat';
+			$cache_filename = 'public_suffix_list.dat';
+			$cache_ttl      = DAY_IN_SECONDS; // refresh every 24 hours.
+
+			// === Get uploads directory path ===
+			$upload_dir = \wp_upload_dir();
+			$cache_dir  = \trailingslashit( $upload_dir['basedir'] );
+			$cache_path = $cache_dir . $cache_filename;
+
+			// === Ensure uploads dir exists ===
+			if ( ! file_exists( $cache_dir ) ) {
+				\wp_mkdir_p( $cache_dir );
+			}
+
+			// === Load or refresh Public Suffix List ===
+			$psl_data = '';
+			if ( file_exists( $cache_path ) && ( time() - filemtime( $cache_path ) ) < $cache_ttl ) {
+				// use cached version.
+				$psl_data = file_get_contents( $cache_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			} else {
+				$response = \wp_remote_get( $psl_url, array( 'timeout' => 10 ) );
+				if ( \is_wp_error( $response ) ) {
+					// fallback to cached version if available.
+					if ( file_exists( $cache_path ) ) {
+						$psl_data = file_get_contents( $cache_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+					} else {
+						return false; // cannot proceed.
+					}
+				} else {
+					$psl_data = \wp_remote_retrieve_body( $response );
+					if ( $psl_data ) {
+						file_put_contents( $cache_path, $psl_data ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+					}
+				}
+			}
+
+			// === Parse PSL into array ===
+			$psl = array();
+			foreach ( explode( "\n", $psl_data ) as $line ) {
+				$line = trim( $line );
+				if ( '' === $line || str_starts_with( $line, '//' ) ) {
+					continue;
+				}
+				$psl[] = $line;
+			}
+
+			// === Parse input URL ===
+			$host = parse_url( $url, PHP_URL_HOST ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+			if ( ! $host ) {
+				return false;
+			}
+
+			$host = strtolower( rtrim( $host, '.' ) );
+			if ( strpos( $host, 'www.' ) === 0 ) {
+				$host = substr( $host, 4 );
+			}
+
+			$parts     = explode( '.', $host );
+			$num_parts = count( $parts );
+			if ( $num_parts < 2 ) {
+				return $host;
+			}
+
+			// === Find longest matching PSL rule ===
+			$matches = array();
+			for ( $i = 0; $i < $num_parts; $i++ ) {
+				$slice     = implode( '.', array_slice( $parts, $i ) );
+				$wildcard  = '*.' . implode( '.', array_slice( $parts, $i + 1 ) );
+				$exception = '!' . $slice;
+
+				if ( in_array( $exception, $psl, true ) ) {
+					// Exception rule: one level above suffix.
+					return implode( '.', array_slice( $parts, $i - 1 ) );
+				}
+
+				if ( in_array( $slice, $psl, true ) || in_array( $wildcard, $psl, true ) ) {
+					$matches[] = $slice;
+				}
+			}
+
+			$public_suffix = $matches ? end( $matches ) : implode( '.', array_slice( $parts, -1 ) );
+
+			// === Build the registrable domain ===
+			$public_suffix_parts = explode( '.', $public_suffix );
+			$suffix_count        = count( $public_suffix_parts );
+
+			if ( $num_parts <= $suffix_count ) {
+				return $host; // e.g., just "co.uk".
+			}
+
+			$domain = $parts[ $num_parts - $suffix_count - 1 ] . '.' . $public_suffix;
+
+			return $domain;
 		}
 	}
 }

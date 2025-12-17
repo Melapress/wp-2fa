@@ -316,6 +316,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 					if ( WP_Helper::is_multisite() ) {
 						$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
 					}
+					// Assignment inside condition is intentional to capture the
+					// current blog id and compare in one step; ignore the PHPCS
+					// assignment-in-condition sniff here.
 					if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
 						if ( WP_Helper::is_multisite() ) {
 							\switch_to_blog( $user_blog_id );
@@ -886,7 +889,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		public static function get_user_role( $user = null ): string {
 			self::set_proper_user( $user );
 
-			if ( 0 === self::$user->ID || \is_bool( self::$user ) ) {
+			if ( \is_bool( self::$user ) || 0 === self::$user->ID ) {
 				return '';
 			}
 
@@ -1018,7 +1021,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			);
 
 			foreach ( array_keys( $user_meta_values ) as $meta_name ) {
-				self::remove_meta( $meta_name, $user );
+				if ( strpos( $meta_name, 'passkey' ) === false ) {
+					self::remove_meta( $meta_name, $user );
+				}
 			}
 
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
@@ -1330,11 +1335,27 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		}
 
 		/**
+		 * Validates the user ID.
+		 *
+		 * @param mixed $user_id - The user ID to validate.
+		 * @return int|false - Returns a valid user ID or false if invalid.
+		 */
+		public static function validate_user_id( $user_id ) {
+			$user_id = intval( $user_id );
+			if ( $user_id > 0 && get_userdata( $user_id ) ) {
+				return $user_id;
+			}
+			return false;
+		}
+
+		/**
 		 * Send email to setup authentication.
 		 *
-		 * @param [type] $user_id - The ID of the user.
+		 * @param int $user_id - The ID of the user.
 		 *
 		 * @return bool
+		 *
+		 * @since 3.1.0
 		 */
 		public static function send_expired_grace_email( $user_id ) {
 			// Bail if the user has not enabled this email.
@@ -1342,13 +1363,30 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				return false;
 			}
 
-			// Grab user data.
-			$user = \get_userdata( $user_id );
-			// Grab user email.
-			$email = $user->user_email;
+			// Validate user id and user data.
+			$user_id = self::validate_user_id( $user_id );
+			if ( false === $user_id ) {
+				return false;
+			}
 
-			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_subject' ), $user_id ) );
-			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
+			// Grab user data and ensure email exists.
+			$user = \get_userdata( $user_id );
+			if ( ! $user || empty( $user->user_email ) ) {
+				return false;
+			}
+
+			// Sanitize email address before sending.
+			$email = \sanitize_email( $user->user_email );
+			if ( empty( $email ) || ! \is_email( $email ) ) {
+				return false;
+			}
+
+			$subject_raw = WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_subject' ), $user_id );
+			$subject     = wp_strip_all_tags( $subject_raw );
+			$subject     = sanitize_text_field( $subject );
+			$message     = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
+			// Sanitize HTML for email: allow a reasonable set of tags.
+			$message = \wp_kses_post( $message );
 
 			// @free:start
 			$message .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
@@ -1676,7 +1714,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_setting( 'superadmins-role-exclude' ) ) && \is_super_admin( $user_id ) ) {
 				return false;
 			}
-
 
 
 			// Let's check the policy settings and if the user has setup totp/email by checking for the usermeta.

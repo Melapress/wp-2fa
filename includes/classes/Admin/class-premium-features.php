@@ -71,7 +71,6 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 				</style>
 				<?php
 			}
-
 			$banner  = '<div id="wp-2fa-side-banner">';
 			$banner .= '<img src="' . \esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ) . '">';
 			$banner .= '<p>' . \esc_html__( 'Upgrade to Premium & benefit:', 'wp-2fa' ) . '</p>';

@@ -194,68 +194,71 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		 *
 		 * @since 2.2.0
 		 */
-		public static function get_all_users_data( $method, $users_args ) {
+		private static function get_all_users_data( $method, $users_args ) {
 			if ( 'get_users' === $method ) {
 				return get_users( $users_args );
 			}
 
-			// method is "query", let's build the SQL query ourselves.
+			// method is "query", let's build the SQL query ourselves using prepared statements.
 			global $wpdb;
 
 			$batch_size = isset( $users_args['batch_size'] ) ? (int) $users_args['batch_size'] : false;
 			$offset     = isset( $users_args['count'] ) ? (int) $users_args['count'] * $batch_size : false;
 
-			// Default.
-			$select = 'SELECT ID, user_login FROM ' . $wpdb->users;
+			// Base select.
+			$select = "SELECT ID, user_login FROM {$wpdb->users} u";
+			$params = array();
 
 			// If we want to grab users with a specific role.
 			if ( isset( $users_args['role__in'] ) && ! empty( $users_args['role__in'] ) ) {
-				$roles  = array_map( 'esc_sql', $users_args['role__in'] );
-				$select = '
-					SELECT  ID, user_login
-					FROM    ' . $wpdb->users . ' u INNER JOIN ' . $wpdb->usermeta . ' um
-					ON      u.ID = um.user_id
-					WHERE   um.meta_key LIKE \'' . esc_sql( $wpdb->base_prefix ) . '%capabilities\'' .
-					' AND     (
-			';
-				$i      = 1;
+				$roles = (array) $users_args['role__in'];
+
+				$select .= " INNER JOIN {$wpdb->usermeta} um ON u.ID = um.user_id WHERE um.meta_key LIKE %s AND (";
+				// meta_key pattern (base prefix + %capabilities).
+				$meta_key_pattern = $wpdb->base_prefix . '%capabilities';
+				$params[]         = $meta_key_pattern;
+
+				$role_like_parts = array();
 				foreach ( $roles as $role ) {
-					$select .= ' um.meta_value    LIKE    \'%"' . esc_sql( $role ) . '"%\' ';
-					if ( $i < count( $roles ) ) {
-						$select .= ' OR ';
-					}
-					++$i;
+					$role_escaped      = $wpdb->esc_like( (string) $role );
+					$role_like_parts[] = 'um.meta_value LIKE %s';
+					// pattern includes serialized quotes: %"role"%.
+					$params[] = '%"' . $role_escaped . '"%';
 				}
-				$select .= ' ) ';
 
-				$excluded_users = ( ! empty( $users_args['excluded_users'] ) ) ? array_map( 'esc_sql', $users_args['excluded_users'] ) : array();
+				$select .= implode( ' OR ', $role_like_parts );
+				$select .= ' )';
 
-				$excluded_users = array_map(
-					function ( $excluded_user ) {
-						return '"' . esc_sql( $excluded_user ) . '"';
-					},
-					$excluded_users
-				);
+				$excluded_users = ( ! empty( $users_args['excluded_users'] ) ) ? (array) $users_args['excluded_users'] : array();
 
 				if ( ! empty( $excluded_users ) ) {
-					$select .= '
-						AND user_login NOT IN ( ' . implode( ',', $excluded_users ) . ' )
-				';
+					$placeholders = implode( ',', array_fill( 0, count( $excluded_users ), '%s' ) );
+					$select      .= " AND user_login NOT IN ( {$placeholders} )";
+					foreach ( $excluded_users as $excluded_user ) {
+						$params[] = (string) $excluded_user;
+					}
 				}
 
 				$skip_existing_2fa_users = ( ! empty( $users_args['skip_existing_2fa_users'] ) ) ? (bool) $users_args['skip_existing_2fa_users'] : false;
 
 				if ( $skip_existing_2fa_users ) {
-					$select .= '
-				AND u.ID NOT IN (
-				  SELECT DISTINCT user_id FROM  ' . $wpdb->usermeta . ' WHERE meta_key = \'wp_2fa_enabled_methods\'
-				)
-				';
+					$select  .= " AND u.ID NOT IN ( SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key = %s )";
+					$params[] = 'wp_2fa_enabled_methods';
 				}
 			}
 
 			if ( $batch_size ) {
-				$select .= ' LIMIT ' . $batch_size . ' OFFSET ' . $offset;
+				// append LIMIT/OFFSET using integer placeholders.
+				$select  .= ' LIMIT %d OFFSET %d';
+				$params[] = $batch_size;
+				$params[] = $offset;
+			}
+
+			// If we have parameters, prepare the statement; otherwise run directly.
+			if ( ! empty( $params ) ) {
+				// Use splat operator to pass params array to prepare.
+				$sql = $wpdb->prepare( $select, ...$params );
+				return $wpdb->get_results( $sql );
 			}
 
 			return $wpdb->get_results( $select );

@@ -35,6 +35,7 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 
 		private const ENQUEUE_NAME          = 'mlp_flyout';
 		private const CONFIG_TRANSIENT_NAME = \WP_2FA_PREFIX . 'flyout_config';
+		private const REMOTE_CONFIG_URL     = 'https://melapress.com/downloads/plugins-files/wp-2fa-flyout-config.php';
 
 		/**
 		 * Array with the configuration of the fly-out menu
@@ -111,6 +112,10 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 			if ( WP_Helper::is_multisite() ) {
 				foreach ( $config['plugin_screen'] as $key => $value ) {
 					$config['plugin_screen'][ $key ] = $value . '-network';
+
+					if ( ! in_array( $value, WP_Helper::PLUGIN_PAGES, true ) ) {
+						unset( $config['plugin_screen'][ $key ] );
+					}
 				}
 			}
 
@@ -131,7 +136,7 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 				$screen       = \get_current_screen();
 				self::$screen = false;
 
-				if ( in_array( $screen->id, self::$config['plugin_screen'] ) ) {
+				if ( null !== $screen && in_array( $screen->id, self::$config['plugin_screen'], true ) ) {
 					self::$screen = true;
 				}
 			}
@@ -194,9 +199,15 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 			$out .= '#mlp-flyout .mlp-elements-menu-item.accent {
 				background: ' . \sanitize_text_field( self::$config['menu_accent_color'] ) . ';
 			}';
-			$out .= \sanitize_text_field( self::$config['custom_css'] );
+			$out .= \wp_strip_all_tags( self::$config['custom_css'] );
 			$out .= '</style>';
 
+			// The output below is built from sanitized and escaped values such
+			// as sanitize_text_field and wp_strip_all_tags. PHPCS cannot
+			// always infer that across a large concatenated string, so the
+			// OutputNotEscaped sniff is ignored here to avoid a false positive.
+			// If this is refactored to echo parts individually the ignore can
+			// be removed.
 			echo $out; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
@@ -231,7 +242,9 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 			$out .= '<a href="#" id="mlp-elements-button">';
 			$out .= '<span class="mlp-elements-label">Open Quick Links</span>';
 			$out .= '<span id="mlp-elements-image-wrapper">';
-			$out .= '<img src="' . esc_url( $icons_url . self::$config['icon_image'] ) . '" alt="Open Quick Links" title="Open Quick Links">';
+			if ( ! empty( self::$config['icon_image'] ) ) {
+				$out .= '<img src="' . \esc_url( $icons_url . self::$config['icon_image'] ) . '" alt="Open Quick Links" title="Open Quick Links">';
+			}
 			$out .= '</span>';
 			$out .= '</a>';
 
@@ -240,7 +253,7 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 			foreach ( array_reverse( self::$config['menu_items'] ) as $item ) {
 				$item = array_merge( $default_link_item, $item );
 
-				if ( ( isset( $item['type'] ) && 'all' === $item['type'] ) || ( isset( $item['type'] ) && WP2FA::determine_plugin_type() === $item['type'] ) ) {
+				if ( ( isset( $item['type'] ) && 'all' === $item['type'] ) || ( isset( $item['type'] ) && WP2FA::get_plugin_version() === $item['type'] ) ) {
 					++$i;
 
 					if ( ! empty( $item['icon'] ) && \str_starts_with( $item['icon'], 'dashicons' ) ) {
@@ -248,12 +261,17 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 						$item['class']  = trim( $item['class'] );
 					}
 
-					$out .= '<a ' . $item['data'] . ' href="' . esc_url( $item['href'] ) . '" class="mlp-elements-menu-item mlp-elements-menu-item-' . $i . ' ' . esc_attr( $item['class'] ) . '" target="' . esc_attr( $item['target'] ) . '">';
+					$pattern = '/^data-[a-z0-9\-]+=(["\'])([A-Za-z0-9_\-]+)\1$/';
+					if ( ! preg_match( $pattern, $item['data'] ) ) {
+						$item['data'] = '';
+					}
+
+					$out .= '<a ' . $item['data'] . ' href="' . \esc_url( $item['href'] ) . '" class="mlp-elements-menu-item mlp-elements-menu-item-' . $i . ' ' . \esc_attr( $item['class'] ) . '" target="' . \esc_attr( $item['target'] ) . '">';
 					$out .= '<span class="mlp-elements-label visible">' . esc_html( $item['label'] ) . '</span>';
 					if ( \str_starts_with( $item['icon'], 'dashicons' ) ) {
-						$out .= '<span class="dashicons ' . sanitize_text_field( $item['icon'] ) . '"></span>';
+						$out .= '<span class="dashicons ' . \sanitize_text_field( $item['icon'] ) . '"></span>';
 					} elseif ( ! empty( $item['icon'] ) ) {
-						$out .= '<span class="mlp-elements-icon"><img src="' . esc_url( $icons_url . $item['icon'] ) . '"></span>';
+						$out .= '<span class="mlp-elements-icon"><img src="' . \esc_url( $icons_url . $item['icon'] ) . '"></span>';
 					}
 					$out .= '</a>';
 				}
@@ -262,44 +280,112 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 
 			$out .= '</div>'; // #mlp-flyout
 
+			// The footer output is built from escaped and sanitized values such
+			// as esc_url, esc_attr and esc_html. PHPCS cannot reliably infer
+			// that across concatenation, so the OutputNotEscaped sniff is
+			// ignored here to avoid noise.
 			echo $out; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		/**
 		 * Reads the config file remotely and sets 2 days transient for caching. If for some reason cant read the remote - false is returned
 		 *
-		 * @return bool|array
+		 * @return bool|array|false
 		 *
 		 * @since 2.8.0
 		 */
 		public static function read_remote_config() {
 			$config = \get_transient( self::CONFIG_TRANSIENT_NAME );
 
-			if ( false === $config || empty( $config ) ) {
+			// Transient used to throttle remote requests on repeated failures.
+			$timeout_transient_key = WP_2FA_PREFIX . 'flyout_config_timeout';
+			// Allow filter to adjust timeout TTL (default 1 hour).
+			$timeout_ttl = (int) apply_filters( WP_2FA_PREFIX . 'flyout_remote_timeout_ttl', HOUR_IN_SECONDS );
 
-				$api_response = \wp_remote_request( 'https://melapress.com/downloads/plugins-files/wp-2fa-flyout-config.php', array() );
+			// If we recently had a failure, bail early to avoid hammering remote host.
+			if ( \get_transient( $timeout_transient_key ) ) {
+				// Intentionally not logging here to avoid flooding logs when the
+				// timeout transient is active.
+				return false;
+			}
+
+			if ( false === $config || empty( $config ) ) {
+				$request_args = \apply_filters(
+					WP_2FA_PREFIX . 'flyout_remote_request_args',
+					array(
+						'timeout'     => 30,
+						'redirection' => 5,
+						'user-agent'  => 'WP-2FA-FlyOut/' . WP_2FA_VERSION,
+					)
+				);
+
+				$api_response = \wp_remote_get( self::REMOTE_CONFIG_URL, $request_args );
+
+				if ( \is_wp_error( $api_response ) ) {
+					self::log_remote_error( 'Request error: ' . $api_response->get_error_message() );
+					// Set timeout transient so we don't retry immediately.
+					\set_transient( $timeout_transient_key, true, $timeout_ttl );
+					return false;
+				}
 
 				$response_code = \wp_remote_retrieve_response_code( $api_response );
 
-				if ( \is_wp_error( $api_response ) || 200 !== (int) $response_code ) {
-
+				if ( 200 !== (int) $response_code ) {
+					self::log_remote_error( 'Unexpected response code: ' . $response_code );
+					// Set timeout transient so we don't retry immediately.
+					\set_transient( $timeout_transient_key, true, $timeout_ttl );
 					return false;
-				} else {
-					$config = \wp_remote_retrieve_body( $api_response );
-
-					\set_transient( self::CONFIG_TRANSIENT_NAME, $config, \DAY_IN_SECONDS * 3 );
-
-					return \json_decode( $config, true );
 				}
+
+				$config_body = \wp_remote_retrieve_body( $api_response );
+				if ( empty( $config_body ) ) {
+					self::log_remote_error( 'Empty response body.' );
+					// Set timeout transient so we don't retry immediately.
+					\set_transient( $timeout_transient_key, true, $timeout_ttl );
+					return false;
+				}
+
+				$decoded_config = \json_decode( $config_body, true );
+				if ( null === $decoded_config ) {
+					self::log_remote_error( 'Invalid JSON payload.' );
+					// Set timeout transient so we don't retry immediately.
+					\set_transient( $timeout_transient_key, true, $timeout_ttl );
+					return false;
+				}
+
+				\set_transient( self::CONFIG_TRANSIENT_NAME, $config_body, \DAY_IN_SECONDS * 3 );
+
+				return $decoded_config;
 			}
 
 			$config = json_decode( $config, true );
 
 			if ( json_last_error() !== JSON_ERROR_NONE ) {
+				self::log_remote_error( 'Cached config decode failed.' );
 				$config = false;
 			}
 
 			return $config;
+		}
+
+		/**
+		 * Logs remote fetch issues for debugging.
+		 *
+		 * @param string $message Error details.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.0
+		 */
+		private static function log_remote_error( string $message ): void {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// Logging is conditional on WP_DEBUG and intended for
+				// developer troubleshooting. Allow error_log in this context;
+				// ignore the PHPCS development-function sniff for this helper
+				// call.
+				\error_log( '[WP 2FA FlyOut] ' . $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			}
+			\do_action( WP_2FA_PREFIX . 'flyout_remote_error', $message );
 		}
 	}
 }

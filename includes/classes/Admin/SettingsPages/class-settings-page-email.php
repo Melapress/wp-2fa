@@ -451,6 +451,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 										{user_ip_address}</br>
 										{backup_codes}
 										{admin_email}
+										{wp_admin_email}
 										<?php
 										if ( ! empty( $custom_user_page_id ) ) {
 											echo '</br>{2fa_settings_page_url}';

@@ -63,6 +63,15 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 				<div class="wp2fa-setup-actions">
 					<button type="button" class="button wp-2fa-button-primary button-primary" data-name="next_step_setting_modal_wizard" data-next-step="choose-2fa-method"><?php \esc_html_e( 'Next Step', 'wp-2fa' ); ?></buttona>
 					<button class="wp-2fa-button-secondary button button-secondary wp-2fa-button-secondary" data-close-2fa-modal aria-label="Close this dialog window"><?php \esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
+					<?php
+					/*
+						if ( User_Helper::is_enforced( User_Helper::get_user_object()->ID ) ) {
+							?>
+						<a class="button button-primary wp-2fa-button-primary modal_logout" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-logout' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php \esc_attr_e( 'Log out', 'wp-2fa' ); ?></a>
+					<?php
+					}
+					*/
+					?>
 				</div>
 			</div>
 			<?php
@@ -348,11 +357,11 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 						?>
 				<p><?php esc_html_e( 'Now you need to configure 2FA for your own user account. You can do this now (recommended) or later.', 'wp-2fa' ); ?></p>
 				<div class="wp2fa-setup-actions">
-					<a href="<?php echo esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-secondary">
-						<?php esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
+					<a href="<?php echo \esc_url( Settings::get_setup_page_link() ); ?>" class="button button-primary wp-2fa-button-secondary">
+						<?php \esc_html_e( 'Configure 2FA now', 'wp-2fa' ); ?>
 					</a>
-					<a href="<?php echo esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
-						<?php esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
+					<a href="<?php echo \esc_url( Settings::get_settings_page_link() ); ?>" class="button button-secondary wp-2fa-button-secondary close-first-time-wizard">
+						<?php \esc_html_e( 'Close wizard & configure 2FA later', 'wp-2fa' ); ?>
 					</a>
 				</div>
 					<?php } ?>

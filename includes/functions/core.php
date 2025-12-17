@@ -195,7 +195,7 @@ function admin_scripts() {
 	global $pagenow;
 
 	// Get page argument from $_GET array.
-	$page = ( isset( $_GET['page'] ) ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
+	$page = ( isset( $_GET['page'] ) ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && 'profile.php' !== $pagenow ) {
 		return;
 	}
@@ -203,14 +203,14 @@ function admin_scripts() {
 	\wp_enqueue_script(
 		'wp_2fa_admin',
 		script_url( 'admin', 'admin' ),
-		array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'wp_2fa_micro_modals', 'select2' ),
+		array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'wp_2fa_micro_modals', 'select2', 'wp-i18n' ),
 		WP_2FA_VERSION,
 		true
 	);
 
 	\wp_enqueue_script(
 		'wp_2fa_micro_modals',
-		script_url( 'micromodal', 'admin' ),
+		script_url( 'micromodal', 'admin', 'wp-i18n' ),
 		array(),
 		WP_2FA_VERSION,
 		true
@@ -237,7 +237,7 @@ function admin_scripts() {
 	$re_login = Settings_Utils::get_setting_role( User_Helper::get_user_role(), Re_Login_2FA::RE_LOGIN_SETTINGS_NAME );
 
 	$data_array = array(
-		'ajaxURL'         =>\admin_url( 'admin-ajax.php' ),
+		'ajaxURL'         => \admin_url( 'admin-ajax.php' ),
 		'nonce'           => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
 		'codesPreamble'   => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
 		'readyText'       => esc_html__( 'I\'m ready', 'wp-2fa' ),
@@ -255,8 +255,8 @@ function admin_scripts() {
  * @return void
  */
 function enqueue_select2_scripts() {
-	wp_enqueue_style( 'select2', style_url( 'select2.min', 'admin' ), array(), WP_2FA_VERSION );
-	wp_enqueue_script( 'select2', script_url( 'select2.min', 'admin' ), array( 'jquery' ), WP_2FA_VERSION, false );
+	\wp_enqueue_style( 'select2', style_url( 'select2.min', 'admin' ), array(), WP_2FA_VERSION );
+	\wp_enqueue_script( 'select2', script_url( 'select2.min', 'admin' ), array( 'jquery' ), WP_2FA_VERSION, false );
 }
 
 /**

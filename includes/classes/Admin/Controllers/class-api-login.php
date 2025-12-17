@@ -76,18 +76,22 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 			$request_parameters = $request->get_params();
 
 			if ( ! isset( $request_parameters['user_id'] ) ) {
-				return new \WP_Error( 'invalid_request', 'User ID is required', array( 'status' => 400 ) );
+				return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 400 ) );
 			}
 
 			$user_id = (int) $request->get_param( 'user_id' );
 			$user    = \get_user_by( 'id', $user_id );
 
 			if ( ! $user ) {
-				return new \WP_Error( 'invalid_request', 'Invalid User ID', array( 'status' => 400 ) );
+				return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 400 ) );
+			}
+
+			// Simple method enforcement; ensure only POST requests are honored.
+			if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
+				return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 405 ) );
 			}
 
 			if ( ! self::check_number_of_attempts( $user ) ) {
-				new \WP_Error( 'invalid_request', 'You are not allowed to do that', array( 'status' => 400 ) );
 				return \rest_ensure_response(
 					array(
 						'status'      => false,
@@ -103,6 +107,11 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 
 			if ( 0 !== \wp_get_current_user()->ID ) {
 				if ( \wp_get_current_user()->ID === $user_id ) {
+					// Optional action nonce for additional CSRF mitigation when already logged in.
+					$action_nonce = isset( $request_parameters['action_nonce'] ) ? $request_parameters['action_nonce'] : '';
+					if ( empty( $action_nonce ) || ! \wp_verify_nonce( $action_nonce, 'wp2fa_login_api_' . $user_id ) ) {
+						return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 400 ) );
+					}
 					$proceed = true;
 
 					// Requested 2fa login is for the currently logged-in user. Destroy the session and proceed.
@@ -142,8 +151,20 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 					return new \WP_Error( 'invalid_request', 'No 2FA method enabled for this user', array( 'status' => 400 ) );
 				}
 
-				$token           = \sanitize_text_field( $request_parameters['token'] ?? '' );
+				$raw_token       = $request_parameters['token'] ?? '';
+				$token           = is_string( $raw_token ) ? trim( $raw_token ) : '';
 				$remember_device = \sanitize_text_field( $request_parameters['remember_device'] ?? '' );
+
+				// Basic provider-aware token format validation (non-breaking fallback).
+				if ( strlen( $token ) > 128 ) { // Generic length guard.
+					return \rest_ensure_response(
+						array(
+							'status'      => false,
+							'message'     => __( 'Authentication failed.', 'wp-2fa' ),
+							'redirect_to' => \esc_url_raw( \wp_login_url() ),
+						)
+					);
+				}
 
 				$valid = array( 'valid' => false );
 
@@ -160,10 +181,6 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 					\wp_set_current_user( $user_id, $user->user_login );
 					\wp_set_auth_cookie( $user->ID );
 
-					\remove_action( 'wp_login', array( Login::class, 'wp_login' ), 20, 2 );
-
-					\do_action( 'wp_login', $user->user_login, $user );
-
 					/**
 					 * Fires when the user is authenticated.
 					 *
@@ -173,7 +190,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 					 */
 					\do_action( WP_2FA_PREFIX . 'user_authenticated', $user );
 
-					if ( isset( $remember_device ) ) {
+					if ( isset( $remember_device ) && ! empty( $remember_device ) ) {
 						/**
 						 * Fires when the user is authenticated.
 						 *
@@ -184,7 +201,10 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 						\do_action( WP_2FA_PREFIX . 'remember_device', $user, $remember_device );
 					}
 
-					$message = esc_html__( 'Successfully signed in with WP 2FA.', 'wp-2fa' );
+					$message = \esc_html__( 'Successfully signed in with WP 2FA.', 'wp-2fa' );
+
+					// Consume nonce on successful authentication to prevent replay.
+					Login::delete_login_nonce( $user_id );
 
 					if ( WP_Helper::is_multisite() && ! \get_active_blog_for_user( $user->ID ) && ! \is_super_admin( $user->ID ) ) {
 						$redirect_to = \user_admin_url();
@@ -197,6 +217,28 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 					}
 
 					$redirect_to = \apply_filters( WP_2FA_PREFIX . 'post_login_user_redirect', $redirect_to, $user );
+
+					/**
+					 * Filters the login redirect URL.
+					 *
+					 * @since 3.0.0
+					 *
+					 * @param string           $redirect_to           The redirect destination URL.
+					 * @param string           $requested_redirect_to The requested redirect destination URL passed as a parameter.
+					 * @param WP_User|WP_Error $user                  WP_User object if login was successful, WP_Error object otherwise.
+					 */
+					$redirect_to = apply_filters( 'login_redirect', $redirect_to, $requested_redirect_to, $user );
+
+					if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || \admin_url() === $redirect_to ) ) {
+						// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
+						if ( is_multisite() && ! get_active_blog_for_user( $user->ID ) && ! is_super_admin( $user->ID ) ) {
+							$redirect_to = user_admin_url();
+						} elseif ( is_multisite() && ! $user->has_cap( 'read' ) ) {
+							$redirect_to = get_dashboard_url( $user->ID );
+						} elseif ( ! $user->has_cap( 'edit_posts' ) ) {
+							$redirect_to = $user->has_cap( 'read' ) ? \admin_url( 'profile.php' ) : \home_url();
+						}
+					}
 
 					self::clear_login_attempts( $user );
 

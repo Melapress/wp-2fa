@@ -71,8 +71,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 		 */
 		public static function user_setup_2fa_nag( $is_shortcode = '', $configure_2fa_url = '' ) {
 
-			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
-				$current_profile_user_id = (int) $_GET['user_id']; // phpcs:ignore
+			if ( isset( $_GET['user_id'] ) ) {
+				$current_profile_user_id = (int) $_GET['user_id'];
 			} elseif ( ! is_null( User_Helper::get_user_object() ) ) {
 				$current_profile_user_id = User_Helper::get_user_object()->ID;
 			} else {
@@ -80,8 +80,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 			}
 
 			if ( ! $current_profile_user_id ||
-			isset( $_GET['user_id'] ) && // phpcs:ignore
-			$_GET['user_id'] !== User_Helper::get_user_object()->ID || // phpcs:ignore
+			isset( $_GET['user_id'] ) &&
+			$_GET['user_id'] !== User_Helper::get_user_object()->ID ||
 			User_Helper::get_user_enforced_instantly( User_Helper::get_user_object() ) ) {
 				return;
 			}
@@ -108,12 +108,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 
 			$new_page_permalink = get_permalink( $new_page_id );
 
-			$setup_url = Settings::get_setup_page_link();
-
-			// Allow setup URL to be customized if outputting via shortcode.
-			if ( isset( $is_shortcode ) && 'output_shortcode' === $is_shortcode && ! empty( $configure_2fa_url ) ) {
-				$setup_url = $configure_2fa_url;
-			}
+			$setup_url = Settings::get_setup_page_link( true );
 
 			// Stop the page from being a link to a page this user cant access if needed.
 			if ( WP_Helper::is_multisite() && ! is_user_member_of_blog( User_Helper::get_user_object()->ID ) ) {
@@ -123,6 +118,11 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 			// If we have a custom page generated, lets use it.
 			if ( ! empty( $new_page_id ) && $new_page_permalink ) {
 				$setup_url = $new_page_permalink;
+			}
+
+			// Allow setup URL to be customized if outputting via shortcode.
+			if ( isset( $is_shortcode ) && 'output_shortcode' === $is_shortcode && ! empty( $configure_2fa_url ) ) {
+				$setup_url = $configure_2fa_url;
 			}
 
 			// If the nag has not already been dismissed, and of course if the user is eligible, lets show them something.

@@ -34,7 +34,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	if ( $shake_error_codes && $wp_error->get_error_code() && in_array( $wp_error->get_error_code(), $shake_error_codes ) ) {
 			add_action( 'login_head', 'wp_shake_js', 12 );
 	}
-		$login_title = get_bloginfo( 'name', 'display' );
+		$login_title = \esc_html( get_bloginfo( 'name', 'display' ) );
 		/* translators: Login screen title. 1: Login screen name, 2: Network or site name */
 		$login_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $login_title );
 		/**
@@ -55,7 +55,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		<!--<![endif]-->
 		<head>
 		<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
-		<title><?php echo $login_title;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></title>
+		<title><?php echo \esc_html( $login_title ); ?></title>
 		<?php
 		wp_enqueue_style( 'login' );
 

@@ -159,7 +159,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			login_header();
 
 			if ( ! empty( $error_msg ) ) {
-				echo '<div id="login_error"><strong>' . \esc_html( \apply_filters( 'login_errors', \esc_html( $error_msg ) ) ) . '</strong><br /></div>';
+				echo '<div id="login_error"><strong class="wp-2fa-error-msg">' . \esc_html( \apply_filters( 'login_errors', \esc_html( $error_msg ) ) ) . '</strong><br /></div>';
 			}
 			?>
 			<form name="lostpasswordform" id="lostpasswordform" action="<?php echo \esc_url( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) ); ?>" method="post">

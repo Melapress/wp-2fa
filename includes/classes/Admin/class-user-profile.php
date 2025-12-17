@@ -106,6 +106,38 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			// Excluded user.
 			if ( in_array( 'user_is_excluded', $user_type, true ) ) {
+				/**
+				 * Gives the ability to add more content to the profile page.
+				 *
+				 * @param string $form_content - The parsed HTML of the form.
+				 * @param \WP_USER $user - The user object.
+				 *
+				 * @since 3.0.0
+				 */
+				$form_content = \apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content, $user );
+
+				if ( ! empty( $form_content ) ) {
+					$form_output .= '<h2>' . WP2FA::get_wp2fa_white_label_setting( 'user-profile-form-preamble-title', true ) . '</h2>';
+
+					if ( $description ) {
+						$form_output .= '<p class="description">' . $description . '</p>';
+					}
+
+					$form_output .= '
+					<table id="2fa-user-global-configuration" class="form-table wp-2fa-user-profile-form" role="presentation">
+						<tbody>
+							<tr>
+								<th><label>' . \esc_html__( '2FA Setup:', 'wp-2fa' ) . '</label></th>
+								<td>
+								' . $form_content . '
+								</td>
+							</tr>
+						</tbody>
+					</table>';
+
+					echo $form_output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				}
+				
 				return;
 			}
 
@@ -257,7 +289,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						'user_id'      => $user->ID,
 						'wp_2fa_nonce' => \wp_create_nonce( 'wp-2fa-unlock-account-nonce' ),
 					),
-					admin_url( 'user-edit.php' )
+					\admin_url( 'user-edit.php' )
 				);
 				$form_content   .= '<a href="' . \esc_url( $unlock_user_url ) . '" class="button button-primary">' . \esc_html__( 'Unlock user and reset the grace period', 'wp-2fa' ) . '</a>';
 			}
@@ -305,7 +337,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 				if ( $show_enabled ) {
 
-					$form_output .= '<h3>' . \esc_html__( 'Currently configured:', 'wp-2fa' ) . '</h3>';
+					$form_output .= '<h3 style="font-size: 1.1em;">' . \esc_html__( 'Currently configured:', 'wp-2fa' ) . '</h3>';
 
 					$form_output .= '
 					<table id="2fa-currently-configured-methods" class="form-table wp-2fa-user-profile-form" role="presentation">
@@ -329,7 +361,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					</table>';
 				}
 
-				$form_output .= '<h3>' . \esc_html__( '2FA configuration:', 'wp-2fa' ) . '</h3>';
+				$form_output .= '<h3 style="font-size: 1.1em;">' . \esc_html__( '2FA configuration:', 'wp-2fa' ) . '</h3>';
 
 				if ( User_Utils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) && isset( $enabled_methods ) && TOTP::METHOD_NAME === $enabled_methods ) {
 					$form_output .= '
@@ -366,7 +398,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						</tbody>
 					</table>';
 
-				if ( ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) || User_Helper::get_user_enforced_instantly( $user ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				if ( ( ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) || User_Helper::get_user_enforced_instantly( $user ) ) && $show_enable2fa ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 					$form_output .= '
 					<script>
 					window.addEventListener("load", function() {
@@ -377,7 +409,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				}
 			}
 
-			echo $form_output; // phpcs:ignore
+			echo $form_output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 			self::generate_inline_modals( $user_type );
 		}
@@ -406,13 +438,26 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					<div class="modal__overlay" tabindex="-1">
 						<div class="modal__container" role="dialog" aria-dialog aria-labelledby="modal-1-title">
 								<?php
-								echo Generate_Modal::generate_modal( // phpcs:ignore
+								echo Generate_Modal::generate_modal(
 									'notify-users',
-									esc_html__( 'Are you sure?', 'wp-2fa' ),
-									esc_html__( 'Any unsaved changes will be lost!', 'wp-2fa' ),
+									'',
+									\wp_kses_post( WP2FA::get_wp2fa_white_label_setting( '2fa_wizard_cancel', true ) ),
 									array(
-										'<button class="button wp-2fa-button-primary button-primary button-confirm" aria-label="Close this dialog window and the wizard">' . \esc_html__( 'Yes', 'wp-2fa' ) . '</button>',
-										'<button class="button wp-2fa-button-secondary button-secondary button-decline" data-micromodal-close aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
+										'<button type="button" class="button wp-2fa-button-primary button-primary button-confirm" aria-label="Close this dialog window and the wizard">' . \esc_html__( 'Yes', 'wp-2fa' ) . '</button>',
+										'<button type="button" class="button wp-2fa-button-secondary button-secondary button-decline" data-micromodal-close aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
+									),
+									'',
+									'430px'
+								);
+								?>
+								<?php
+								echo Generate_Modal::generate_modal(
+									'confirm-logout',
+									'',
+									\wp_kses_post( WP2FA::get_wp2fa_white_label_setting( '2fa_wizard_logout', true ) ),
+									array(
+										'<button type="button" class="button wp-2fa-button-primary button-primary button-confirm-logout" aria-label="Close this dialog window and the wizard">' . \esc_html__( 'Yes', 'wp-2fa' ) . '</button>',
+										'<button type="button" class="button wp-2fa-button-secondary button-secondary button-decline" data-micromodal-close aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
 									),
 									'',
 									'430px'
@@ -439,9 +484,9 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 									if ( count( $available_methods[ User_Helper::get_user_role( $user ) ] ) > 1 ) {
 										$intro_text = WP2FA::replace_wizard_strings( WP2FA::get_wp2fa_white_label_setting( 'method_selection', true ), $user );
 									} elseif ( 1 === count( $available_methods[ User_Helper::get_user_role( $user ) ] ) ) {
-										$intro_text = '';
+										$intro_text = WP2FA::replace_wizard_strings( WP2FA::get_wp2fa_white_label_setting( 'method_selection', true ), $user );
 									} else {
-										$intro_text = '<h3>' . esc_html__( 'No available 2FA methods set', 'wp-2fa' ) . '</h3><p>' . esc_html__( 'Ask your administrator to enable 2FA methods', 'wp-2fa' ) . '</p>';
+										$intro_text = '<h3 style="font-size: 1.1em;">' . esc_html__( 'No available 2FA methods set', 'wp-2fa' ) . '</h3><p>' . esc_html__( 'Ask your administrator to enable 2FA methods', 'wp-2fa' ) . '</p>';
 									}
 
 									if ( ! empty( $optional_welcome ) && $enable_welcome ) {
@@ -470,6 +515,15 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 										}
 										?>
 										<button class="button wp-2fa-button-secondary button-secondary" data-close-2fa-modal aria-label="Close this dialog window"><?php \esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
+										<?php
+										/*
+											if ( User_Helper::is_enforced( User_Helper::get_user_object()->ID ) ) {
+												?>
+											<a class="button button-primary wp-2fa-button-primary modal_logout" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-logout' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php \esc_attr_e( 'Log out', 'wp-2fa' ); ?></a>
+											<?php
+										}
+											*/
+										?>
 									</div>
 								<?php } ?>
 
@@ -595,7 +649,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			$current_user = \wp_get_current_user();
 
 			if ( \is_multisite() ) {
-				if ( '' === trim( (string) \WP2FA\Admin\Helpers\User_Helper::get_user_role( $user ) ) ) {
+				if ( '' === trim( (string) User_Helper::get_user_role( $user ) ) ) {
 					return;
 				}
 			}
@@ -761,7 +815,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			// Check if we are dealing with totp or email, if totp validate and store a new secret key.
 			if ( ! empty( $input['wp-2fa-totp-authcode'] ) && ! empty( $current_key ) ) {
 				if ( Authentication::is_valid_key( $current_key ) || ! is_numeric( $input['wp-2fa-totp-authcode'] ) ) {
-					if ( ! Authentication::is_valid_authcode( $current_key, sanitize_text_field( wp_unslash( $input['wp-2fa-totp-authcode'] ) ) ) ) {
+					if ( ! Authentication::is_valid_authcode( $current_key, \sanitize_text_field( \wp_unslash( $input['wp-2fa-totp-authcode'] ) ) ) ) {
 						$our_errors = \esc_html__( 'Invalid Two Factor Authentication code.', 'wp-2fa' );
 					}
 				} else {

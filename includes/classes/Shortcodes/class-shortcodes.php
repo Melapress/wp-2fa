@@ -172,7 +172,7 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 				$atts
 			);
 
-			$configure_2fa_url = sanitize_text_field( $atts['configure_2fa_url'] );
+			$configure_2fa_url = \esc_url_raw( $atts['configure_2fa_url'] );
 
 			// TODO: is that really necessary?
 			User_Notices::init();
@@ -192,6 +192,7 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 					'allDoneHeading' => \esc_html__( 'All done.', 'wp-2fa' ),
 					'allDoneText'    => \esc_html__( 'Your login just got more secure.', 'wp-2fa' ),
 					'closeWizard'    => \esc_html__( 'Close Wizard', 'wp-2fa' ),
+					'redirectToUrl'  => $configure_2fa_url,
 				);
 				\wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faData', $data_array );
 

@@ -17,7 +17,6 @@ declare(strict_types=1);
 
 namespace WP2FA\Methods;
 
-use WP2FA\Admin\Controllers\API\API_Login;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User_Profile;
 use WP2FA\Utils\Settings_Utils;
@@ -197,26 +196,6 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		}
 
 		/**
-		 * Extracts the selected value from the global settings (if set), and adds it to the output array
-		 *
-		 * @param array $output - The array with output values.
-		 *
-		 * @return array
-		 *
-		 * @since 2.6.0
-		 */
-		public static function return_default_selection( array $output ) {
-			// No method is enabled, fall back to previous selected one - we don't want to break the logic.
-			$totp_enabled = WP2FA::get_wp2fa_setting( self::POLICY_SETTINGS_NAME );
-
-			if ( $totp_enabled ) {
-				$output[ self::POLICY_SETTINGS_NAME ] = $totp_enabled;
-			}
-
-			return $output;
-		}
-
-		/**
 		 * Sets the TOTP as a method for the given user
 		 *
 		 * @param \WP_User $user - The user for which the method has to be set, if null, it uses the current user.
@@ -311,24 +290,6 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			array_push( $loop_settings, self::POLICY_SETTINGS_NAME );
 
 			return $loop_settings;
-		}
-
-		/**
-		 * Returns the status of the totp method (enabled | disabled)
-		 *
-		 * @param string $role - The name of the role to check for.
-		 *
-		 * @since 2.6.0
-		 * @since 2.9.0 - Added role parameter to check if the Twilio is enabled for the given role.
-		 *
-		 * @return boolean
-		 */
-		public static function is_enabled( ?string $role = null ): bool {
-			if ( null === self::$enabled || ! isset( self::$enabled[ $role ] ) ) {
-				self::$enabled[ $role ] = empty( Settings_Utils::get_setting_role( $role, self::POLICY_SETTINGS_NAME ) ) ? false : true;
-			}
-
-			return self::$enabled[ $role ];
 		}
 
 		/**
@@ -587,6 +548,21 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 */
 		public static function add_whitelabel_settings( array $default_settings ): array {
 
+			\ob_start();
+			?>
+			<p class="description"><?php \esc_html_e( 'Click on the icon of the app that you are using for a detailed guide on how to set it up.', 'wp-2fa' ); ?></p>
+			<table class="apps-wrapper">
+				<tr>
+				<?php foreach ( Authentication::get_apps() as $app ) { ?>
+					<td>
+					<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=authentication_help#<?php echo $app['hash']; ?>" target="_blank" class="app-logo"><img src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/' . $app['logo'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></a>
+					</td>
+				<?php } ?>
+				</tr>
+			</table>
+			<?php
+			$mth = \ob_get_clean();
+
 			$default_settings['method_help_totp_intro']       = '<h3>' . __( 'Setting up TOTP (one-time code via app)', 'wp-2fa' ) . '</h3>';
 			$default_settings['method_help_totp_step_1']      = __( 'Download and start the application of your choice', 'wp-2fa' );
 			$default_settings['method_help_totp_step_2']      = __( 'From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:', 'wp-2fa' );
@@ -594,8 +570,9 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			$default_settings['method_verification_totp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code from your chosen authentication app to finalize the setup.', 'wp-2fa' ) . '</p>';
 			$default_settings['totp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} the 2FA App', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working.', 'wp-2fa' ) . '</p>';
 			$default_settings['totp-option-label']            = __( 'One-time code via 2FA app', 'wp-2fa' );
+			$default_settings['method_help_totp_more_intro']  = $mth;
 			$default_settings['totp-option-label-hint']       = sprintf(
-				/* translators: link to the knowledge base website */
+			/* translators: link to the knowledge base website */
 				\esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
 				'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_2fa_apps_3" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
 			);
