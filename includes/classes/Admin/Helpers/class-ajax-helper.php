@@ -78,8 +78,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				}
 			}
 
-			echo wp_json_encode( $users );
-			exit;
+			\wp_send_json_success( $users );
 		}
 
 		/**
@@ -116,8 +115,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				}
 			}
 
-			echo \wp_json_encode( $sites_found );
-			exit;
+			\wp_send_json_success( $sites_found );
 		}
 
 		/**
@@ -254,23 +252,30 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 */
 		public static function remove_user_2fa( $user_id ) {
 
+			// Allow admins or the user themselves.
+			$current_user_id = (int) \get_current_user_id();
+			$request_user_id = isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null;
+
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				if ( null === $request_user_id || $request_user_id !== $current_user_id ) {
+					\wp_send_json_error( 'Access Denied.' );
+				}
+			}
+
 			// Verify nonce.
 			$nonce = isset( $_GET['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_nonce'] ) ) : null;
 			if ( null === $nonce || false === $nonce || ! \wp_verify_nonce( $nonce, 'wp-2fa-remove-user-2fa-nonce' ) ) {
 				\wp_send_json_error( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
 			}
 
-			$user_id = isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null;
+			$user_id     = isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null;
+			$admin_reset = isset( $_GET['admin_reset'] ) ? (bool) \intval( \sanitize_text_field( \wp_unslash( $_GET['admin_reset'] ) ) ) : false;
 
 			if ( isset( $user_id ) ) {
 
-				if ( ! \current_user_can( 'manage_options' ) && \get_current_user_id() !== $user_id ) {
-					\wp_send_json_error( 'Access Denied.' );
-				}
-
 				User_Helper::remove_2fa_for_user( $user_id );
 
-				if ( isset( $get_array['admin_reset'] ) ) {
+				if ( $admin_reset ) {
 					\add_action( 'admin_notices', array( __CLASS__, 'admin_deleted_2fa_notice' ) );
 				} else {
 					\add_action( 'admin_notices', array( __CLASS__, 'user_deleted_2fa_notice' ) );
@@ -309,8 +314,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 					}
 				}
 
-				echo \wp_json_encode( $roles );
-				exit;
+				\wp_send_json_success( $roles );
 			}
 		}
 
@@ -418,6 +422,37 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				</button>
 			</div>
 			<?php
+		}
+
+		/**
+		 * Logs out the current user via AJAX request.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.0
+		 */
+		public static function logout_account() {
+			if ( ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_REQUEST['_wpnonce'] ) ), 'wp-2fa-logout' ) ) {
+				$user_id = \get_current_user_id();
+
+				\wp_destroy_current_session();
+				\wp_clear_auth_cookie();
+				\wp_set_current_user( 0 );
+
+				/**
+				 * Fires after a user is logged out.
+				 *
+				 * @since 1.5.0
+				 * @since 5.5.0 Added the `$user_id` parameter.
+				 *
+				 * @param int $user_id ID of the user that was logged out.
+				 */
+				\do_action( 'wp_logout', $user_id );
+
+				\wp_send_json_success( esc_html__( 'User successfully logged out! ', 'wp-2fa' ) );
+			}
+
+			\wp_send_json_error( esc_html__( 'Failed - wrong credentials.', 'wp-2fa' ) );
 		}
 	}
 }

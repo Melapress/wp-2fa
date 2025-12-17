@@ -33,12 +33,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 * @since 2.0.0
 		 */
 		public static function render() {
-			if ( ! current_user_can( 'manage_options' ) ) {
-				wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-2fa' ) );
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				\wp_die( \esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-2fa' ) );
 			}
-			settings_fields( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
+			\settings_fields( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
 			self::white_labelling_tabs_wrapper();
-			submit_button();
+			\submit_button();
 		}
 
 		/**
@@ -398,9 +398,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 *
 		 * @since 2.8.1
 		 */
-		public static function create_standard_editor( $requested_slide = 'welcome' ) {
+		public static function create_standard_editor( $requested_slide = 'welcome', $media_buttons = false ) {
 			$settings = array(
-				'media_buttons' => false,
+				'media_buttons' => $media_buttons,
 				'editor_height' => 200,
 				'textarea_name' => 'wp_2fa_white_label[' . sanitize_key( $requested_slide ) . ']',
 			);

@@ -47,6 +47,15 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		public const POLICY_SETTINGS_NAME = 'backup_codes_enabled';
 
 		/**
+		 * Is the mail enabled
+		 *
+		 * @since 3.1.0
+		 *
+		 * @var bool
+		 */
+		private static $enabled = null;
+
+		/**
 		 * Holds the name of the meta key for the allowed login attempts.
 		 *
 		 * @var string
@@ -400,11 +409,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 				array(
 					self::METHOD_NAME => array(
 						'wizard-step' => '2fa-wizard-config-backup-codes',
-						'button_name' => sprintf(
-							/* translators: URL with more information about the backup codes */
-							esc_html__( 'Login with a backup code: you will get 10 backup codes and you can use one of them when you need to login and you cannot generate a code from the app. %s', 'wp-2fa' ),
-							'<a href="https://melapress.com/2fa-backup-codes/" target="_blank">' . esc_html__( 'More information.', 'wp-2fa' ) . '</a>'
-						),
+						'button_name' => WP2FA::get_wp2fa_white_label_setting( 'backup_codes-select-method', true ),
 					),
 				)
 			);
@@ -659,6 +664,12 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			$default_settings['backup_codes_intro_continue'] = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p><p>' . __( 'You should now generate the list of backup method. Although this is optional, it is highly recommended to have a secondary 2FA method. This can be used as a backup should the primary 2FA method fail. This can happen if, for example, you forget your smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ) . '</p>';
 			$default_settings['backup_codes_generate_intro'] = '<h3>' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method.', 'wp-2fa' ) . '</p>';
 			$default_settings['backup_codes_generated']      = '<h3>' . __( 'Backup codes generated', 'wp-2fa' ) . '</h3><p>' . __( 'Here are your backup codes:', 'wp-2fa' ) . '</p>';
+			$default_settings['backup_codes-select-method']      = sprintf(
+				/* translators: URL with more information about the backup codes */
+				esc_html__( 'Login with a backup code: you will get 10 backup codes and you can use one of them when you need to login and you cannot generate a code from the app. %s', 'wp-2fa' ),
+				'<a href="https://melapress.com/2fa-backup-codes/" target="_blank">' . esc_html__( 'More information.', 'wp-2fa' ) . '</a>'
+			);
+			$default_settings['backup-codes-login-text'] = \esc_html__( 'Or, use a backup code.', 'wp-2fa' );
 
 			return $default_settings;
 		}

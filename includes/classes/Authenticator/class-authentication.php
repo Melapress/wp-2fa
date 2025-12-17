@@ -208,6 +208,8 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 * @param string $authcode The code to test.
 		 *
 		 * @return bool Whether the code is valid within the time frame
+		 * 
+		 * @since 3.1.0
 		 */
 		public static function is_valid_authcode( $key, $authcode ) {
 
@@ -229,7 +231,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 			foreach ( $ticks as $offset ) {
 				$log_time    = $time + $offset;
 				$calculdated = (string) self::calc_totp( $key, $log_time );
-				if ( hash_equals( $calculdated, $authcode ) ) {
+				if ( hash_equals( $calculdated, (string) $authcode ) ) {
 					return true;
 				}
 			}

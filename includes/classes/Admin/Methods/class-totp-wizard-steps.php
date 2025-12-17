@@ -258,19 +258,23 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 						echo $close_div; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						echo $close_div; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						?>
-						<?php if ( ! empty( WP2FA::get_wp2fa_white_label_setting( 'show_help_text' ) ) ) : ?>
+						<?php if ( ! empty( WP2FA::get_wp2fa_white_label_setting( 'show_help_text' ) ) ) { ?>
 					<div class="tooltip-content-wrapper" data-totp-setup-tooltip-content-wrapper>
-						<p class="description"><?php \esc_html_e( 'Click on the icon of the app that you are using for a detailed guide on how to set it up.', 'wp-2fa' ); ?></p>
-						<div class="apps-wrapper">
-							<?php foreach ( Authentication::get_apps() as $app ) { ?>
-								<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=authentication_help#<?php echo $app['hash']; ?>" target="_blank" class="app-logo"><img src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/' . $app['logo'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></a>
-							<?php } ?>
-						</div>
+						<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_more_intro', true ) ); ?>
 					</div>
-					<?php endif; ?>
+					<?php } ?>
 					<div class="wp2fa-setup-actions">
 						<button class="button wp-2fa-button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" type="button"><?php \esc_html_e( 'I\'m Ready', 'wp-2fa' ); ?></button>
 						<a class="button button-primary wp-2fa-button-secondary modal_cancel"><?php \esc_attr_e( 'Cancel', 'wp-2fa' ); ?></a>
+						<?php
+						/*
+							if ( User_Helper::is_enforced( User_Helper::get_user_object()->ID ) ) {
+								?>
+							<a class="button button-primary wp-2fa-button-primary modal_logout" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-logout' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php \esc_attr_e( 'Log out', 'wp-2fa' ); ?></a>
+							<?php
+							}
+							*/
+						?>
 					</div>
 				</div>
 				<div class="step-setting-wrapper" data-step-title="<?php \esc_html_e( 'Verify configuration', 'wp-2fa' ); ?>">
@@ -336,6 +340,24 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 			}
 
 			\ob_start();
+			if ( ! \class_exists( \XMLWriter::class ) ) {
+				TOTP::disable_globally();
+				?>
+				<div id="<?php echo \esc_attr( TOTP::METHOD_NAME ); ?>-method-wrapper" class="method-wrapper">
+					<?php
+					\esc_html_e( 'You need to install the libxml extension to use this method. Ask the host support for enabling it.', 'wp-2fa' );
+
+					?>
+				</div>
+				<?php
+				$output = ob_get_contents();
+				ob_end_clean();
+
+				$methods[ self::get_order( $role, $methods ) ] = $output;
+
+				return $methods;
+
+			}
 			?>
 			<div id="<?php echo \esc_attr( TOTP::METHOD_NAME ); ?>-method-wrapper" class="method-wrapper">
 				<?php echo self::hidden_order_setting( $role ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -347,7 +369,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 						<?php \checked( TOTP::POLICY_SETTINGS_NAME, Settings_Utils::get_setting_role( $role, TOTP::POLICY_SETTINGS_NAME ), true ); ?>
 						
 					>
-					<?php \esc_html_e( 'One-time code via 2FA App (TOTP) - ', 'wp-2fa' ); ?><a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=totp_aplications_help" target="_blank" rel=noopener><?php \esc_html_e( 'complete list of supported 2FA apps.', 'wp-2fa' ); ?></a>
+			<?php echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true ) ) . ' - '; ?><a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=totp_aplications_help" target="_blank" rel=noopener><?php \esc_html_e( 'complete list of supported 2FA apps.', 'wp-2fa' ); ?></a>
 				</label>
 				<?php
 				if ( $setup_wizard ) {

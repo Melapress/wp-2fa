@@ -19,6 +19,8 @@ use WP2FA\Admin\SettingsPages\{
 };
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Admin\SettingsPages\Settings_Page_Render;
+use WP2FA\Admin\SettingsPages\Settings_Page_Passkeys;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
 
 /**
@@ -53,7 +55,17 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				\esc_html__( '2FA Policies', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'render' ),
+				array( Settings_Page_Policies::class, 'render' ),
+				1
+			);
+
+			\add_submenu_page(
+				self::TOP_MENU_SLUG,
+				\esc_html__( 'Passkeys', 'wp-2fa' ),
+				\esc_html__( 'Passkeys', 'wp-2fa' ),
+				'manage_options',
+				Settings_Page_Passkeys::TOP_MENU_SLUG,
+				array( Settings_Page_Passkeys::class, 'render' ),
 				1
 			);
 
@@ -63,7 +75,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				\esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_Render::class, 'render' ),
+				array( Settings_Page_Render::class, 'render' ),
 				2
 			);
 
@@ -72,6 +84,13 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				WP_2FA_POLICY_SETTINGS_NAME,
 				WP_2FA_POLICY_SETTINGS_NAME,
 				array( Settings_Page_Policies::class, 'validate_and_sanitize' )
+			);
+
+			// Register our passkeys settings.
+			\register_setting(
+				WP_2FA_PASSKEYS_SETTINGS_NAME,
+				WP_2FA_PASSKEYS_SETTINGS_NAME,
+				array( Settings_Page_Passkeys::class, 'validate_and_sanitize' )
 			);
 
 			// Register our white label settings.
@@ -128,7 +147,17 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				\esc_html__( '2FA Policies', 'wp-2fa' ),
 				'manage_options',
 				self::TOP_MENU_SLUG,
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_Policies::class, 'render' ),
+				array( Settings_Page_Policies::class, 'render' ),
+				1
+			);
+
+			\add_submenu_page(
+				self::TOP_MENU_SLUG,
+				\esc_html__( 'Passkeys', 'wp-2fa' ),
+				\esc_html__( 'Passkeys', 'wp-2fa' ),
+				'manage_options',
+				Settings_Page_Passkeys::TOP_MENU_SLUG,
+				array( Settings_Page_Passkeys::class, 'render' ),
 				1
 			);
 
@@ -138,7 +167,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				\esc_html__( 'Settings', 'wp-2fa' ),
 				'manage_options',
 				'wp-2fa-settings',
-				array( \WP2FA\Admin\SettingsPages\Settings_Page_Render::class, 'render' ),
+				array( Settings_Page_Render::class, 'render' ),
 				2
 			);
 
@@ -248,6 +277,8 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			Settings_Page_General::update_wp2fa_network_options();
 
 			Settings_Page_White_Label::update_wp2fa_network_options();
+
+			Settings_Page_Passkeys::update_wp2fa_network_options();
 
 			/**
 			 * Gives the ability for extensions to set their settings in the plugin.

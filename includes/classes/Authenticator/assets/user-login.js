@@ -1,7 +1,7 @@
 /**
  * Authenticate login.
  */
-async function authenticate() {
+async function authenticate( nonce) {
 
 	let token, remember_device, provider = '';
 
@@ -50,6 +50,8 @@ async function authenticate() {
 		const response = await window.wp.apiFetch({
 			path: path,
 			method: 'GET',
+			cache: 'no-cache',
+			nonce: nonce,
 		});
 
 		if (true !== response.status) {
@@ -62,19 +64,27 @@ async function authenticate() {
 				throw new Error('2FA authentication failed.');
 			}
 		}
-
+ 
 		if ('' !== response.redirect_to) {
 			window.location.href = response.redirect_to;
 		} else {
 
-			let redirect_to = document.getElementsByName('redirect_to');
+			let iframe = !(window === window.parent); // interim login ?
 
-			if (!redirect_to.length) {
-				wp_2fa_submit.removeAttribute("disabled");
-				throw new Error('Redirect URL not found.');
+			if (iframe) {
+				var someIframe = window.parent.document.getElementById('wp-auth-check-wrap');
+				someIframe.parentNode.removeChild(someIframe);
 			} else {
-				redirect_to = redirect_to[0].value;
-				window.location.href = redirect_to;
+
+				let redirect_to = document.getElementsByName('redirect_to');
+
+				if ( ! redirect_to.length ) {
+					wp_2fa_submit.removeAttribute("disabled");
+					// throw new Error('Redirect URL not found.');
+				} else {
+					redirect_to = redirect_to[0].value;
+					window.location.href = redirect_to;
+				}
 			}
 		}
 	} catch (error) {
@@ -117,10 +127,12 @@ function onClick() {
 	let wp_2fa_submit = document.getElementById('submit');
 	wp_2fa_submit.addEventListener('click', function (event) {
 
+		nonce = wp_2fa_submit.dataset.nonce;
+
 		// Handle the form data
 		event.preventDefault();
 		event.target.setAttribute("disabled", true);
-		authenticate();
+		authenticate( nonce );
 	});
 }
 

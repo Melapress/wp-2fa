@@ -95,7 +95,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 			ksort( $methods );
 
 			foreach ( $methods as $method ) {
-				echo $method['output']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				// This output is produced by method modules and is expected to be
+				// already escaped/sanitized by the provider. Ignore the PHPCS
+				// OutputNotEscaped sniff here.
+				echo ( \is_array( $method ) && isset( $method['output'] ) ) ? $method['output'] : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 		}
 
@@ -122,7 +125,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 			ksort( $methods );
 
 			foreach ( $methods as $method ) {
-				echo $method; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					// Method HTML is provided by extensions and should be sanitized by
+					// the provider. Ignore the OutputNotEscaped sniff at this call.
+					echo $method; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 		}
 
@@ -154,7 +159,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 			ksort( $methods );
 
 			foreach ( $methods as $method ) {
-				echo $method; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					// Method HTML is provided by extensions and should be sanitized by
+					// the provider. Ignore the OutputNotEscaped sniff at this call.
+					echo $method; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 		}
 

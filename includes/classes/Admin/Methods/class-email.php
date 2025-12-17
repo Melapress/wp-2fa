@@ -170,10 +170,10 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 				$valid[ self::METHOD_NAME ]['error'] = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
 				if ( API_Login::check_number_of_attempts( User_Helper::get_user( $user_id ) ) ) {
 
-					if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
+					if ( ! empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
 						Setup_Wizard::send_authentication_setup_email( $user_id, 'nominated_email_address' );
-						if ( ! empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
-							User_Helper::set_meta( WP_2FA_PREFIX . 'code_sent', true );
+						if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
+							User_Helper::remove_meta( WP_2FA_PREFIX . 'code_sent' );
 						}
 
 						$valid[ self::METHOD_NAME ]['error'] .= \esc_html__( ' For security reasons you have been sent a new code via email. Please use this new code to log in.', 'wp-2fa' );
@@ -238,44 +238,6 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		}
 
 		/**
-		 * Extracts the selected value from the global settings (if set), and adds it to the output array
-		 *
-		 * @param array $output - The array with output values.
-		 *
-		 * @return array
-		 *
-		 * @since 2.6.0
-		 */
-		public static function return_default_selection( array $output ) {
-			// No method is enabled, fall back to previous selected one - we don't want to break the logic.
-			$email_enabled = WP2FA::get_wp2fa_setting( self::POLICY_SETTINGS_NAME );
-
-			if ( $email_enabled ) {
-				$output[ self::POLICY_SETTINGS_NAME ] = $email_enabled;
-			}
-
-			return $output;
-		}
-
-		/**
-		 * Returns the status of the mail method (enabled | disabled) for the current user role
-		 *
-		 * @param string $role - The name of the role to check for.
-		 *
-		 * @since 2.6.0
-		 * @since 2.9.0 - Added role parameter to check if the Twilio is enabled for the given role.
-		 *
-		 * @return boolean
-		 */
-		public static function is_enabled( ?string $role = null ): bool {
-			if ( null === self::$enabled || ! isset( self::$enabled[ $role ] ) ) {
-				self::$enabled[ $role ] = empty( Settings_Utils::get_setting_role( $role, self::POLICY_SETTINGS_NAME ) ) ? false : true;
-			}
-
-			return self::$enabled[ $role ];
-		}
-
-		/**
 		 * Fills up the White Label settings array with the method defaults.
 		 *
 		 * @param array $default_settings - The array with the collected white label settings.
@@ -286,7 +248,7 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 */
 		public static function add_whitelabel_settings( array $default_settings ): array {
 
-			$default_settings['method_help_hotp_intro']       = '<h3>' . __( 'Setting up HOTP (one-time code via email)', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
+			$default_settings['method_help_hotp_intro']       = '<h3>' . __( 'Setting up HOTP ({email-option-label})', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
 			$default_settings['method_help_hotp_help']        = __( 'To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator', 'wp-2fa' );
 			$default_settings['method_help_hotp_help_email']  = '<b>' . __( 'IMPORTANT', 'wp-2fa' ) . '</b><p>' . __( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is {from_email}', 'wp-2fa' ) . '</p>';
 			$default_settings['method_verification_hotp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup', 'wp-2fa' ) . '</p>';

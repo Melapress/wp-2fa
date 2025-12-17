@@ -71,6 +71,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'enable_rest',
 				'disable_rest',
 				'brute_force_disable',
+				'skip_2fa_for_passkeys',
 				'delete_data_upon_uninstall',
 				'method_invalid_setting',
 			);
@@ -90,6 +91,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'enable_rest',
 				'disable_rest',
 				'brute_force_disable',
+				'skip_2fa_for_passkeys',
 				'delete_data_upon_uninstall',
 			);
 
@@ -343,6 +345,40 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		}
 
 		/**
+		 * Skip 2FA for Passkey logins setting.
+		 *
+		 * @param string $suffix Suffix for the input names.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.0
+		 */
+		public static function skip_2fa_for_passkeys( string $suffix = '' ) {
+			?>
+			<br>
+			<h3><?php \esc_html_e( 'Additional settings', 'wp-2fa' ); ?></h3>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="skip_2fa_for_passkeys"><?php \esc_html_e( 'Bypass 2FA after login with Passkey', 'wp-2fa' ); ?></label></th>
+						<td>
+							<fieldset>
+								<input type="checkbox" id="skip_2fa_for_passkeys" name="wp_2fa_settings<?php echo esc_attr( $suffix ); ?>[skip_2fa_for_passkeys]" value="skip_2fa_for_passkeys"
+								<?php checked( 1, WP2FA::get_wp2fa_general_setting( 'skip_2fa_for_passkeys' ), true ); ?>
+								>
+							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<p class="description">
+				<?php \esc_html_e( 'When this setting is enabled, users who successfully sign in using a Passkey won\'t be asked for an additional 2FA step if they have 2FA already configured.', 'wp-2fa' ); ?>
+			</p>
+
+			<?php
+		}
+
+		/**
 		 * Disable brute force protection setting.
 		 *
 		 * @return void
@@ -403,7 +439,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 							<fieldset class="contains-hidden-inputs" id="no-methods">
 								<label for="login_block">
 									<input type="radio" name="wp_2fa_settings[method_invalid_setting]" id="login_block" value="login_block"
-									<?php checked( WP2FA::get_wp2fa_general_setting( 'method_invalid_setting' ), 'login_block' ); ?>
+									<?php
+									$tst = WP2FA::get_wp2fa_general_setting( 'method_invalid_setting', \true );
+
+									if ( ! $tst ) {
+										$tst = WP2FA::get_wp2fa_general_setting( 'method_invalid_setting', \true, \true );
+									}
+
+									checked( $tst, 'login_block' );
+									?>
 									>
 								<span><?php \esc_html_e( 'Block the login.', 'wp-2fa' ); ?></span>
 								</label>
@@ -411,7 +455,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 								<br/>
 								<label for="allow_login_without_method">
 									<input type="radio" name="wp_2fa_settings[method_invalid_setting]" id="allow_login_without_method" value="allow_login_without_method"
-									<?php checked( WP2FA::get_wp2fa_general_setting( 'method_invalid_setting' ), 'allow_login_without_method' ); ?>
+									<?php checked( $tst, 'allow_login_without_method' ); ?>
 									data-unhide-when-checked=".custom-from-inputs">
 									<span><?php \esc_html_e( 'Allow the login without 2FA', 'wp-2fa' ); ?></span>
 								</label>

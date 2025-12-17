@@ -19,6 +19,7 @@ use WP2FA\Admin\Settings_Page;
 use WP2FA\Methods\Backup_Codes;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Admin\Helpers\Methods_Helper;
 use WP2FA\Extensions\OutOfBand\Out_Of_Band;
 use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
 
@@ -129,11 +130,14 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		/**
 		 * Returns the link to the WP admin settings page, based on the current WP install
 		 *
+		 * @param bool $force_show - Do we need to add show param regardless.
+		 *
 		 * @return string
 		 *
 		 * @since 2.2.0
+		 * @since 3.1.0 - added flag for show param.
 		 */
-		public static function get_setup_page_link() {
+		public static function get_setup_page_link( $force_show = false ) {
 			if ( '' === self::$setup_page_link ) {
 				self::$setup_page_link = self::get_custom_page_link();
 
@@ -143,6 +147,8 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 					} else {
 						self::$setup_page_link = \add_query_arg( 'show', self::$setup_page_name, \network_admin_url( 'profile.php' ) );
 					}
+				} elseif ( $force_show ) {
+					return \add_query_arg( 'show', self::$setup_page_name, self::$setup_page_link );
 				}
 			}
 
@@ -182,7 +188,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				}
 			}
 
-			return (string) \apply_filters( WP_2FA_PREFIX . 'custom_setup_page_link', self::$custom_setup_page_link, $user );
+			return (string) apply_filters( WP_2FA_PREFIX . 'custom_setup_page_link', self::$custom_setup_page_link, $user );
 		}
 
 		/**
@@ -270,7 +276,20 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				 *
 				 * @since 2.0.0
 				 */
-				self::$backup_methods = apply_filters( WP_2FA_PREFIX . 'backup_methods_list', array() );
+				$methods = \apply_filters( WP_2FA_PREFIX . 'backup_methods_list', array() );
+
+				if ( ! \is_array( $methods ) ) {
+					$methods = array();
+				}
+
+				self::$backup_methods = array();
+				foreach ( $methods as $slug => $definition ) {
+					$slug = \is_string( $slug ) ? trim( $slug ) : '';
+					if ( '' === $slug || ! self::is_valid_slug( $slug ) || ! \is_array( $definition ) ) {
+						continue;
+					}
+					self::$backup_methods[ $slug ] = $definition;
+				}
 			}
 
 			return self::$backup_methods;
@@ -318,11 +337,26 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 			if ( WP_Helper::is_role_exists( $role ) ) {
 				self::get_all_roles_providers();
 
-				return array_map( 'esc_html', self::$all_providers_for_roles[ $role ] );
+				return self::$all_providers_for_roles[ $role ];
 			} elseif ( '' === $role ) {
-				return array();
+
+				$providers = self::get_providers();
+
+				$enabled = array();
+
+				foreach ( $providers as $provider ) {
+					$method = Methods_Helper::get_method_by_provider_name( $provider );
+					if ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $provider ) {
+						$method = Out_Of_Band::class;
+					}
+					if ( $method && $method::is_enabled() ) {
+						$enabled[ $provider ] = true;
+					}
+				}
+
+				return $enabled;
 			} else {
-				throw new \Exception( esc_html( 'Role provided does not exist - "' . $role . '"' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				throw new \Exception( __( 'Role provided does not exist.', 'wp-2fa' ) );
 			}
 		}
 
@@ -350,7 +384,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				return false;
 			}
 
-			throw new \Exception( esc_html( 'Non existing provider ' . $provider ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new \Exception( __( 'Requested provider is not registered.', 'wp-2fa' ) );
 		}
 
 		/**
@@ -370,16 +404,16 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 					self::$all_providers_for_roles[ $role ] = array();
 					foreach ( $providers as $provider ) {
 						if ( Backup_Codes::METHOD_NAME === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( $provider . '_enabled', false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = self::normalize_setting_flag( WP2FA::get_wp2fa_setting( $provider . '_enabled', false, false, $role ) );
 						} elseif ( 'backup_email' === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( 'enable-email-backup', false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = self::normalize_setting_flag( WP2FA::get_wp2fa_setting( 'enable-email-backup', false, false, $role ) );
 						} elseif ( class_exists( '\WP2FA\Extensions\OutOfBand\Out_Of_Band', false ) && Out_Of_Band::METHOD_NAME === $provider ) {
-							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = self::normalize_setting_flag( WP2FA::get_wp2fa_setting( 'enable_' . $provider . '_email', false, false, $role ) );
 						} else {
-							self::$all_providers_for_roles[ $role ][ $provider ] = \esc_html( WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role ) );
+							self::$all_providers_for_roles[ $role ][ $provider ] = self::normalize_setting_flag( WP2FA::get_wp2fa_setting( 'enable_' . $provider, false, false, $role ) );
 						}
 					}
-					self::$all_providers_for_roles[ $role ] = array_filter( self::$all_providers_for_roles[ $role ] );
+					self::$all_providers_for_roles[ $role ] = array_filter( self::$all_providers_for_roles[ $role ], 'boolval' );
 				}
 			}
 
@@ -403,7 +437,18 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				 *
 				 * @param array $provider array if available options.
 				 */
-				self::$all_providers_names_translated = apply_filters( WP_2FA_PREFIX . 'providers_translated_names', self::$all_providers_names_translated );
+				$translated = apply_filters( WP_2FA_PREFIX . 'providers_translated_names', self::$all_providers_names_translated );
+				if ( ! \is_array( $translated ) ) {
+					$translated = array();
+				}
+				self::$all_providers_names_translated = array();
+				foreach ( $translated as $slug => $label ) {
+					$slug = \is_string( $slug ) ? trim( $slug ) : '';
+					if ( '' === $slug || ! self::is_valid_slug( $slug ) ) {
+						continue;
+					}
+					self::$all_providers_names_translated[ $slug ] = \wp_strip_all_tags( (string) $label );
+				}
 			}
 
 			return array_map( 'esc_html', self::$all_providers_names_translated );
@@ -426,10 +471,16 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				 *
 				 * @param array $provider array if available options.
 				 */
-				self::$all_providers = \apply_filters( WP_2FA_PREFIX . 'providers', self::$all_providers );
+				$providers = apply_filters( WP_2FA_PREFIX . 'providers', self::$all_providers );
+
+				if ( ! \is_array( $providers ) ) {
+					$providers = array();
+				}
+
+				self::$all_providers = self::sanitize_slug_list( $providers );
 			}
 
-			return array_map( 'esc_html', self::$all_providers );
+			return self::$all_providers;
 		}
 
 		/**
@@ -444,32 +495,32 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 */
 		public static function get_custom_settings_page_id( $role = '', $user = '' ) {
 			if ( ! empty( $role ) ) {
-				$page_slug = \esc_html( self::get_role_or_default_setting( 'custom-user-page-url', '', $role ) );
+				$page_slug = self::sanitize_page_slug( (string) self::get_role_or_default_setting( 'custom-user-page-url', '', $role ) );
 			} elseif ( ! empty( $user ) ) {
-				$page_slug = \esc_html( self::get_role_or_default_setting( 'custom-user-page-url', $user ) );
+				$page_slug = self::sanitize_page_slug( (string) self::get_role_or_default_setting( 'custom-user-page-url', $user ) );
 			} else {
-				$page_slug = \esc_html( self::get_role_or_default_setting( 'custom-user-page-url', '', '' ) );
+				$page_slug = self::sanitize_page_slug( (string) self::get_role_or_default_setting( 'custom-user-page-url', '', '' ) );
 			}
 
 			if ( ! empty( $role ) ) {
-				$separate_page = esc_html( self::get_role_or_default_setting( 'separate-multisite-page-url', '', $role ) );
+				$separate_page = self::sanitize_page_slug( (string) self::get_role_or_default_setting( 'separate-multisite-page-url', '', $role ) );
 			} elseif ( ! empty( $user ) ) {
-				$separate_page = esc_html( self::get_role_or_default_setting( 'separate-multisite-page-url', $user ) );
+				$separate_page = self::sanitize_page_slug( (string) self::get_role_or_default_setting( 'separate-multisite-page-url', $user ) );
 			} else {
-				$separate_page = esc_html( self::get_role_or_default_setting( 'separate-multisite-page-url', '', '' ) );
+				$separate_page = self::sanitize_page_slug( (string) self::get_role_or_default_setting( 'separate-multisite-page-url', '', '' ) );
 			}
 
 			$new_page_id = '';
 
 			// Lets check for multisite first and if that is the case - lets search for that page on the user's default blog.
-			if ( WP_Helper::is_multisite() && false !== $separate_page ) {
+			if ( WP_Helper::is_multisite() && '' !== $separate_page ) {
 				if ( ! empty( $user ) ) {
-					$blog_id = User_Helper::get_user_default_blog( $user );
+					$blog_id = (int) User_Helper::get_user_default_blog( $user );
 				} else {
-					$blog_id = \get_current_blog_id();
+					$blog_id = (int) \get_current_blog_id();
 				}
 
-				if ( 0 === $blog_id ) {
+				if ( $blog_id <= 0 || ! \get_blog_details( $blog_id ) ) {
 					$new_page_id = '';
 				} else {
 					// Switch to the blog context.
@@ -491,6 +542,127 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 			}
 
 			return (int) $new_page_id;
+		}
+
+		/**
+		 * Returns the setup page name
+		 *
+		 * @return string
+		 *
+		 * @since 2.2.0
+		 */
+		public static function get_setup_page_name() {
+			return self::$setup_page_name;
+		}
+
+		/**
+		 * Clears cached static settings allowing runtime refresh.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.0
+		 */
+		public static function reset_cached_settings(): void {
+			// phpcs:disable Generic.Formatting.MultipleStatementAlignment.NotSameWarning
+			self::$settings_page_link = '';
+			self::$setup_page_link = '';
+			self::$custom_setup_page_link = null;
+			self::$backup_methods = null;
+			self::$all_providers = array();
+			self::$all_providers_names_translated = array();
+			self::$all_providers_for_roles = array();
+			// phpcs:enable Generic.Formatting.MultipleStatementAlignment.NotSameWarning
+		}
+
+		/**
+		 * Determines whether the given slug follows the permitted format.
+		 *
+		 * @param string $slug Potential slug.
+		 *
+		 * @return bool
+		 *
+		 * @since 3.1.0
+		 */
+		private static function is_valid_slug( string $slug ): bool {
+			$slug = trim( $slug );
+			if ( '' === $slug ) {
+				return false;
+			}
+
+			return (bool) preg_match( '/^[A-Za-z0-9_-]{1,64}$/', $slug );
+		}
+
+		/**
+		 * Sanitizes a list of slug strings returned from filters.
+		 *
+		 * @param array $items Raw provider list.
+		 *
+		 * @return array
+		 *
+		 * @since 3.1.0
+		 */
+		private static function sanitize_slug_list( array $items ): array {
+			$sanitized = array();
+
+			foreach ( $items as $class_name => $item ) {
+				if ( ! is_string( $item ) ) {
+					continue;
+				}
+
+				$item = trim( $item );
+				if ( self::is_valid_slug( $item ) ) {
+					$sanitized[ $class_name ] = $item;
+				}
+			}
+
+			return array_unique( $sanitized );
+		}
+
+		/**
+		 * Normalizes settings flags to booleans regardless of stored type.
+		 *
+		 * @param mixed $value Raw flag value.
+		 *
+		 * @return bool
+		 *
+		 * @since 3.1.0
+		 */
+		private static function normalize_setting_flag( $value ): bool {
+			if ( is_bool( $value ) ) {
+				return $value;
+			}
+
+			if ( is_numeric( $value ) ) {
+				return (bool) intval( $value );
+			}
+
+			$providers                = self::get_providers();
+			$enabled_provider_setting = array();
+			foreach ( $providers as $provider ) {
+				$enabled_provider_setting[] = 'enable_' . $provider;
+			}
+
+			if ( is_string( $value ) ) {
+				$value = strtolower( trim( $value ) );
+				return in_array( $value, array_merge( array( '1', 'true', 'yes', 'on', 'enable_oob_email', 'enable-email-backup', 'backup_codes_enabled' ), $enabled_provider_setting ), true );
+			}
+
+			return false;
+		}
+
+		/**
+		 * Produces a safe slug for page lookups using WordPress sanitizer.
+		 *
+		 * @param string $slug Raw slug value.
+		 *
+		 * @return string
+		 *
+		 * @since 3.1.0
+		 */
+		private static function sanitize_page_slug( string $slug ): string {
+			$slug = \sanitize_title( $slug );
+
+			return (string) $slug;
 		}
 	}
 }

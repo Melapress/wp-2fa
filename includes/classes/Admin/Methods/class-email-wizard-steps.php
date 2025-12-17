@@ -92,7 +92,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 			\ob_start();
 			?>
 			<div class="option-pill">
-				<?php echo \wp_kses_post( WP2FA::contextual_reconfigure_text( WP2FA::get_wp2fa_white_label_setting( 'hotp_reconfigure_intro', true ), User_Helper::get_user_object()->ID, 'hotp' ) ); ?>
+				<?php echo \wp_kses_post( WP2FA::contextual_reconfigure_text( WP2FA::get_wp2fa_white_label_setting( 'hotp_reconfigure_intro', true ), User_Helper::get_user_object()->ID, Email::METHOD_NAME ) ); ?>
 				<div class="wp2fa-setup-actions">
 					<a href="#" class="button button-primary wp-2fa-button-primary" data-name="next_step_setting_modal_wizard" value="<?php \esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-next-step="2fa-wizard-email"><?php \esc_html_e( 'Change email address', 'wp-2fa' ); ?></a>
 				</div>
@@ -196,7 +196,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 							
 						>
 						<?php
-						\esc_html_e( 'One-time code via email (HOTP)', 'wp-2fa' );
+						echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) );
 						\esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' );
 						echo '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>.';
 						?>
@@ -336,6 +336,15 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						<div class="wp2fa-setup-actions">
 							<button class="button button-primary wp-2fa-button-primary" name="next_step_setting_email_verify" value="<?php \esc_attr_e( 'I\'m Ready', 'wp-2fa' ); ?>" data-trigger-setup-email data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-send-setup-email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> type="button"><?php \esc_html_e( 'I\'m Ready', 'wp-2fa' ); ?></button>
 							<a class="button button-primary wp-2fa-button-primary modal_cancel"><?php \esc_attr_e( 'Cancel', 'wp-2fa' ); ?></a>
+							<?php
+							/*
+							if ( User_Helper::is_enforced( User_Helper::get_user_object()->ID ) ) {
+								?>
+							<a class="button button-primary wp-2fa-button-primary modal_logout" <?php echo WP_Helper::create_data_nonce( 'wp-2fa-logout' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php \esc_attr_e( 'Log out', 'wp-2fa' ); ?></a>
+							<?php
+							}
+							*/
+							?>
 						</div>
 					</div>
 

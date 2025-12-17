@@ -64,13 +64,13 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 										'required'    => false,
 										'type'        => 'string',
 										'description' => 'Provider token',
-										'minimum'     => 3,
+										'minLength'     => 3,
 									),
 									'provider'           => array(
 										'required'    => false,
 										'type'        => 'string',
 										'description' => 'Provider name',
-										'minimum'     => 3,
+										'minLength'     => 3,
 									),
 									'remember_device' => array(
 										'required'    => false,
@@ -97,6 +97,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 		public static function init() {
 
 			\add_action( 'rest_api_init', array( __CLASS__, 'init_endpoints' ) );
+
 			/**
 			 * Enables the API endpoints for the plugin.
 			 *
@@ -142,7 +143,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 							if ( isset( $endpoint['checkPermissions'] ) ) {
 								$check_permissions = $endpoint['checkPermissions'];
 							}
-							$show_in_index = $endpoint['showInIndex'];
+							$show_in_index = isset( $endpoint['showInIndex'] ) ? $endpoint['showInIndex'] : false;
 							\register_rest_route(
 								$namespace,
 								'/' . $root_endpoint . '/' . $route,

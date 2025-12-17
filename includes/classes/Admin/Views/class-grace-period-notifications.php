@@ -71,7 +71,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 					<label for="dashboard-notification<?php echo \esc_attr( $role_id ); ?>" style="margin-bottom: 10px; display: inline-block;">
 						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[<?php echo \esc_attr( self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME ); ?>]" 
 						id="dashboard-notification<?php echo \esc_attr( $role_id ); ?>" 
-						<?php echo $data_role;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
+						<?php echo esc_html( $data_role ); ?> 
 						value="dashboard-notification" <?php checked( $expire_action, 'dashboard-notification' ); ?> class="js-nested">
 						<span><?php echo \esc_html__( 'Show an admin notice in the dashboard', 'wp-2fa' ); ?></span>
 					</label>
@@ -81,7 +81,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Grace_Period_Notifications' ) ) {
 					<label for="after-login-notification<?php echo \esc_attr( $role_id ); ?>">
 						<input type="radio" name="<?php echo \esc_attr( $name_prefix ); ?>[<?php echo \esc_attr( self::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME ); ?>]" <?php checked( $expire_action, 'after-login-notification' ); ?> 
 						id="after-login-notification<?php echo \esc_attr( $role_id ); ?>"
-						<?php echo $data_role;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> 
+						<?php echo esc_html( $data_role ); ?> 
 						value="after-login-notification" <?php checked( $expire_action, 'after-login-notification' ); ?> class="js-nested">
 						<span><?php echo \esc_html__( 'Show a notification on a page on its own after the user authenticates and before accessing the dashboard', 'wp-2fa' ); ?></span>
 					</label>

@@ -173,6 +173,9 @@ if ( ! class_exists( '\WP2FA\Utils\White_Label' ) ) {
 
 					'no_further_action'                   => '<h3>' . esc_html__( 'Congratulations! You are all set.', 'wp-2fa' ),
 					'2fa_required_intro'                  => '<h3>' . esc_html__( 'You are required to configure 2FA.', 'wp-2fa' ) . '</h3><p>' . esc_html__( 'In order to keep this site - and your details secure, this website’s administrator requires you to enable 2FA authentication to continue.', 'wp-2fa' ) . '</p><p>' . esc_html__( 'Two factor authentication ensures only you have access to your account by creating an added layer of security when logging in -', 'wp-2fa' ) . ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=learn_more" target="_blank" rel="noopener">' . esc_html__( 'Learn more', 'wp-2fa' ) . '</a></p>',
+					'2fa_wizard_cancel'                  => '<h3>' . esc_html__( 'Are you sure?', 'wp-2fa' ) . '</h3><p>' . esc_html__( 'Any unsaved changes will be lost!', 'wp-2fa' ). '</p>',
+					'2fa_wizard_logout'                  => '<h3>' . esc_html__( 'Are you sure?', 'wp-2fa' ) . '</h3><p>' . esc_html__( 'That will terminate your session and log you out of the WP.', 'wp-2fa' ). '</p>',
+
 
 					'custom_css'                          => '',
 					'login_custom_css'                    => '',

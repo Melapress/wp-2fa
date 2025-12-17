@@ -51,24 +51,20 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return false;
 			}
 
-			\set_error_handler( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler
-				function ( $err_severity, $err_msg, $err_file, $err_line, array $err_context ) {
-					throw new \Error( $err_msg, 0, $err_severity, $err_file, $err_line ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
-				},
-				E_WARNING
-			);
+			$secret_literal = self::build_secret_literal( $secret );
 
-			try {
-				$current_secret = defined( self::SECRET_NAME ) ? constant( self::SECRET_NAME ) : null;
-			} catch ( \Error $e ) {
-				$current_secret = null;
+			if ( '' === $secret_literal ) {
+				return false;
 			}
 
-			restore_error_handler();
+			$definition      = "define( '" . self::SECRET_NAME . "', " . $secret_literal . ' );';
+			$definition_list = preg_match_all( self::get_secret_definition_pattern(), $contents );
 
-			$matches_found = $current_secret ? substr_count( $contents, $current_secret ) : 0;
+			if ( false === $definition_list ) {
+				return false;
+			}
 
-			if ( ! $current_secret || ! $matches_found ) {
+			if ( 0 === $definition_list ) {
 				if ( substr_count( $contents, self::SECRET_NAME ) ) {
 
 					$line_ending = self::get_line_ending( $contents );
@@ -91,17 +87,17 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 					$contents = implode( $line_ending, array_values( $contents ) );
 					self::write( $file, $contents );
 				}
-				self::write_wp_config( '/** WP 2FA plugin data encryption key. For more information please visit melapress.com */' . "\n" . 'define( \'' . self::SECRET_NAME . '\', \'' . $secret . '\' );' );
+				self::write_wp_config( '/** WP 2FA plugin data encryption key. For more information please visit melapress.com */' . "\n" . $definition );
 				return true;
 			}
 
-			if ( $matches_found > 1 ) {
+			if ( $definition_list > 1 ) {
 				return false;
 			}
 
-			$replaced = str_replace( $current_secret, $secret, $contents );
+			$replaced = self::replace_secret_definition( $contents, $definition );
 
-			if ( ! $replaced ) {
+			if ( false === $replaced ) {
 				return false;
 			}
 
@@ -133,8 +129,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			}
 
 			$dir = rtrim( $dir, '/' );
-			// phpcs:ignore -- Have Tide ignore the following line. We use arguments that don't exist in early versions, but these versions ignore the arguments.
-			@clearstatcache( true, $dir );
+
+			@clearstatcache( true, $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 			return fileperms( $dir ) & 0777;
 		}
@@ -161,6 +157,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			}
 
 			if ( empty( $callable ) ) {
+				return false;
+			}
+
+			if ( ! self::is_path_allowed( $file ) ) {
 				return false;
 			}
 
@@ -203,18 +203,25 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 						$mode = 'wb';
 					}
 
-					if ( false !== ( $fh = @fopen( $file, $mode ) ) ) { // phpcs:ignore -- Ignored the assignment on the same line
+					// Assignment inside condition is intentional to attempt the
+					// fopen and capture the resource in one step; ignore the PHPCS
+					// assignment-in-condition sniff.
+					if ( false !== ( $fh = @fopen( $file, $mode ) ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure, WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 						flock( $fh, LOCK_EX );
 
 						mbstring_binary_safe_encoding();
 
-						$data_length   = strlen( $contents );
-						$bytes_written = @fwrite( $fh, $contents ); // phpcs:ignore -- Ignored the error silencing
+						$data_length = strlen( $contents );
+						// Error suppression is deliberate: we attempt several IO
+						// strategies and handle failures without raising warnings.
+						$bytes_written = @fwrite( $fh, $contents ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 
 						reset_mbstring_encoding();
 
-						@flock( $fh, LOCK_UN ); // phpcs:ignore -- Ignored the error silencing
-						@fclose( $fh ); // phpcs:ignore -- Ignored the error silencing
+						// Silencing these cleanup calls to avoid noise if resources
+						// are invalid or already closed in older environments.
+						@flock( $fh, LOCK_UN ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+						@fclose( $fh ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 
 						if ( $data_length === $bytes_written ) {
 							$success = true;
@@ -231,8 +238,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 
 					mbstring_binary_safe_encoding();
 
-					$data_length   = strlen( $contents );
-					$bytes_written = @file_put_contents( $file, $contents, $flags ); // phpcs:ignore -- Ignored the silencing warning
+					$data_length = strlen( $contents );
+					// Use file_put_contents when available; suppress warnings and
+					// detect success via return value instead of raising errors.
+					$bytes_written = @file_put_contents( $file, $contents, $flags ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 
 					reset_mbstring_encoding();
 
@@ -250,6 +259,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 						self::chmod( $file, $original_file_perms );
 					}
 
+					// clearstatcache may be silenced on some hosts; ignore the PHPCS
+					// NoSilencedErrors warning for this cleanup call.
 					@clearstatcache( true, $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 					return true;
@@ -280,6 +291,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return false;
 			}
 
+			if ( ! self::is_path_allowed( $dir ) ) {
+				return false;
+			}
+
 			if ( self::exists( $dir . \DIRECTORY_SEPARATOR . 'index.php' ) ) {
 				return true;
 			}
@@ -298,10 +313,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @since 2.4.0
 		 */
 		public static function exists( string $file ): bool {
+			if ( ! self::is_path_allowed( $file ) ) {
+				return false;
+			}
 
-			@clearstatcache( true, $file ); // phpcs:ignore -- Have Tide ignore the following line. We use arguments that don't exist in early versions, but these versions ignore the arguments.
+			@clearstatcache( true, $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
-			return @file_exists( $file ); // phpcs:ignore -- Have Tide ignore the following line. We use arguments that don't exist in early versions, but these versions ignore the arguments.
+			// Use error suppression to avoid warnings on inaccessible paths; this
+			// helper handles the error conditions, so ignore the PHPCS rule.
+			return @file_exists( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		}
 
 		/**
@@ -314,7 +334,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @return bool True if files can be written to, false otherwise.
 		 */
 		public static function can_write_to_file( string $filename ) {
-			return is_writable( $filename );
+			if ( ! self::is_path_allowed( $filename ) ) {
+				return false;
+			}
+
+			return is_writable( $filename ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
 		}
 
 		/**
@@ -331,7 +355,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				/** The config file resides in ABSPATH */
 				$path = ABSPATH . 'wp-config.php';
 
-			} elseif ( @file_exists( dirname( ABSPATH ) . '/wp-config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/wp-settings.php' ) ) {
+			} elseif ( @file_exists( dirname( ABSPATH ) . '/wp-config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/wp-settings.php' ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 				/** The config file resides one level above ABSPATH */
 				$path = dirname( ABSPATH ) . '/wp-config.php';
@@ -364,6 +388,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		public static function create_dir( string $dir ): bool {
 			$dir = rtrim( $dir, '/' );
 
+			if ( ! self::is_path_allowed( $dir ) ) {
+				return false;
+			}
+
 			if ( is_dir( $dir ) ) {
 				self::add_file_listing_protection( $dir );
 
@@ -395,7 +423,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			}
 
 			$cached_umask = umask( 0 );
-			$result       = @mkdir( $dir, $perms, true ); // phpcs:ignore -- We don't want to have fatalities here.
+			// Attempt mkdir but suppress warnings on failure — we handle return
+			// values and do not want noisy warnings on restricted hosts.
+			$result = @mkdir( $dir, $perms, true ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
 			umask( $cached_umask );
 
 			if ( $result ) {
@@ -446,8 +476,19 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			}
 
 			// Append optional path passed as a parameter.
-			if ( $path && is_string( $path ) ) {
-				$result .= $path . \DIRECTORY_SEPARATOR;
+			if ( is_string( $path ) && '' !== $path ) {
+				$sanitized_subpath = self::sanitize_relative_subpath( $path );
+
+				if ( null === $sanitized_subpath ) {
+					return new \WP_Error(
+						'invalid_subdirectory',
+						__( 'The requested WP 2FA storage subdirectory is invalid.', 'wp-2fa' )
+					);
+				}
+
+				if ( '' !== $sanitized_subpath ) {
+					$result .= $sanitized_subpath . \DIRECTORY_SEPARATOR;
+				}
 			}
 
 			if ( ! file_exists( $result ) ) {
@@ -480,6 +521,13 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function remove( $file ) {
+			if ( ! self::is_path_allowed( $file ) ) {
+				return new \WP_Error(
+					'wp-2fa',
+					__( 'Removing files outside the WP 2FA data directory is not permitted.', 'wp-2fa' )
+				);
+			}
+
 			if ( ! self::exists( $file ) ) {
 				return true;
 			}
@@ -492,8 +540,12 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				);
 			}
 
+			// Suppress unlink warnings and accept the return value; the helper
+			// handles failure paths and this avoids noisy errors on some hosts.
 			$result = @unlink( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink
 
+			// clearstatcache may not support args on older PHP; ignore PHPCS
+			// warnings for compatibility.
 			@clearstatcache( true, $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 			if ( $result ) {
@@ -520,6 +572,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @since 2.4.0
 		 */
 		protected static function get_file_contents( string $file ) {
+			if ( ! self::is_path_allowed( $file ) ) {
+				return false;
+			}
+
 			if ( ! self::exists( $file ) ) {
 				return '';
 			}
@@ -632,6 +688,253 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		}
 
 		/**
+		 * Create a PHP literal suitable for inclusion inside wp-config.php.
+		 *
+		 * @param string $secret Secret value to persist.
+		 *
+		 * @return string Empty string when the value is invalid.
+		 *
+		 * @since 3.1.0
+		 */
+		private static function build_secret_literal( string $secret ): string {
+			$secret = trim( $secret );
+
+			if ( '' === $secret ) {
+				return '';
+			}
+
+			if ( preg_match( '/[\x00-\x08\x0B\x0C\x0E-\x1F]/', $secret ) ) {
+				return '';
+			}
+
+			return var_export( $secret, true ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
+		}
+
+		/**
+		 * Retrieve the regex pattern used to locate the secret definition.
+		 *
+		 * @return string
+		 *
+		 * @since 3.1.0
+		 */
+		private static function get_secret_definition_pattern(): string {
+			$constant = preg_quote( self::SECRET_NAME, '/' );
+
+			return '/define\s*\(\s*([\'\"])' . $constant . '\1\s*,\s*([\'\"])(.*?)\2\s*\);/is';
+		}
+
+		/**
+		 * Replace the stored secret definition with an updated value.
+		 *
+		 * @param string $contents   Full contents of the wp-config.php file.
+		 * @param string $definition Sanitized definition to store.
+		 *
+		 * @return string|false
+		 *
+		 * @since 3.1.0
+		 */
+		private static function replace_secret_definition( string $contents, string $definition ) {
+			$replaced = preg_replace( self::get_secret_definition_pattern(), $definition, $contents, 1 );
+
+			if ( null === $replaced || $replaced === $contents ) {
+				return false;
+			}
+
+			return $replaced;
+		}
+
+		/**
+		 * Determine whether a path is inside the allowed data directory or points to wp-config.php.
+		 *
+		 * @param string $path Absolute file or directory path.
+		 *
+		 * @return bool
+		 *
+		 * @since 3.1.0
+		 */
+		private static function is_path_allowed( string $path ): bool {
+			$canonical = self::canonicalize_path( $path );
+
+			if ( '' === $canonical ) {
+				return false;
+			}
+
+			$wp_config_path = self::canonicalize_path( self::get_wp_config_file_path() );
+
+			if ( '' !== $wp_config_path && $canonical === $wp_config_path ) {
+				return true;
+			}
+
+			$data_root = self::get_data_root_path();
+
+			if ( '' !== $data_root && self::path_starts_with( $canonical, $data_root ) ) {
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
+		 * Return the canonical plugin data root.
+		 *
+		 * @return string
+		 *
+		 * @since 3.1.0
+		 */
+		private static function get_data_root_path(): string {
+			static $data_root = null;
+
+			if ( null !== $data_root ) {
+				return $data_root;
+			}
+
+			$data_root  = '';
+			$upload_dir = wp_upload_dir( null, false );
+
+			if ( is_array( $upload_dir ) && isset( $upload_dir['basedir'] ) ) {
+				$base = $upload_dir['basedir'];
+			} elseif ( defined( 'WP_CONTENT_DIR' ) ) {
+				$base = WP_CONTENT_DIR . \DIRECTORY_SEPARATOR . 'uploads';
+			} else {
+				return $data_root;
+			}
+
+			$data_root = self::canonicalize_path( $base . \DIRECTORY_SEPARATOR . self::WP2FA_UPLOADS_DIR );
+
+			return $data_root;
+		}
+
+		/**
+		 * Normalize any given path by removing traversal tokens and normalizing separators.
+		 *
+		 * @param string $path Raw file or directory path.
+		 *
+		 * @return string
+		 *
+		 * @since 3.1.0
+		 */
+		private static function canonicalize_path( string $path ): string {
+			if ( '' === $path ) {
+				return '';
+			}
+
+			if ( function_exists( 'wp_normalize_path' ) ) {
+				$path = \wp_normalize_path( $path );
+			} else {
+				$path = str_replace( '\\', '/', $path );
+			}
+
+			$drive      = '';
+			$path_start = substr( $path, 0, 2 );
+			if ( preg_match( '/^[A-Za-z]:$/', $path_start ) ) {
+				$drive = strtoupper( $path_start );
+				$path  = substr( $path, 2 );
+			}
+
+			$is_absolute = ( 0 === strpos( $path, '/' ) );
+			$segments    = explode( '/', trim( $path, '/' ) );
+			$resolved    = array();
+
+			foreach ( $segments as $segment ) {
+				if ( '' === $segment || '.' === $segment ) {
+					continue;
+				}
+
+				if ( '..' === $segment ) {
+					array_pop( $resolved );
+					continue;
+				}
+
+				$resolved[] = $segment;
+			}
+
+			$normalized = implode( '/', $resolved );
+
+			if ( $is_absolute ) {
+				$normalized = '/' . ltrim( $normalized, '/' );
+			}
+
+			if ( '' !== $drive ) {
+				$normalized = $drive . $normalized;
+			}
+
+			if ( '' === $normalized ) {
+				return '';
+			}
+
+			if ( '/' === $normalized || preg_match( '/^[A-Za-z]:\/$/', $normalized ) ) {
+				return $normalized;
+			}
+
+			return rtrim( $normalized, '/' );
+		}
+
+		/**
+		 * Check if a path is inside a given root directory.
+		 *
+		 * @param string $path Absolute canonicalized path.
+		 * @param string $root Canonicalized root directory.
+		 *
+		 * @return bool
+		 *
+		 * @since 3.1.0
+		 */
+		private static function path_starts_with( string $path, string $root ): bool {
+			$normalized_root = rtrim( $root, '/' );
+			$normalized_path = rtrim( $path, '/' );
+
+			if ( '' === $normalized_root || '' === $normalized_path ) {
+				return false;
+			}
+
+			$normalized_root .= '/';
+			$normalized_path .= '/';
+
+			return 0 === strpos( $normalized_path, $normalized_root );
+		}
+
+		/**
+		 * Sanitize a relative path segment appended to the data directory.
+		 *
+		 * @param string $path Raw subpath requested by the caller.
+		 *
+		 * @return string|null Empty string for blank input, null when invalid.
+		 *
+		 * @since 3.1.0
+		 */
+		private static function sanitize_relative_subpath( string $path ): ?string {
+			$path = trim( $path );
+
+			if ( '' === $path ) {
+				return '';
+			}
+
+			if ( function_exists( 'wp_normalize_path' ) ) {
+				$path = \wp_normalize_path( $path );
+			} else {
+				$path = str_replace( '\\', '/', $path );
+			}
+
+			$path      = trim( $path, '/\\' );
+			$segments  = explode( '/', $path );
+			$sanitized = array();
+
+			foreach ( $segments as $segment ) {
+				if ( '' === $segment || '.' === $segment || '..' === $segment ) {
+					return null;
+				}
+
+				if ( ! preg_match( '/^[A-Za-z0-9_-]+$/', $segment ) ) {
+					return null;
+				}
+
+				$sanitized[] = $segment;
+			}
+
+			return implode( \DIRECTORY_SEPARATOR, $sanitized );
+		}
+
+		/**
 		 * Generates unique placeholder to be used in the string
 		 *
 		 * @return string
@@ -706,6 +1009,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @since 2.4.0
 		 */
 		private static function read( string $file ) {
+			if ( ! self::is_path_allowed( $file ) ) {
+				return false;
+			}
+
 			if ( ! is_file( $file ) ) {
 				return false;
 			}
@@ -743,22 +1050,30 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				}
 
 				if ( in_array( 'fopen', $callable, true ) ) {
-					if ( false !== ( $fh = fopen( $file, 'rb' ) ) ) { // phpcs:ignore -- Ignored the assigned on the same line error
+						// Assignment in the conditional is intentional to attempt open
+						// and capture the handle in one expression; ignore PHPCS here.
+					if ( false !== ( $fh = @fopen( $file, 'rb' ) ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen, Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
 						flock( $fh, LOCK_SH );
 
 						$contents = '';
 
 						while ( ! feof( $fh ) ) {
-							$contents .= fread( $fh, 1024 ); // phpcs:ignore -- Ignored the file operation notification
+							// fread can trigger warnings on read errors; we deliberately
+							// manage return values and ignore PHPCS for the raw call.
+							$contents .= fread( $fh, 1024 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
 						}
 
 						flock( $fh, LOCK_UN );
-						fclose( $fh ); // phpcs:ignore -- Ignored the file operation notification
+						// Close the handle and ignore potential warnings; errors are
+						// handled by higher-level checks.
+						fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 					}
 				}
 
 				if ( ( false === $contents ) && in_array( 'file_get_contents', $callable, true ) ) {
-					$contents = file_get_contents( $file );  // phpcs:ignore -- Ignored the wp_remote_get usage
+					// file_get_contents used as a fallback for reading files; suppress
+					// PHPCS warnings about remote-get usage in this low-level helper.
+					$contents = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 				}
 
 				if ( false !== $contents ) {
@@ -793,7 +1108,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return false;
 			}
 
-			return @chmod( $file, $perms ); // phpcs:ignore -- Don't need fatalities here.
+			// Attempt chmod and suppress warnings; we handle return values and
+			// do not want noise when permissions cannot be changed.
+			return @chmod( $file, $perms ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_chmod
 		}
 
 		/**

@@ -22,6 +22,7 @@ use WP2FA\Authenticator\Login;
 use WP2FA\Utils\Request_Utils;
 use WP2FA\Methods\Backup_Codes;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Help_Contact_Us;
 use WP2FA\Admin\User_Registered;
 use WP2FA\Shortcodes\Shortcodes;
 use WP2FA\Utils\Date_Time_Utils;
@@ -37,6 +38,7 @@ use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Controllers\Endpoints;
 use WP2FA\Admin\Plugin_Updated_Notice;
+use WP2FA\Passkeys\Pending_2FA_Helper;
 use WP2FA\Admin\Helpers\Classes_Helper;
 use WP2FA\Admin\Helpers\Methods_Helper;
 use WP2FA\Authenticator\Reset_Password;
@@ -118,6 +120,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 					'grace-period-expiry-time'         => '',
 					'plugin_version'                   => WP_2FA_VERSION,
 					'delete_data_upon_uninstall'       => '',
+					'skip_2fa_for_passkeys'            => 1,
 					'excluded_sites'                   => array(),
 					'included_sites'                   => array(),
 					'create-custom-user-page'          => 'no',
@@ -216,6 +219,8 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				Endpoints::init();
 			}
 
+			Pending_2FA_Helper::add_hooks();
+
 			// Inits all the additional free app extensions.
 			$free_extensions = Classes_Helper::get_classes_by_namespace( 'WP2FA\\App\\' );
 
@@ -234,15 +239,13 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function add_actions() {
+
 			// Plugin redirect on activation, only if we have no settings currently saved.
 			if ( ( ! isset( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) || empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) && Settings_Utils::get_option( 'redirect_on_activate', false ) ) {
 				\add_action( 'admin_init', array( __CLASS__, 'setup_redirect' ), 10 );
 			} elseif ( ! \is_array( Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) ) {
 					Settings_Utils::delete_option( WP_2FA_POLICY_SETTINGS_NAME );
 					self::update_plugin_settings( self::get_default_settings() );
-			}
-			if ( Settings_Utils::get_option( 'wizard_not_finished' ) && function_exists( 'wp_get_current_user' ) && \current_user_can( 'manage_options' ) ) {
-				\add_action( 'admin_init', array( Setup_Wizard::class, 'setup_page' ), 10 );
 			}
 			if ( Settings_Utils::get_option( 'wizard_not_finished' ) && function_exists( 'wp_get_current_user' ) && \current_user_can( 'manage_options' ) ) {
 				\add_action( 'admin_init', array( Setup_Wizard::class, 'setup_page' ), 10 );
@@ -270,6 +273,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			\add_action( 'wp_ajax_wp_2fa_get_all_network_sites', array( Ajax_Helper::class, 'get_all_network_sites' ) );
 			\add_action( 'wp_ajax_unlock_account', array( Ajax_Helper::class, 'unlock_account' ), 10, 1 );
 			\add_action( 'admin_action_unlock_account', array( Ajax_Helper::class, 'unlock_account' ), 10, 1 );
+			\add_action( 'wp_ajax_wp2fa_logout_account', array( Ajax_Helper::class, 'logout_account' ), 10, 1 );
 			\add_action( 'admin_action_remove_user_2fa', array( Ajax_Helper::class, 'remove_user_2fa' ), 10, 1 );
 			\add_action( 'wp_ajax_remove_user_2fa', array( Ajax_Helper::class, 'remove_user_2fa' ), 10, 1 );
 			\add_action( 'admin_menu', array( Settings_Page::class, 'hide_settings' ), 999 );
@@ -286,7 +290,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			// User_Profile.
 			global $pagenow;
-			if ( 'profile.php' !== $pagenow || 'user-edit.php' !== $pagenow ) {
+			if ( 'profile.php' === $pagenow || 'user-edit.php' === $pagenow ) {
 				\add_action( 'show_user_profile', array( User_Profile::class, 'inline_2fa_profile_form' ) );
 				\add_action( 'edit_user_profile', array( User_Profile::class, 'inline_2fa_profile_form' ) );
 				if ( WP_Helper::is_multisite() ) {
@@ -334,7 +338,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			\add_action( $user_block_hook, array( __CLASS__, 'block_unconfigured_users_from_admin' ), 10 );
 
 			// Help & Contact Us.
-			\add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( '\WP2FA\Admin\Help_Contact_Us', 'add_extra_menu_item' ) );
+			\add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( Help_Contact_Us::class, 'add_extra_menu_item' ) );
 
 			// @free:start
 			// Premium Features.
@@ -443,7 +447,19 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 */
 		public static function get_wp2fa_white_label_setting( $setting_name = '', $get_default_on_empty = false, $get_default_value = false ) {
 
-			return (string) self::get_wp2fa_setting_generic( WP_2FA_WHITE_LABEL_SETTINGS_NAME, $setting_name, $get_default_on_empty, $get_default_value );
+			$input = (string) self::get_wp2fa_setting_generic( WP_2FA_WHITE_LABEL_SETTINGS_NAME, $setting_name, $get_default_on_empty, $get_default_value );
+
+			$output = preg_replace_callback(
+				'/\{(.*?)\}/',
+				function( $matches ) {
+					$key         = $matches[1];
+					$replacement = self::get_wp2fa_white_label_setting( $key );
+					return ( isset( $replacement ) && ! empty( trim( $replacement ) ) ) ? $replacement : $matches[0]; // keep original if key not found.
+				},
+				$input
+			);
+
+			return (string) $output;
 		}
 
 		/**
@@ -710,6 +726,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'{2fa_settings_page_url}' => $new_page_permalink,
 				'{user_ip_address}'       => esc_attr( Request_Utils::get_ip() ),
 				'{admin_email}'           => $admin_email,
+				'{wp_admin_email}'        => \sanitize_email( \is_multisite() ? \get_blog_option( \get_current_blog_id(), 'admin_email' ) : \get_option( 'admin_email' ) ) ?: $admin_email,
 			);
 
 			/**
@@ -878,13 +895,13 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 					 * - custom 2FA page if enabled and created
 					 * - AJAX requests originating from these 2FA setup UIs
 					 */
-					if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && self::action_check() ) { // phpcs:ignore
+					if ( \wp_doing_ajax() && isset( $_REQUEST['action'] ) && self::action_check() ) {
 						return;
 					}
 
 					if ( \is_admin() || \is_network_admin() ) {
 						$allowed_admin_page = 'profile.php';
-						if ( $pagenow === $allowed_admin_page && ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) ) { // phpcs:ignore
+						if ( $pagenow === $allowed_admin_page && ( isset( $_GET['show'] ) && 'wp-2fa-setup' === $_GET['show'] ) ) {
 							return;
 						}
 					}
@@ -986,7 +1003,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 										'To address this, please enable and configure the Front-end 2FA Page:%1$s',
 										'wp-2fa'
 									),
-									'<br><a href="https://woo-wp2fa-test.instawp.xyz/wp-admin/admin.php?page=wp-2fa-settings&tab=integrations">' . \esc_html__( 'Configure Front-end 2FA Page', 'wp-2fa' ) . '</a>'
+									'<br><a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-front-end-page-wordpress/">' . \esc_html__( 'Configure Front-end 2FA Page', 'wp-2fa' ) . '</a>'
 								) . '</p>';
 
 								$text .= sprintf(
@@ -1096,6 +1113,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'send_backup_codes_email',
 				'register_user_twilio',
 				'register_user_clickatell',
+				'wp2fa_logout_account',
 			);
 
 			/**
@@ -1107,7 +1125,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			 */
 			$actions_array = \apply_filters( WP_2FA_PREFIX . 'actions_check', $actions_array );
 
-			$action = sanitize_text_field( wp_unslash( $_REQUEST['action'] ) );
+			$action = \sanitize_text_field( wp_unslash( $_REQUEST['action'] ) );
 
 			return in_array( $action, $actions_array, true );
 		}
@@ -1283,7 +1301,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 *
 		 * @since 3.0.0
 		 */
-		public static function determine_plugin_type(): string {
+		public static function get_plugin_version(): string {
 
 			if ( null === self::$plugin_type ) {
 
@@ -1297,7 +1315,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			return self::$plugin_type;
 		}
 
-
 		/**
 		 * Checks and sets the global wp2fa salt
 		 *
@@ -1308,7 +1325,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		private static function check_for_key() {
 			self::$secret_key = Settings_Utils::get_option( 'secret_key' );
 			if ( empty( self::$secret_key ) ) {
-				self::$secret_key = base64_encode( Open_SSL::secure_random() ); // phpcs:ignore
+				self::$secret_key = base64_encode( Open_SSL::secure_random() );
 				if ( ! File_Writer::save_secret_key( self::$secret_key ) ) {
 					Settings_Utils::update_option( 'secret_key', self::$secret_key );
 				}

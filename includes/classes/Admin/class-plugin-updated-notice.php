@@ -68,6 +68,7 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 					if ('scrollRestoration' in history) {
 						history.scrollRestoration = 'manual';
 					}
+
 					jQuery(document).ready(function( $ ) {
 						jQuery( 'body' ).on( 'click', '.wp-2fa-plugin-update-close', function ( e ) {
 							e.preventDefault();

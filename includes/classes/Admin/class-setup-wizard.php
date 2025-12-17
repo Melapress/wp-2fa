@@ -488,10 +488,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				<form method="post" class="wp2fa-setup-form wp2fa-form-styles wp2fa-first-time-wizard" autocomplete="off">
 					<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
 					<div class="step-setting-wrapper active" data-step-title="<?php \esc_html_e( '2FA methods', 'wp-2fa' ); ?>">
-						<?php First_Time_Wizard_Steps::select_method( true ); ?>
-						<div>
-							<p class="description"><?php \esc_html_e( 'These are the most commonly used two-factor authentication methods. WP 2FA also supports additional methods, which you can set up later from the plugin settings after finishing or skipping this wizard.', 'wp-2fa' ); ?></p>
-						</div>
+						<?php First_Time_Wizard_Steps::select_method( true ); 
+						?>
 						<div class="wp2fa-setup-actions">
 							<button type="button" class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></button>
 						</div>

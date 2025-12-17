@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     3.0.1
+ * Version:     3.1.0
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -40,6 +40,7 @@
 use WP2FA\WP2FA;
 use WP2FA\Utils\Migration;
 use WP2FA\Extensions_Loader;
+use WP2FA\Admin\Setup_Wizard;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Freemius\Freemius_Helper;
 use WP2FA\Admin\Helpers\File_Writer;
@@ -54,7 +55,7 @@ if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '3.0.1' );
+	define( 'WP_2FA_VERSION', '3.1.0' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -67,6 +68,7 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 	define( 'WP_2FA_POLICY_SETTINGS_NAME', WP_2FA_PREFIX . 'policy' );
 	define( 'WP_2FA_SETTINGS_NAME', WP_2FA_PREFIX . 'settings' );
 	define( 'WP_2FA_WHITE_LABEL_SETTINGS_NAME', WP_2FA_PREFIX . 'white_label' );
+	define( 'WP_2FA_PASSKEYS_SETTINGS_NAME', WP_2FA_PREFIX . 'passkeys' );
 	define( 'WP_2FA_EMAIL_SETTINGS_NAME', WP_2FA_PREFIX . 'email_settings' );
 
 	define( 'WP_2FA_PREFIX_PAGE', 'wp-2fa-' );
@@ -187,10 +189,10 @@ if ( ! function_exists( 'wp_2fa_action_doing_it_wrong_run' ) ) {
 
 		// Setup_Wizard.
 		if ( WP_Helper::is_multisite() ) {
-			\add_action( 'network_admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'network_admin_menus' ), 10 );
-			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
+			\add_action( 'network_admin_menu', array( Setup_Wizard::class, 'network_admin_menus' ), 10 );
+			\add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
 		} else {
-			\add_action( 'admin_menu', array( '\WP2FA\Admin\Setup_Wizard', 'admin_menus' ), 10 );
+			\add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
 		}
 
 		// Activation/Deactivation.
@@ -270,8 +272,7 @@ if ( ! function_exists( 'check_ssl' ) ) {
 }
 
 if ( \PHP_VERSION_ID < 80000 && ! \interface_exists( 'Stringable' ) ) {
-	// phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed
-	interface Stringable {
+	interface Stringable { // phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed
 		/**
 		 * Mockup function for PHP versions lower than 8.
 		 *
