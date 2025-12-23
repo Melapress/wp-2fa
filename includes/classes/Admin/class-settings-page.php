@@ -473,7 +473,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			$from_email = 'wp2fa@';
 
 			if ( ! empty( $sitename ) ) {
-				$sitename    = ltrim( $sitename, 'www.' );
+				$sitename    = preg_replace( '/^www\./i', '', $sitename );
 				$from_email .= sanitize_text_field( $sitename );
 			}
 
