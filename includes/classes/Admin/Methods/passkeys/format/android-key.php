@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -22,8 +22,31 @@ use WP2FA\Admin\Methods\passkeys\Authenticator_Data;
  */
 class Android_Key extends Format_Base {
 
+	/**
+	 * Algorithm to be used
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $_alg;
+
+	/**
+	 * Signature
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $_signature;
+
+	/**
+	 * X5c certificate
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $_x5c;
 
 	/**
@@ -63,7 +86,7 @@ class Android_Key extends Format_Base {
 		$this->_x5c       = $att_stmt['x5c'][0]->getBinaryString();
 
 		if ( count( $att_stmt['x5c'] ) > 1 ) {
-			for ( $i = 1; $i < count( $att_stmt['x5c'] ); $i++ ) {
+			for ( $i = 1; $i < count( $att_stmt['x5c'] ); $i++ ) { // phpcs:ignore Squiz.PHP.DisallowSizeFunctionsInLoops.Found
 				$this->x5c_chain[] = $att_stmt['x5c'][ $i ]->getBinaryString();
 			}
 			unset( $i );
@@ -85,6 +108,8 @@ class Android_Key extends Format_Base {
 	 * Validator
 	 *
 	 * @param string $client_data_hash - Hash collected.
+	 *
+	 * @throws Web_Authn_Exception - Throws exception if validation fails.
 	 *
 	 * @since 3.0.0
 	 */
@@ -113,7 +138,7 @@ class Android_Key extends Format_Base {
 	 *
 	 * @return boolean
 	 *
-	 * @throws Web_Authn_Exception - Throws exception
+	 * @throws Web_Authn_Exception - Throws exception.
 	 *
 	 * @since 3.0.0
 	 */

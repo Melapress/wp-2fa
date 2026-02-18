@@ -7,7 +7,7 @@
  *
  * @since      2.2.0
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -28,6 +28,7 @@ use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
+use WP2FA\Licensing\Licensing_Factory;
 
 /*
  * User's settings class
@@ -1015,7 +1016,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			$user_meta_values = array_filter(
 				\get_user_meta( self::$user->ID ),
 				function ( $key ) {
-					return 0 === strpos( $key, WP_2FA_PREFIX );
+					return 0 === strpos( (string) $key, WP_2FA_PREFIX );
 				},
 				ARRAY_FILTER_USE_KEY
 			);
@@ -1034,11 +1035,13 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 					}
 					if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
 						if ( WP_Helper::is_multisite() ) {
-							wp2fa_freemius()->switch_to_blog( $user_blog_id );
+							Licensing_Factory::provider_call( 'switch_to_blog', $user_blog_id );
+							// wp2fa_freemius()->switch_to_blog( $user_blog_id );
 						}
 						User_Licensing::method_has_been_set();
 						if ( WP_Helper::is_multisite() ) {
-							wp2fa_freemius()->switch_to_blog( $current_blog );
+							Licensing_Factory::provider_call( 'switch_to_blog', $user_blog_id );
+							// wp2fa_freemius()->switch_to_blog( $current_blog );
 						}
 					}
 				}
@@ -2073,7 +2076,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 
 			self::remove_meta( self::USER_NOMINATED_EMAIL, self::$user );
 		}
-
 
 		/**
 		 * Returns the backup email for user. If the data stored in meta is = 'wp_mail' that means that the user email should be extracted from the WP BE.

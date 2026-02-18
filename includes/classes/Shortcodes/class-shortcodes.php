@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage short-codes
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -96,7 +96,7 @@ if ( ! class_exists( '\WP2FA\Shortcodes\Shortcodes' ) ) {
 			if ( isset( $redirect_after ) && ! empty( $redirect_after ) ) {
 				$data_array['redirectToUrl'] = \trailingslashit( \get_site_url() ) . \urlencode( $redirect_after );
 			} elseif ( isset( $_GET['return'] ) && ! empty( $_GET['return'] ) ) {
-				$data_array['redirectToUrl'] = \trailingslashit( \get_site_url() ) . strip_tags( \wp_unslash( $_GET['return'] ) ); // phpcs:ignore
+				$data_array['redirectToUrl'] = \trailingslashit( \get_site_url() ) . strip_tags( \wp_unslash( $_GET['return'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			}
 
 			\wp_localize_script( 'wp_2fa_frontend_scripts', 'wp2faWizardData', $data_array );

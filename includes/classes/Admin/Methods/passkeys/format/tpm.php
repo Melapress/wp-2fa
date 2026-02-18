@@ -1,4 +1,10 @@
 <?php
+/**
+ * Passkeys formatters
+ *
+ * @package    wp-2fa
+ * @since 3.0.0
+ */
 
 namespace WP2FA\Passkeys\Format;
 
@@ -6,17 +12,58 @@ use WP2FA\Methods\Passkeys\Byte_Buffer;
 use WP2FA\Methods\Passkeys\Web_Authn_Exception;
 use WP2FA\Admin\Methods\passkeys\Authenticator_Data;
 
+/**
+ * Responsible for tpm format
+ *
+ * @since 3.0.0
+ */
 class Tpm extends Format_Base {
 
 	private const TPM_GENERATED_VALUE   = "\xFF\x54\x43\x47";
 	private const TPM_ST_ATTEST_CERTIFY = "\x80\x17";
+
+	/**
+	 * Algorithm to be used
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $alg;
+
+	/**
+	 * Signature
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $signature;
+
+	/**
+	 * Public area
+	 *
+	 * @var Byte_Buffer
+	 *
+	 * @since 3.0.0
+	 */
 	private $pub_area;
+
+	/**
+	 * X5c certificate
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $x5c;
 
 	/**
+	 * Cert info
+	 *
 	 * @var Byte_Buffer
+	 *
+	 * @since 3.0.0
 	 */
 	private $cert_info;
 
@@ -84,10 +131,12 @@ class Tpm extends Format_Base {
 		}
 	}
 
-
-	/*
-	 * returns the key certificate in PEM format
+	/**
+	 * Returns the key certificate in PEM format
+	 *
 	 * @return string|null
+	 *
+	 * @since 3.0.0
 	 */
 	public function get_certificate_pem() {
 		if ( ! $this->x5c ) {
@@ -97,18 +146,28 @@ class Tpm extends Format_Base {
 	}
 
 	/**
-	 * @param string $client_data_hash
+	 * Validator
+	 *
+	 * @param string $client_data_hash - Hash collected.
+	 *
+	 * @throws Web_Authn_Exception - Throws exception if validation fails.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_attestation( $client_data_hash ) {
 		return $this->_validate_over_x5c( $client_data_hash );
 	}
 
 	/**
-	 * validates the certificate against root certificates
+	 * Validates the certificate against root certificates
 	 *
-	 * @param array $root_cas
+	 * @param array $root_cas - Array with values.
+	 *
 	 * @return boolean
-	 * @throws Web_Authn_Exception
+	 *
+	 * @throws Web_Authn_Exception - Throws exception.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_root_certificate( $root_cas ) {
 		if ( ! $this->x5c ) {
@@ -130,9 +189,13 @@ class Tpm extends Format_Base {
 	/**
 	 * Validate if x5c is present
 	 *
-	 * @param string $client_data_hash
+	 * @param string $client_data_hash - Hash collected.
+	 *
 	 * @return bool
-	 * @throws Web_Authn_Exception
+	 *
+	 * @throws Web_Authn_Exception - Throws exception.
+	 *
+	 * @since 3.0.0
 	 */
 	protected function _validate_over_x5c( $client_data_hash ) {
 		$public_key = \openssl_pkey_get_public( $this->get_certificate_pem() );
@@ -174,11 +237,14 @@ class Tpm extends Format_Base {
 
 
 	/**
-	 * returns next part of Byte_Buffer
+	 * Returns next part of Byte_Buffer
 	 *
-	 * @param Byte_Buffer $buffer
-	 * @param int         $offset
+	 * @param Byte_Buffer $buffer - Buffer to read from.
+	 * @param int         $offset - Offset to read.
+	 *
 	 * @return Byte_Buffer
+	 *
+	 * @since 3.0.0
 	 */
 	protected function _tpmReadLengthPrefixed( Byte_Buffer $buffer, &$offset ) {
 		$len     = $buffer->getUint16Val( $offset );
@@ -187,5 +253,4 @@ class Tpm extends Format_Base {
 
 		return new Byte_Buffer( $data );
 	}
-
 }

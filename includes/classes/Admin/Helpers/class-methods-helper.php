@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage helpers
  * @since      2.6.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -178,7 +178,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 		public static function settings_store( array $output, array $input ) {
 			if ( isset( $input[ self::POLICY_SETTINGS_NAME ] ) && \is_array( $input[ self::POLICY_SETTINGS_NAME ] ) ) {
 				foreach ( $input[ self::POLICY_SETTINGS_NAME ] as $order => $method ) {
-					$output[ self::POLICY_SETTINGS_NAME ][ $order ] = $method;
+					$output[ self::POLICY_SETTINGS_NAME ][ $order ] = \sanitize_text_field( $method );
 				}
 			}
 
@@ -213,12 +213,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 		 */
 		public static function get_methods(): array {
 			if ( empty( self::$methods ) ) {
-				/**
-				 * Gives the ability to add classes to the Class_Helper array.
-				 *
-				 * @since 2.7.0
-				 */
-				\do_action( WP_2FA_PREFIX . 'add_to_class_map' );
 
 				self::$methods = Classes_Helper::get_classes_by_namespace( self::METHODS_NAMESPACE );
 			}

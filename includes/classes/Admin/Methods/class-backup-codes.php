@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage methods
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -23,8 +23,9 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
-use WP2FA\Admin\Methods\Traits\Login_Attempts;
 use WP2FA\Admin\Methods\Traits\Providers;
+use WP2FA\Admin\Methods\Traits\Login_Attempts;
+use WP2FA\Admin\Methods\Traits\Settings_Trait;
 
 /**
  * Class for handling backup codes.
@@ -43,6 +44,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 
 		use Login_Attempts;
 		use Providers;
+		use Settings_Trait;
 
 		public const POLICY_SETTINGS_NAME = 'backup_codes_enabled';
 
@@ -140,7 +142,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 
 			\add_filter( WP_2FA_PREFIX . 'default_settings', array( __CLASS__, 'add_default_settings' ) );
 
-			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'fill_providers_array_with_method_name_translated' ) );
+			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'provider_name_translated' ) );
 
 			\add_filter( WP_2FA_PREFIX . 'user_enabled_backup_methods', array( __CLASS__, 'method_enabled_for_user' ), 10, 2 );
 
@@ -250,21 +252,6 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			}
 
 			return $array_methods;
-		}
-
-		/**
-		 * Adds Backup code as a provider.
-		 *
-		 * @param array $providers - Array with all currently supported providers and their translated names.
-		 *
-		 * @return array
-		 *
-		 * @since 2.6.0
-		 */
-		public static function fill_providers_array_with_method_name_translated( array $providers ) {
-			$providers[ self::METHOD_NAME ] = self::get_translated_name();
-
-			return $providers;
 		}
 
 		/**
@@ -648,6 +635,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		public static function is_secondary() {
 			return true;
 		}
+
 		/**
 		 * Fills up the White Label settings array with the method defaults.
 		 *

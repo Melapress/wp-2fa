@@ -7,7 +7,7 @@
  *
  * @since      2.4.0
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -188,13 +188,13 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function add_to_class_map( array $class_add ) {
-			$class_add = array_map( 'sanitize_text_field', $class_add );
+			// $class_add = array_map( 'sanitize_text_field', $class_add );
 
-			if ( empty( self::$class_map ) ) {
-				self::$class_map = require WP_2FA_PATH . 'vendor/composer/autoload_classmap.php';
-			}
+			// if ( empty( self::$class_map ) ) {
+			// 	self::$class_map = require WP_2FA_PATH . 'vendor/composer/autoload_classmap.php';
+			// }
 
-			self::$class_map = \array_merge( self::$class_map, $class_add );
+			// self::$class_map = \array_merge( self::$class_map, $class_add );
 		}
 	}
 }

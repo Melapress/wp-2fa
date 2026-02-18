@@ -4,15 +4,16 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
 
 namespace WP2FA\Admin;
 
-use WP2FA\Utils\Abstract_Migration;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Utils\Abstract_Migration;
 
 /**
  * Plugin_Updated_Notice class with user notification filters
@@ -53,14 +54,7 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 
 			$screen = \get_current_screen();
 
-			$correct_screen = ( 'toplevel_page_wp-2fa-policies-network' === $screen->base || 'toplevel_page_wp-2fa-policies' === $screen->base ||
-			'wp-2fa_page_wp-2fa-settings' === $screen->base || 'wp-2fa_page_wp-2fa-settings-network' === $screen->base ||
-			'wp-2fa_page_wp-2fa-reports' === $screen->base || 'wp-2fa_page_wp-2fa-reports-network' === $screen->base ||
-			'wp-2fa_page_wp-2fa-help-contact-us' === $screen->base || 'wp-2fa_page_wp-2fa-help-contact-us-network' === $screen->base ||
-			'wp-2fa_page_wp-2fa-premium-features' === $screen->base || 'wp-2fa_page_wp-2fa-premium-features-network' === $screen->base ||
-			'wp-2fa_page_wp-2fa-policies-account' === $screen->base || 'wp-2fa_page_wp-2fa-policies-account' === $screen->base );
-
-			if ( $correct_screen && Settings_Utils::get_option( Abstract_Migration::UPGRADE_NOTICE, false ) ) {
+			if ( in_array( $screen->base, WP_Helper::PLUGIN_PAGES, true ) && Settings_Utils::get_option( Abstract_Migration::UPGRADE_NOTICE, false ) ) {
 				include_once WP_2FA_PATH . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'Free' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'plugin-update-card.php';
 				?>
 					<script type="text/javascript">

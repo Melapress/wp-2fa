@@ -3,7 +3,7 @@
  * Main plugin class.
  *
  * @package    wp2fa
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -44,6 +44,7 @@ use WP2FA\Admin\Helpers\Methods_Helper;
 use WP2FA\Authenticator\Reset_Password;
 use WP2FA\Admin\Views\Password_Reset_2FA;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
+use WP2FA\Licensing\Licensing_Factory;
 
 if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 	/**
@@ -377,10 +378,14 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				return;
 			}
 
-			$registered_and_active = 'yes';
-			if ( function_exists( 'wp2fa_freemius' ) ) {
-				$registered_and_active = wp2fa_freemius()->is_registered() && wp2fa_freemius()->has_active_valid_license() ? 'yes' : 'no';
+			// $registered_and_active = 'yes';
+			// if ( function_exists( 'wp2fa_freemius' ) ) {
+			$registered_and_active = Licensing_Factory::is_registered() && Licensing_Factory::has_active_valid_license() ? 'yes' : 'no';
+
+			if ( null === Licensing_Factory::get_provider() ) {
+				$registered_and_active = 'yes';
 			}
+			// }
 
 			if ( Settings_Utils::get_option( 'redirect_on_activate', false ) && 'yes' === $registered_and_active ) {
 				// Delete redirect option.
@@ -864,6 +869,19 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				if ( Extensions_Loader::use_proxytron() ) {
 					$redirect = User_Licensing::enable_2fa_user_setting( true );
 				}
+			}
+
+			/**
+			 * Allows 3rd party providers to remove the redirecting. check.
+			 *
+			 * @param bool $should_proceed - Whether the redirect should proceed.
+			 *
+			 * @since 3.1.1
+			 */
+			$should_proceed = \apply_filters( WP_2FA_PREFIX . 'should_redirect_unconfigured', true );
+
+			if ( ! $should_proceed ) {
+				return;
 			}
 
 

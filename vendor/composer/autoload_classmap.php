@@ -23,6 +23,9 @@ return array(
     'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
     'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
     'WP2FA\\Admin\\Methods\\Traits\\Providers' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-provider-trait.php',
+    'WP2FA\\Admin\\Methods\\Traits\\Settings_Trait' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-settings-trait.php',
+    'WP2FA\\Admin\\Methods\\Traits\\Validation' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-validation-trait.php',
+    'WP2FA\\Admin\\Methods\\Traits\\WhiteLabel' => $baseDir . '/includes/classes/Admin/Methods/Traits/class-white-label-trait.php',
     'WP2FA\\Admin\\Methods\\passkeys\\Authenticator_Data' => $baseDir . '/includes/classes/Admin/Methods/passkeys/class-authenticator-data.php',
     'WP2FA\\Admin\\Plugin_Updated_Notice' => $baseDir . '/includes/classes/Admin/class-plugin-updated-notice.php',
     'WP2FA\\Admin\\Premium_Features' => $baseDir . '/includes/classes/Admin/class-premium-features.php',
@@ -99,6 +102,10 @@ return array(
     
     
     
+    'WP2FA\\Licensing\\EDD_Provider' => $baseDir . '/includes/classes/Licensing/class-edd-provider.php',
+    'WP2FA\\Licensing\\Freemius_Provider' => $baseDir . '/includes/classes/Licensing/class-freemius-provider.php',
+    'WP2FA\\Licensing\\Licensing_Factory' => $baseDir . '/includes/classes/Licensing/class-licensing-factory.php',
+    'WP2FA\\Licensing\\Licensing_Provider' => $baseDir . '/includes/classes/Licensing/interface-licensing-provider.php',
     'WP2FA\\Methods\\Backup_Codes' => $baseDir . '/includes/classes/Admin/Methods/class-backup-codes.php',
     'WP2FA\\Methods\\Email' => $baseDir . '/includes/classes/Admin/Methods/class-email.php',
     'WP2FA\\Methods\\Passkeys' => $baseDir . '/includes/classes/Admin/Methods/passkeys/class-passkeys.php',
