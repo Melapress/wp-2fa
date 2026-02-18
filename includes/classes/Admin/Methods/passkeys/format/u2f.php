@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -14,11 +14,38 @@ namespace WP2FA\Passkeys\Format;
 use WP2FA\Methods\Passkeys\Byte_Buffer;
 use WP2FA\Methods\Passkeys\Web_Authn_Exception;
 use WP2FA\Admin\Methods\passkeys\Authenticator_Data;
-
+/**
+ * Responsible for u2f format
+ *
+ * @since 3.0.0
+ */
 class U2f extends Format_Base {
 
+	/**
+	 * Algorithm to be used
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $_alg = -7;
+
+	/**
+	 * Signature
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $_signature;
+
+	/**
+	 * X5c certificate
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $x5c;
 
 	/**
@@ -58,9 +85,12 @@ class U2f extends Format_Base {
 	}
 
 
-	/*
-	 * returns the key certificate in PEM format
+	/**
+	 * Returns the key certificate in PEM format
+	 *
 	 * @return string
+	 *
+	 * @since 3.0.0
 	 */
 	public function get_certificate_pem() {
 		$pem  = '-----BEGIN CERTIFICATE-----' . "\n";
@@ -70,7 +100,15 @@ class U2f extends Format_Base {
 	}
 
 	/**
-	 * @param string $client_data_hash
+	 * Validates the attestation
+	 *
+	 * @param string $client_data_hash - Hash collected.
+	 *
+	 * @return bool
+	 *
+	 * @throws Web_Authn_Exception - Throws exception if validation fails.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_attestation( $client_data_hash ) {
 		$public_key = \openssl_pkey_get_public( $this->get_certificate_pem() );
@@ -93,11 +131,15 @@ class U2f extends Format_Base {
 	}
 
 	/**
-	 * validates the certificate against root certificates
+	 * Validates the certificate against root certificates
 	 *
-	 * @param array $root_cas
+	 * @param array $root_cas - Array with values.
+	 *
 	 * @return boolean
-	 * @throws Web_Authn_Exception
+	 *
+	 * @throws Web_Authn_Exception - Throws exception.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_root_certificate( $root_cas ) {
 		$chain_c = $this->_create_x5c_chain_file();

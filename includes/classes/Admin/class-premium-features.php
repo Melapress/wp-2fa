@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage admin
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -86,7 +86,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 			$banner .= '<a href="https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_to_premium_banner" class="button button-primary" target="_blank">' . \esc_html__( 'Upgrade to Premium', 'wp-2fa' ) . '</a>';
 			$banner .= '</div>';
 
-			echo $banner; // phpcs:ignore
+			echo $banner; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		/**

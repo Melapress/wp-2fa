@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage passkeys
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -77,7 +77,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 
 			\add_filter( 'script_loader_tag', array( __CLASS__, 'set_script_type_attribute' ), 10, 3 );
 
-			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'passkeys_provider_name_translated' ) );
+			\add_filter( WP_2FA_PREFIX . 'providers_translated_names', array( __CLASS__, 'provider_name_translated' ) );
 
 			\add_filter( WP_2FA_PREFIX . 'default_settings', array( __CLASS__, 'add_default_settings' ) );
 
@@ -175,7 +175,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 				),
 				true
 			) ) || true === $shortcodes )
-			|| ( isset( $_GET['is_initial_setup'] ) && 'true' === $_GET['is_initial_setup'] ) // phpcs:ignore
+			|| ( isset( $_GET['is_initial_setup'] ) && 'true' === $_GET['is_initial_setup'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			|| ( isset( $_SERVER['SCRIPT_NAME'] ) && false !== stripos( \wp_login_url(), \sanitize_text_field( \wp_unslash( $_SERVER['SCRIPT_NAME'] ) ) ) )
 			|| ( isset( $_SERVER['REQUEST_URI'] ) && false !== stripos( \wp_login_url(), \sanitize_text_field( \wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) )
 			|| ( isset( $_SERVER['REQUEST_URI'] ) && false !== stripos( $woo, \sanitize_text_field( \wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) )
@@ -265,7 +265,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 		 *
 		 * @since 3.0.0
 		 */
-		public static function passkeys_provider_name_translated( array $providers ) {
+		public static function provider_name_translated( array $providers ) {
 			$providers[ self::METHOD_NAME ] = WP2FA::get_wp2fa_white_label_setting( 'passkeys-option-label', true );
 
 			return $providers;

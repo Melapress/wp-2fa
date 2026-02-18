@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage admin_controllers
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -129,7 +129,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		 * @return string
 		 */
 		public static function get_number_of_methods_text() {
-			return esc_html__(
+			return \esc_html__(
 				'There are {available_methods_count} methods available to choose from for 2FA:',
 				'wp-2fa'
 			);

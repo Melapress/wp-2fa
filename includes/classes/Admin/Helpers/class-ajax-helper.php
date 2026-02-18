@@ -7,7 +7,7 @@
  *
  * @since      2.6.0
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -36,21 +36,65 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 	class Ajax_Helper {
 
 		/**
+		 * Cache TTL for search results (in seconds).
+		 */
+		private const CACHE_TTL = 300; // 5 minutes
+
+		/**
+		 * Rate limit attempts per minute.
+		 */
+		private const RATE_LIMIT_ATTEMPTS = 5;
+
+		/**
+		 * Verifies nonce and user permissions for AJAX requests.
+		 *
+		 * @param string $nonce_action The nonce action to verify.
+		 * @param string $capability   The capability to check (default: manage_options).
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.1
+		 */
+		private static function verify_request( string $nonce_action, string $capability = 'manage_options' ): void {
+			if ( ! \current_user_can( $capability ) ) {
+				\wp_send_json_error( \esc_html__( 'Access Denied.', 'wp-2fa' ) );
+			}
+
+			$nonce = isset( $_REQUEST['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_REQUEST['wp_2fa_nonce'] ) ) : null;
+			if ( null === $nonce || false === $nonce || ! \wp_verify_nonce( $nonce, $nonce_action ) ) {
+				\wp_send_json_error( \esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
+			}
+		}
+
+		/**
+		 * Checks rate limiting for sensitive actions.
+		 *
+		 * @param string $action_key Unique key for the action.
+		 *
+		 * @return bool True if allowed, false if rate limited.
+		 *
+		 * @since 3.1.1
+		 */
+		private static function check_rate_limit( string $action_key ): bool {
+			$user_id   = \get_current_user_id();
+			$cache_key = 'wp2fa_rate_limit_' . $action_key . '_' . $user_id;
+			$attempts  = (int) \get_transient( $cache_key );
+
+			if ( $attempts >= self::RATE_LIMIT_ATTEMPTS ) {
+				return false;
+			}
+
+			\set_transient( $cache_key, $attempts + 1, 60 ); // 1 minute TTL
+			return true;
+		}
+
+		/**
 		 * Get all users in AJAX matter and returns them
 		 *
 		 * @since 2.6.0
 		 */
 		public static function get_all_users() {
-			// Check user permissions.
-			if ( ! \current_user_can( 'manage_options' ) ) {
-				\wp_send_json_error( 'Access Denied.' );
-			}
-
-			// Verify nonce.
-			$nonce = isset( $_GET['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_nonce'] ) ) : null;
-			if ( null === $nonce || false === $nonce || ! \wp_verify_nonce( $nonce, 'wp-2fa-settings-nonce' ) ) {
-				\wp_send_json_error( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
-			}
+			self::verify_request( 'wp-2fa-settings-nonce' );
 
 			$term = isset( $_GET['term'] ) ? \sanitize_text_field( \wp_unslash( $_GET['term'] ) ) : null;
 
@@ -58,24 +102,31 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				\wp_send_json_error( \esc_html__( 'Invalid term.', 'wp-2fa' ) );
 			}
 
-			$users_args = array(
-				'fields' => array( 'ID', 'user_login' ),
-			);
-			if ( WP_Helper::is_multisite() ) {
-				$users_args['blog_id'] = 0;
-			}
-			$users_data = User_Utils::get_all_user_ids_and_login_names( 'query', $users_args );
+			$cache_key = 'wp2fa_users_search_' . md5( $term );
+			$users     = \get_transient( $cache_key );
 
-			// Create final array which we will fill in below.
-			$users = array();
-
-			foreach ( $users_data as $user ) {
-				if ( stripos( $user['user_login'], $term ) !== false ) {
-					$users[] = array(
-						'value' => $user['user_login'],
-						'label' => $user['user_login'],
-					);
+			if ( false === $users ) {
+				$users_args = array(
+					'fields' => array( 'ID', 'user_login' ),
+				);
+				if ( WP_Helper::is_multisite() ) {
+					$users_args['blog_id'] = 0;
 				}
+				$users_data = User_Utils::get_all_user_ids_and_login_names( 'query', $users_args );
+
+				// Create final array which we will fill in below.
+				$users = array();
+
+				foreach ( $users_data as $user ) {
+					if ( stripos( $user['user_login'], $term ) !== false ) {
+						$users[] = array(
+							'value' => $user['user_login'],
+							'label' => $user['user_login'],
+						);
+					}
+				}
+
+				\set_transient( $cache_key, $users, self::CACHE_TTL );
 			}
 
 			\wp_send_json_success( $users );
@@ -87,32 +138,30 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function get_all_network_sites() {
-			// Check user permissions.
-			if ( ! \current_user_can( 'manage_options' ) ) {
-				\wp_send_json_error( 'Access Denied.' );
-			}
-
-			// Verify nonce.
-			$nonce = isset( $_GET['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_nonce'] ) ) : null;
-			if ( null === $nonce || false === $nonce || ! \wp_verify_nonce( $nonce, 'wp-2fa-settings-nonce' ) ) {
-				\wp_send_json_error( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
-			}
+			self::verify_request( 'wp-2fa-settings-nonce' );
 
 			$term = isset( $_GET['term'] ) ? \sanitize_text_field( \wp_unslash( $_GET['term'] ) ) : null;
 
 			if ( null === $term || false === $term ) {
 				\wp_send_json_error( \esc_html__( 'Invalid term.', 'wp-2fa' ) );
 			}
-			// Fetch sites.
-			$sites_found = array();
 
-			foreach ( WP_Helper::get_multi_sites() as $site ) {
-				if ( false !== stripos( $site->blogname, $term ) ) {
-					$sites_found[] = array(
-						'label' => $site->blog_id,
-						'value' => $site->blogname,
-					);
+			$cache_key   = 'wp2fa_sites_search_' . md5( $term );
+			$sites_found = \get_transient( $cache_key );
+
+			if ( false === $sites_found ) {
+				$sites_found = array();
+
+				foreach ( WP_Helper::get_multi_sites() as $site ) {
+					if ( false !== stripos( $site->blogname, $term ) ) {
+						$sites_found[] = array(
+							'label' => $site->blog_id,
+							'value' => $site->blogname,
+						);
+					}
 				}
+
+				\set_transient( $cache_key, $sites_found, self::CACHE_TTL );
 			}
 
 			\wp_send_json_success( $sites_found );
@@ -126,15 +175,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function unlock_account( $user_id ) {
-			// Check user permissions.
-			if ( ! \current_user_can( 'manage_options' ) ) {
-				\wp_send_json_error( 'Access Denied.' );
+			if ( ! self::check_rate_limit( 'unlock_account' ) ) {
+				\wp_send_json_error( \esc_html__( 'Rate limit exceeded. Please try again later.', 'wp-2fa' ) );
 			}
 
-			$nonce = isset( $_GET['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_nonce'] ) ) : null;
-			if ( null === $nonce || false === $nonce || ! \wp_verify_nonce( $nonce, 'wp-2fa-unlock-account-nonce' ) ) {
-				\wp_send_json_error( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
-			}
+			self::verify_request( 'wp-2fa-unlock-account-nonce' );
 
 			$grace_period             = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period' );
 			$grace_period_denominator = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period-denominator' );
@@ -251,6 +296,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function remove_user_2fa( $user_id ) {
+			if ( ! self::check_rate_limit( 'remove_user_2fa' ) ) {
+				\wp_send_json_error( \esc_html__( 'Rate limit exceeded. Please try again later.', 'wp-2fa' ) );
+			}
 
 			// Allow admins or the user themselves.
 			$current_user_id = (int) \get_current_user_id();
@@ -292,11 +340,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 */
 		public static function get_ajax_user_roles() {
 			if ( \wp_doing_ajax() ) {
-				// Verify nonce.
-				$nonce = isset( $_GET['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_nonce'] ) ) : null;
-				if ( null === $nonce || false === $nonce || ! \wp_verify_nonce( $nonce, 'wp-2fa-settings-nonce' ) ) {
-					\wp_send_json_error( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
-				}
+				self::verify_request( 'wp-2fa-settings-nonce' );
 
 				$roles = array();
 
@@ -305,13 +349,22 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 					\wp_send_json_error( esc_html__( 'Invalid term.', 'wp-2fa' ) );
 				}
 
-				foreach ( WP_Helper::get_roles_wp() as $role => $human_readable ) {
-					if ( stripos( $human_readable, $term ) !== false ) {
-						$roles[] = array(
-							'label' => \sanitize_text_field( $role ),
-							'value' => \sanitize_text_field( $human_readable ),
-						);
+				$cache_key = 'wp2fa_roles_search_' . md5( $term );
+				$roles     = \get_transient( $cache_key );
+
+				if ( false === $roles ) {
+					$roles = array();
+
+					foreach ( WP_Helper::get_roles_wp() as $role => $human_readable ) {
+						if ( stripos( $human_readable, $term ) !== false ) {
+							$roles[] = array(
+								'label' => \sanitize_text_field( $role ),
+								'value' => \sanitize_text_field( $human_readable ),
+							);
+						}
 					}
+
+					\set_transient( $cache_key, $roles, self::CACHE_TTL );
 				}
 
 				\wp_send_json_success( $roles );
@@ -432,6 +485,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 * @since 3.1.0
 		 */
 		public static function logout_account() {
+			if ( ! self::check_rate_limit( 'logout_account' ) ) {
+				\wp_send_json_error( \esc_html__( 'Rate limit exceeded. Please try again later.', 'wp-2fa' ) );
+			}
+
 			if ( ! empty( $_REQUEST['_wpnonce'] ) && \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_REQUEST['_wpnonce'] ) ), 'wp-2fa-logout' ) ) {
 				$user_id = \get_current_user_id();
 

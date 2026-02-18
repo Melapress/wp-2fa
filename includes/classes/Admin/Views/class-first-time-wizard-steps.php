@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage views
  * @since      1.7.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -572,7 +572,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 						 * @since 2.0.0
 						 */
 						$after_grace_content = \apply_filters( WP_2FA_PREFIX . 'after_grace_period', '', '', 'wp_2fa_policy' );
-						echo $after_grace_content; // phpcs:ignore
+						echo $after_grace_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					?>
 					<?php
 					/**

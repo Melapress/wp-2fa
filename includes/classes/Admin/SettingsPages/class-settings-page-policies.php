@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage settings-pages
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -110,7 +110,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						} else {
 							$action = 'options.php';
 						}
-						if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && '2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore
+						if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && '2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 							?>
 						<br/>
 							<?php
@@ -514,7 +514,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			global $wp_settings_errors;
 			if ( isset( $wp_settings_errors ) ) {
 				$errors             = array_map( 'unserialize', array_unique( array_map( 'serialize', $wp_settings_errors ) ) );
-				$wp_settings_errors = $errors; // phpcs:ignore
+				$wp_settings_errors = $errors; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			}
 
 			/**
@@ -565,7 +565,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( isset( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) {
 				check_admin_referer( 'wp_2fa_policy-options' );
-				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_POLICY_SETTINGS_NAME])); // phpcs:ignore
+				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_POLICY_SETTINGS_NAME])); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$settings_errors = get_settings_errors( WP_2FA_POLICY_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
 					// redirect back to our options page.
@@ -816,7 +816,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			 */
 			$output = \apply_filters( WP_2FA_PREFIX . 'user_profile_settings', $output );
 
-			echo $output; // phpcs:ignore
+			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		/**

@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -204,7 +204,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 				<th><label for="email-backup-method"><?php \esc_html_e( '2FA mandatory notice', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
-						echo Settings_Page_White_Label::create_standard_editor( 'default-2fa-required-notice' ); // phpcs:ignore
+						echo Settings_Page_White_Label::create_standard_editor( 'default-2fa-required-notice' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					?>
 					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>
@@ -213,7 +213,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 				<th><label for="email-backup-method"><?php \esc_html_e( '2FA reconfiguration mandatory notice', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
-						echo Settings_Page_White_Label::create_standard_editor( 'default-2fa-resetup-required-notice' ); // phpcs:ignore
+						echo Settings_Page_White_Label::create_standard_editor( 'default-2fa-resetup-required-notice' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					?>
 					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>
@@ -222,7 +222,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 				<th><label><?php \esc_html_e( 'User profile 2FA configuration area title', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
-						echo Settings_Page_White_Label::create_standard_editor( 'user-profile-form-preamble-title' ); // phpcs:ignore
+						echo Settings_Page_White_Label::create_standard_editor( 'user-profile-form-preamble-title' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					?>
 					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>
@@ -231,7 +231,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 			<th><label><?php \esc_html_e( 'User profile 2FA configuration area description', 'wp-2fa' ); ?></label></th>
 				<td>
 					<?php
-						echo Settings_Page_White_Label::create_standard_editor( 'user-profile-form-preamble-desc' ); // phpcs:ignore
+						echo Settings_Page_White_Label::create_standard_editor( 'user-profile-form-preamble-desc' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					?>
 					<div style="margin-top: 5px;"><span><strong><i><?php \esc_html_e( 'Note:', 'wp-2fa' ); ?></i></strong> <?php \esc_html_e( 'Only plain text is allowed.', 'wp-2fa' ); ?></span></div>
 				</td>

@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings-pages
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -60,10 +60,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				return;
 			}
 
-			if ( isset( $_POST['email_from_setting'] ) ) { // phpcs:ignore
-				$options = self::validate_and_sanitize( wp_unslash( $_POST ) ); // phpcs:ignore
+			if ( isset( $_POST['email_from_setting'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$options = self::validate_and_sanitize( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-				if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) || isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) { // phpcs:ignore
+				if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) || isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 					// redirect back to our options page.
 					\wp_safe_redirect(
 						\add_query_arg(
@@ -243,9 +243,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				return;
 			}
 
-			Debugging::log( 'The following settings will be processed (E-mail): ' . "\n" . wp_json_encode( $_POST ) ); // phpcs:ignore
+			Debugging::log( 'The following settings will be processed (E-mail): ' . "\n" . wp_json_encode( $_POST ) );
 
-			if ( empty( $_POST ) || ! isset( $_POST['_wpnonce'] ) || empty( $_POST['_wpnonce'] ) || ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) || ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) ) { // phpcs:ignore
+			if ( empty( $_POST ) || ! isset( $_POST['_wpnonce'] ) || empty( $_POST['_wpnonce'] ) || ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) || ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'email_settings-options' ) && ! \wp_verify_nonce( $_POST['_wpnonce'], WP_2FA_PREFIX . 'settings-options' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				die( \esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
 			}
 
@@ -379,7 +379,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			global $wp_settings_errors;
 			if ( isset( $wp_settings_errors ) ) {
 				$errors             = array_map( 'unserialize', array_unique( array_map( 'serialize', $wp_settings_errors ) ) );
-				$wp_settings_errors = $errors; // phpcs:ignore
+				$wp_settings_errors = $errors; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			}
 
 			if ( isset( $output ) ) {

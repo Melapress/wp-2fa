@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -22,6 +22,13 @@ use WP2FA\Admin\Methods\passkeys\Authenticator_Data;
  */
 class Apple extends Format_Base {
 
+	/**
+	 * X5c certificate
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $x5c;
 
 	/**
@@ -63,16 +70,25 @@ class Apple extends Format_Base {
 		}
 	}
 
-	/*
-	 * returns the key certificate in PEM format
+	/**
+	 * Returns the key certificate in PEM format
+	 *
 	 * @return string|null
+	 *
+	 * @since 3.0.0
 	 */
 	public function get_certificate_pem() {
 		return $this->_create_certificate_pem( $this->x5c );
 	}
 
 	/**
-	 * @param string $client_data_hash
+	 * Validates the attestation
+	 *
+	 * @param string $client_data_hash - Hash collected.
+	 *
+	 * @throws Web_Authn_Exception - Throws exception if validation fails.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_attestation( $client_data_hash ) {
 		return $this->_validate_ver_x5c( $client_data_hash );
@@ -81,9 +97,13 @@ class Apple extends Format_Base {
 	/**
 	 * Validates the certificate against root certificates
 	 *
-	 * @param array $root_cas
+	 * @param array $root_cas - Array with values.
+	 *
 	 * @return boolean
-	 * @throws Web_Authn_Exception
+	 *
+	 * @throws Web_Authn_Exception - Throws exception.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_root_certificate( $root_cas ) {
 		$chain_c = $this->_create_x5c_chain_file();
@@ -101,9 +121,13 @@ class Apple extends Format_Base {
 	/**
 	 * Validate if x5c is present
 	 *
-	 * @param string $client_data_hash
+	 * @param string $client_data_hash - Hash collected.
+	 *
 	 * @return bool
-	 * @throws Web_Authn_Exception
+	 *
+	 * @throws Web_Authn_Exception - Throws exception.
+	 *
+	 * @since 3.0.0
 	 */
 	protected function _validate_ver_x5c( $client_data_hash ) {
 		$public_key = \openssl_pkey_get_public( $this->get_certificate_pem() );

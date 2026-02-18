@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -287,44 +287,5 @@ class Source_Repository {
 		if ( ! $is_success ) {
 			throw new \Exception( 'Unable to delete credential source.', 500 );
 		}
-	}
-
-	/**
-	 * Get extra data for a credential source.
-	 *
-	 * @param PublicKeyCredentialSource $public_key_credential_source The credential source to get extra data for.
-	 *
-	 * @return string[] The extra data.
-	 *
-	 * @throws \Exception If the user is not found.
-	 *
-	 * @since 3.0.0
-	 */
-	public function get_extra_data( PublicKeyCredentialSource $public_key_credential_source ): array {
-
-		if ( ! class_exists( 'ParagonIE_Sodium_Core_Base64_UrlSafe', false ) ) {
-			require_once ABSPATH . WPINC . '/sodium_compat/src/Core/Base64/UrlSafe.php';
-			require_once ABSPATH . WPINC . '/sodium_compat/src/Core/Util.php';
-		}
-
-		$meta_key = self::PASSKEYS_META . \ParagonIE_Sodium_Core_Base64_UrlSafe::encodeUnpadded( $public_key_credential_source->getPublicKeyCredentialId() );
-
-		$user_handle = $public_key_credential_source->getUserHandle();
-
-		$user = get_user_by( 'login', $user_handle );
-
-		if ( ! $user instanceof \WP_User ) {
-			throw new \Exception( 'User not found.', 404 );
-		}
-
-		$public_key = get_user_meta( $user->ID, $meta_key, true );
-
-		if ( ! $public_key ) {
-			throw new \Exception( 'Credential source not found.', 404 );
-		}
-
-		$public_key = json_decode( $public_key, true );
-
-		return $public_key['extra'] ?? array();
 	}
 }

@@ -5,8 +5,8 @@ License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, 2-factor authentication, WordPress authentication, Google Authenticator
 Requires at least: 5.5
-Tested up to: 6.8.3
-Stable tag: 3.0.0
+Tested up to: 6.9.1
+Stable tag: 3.1.1
 Requires PHP: 7.4.0
 
 Get better WordPress login security; add two-factor authentication (2FA) for all your users with this easy-to-use plugin.
@@ -145,35 +145,22 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
-= 3.0.0 (2025-09-23) =
+= 3.1.1 (2026-02-17) =
 
  * **New features**
-	 * Zero-setup email 2FA method - automatically enroll users with 2FA without requiring any user setup or intervention .
-	 * Added an option to enable/disable automatic email notifications when a user logs in but cannot configure 2FA .
+	 * Added a deactivation form feedback, to optionally capture user feedback.
 
  * **Plugin & functionality improvements**
-	 * Backup codes are now 16 digits long for improved security.
-	 * Extended the maximum allowed grace period to 90 days.
-	 * Updated the plugin logo and artwork.
-	 * Replaced the php-jwt library with in-house developed solution for improved security and performance.
-	 * Added a new upgrade banner notification.
-	 * Accessibility improvements across all plugin wizards; users can now configure 2FA using only the keyboard.
-	 * Plugin no longer redirects to the Policies page after updating, improving the upgrade flow and avoiding unwanted redirection loops.
-	 * Added the plugin’s branding signature to all Free edition email templates.
-	 * Updated the default “From” name and email address used when sending emails.
-	 * Improved the method selection step in the setup wizard by reducing the number of displayed methods for a lighter, cleaner look and feel.
-	 * Improved the build process to better separate Free and Premium editions, in line with WordPress coding standards.
-	 * Improved help texts in several areas of the plugin’s Settings page.
-	 * Added a check to handle missing parameters on the lost password page, preventing a fatal error and displaying a proper message instead.
+	 * Removed some redundant code (Clickatell SDK Premium-only files) from the Free edition of the plugin.
+	 * Refactored the Freemius SDK licensing components for better maintainability.
+	 * AAdded the feedback survey notice to gater user insights and help us improve the plugin.
 
  * **Bug fixes**
-	 * Fixed a user-reported PHP error which occurs in certain circumstances; “Uncaught TypeError: call_user_func_array(): Argument #1 ($callback) 'wp_2fa_action_doing_it_wrong_run' not found.”
-	 * Fixed typos in the email template shown when a user logs in but cannot configure 2FA due to setup misconfiguration.
-	 * Fixed a fatal error on multisite installations when users without the `manage_options` capability attempted access.
-	 * Fixed a bug preventing backup codes from being enabled when Yubico was the only available method.
-	 * Fixed a bug in the “log out user after 2FA configuration” feature which caused users to be logged out without finalizing 2FA configuration in some cases.
-	 * Fixed an issue with the Twilio integration that caused alphanumeric IDs to be rejected by the plugin.
-	 * Fixed an issue on multisite where users removed from an excluded subsite were not prompted to configure 2FA when still enforced on another subsite.
-	 * Fixed several other user-reported PHP warnings that could occur under certain conditions.
+	 * [Premium] Fixed a bug which caused users to not be logged out after completing 2FA setup via Twilio, Authy, or Clickatell methods when the logout-after-setup policy is enabled.
+	 * [Premium] Fixed a bug causing the login button on the 2FA code page to not reflect the custom color configured in the white label settings.
+	 * Fixed a user-reported error: PHP Fatal error: Uncaught TypeError: strpos(): Argument #1 ($haystack) which could occur in /extensions/trusted-devices/class-core.php:299
+	 * Fixed: default email address generation incorrectly stripping the first letter from domains starting with "w". Credits for reporting this go to [David Scott](https://github.com/dave-js).
+	 * Fixed an issue causing the 2FA bypass feature to malfunction if used with the [Free edition of Melapress Login Security](https://wordpress.org/plugins/melapress-login-security/).
+	 * Fixed an error that could appear when using WP Engine Single Sign-on feature with WP 2FA active.
 	
 Refer to the complete [plugin changelog](https://melapress.com/support/kb/wp-2fa-plugin-changelog/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.

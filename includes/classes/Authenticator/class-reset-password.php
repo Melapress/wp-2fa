@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage resetpassword
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -209,17 +209,17 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 		 * @since 2.5.0
 		 */
 		public static function login_form_validate_2fa() {
-			if ( ! isset( $_POST['wp-auth-id'], $_POST['wp-auth-nonce'], $_POST['reset'] ) ) { // phpcs:ignore
+			if ( ! isset( $_POST['wp-auth-id'], $_POST['wp-auth-nonce'], $_POST['reset'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				return;
 			}
 
-			$auth_id = (int) $_POST['wp-auth-id']; // phpcs:ignore
+			$auth_id = (int) $_POST['wp-auth-id']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			$user    = \get_userdata( $auth_id );
 			if ( ! $user ) {
 				return;
 			}
 
-			$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? \sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore
+			$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? \sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			if ( true !== Login::verify_login_nonce( $user->ID, $nonce ) ) {
 				\wp_safe_redirect( \get_bloginfo( 'url' ) );
 				exit;
@@ -256,9 +256,9 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				if ( self::check_number_of_attempts( $user ) ) {
 
 					if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
-						self::show_two_factor_login( $user, $login_nonce['key'], \esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore
+						self::show_two_factor_login( $user, $login_nonce['key'], \esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					} else {
-						self::show_two_factor_login( $user, $login_nonce['key'], \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore
+						self::show_two_factor_login( $user, $login_nonce['key'], \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					}
 				} else {
 					// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.

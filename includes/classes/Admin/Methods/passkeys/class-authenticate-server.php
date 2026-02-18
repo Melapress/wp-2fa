@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -32,8 +32,8 @@ if ( ! class_exists( '\WP2FA\Passkeys\Authentication_Server' ) ) {
 		 *
 		 * @param \WP_User    $user - Current User.
 		 * @param string|null $challenge - Challenge string.
-		 * @param bool       $is_usb - Is USB authenticator.
-		 * 
+		 * @param bool        $is_usb - Is USB authenticator.
+		 *
 		 * @return PublicKeyCredentialCreationOptions
 		 *
 		 * @since 3.0.0
@@ -93,34 +93,33 @@ if ( ! class_exists( '\WP2FA\Passkeys\Authentication_Server' ) ) {
 				'timeout'          => intval( 5 ) * 60 * 1000,
 
 			// 'authenticatorSelection' => array(
-			// 		'residentKey'      => 'discouraged',
-			// 		'requiredResidentKey' => false,
-			// 		'userVerification' => 'required',
-			// 		'authenticatorAttachment' => 'cross-platform',
+			// 'residentKey'      => 'discouraged',
+			// 'requiredResidentKey' => false,
+			// 'userVerification' => 'required',
+			// 'authenticatorAttachment' => 'cross-platform',
 
-			// 	),
+			// ),
 			);
-
 
 			if ( $is_usb ) {
 				$options['authenticatorSelection'] = array(
 					'authenticatorAttachment' => 'cross-platform',
-					'residentKey'      => 'discouraged',
-					'userVerification' => 'required',
+					'residentKey'             => 'discouraged',
+					'userVerification'        => 'required',
 				);
 			} else {
 				$options['authenticatorSelection'] = array(
 					'authenticatorAttachment' => 'platform',
-					'residentKey'      => 'required',
-					'userVerification' => 'required',
+					'residentKey'             => 'required',
+					'userVerification'        => 'required',
 				);
 			}
 			// $options['authenticatorSelection'] = array(
-				
-			// 	'residentKey'      => 'required',
-			// 	// 'residentKey'      => 'discouraged',
-			// 	'userVerification' => 'required',
-			// 	// 'authenticatorAttachment' => 'cross-platform',
+
+			// 'residentKey'      => 'required',
+			// 'residentKey'      => 'discouraged',
+			// 'userVerification' => 'required',
+			// 'authenticatorAttachment' => 'cross-platform',
 			// );
 
 			$public_key_credentials = Source_Repository::find_all_for_user( $user );

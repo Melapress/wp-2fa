@@ -2,12 +2,12 @@
 /**
  * WP 2FA - Two-factor authentication for WordPress .
  *
- * @copyright Copyright (C) 2013-2025, Melapress - support@melapress.com
+ * @copyright Copyright (C) 2013-2026, Melapress - support@melapress.com
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     3.1.0
+ * Version:     3.1.1
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -39,11 +39,10 @@
 
 use WP2FA\WP2FA;
 use WP2FA\Utils\Migration;
-use WP2FA\Extensions_Loader;
 use WP2FA\Admin\Setup_Wizard;
 use WP2FA\Admin\Helpers\WP_Helper;
-use WP2FA\Freemius\Freemius_Helper;
 use WP2FA\Admin\Helpers\File_Writer;
+use WP2FA\Licensing\Licensing_Factory;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -55,7 +54,7 @@ if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '3.1.0' );
+	define( 'WP_2FA_VERSION', '3.1.1' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -75,6 +74,11 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 
 	define( 'WP_2FA_TEXTDOMAIN', 'wp-2fa' );
 }
+
+require_once \plugin_dir_path( __FILE__ ) . 'class-plugin-deactivation.php';
+
+new WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation();
+
 
 if ( ! function_exists( 'wp_2f_is_just_in_time_for_2fa_domain' ) ) {
 	/**
@@ -176,33 +180,72 @@ if ( ! function_exists( 'wp_2fa_action_doing_it_wrong_run' ) ) {
 \add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 0, 3 );
 \add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 20, 3 );
 
-		// Include files.
-		require_once WP_2FA_INC . 'functions/core.php';
+// Require Composer autoloader if it exists.
+if ( file_exists( WP_2FA_PATH . 'vendor/autoload.php' ) ) {
+	require_once WP_2FA_PATH . 'vendor/autoload.php';
+} else {
+	// Composer autoloader is required.
+	\wp_die( \esc_html__( 'The required libraries for WP 2FA are missing. Please reinstall the plugin.', 'wp-2fa' ) );
+}
 
-		// Require Composer autoloader if it exists.
-		if ( file_exists( WP_2FA_PATH . 'vendor/autoload.php' ) ) {
-			require_once WP_2FA_PATH . 'vendor/autoload.php';
-		}
+if ( ! class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
+	return;
+}
 
-		// run any required update routines.
-		Migration::migrate();
+Licensing_Factory::init();
+Licensing_Factory::provider_call( 'set_basename', true, __FILE__ );
+if ( null !== Licensing_Factory::get_provider() ) {
+	Licensing_Factory::get_provider()::add_action( 'after_uninstall', '\WP2FA\Core\uninstall' );
+}
+require_once WP_2FA_INC . 'functions/core.php';
 
-		// Setup_Wizard.
-		if ( WP_Helper::is_multisite() ) {
-			\add_action( 'network_admin_menu', array( Setup_Wizard::class, 'network_admin_menus' ), 10 );
-			\add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
-		} else {
-			\add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
-		}
+// run any required update routines.
+Migration::migrate();
 
-		// Activation/Deactivation.
-		\register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
-		\register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
-		// Register our uninstallation hook.
-		\register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
+// Setup_Wizard.
+if ( WP_Helper::is_multisite() ) {
+	\add_action( 'network_admin_menu', array( Setup_Wizard::class, 'network_admin_menus' ), 10 );
+	\add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
+} else {
+	\add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
+}
 
-		\add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
-		\add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
+// Activation/Deactivation.
+\register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
+\register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
+// Register our uninstallation hook.
+\register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
+
+\add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
+\add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
+
+// Include files.
+// require_once WP_2FA_INC . 'functions/core.php';
+
+// Require Composer autoloader if it exists.
+// if ( file_exists( WP_2FA_PATH . 'vendor/autoload.php' ) ) {
+// require_once WP_2FA_PATH . 'vendor/autoload.php';
+// }
+
+// run any required update routines.
+// Migration::migrate();
+
+// Setup_Wizard.
+// if ( WP_Helper::is_multisite() ) {
+// \add_action( 'network_admin_menu', array( Setup_Wizard::class, 'network_admin_menus' ), 10 );
+// \add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
+// } else {
+// \add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
+// }
+
+// Activation/Deactivation.
+// \register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
+// \register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
+// Register our uninstallation hook.
+// \register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
+
+// \add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
+// \add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
 
 
 
@@ -272,7 +315,8 @@ if ( ! function_exists( 'check_ssl' ) ) {
 }
 
 if ( \PHP_VERSION_ID < 80000 && ! \interface_exists( 'Stringable' ) ) {
-	interface Stringable { // phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed
+	interface Stringable {
+ // phpcs:ignore Universal.Files.SeparateFunctionsFromOO.Mixed
 		/**
 		 * Mockup function for PHP versions lower than 8.
 		 *

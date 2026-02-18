@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage settings
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -22,6 +22,7 @@ use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\SettingsPages\Settings_Page_Render;
 use WP2FA\Admin\SettingsPages\Settings_Page_Passkeys;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
+use WP2FA\Licensing\Licensing_Factory;
 
 /**
  * Class for handling settings
@@ -241,7 +242,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 */
 		public static function add_plugin_action_links( $links ) {
 			// add link to the external free trial page in free version and also in premium version if license is not active.
-			if ( ! function_exists( 'wp2fa_freemius' ) || ! wp2fa_freemius()->has_active_valid_license() ) {
+			if ( ! Licensing_Factory::has_active_valid_license() ) {
 				$trial_link = 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_to_premium_menu';
 				$links      = array_merge(
 					array(
@@ -473,7 +474,9 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			$from_email = 'wp2fa@';
 
 			if ( ! empty( $sitename ) ) {
-				$sitename    = ltrim( $sitename, 'www.' );
+				if ( str_starts_with( $sitename, 'www.' ) ) {
+					$sitename = substr( $sitename, 4 );
+				}
 				$from_email .= sanitize_text_field( $sitename );
 			}
 
