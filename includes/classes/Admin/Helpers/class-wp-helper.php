@@ -7,7 +7,7 @@
  *
  * @since      2.2.0
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -15,8 +15,9 @@
 
 namespace WP2FA\Admin\Helpers;
 
-use WP2FA\Admin\Plugin_Updated_Notice;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Utils\Abstract_Migration;
+use WP2FA\Admin\Plugin_Updated_Notice;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -119,19 +120,29 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			}
 			// @free:end
 
+			// @free:start
+			$install_date = \get_site_option( WP_2FA_PREFIX . '_install_date', false );
+			if ( ! $install_date ) {
+				\update_site_option( WP_2FA_PREFIX . '_install_date', time() );
+			}
+			// @free:end
+
 			if ( self::is_multisite() ) {
 				\add_action( 'network_admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
 				// @free:start
 				\add_action( 'network_admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ), 20 );
+				\add_action( 'network_admin_notices', array( __CLASS__, 'show_survey_banner' ), 20 );
 				// @free:end
 			} else {
 				\add_action( 'admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
 				// @free:start
 				\add_action( 'admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ), 20 );
+				\add_action( 'admin_notices', array( __CLASS__, 'show_survey_banner' ), 20 );
 				// @free:end
 			}
 			// @free:start
 			\add_action( 'wp_ajax_wp_2fa_dismiss_extra_event_banner', array( __CLASS__, 'dismiss_extra_event_banner' ) );
+			\add_action( 'wp_ajax_wp_2fa_dismiss_survey_banner', array( __CLASS__, 'dismiss_survey_banner' ) );
 			// @free:end
 
 			\add_action( 'wp_ajax_dismiss_survey_notice', array( __CLASS__, 'dismiss_survey_notice' ) );
@@ -448,6 +459,196 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			if ( gmdate( 'Y-m-d', strtotime( '11/28/2025' ) ) === $today_date ) {
 				\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed', 'yes' );
 			}
+
+			\wp_send_json_success( \esc_html__( 'Complete.', 'wp-2fa' ) );
+		}
+
+		/**
+		 * Shows survey banner to the admin.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.0
+		 */
+		public static function show_survey_banner() {
+			$screen = \get_current_screen();
+
+			$survey_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_survey_banner_dismissed', false );
+			if ( $survey_banner_dismissed ) {
+				return;
+			}
+
+			$is_upgrade = false;
+			if ( in_array( $screen->base, self::PLUGIN_PAGES, true ) && Settings_Utils::get_option( Abstract_Migration::UPGRADE_NOTICE, false ) ) {
+				$is_upgrade = true;
+			}
+
+			$install_date  = \get_site_option( WP_2FA_PREFIX . '_install_date', time() );
+			$two_weeks_ago = time() - ( 14 * 24 * 60 * 60 );
+
+			if ( ! $is_upgrade && $install_date > $two_weeks_ago ) {
+				return;
+			}
+
+			if ( in_array( $screen->base, self::PLUGIN_PAGES, true ) ) {
+				\remove_action( 'admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
+				\remove_action( 'network_admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
+				?>
+				<!-- Survey Banner START -->
+				<div class="survey-banner wp-2fa-survey-banner" style="margin-top: 20px; margin-right: 20px;">
+					<!-- Text Content -->
+					<div class="survey-banner-content">
+						<div class="survey-banner-title"><?php \esc_html_e( 'Got 2 minutes? Help us shape the future of WP 2FA', 'wp-2fa' ); ?></div>
+						<a href="https://getformly.app/ThUFdP" target="_blank" class="survey-cta-link"><?php \esc_html_e( 'Take the survey', 'wp-2fa' ); ?></a>
+					</div>
+					
+					<!-- Close Button -->
+					<button aria-label="Close button" class="wp-2fa-survey-banner-close survey-banner-close" data-dismiss-nonce="<?php echo \esc_attr( \wp_create_nonce( 'wp_2fa_dismiss_survey_banner_nonce' ) ); ?>"></button>
+				</div>
+				<!-- Survey Banner END -->
+				
+				<script type="text/javascript">
+				jQuery(document).ready(function( $ ) {
+					jQuery( 'body' ).on( 'click', '.wp-2fa-survey-banner-close', function ( e ) {
+						var nonce  = jQuery( '.wp-2fa-survey-banner [data-dismiss-nonce]' ).attr( 'data-dismiss-nonce' );
+						
+						jQuery.ajax({
+							type: 'POST',
+							url: '<?php echo \esc_url( \admin_url( 'admin-ajax.php' ) ); ?>',
+							async: true,
+							data: {
+								action: 'wp_2fa_dismiss_survey_banner',
+								nonce : nonce,
+							},
+							success: function ( result ) {		
+								jQuery( '.wp-2fa-survey-banner' ).slideUp( 300 );
+							}
+						});
+					});
+				});
+				</script>
+				<style>
+					@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Quicksand:wght@600;700&display=swap');
+
+					:root {
+					--color-coral: #FF8977;
+					--color-deep: #020E26;
+					--color-pale-blue: #D9E4FD;
+					--color-light-blue: #8AAAF1;
+					--color-wp-2fa-maroon: #7A262A;
+					--color-wp-2fa-red: #DD2B10;
+					--ease-out-expo: cubic-bezier(0.32, 1, 0.3, 1);
+					--ease-out-back: cubic-bezier(0.64, 0.69, 0.1, 1);
+					}
+
+					/* ==================== Survey Banner ==================== */
+					.survey-banner {
+					/* background-color: var(--color-deep);
+					font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+					-webkit-font-smoothing: subpixel-antialiased;
+					color: #fff; */
+					display: flex;
+					/* align-items: center; */
+					padding: 1rem;
+					position: relative;
+					/*overflow: hidden; */
+					transition: all 0.2s ease-in-out;
+					border: none;
+					border-left: 4px solid var(--color-coral);
+					border-bottom: 1px solid #ccc;
+					border-right: 1px solid #ccc;
+					border-top: 1px solid #ccc;
+					background: white;
+					/* gap: 1.5rem;
+					justify-content: center; */
+					}
+
+					.survey-banner-content {
+					/* max-width: 100%;
+					z-index: 1;
+					text-align: center; */
+					}
+
+					.survey-banner-title {
+					/* font-family: Inter, sans-serif;
+					font-size: 1.5em;
+					letter-spacing: .5px;
+					color: #fff; */
+					line-height: 1.2em;
+					font-weight: 700;
+					margin-bottom: 1rem;
+					}
+
+					.survey-cta-link {
+					border-radius: 0.25rem;
+					background: #D9E4FD;
+					color: #454BF7;
+					font-weight: bold;
+					text-decoration: none;
+					font-size: 0.875rem;
+					padding: 0.3rem 1rem .3rem 1rem;
+					transition: all 0.2s ease-in-out;
+					display: inline-block;
+					}
+
+					/* .survey-cta-link:hover {
+					background: #454BF7;
+					color: #D9E4FD;
+					} */
+
+					.survey-banner-close {
+					/* background-image: url('<?php echo esc_url( WP_2FA_URL . 'dist/images/close-icon.svg' ); ?>'); */
+					/* background-size: 12px; */
+					/* background-repeat: no-repeat; */
+					/* background-position: center; */
+					/* width: 20px; */
+					/* height: 20px; */
+					border: none;
+					/* border-radius: 50%; */
+					/* background-color: #ccc; */
+					cursor: pointer;
+					position: absolute;
+					top: 5px;
+					right: 5px;
+					z-index: 1;
+					background-color: transparent;
+					}
+					.survey-banner-close:before {
+						content: "\f153"/'';
+						font: normal 16px/20px dashicons;
+					}
+
+					/* ==================== Responsive Design ==================== */
+					@media (max-width: 1200px) {
+					.survey-banner {
+						flex-direction: column;
+						text-align: center;
+						gap: 1rem;
+					}
+					}
+				</style>
+
+				<?php
+			}
+		}
+
+		/**
+		 * Handle survey banner dismissal.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.0
+		 */
+		public static function dismiss_survey_banner() {
+			// Grab POSTed data.
+			$nonce = isset( $_POST['nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ) : false;
+
+			// Check nonce.
+			if ( ! \current_user_can( 'manage_options' ) || empty( $nonce ) || ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_2fa_dismiss_survey_banner_nonce' ) ) {
+				\wp_send_json_error( \esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
+			}
+
+			\update_site_option( WP_2FA_PREFIX . '_survey_banner_dismissed', 'yes' );
 
 			\wp_send_json_success( \esc_html__( 'Complete.', 'wp-2fa' ) );
 		}

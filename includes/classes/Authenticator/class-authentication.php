@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage authentication
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -101,7 +101,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 
 			$result = $writer->writeString( $target_url );
 
-			return 'data:image/svg+xml;base64,' . base64_encode( $result ); // phpcs:ignore
+			return 'data:image/svg+xml;base64,' . base64_encode( $result );
 		}
 
 		/**
@@ -208,7 +208,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 * @param string $authcode The code to test.
 		 *
 		 * @return bool Whether the code is valid within the time frame
-		 * 
+		 *
 		 * @since 3.1.0
 		 */
 		public static function is_valid_authcode( $key, $authcode ) {

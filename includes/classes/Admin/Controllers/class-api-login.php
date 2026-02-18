@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -212,8 +212,6 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 						$redirect_to = \get_dashboard_url( $user->ID );
 					} elseif ( ! $user->has_cap( 'edit_posts' ) ) {
 						$redirect_to = $user->has_cap( 'read' ) ? \network_admin_url( 'profile.php' ) : \home_url();
-					} else {
-						$redirect_to = \apply_filters( 'login_redirect', $redirect_to, $redirect_to, $user );
 					}
 
 					$redirect_to = \apply_filters( WP_2FA_PREFIX . 'post_login_user_redirect', $redirect_to, $user );
@@ -224,10 +222,10 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 					 * @since 3.0.0
 					 *
 					 * @param string           $redirect_to           The redirect destination URL.
-					 * @param string           $requested_redirect_to The requested redirect destination URL passed as a parameter.
+					 * @param string           $redirect_to The requested redirect destination URL passed as a parameter.
 					 * @param WP_User|WP_Error $user                  WP_User object if login was successful, WP_Error object otherwise.
 					 */
-					$redirect_to = apply_filters( 'login_redirect', $redirect_to, $requested_redirect_to, $user );
+					$redirect_to = apply_filters( 'login_redirect', $redirect_to, $redirect_to, $user );
 
 					if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || \admin_url() === $redirect_to ) ) {
 						// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.

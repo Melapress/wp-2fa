@@ -7,7 +7,7 @@
  *
  * @since 2.8.0
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -34,8 +34,16 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 	class FlyOut {
 
 		private const ENQUEUE_NAME          = 'mlp_flyout';
-		private const CONFIG_TRANSIENT_NAME = \WP_2FA_PREFIX . 'flyout_config';
-		private const REMOTE_CONFIG_URL     = 'https://melapress.com/downloads/plugins-files/wp-2fa-flyout-config.php';
+		private const CONFIG_TRANSIENT_NAME = \WP_2FA_PREFIX . 'flyout_config_string';
+
+		/**
+		 * Get the remote config URL, filterable for custom deployments.
+		 *
+		 * @return string
+		 */
+		private static function get_remote_config_url(): string {
+			return \apply_filters( \WP_2FA_PREFIX . 'flyout_remote_config_url', 'https://melapress.com/downloads/plugins-files/wp-2fa-flyout-config.php' );
+		}
 
 		/**
 		 * Array with the configuration of the fly-out menu
@@ -110,13 +118,13 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 			}
 
 			if ( WP_Helper::is_multisite() ) {
-				foreach ( $config['plugin_screen'] as $key => $value ) {
-					$config['plugin_screen'][ $key ] = $value . '-network';
-
-					if ( ! in_array( $value, WP_Helper::PLUGIN_PAGES, true ) ) {
-						unset( $config['plugin_screen'][ $key ] );
-					}
-				}
+				$config['plugin_screen'] = array_map(
+					function ( $screen ) {
+						return in_array( $screen, WP_Helper::PLUGIN_PAGES, true ) ? $screen . '-network' : null;
+					},
+					$config['plugin_screen']
+				);
+				$config['plugin_screen'] = array_filter( $config['plugin_screen'] );
 			}
 
 			self::$config = $config;
@@ -200,6 +208,18 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 				background: ' . \sanitize_text_field( self::$config['menu_accent_color'] ) . ';
 			}';
 			$out .= \wp_strip_all_tags( self::$config['custom_css'] );
+
+			// Generate dynamic CSS for menu items to support unlimited items.
+			$menu_items = array_reverse( self::$config['menu_items'] );
+			$i          = 0;
+			foreach ( $menu_items as $item ) {
+				if ( ( isset( $item['type'] ) && 'all' === $item['type'] ) || ( isset( $item['type'] ) && WP2FA::get_plugin_version() === $item['type'] ) ) {
+					++$i;
+					$bottom = 75 + ( ( $i - 1 ) * 55 );
+					$delay  = 30 + ( ( $i - 1 ) * 40 );
+					$out   .= ".mlp-elements-menu-item-{$i} { bottom: {$bottom}px; transition: transform 0.2s {$delay}ms, background-color 0.2s; }";
+				}
+			}
 			$out .= '</style>';
 
 			// The output below is built from sanitized and escaped values such
@@ -239,7 +259,7 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 
 			$out .= '<div id="mlp-flyout">';
 
-			$out .= '<a href="#" id="mlp-elements-button">';
+			$out .= '<a href="#" id="mlp-elements-button" aria-expanded="false" aria-label="' . esc_attr__( 'Toggle Quick Links Menu', 'wp-2fa' ) . '">';
 			$out .= '<span class="mlp-elements-label">Open Quick Links</span>';
 			$out .= '<span id="mlp-elements-image-wrapper">';
 			if ( ! empty( self::$config['icon_image'] ) ) {
@@ -309,7 +329,7 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 				return false;
 			}
 
-			if ( false === $config || empty( $config ) ) {
+			if ( false === $config || empty( $config ) || ! is_array( $config ) ) {
 				$request_args = \apply_filters(
 					WP_2FA_PREFIX . 'flyout_remote_request_args',
 					array(
@@ -319,7 +339,7 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 					)
 				);
 
-				$api_response = \wp_remote_get( self::REMOTE_CONFIG_URL, $request_args );
+				$api_response = \wp_remote_get( self::get_remote_config_url(), $request_args );
 
 				if ( \is_wp_error( $api_response ) ) {
 					self::log_remote_error( 'Request error: ' . $api_response->get_error_message() );
@@ -353,16 +373,18 @@ if ( ! class_exists( '\WP2FA\Admin\FlyOut\FlyOut' ) ) {
 					return false;
 				}
 
-				\set_transient( self::CONFIG_TRANSIENT_NAME, $config_body, \DAY_IN_SECONDS * 3 );
+				\set_transient( self::CONFIG_TRANSIENT_NAME, $decoded_config, \DAY_IN_SECONDS * 3 );
 
 				return $decoded_config;
 			}
 
-			$config = json_decode( $config, true );
-
-			if ( json_last_error() !== JSON_ERROR_NONE ) {
-				self::log_remote_error( 'Cached config decode failed.' );
-				$config = false;
+			// If cached config is a string (legacy), decode it; otherwise, return the array.
+			if ( is_string( $config ) ) {
+				$config = json_decode( $config, true );
+				if ( json_last_error() !== JSON_ERROR_NONE ) {
+					self::log_remote_error( 'Cached config decode failed.' );
+					return false;
+				}
 			}
 
 			return $config;

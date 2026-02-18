@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage methods
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -25,6 +25,8 @@ use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Controllers\API\API_Login;
 use WP2FA\Admin\Methods\Traits\Providers;
+use WP2FA\Admin\Methods\Traits\Settings_Trait;
+use WP2FA\Admin\Methods\Traits\WhiteLabel;
 use WP2FA\Methods\Wizards\Email_Wizard_Steps;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
 
@@ -44,6 +46,8 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 	class Email {
 
 		use Providers;
+		use WhiteLabel;
+		use Settings_Trait;
 
 		/**
 		 * The name of the method.
@@ -187,18 +191,14 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		}
 
 		/**
-		 * Adds email provider translatable name
+		 * Returns the translated name of the provider
 		 *
-		 * @param array $providers - Array with all currently supported providers and their translated names.
-		 *
-		 * @return array
+		 * @return string
 		 *
 		 * @since 2.6.0
 		 */
-		public static function provider_name_translated( array $providers ) {
-			$providers[ self::METHOD_NAME ] = \esc_html__( 'HOTP (Email)', 'wp-2fa' );
-
-			return $providers;
+		public static function get_translated_name(): string {
+			return \esc_html__( 'HOTP (Email)', 'wp-2fa' );
 		}
 
 		/**

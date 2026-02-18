@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -20,21 +20,52 @@ use WP2FA\Admin\Methods\passkeys\Authenticator_Data;
  */
 abstract class Format_Base {
 
+	/**
+	 * Attestation object
+	 *
+	 * @var Array
+	 *
+	 * @since 3.1.0
+	 */
 	protected $attestation_object = null;
+
+	/**
+	 * Authenticator data
+	 *
+	 * @var Authenticator_Data
+	 *
+	 * @since 3.1.0
+	 */
 	protected $authenticator_data = null;
-	protected $x5c_chain          = array();
-	protected $x5c_temp_file      = null;
+
+	/**
+	 * X5c certificate chain
+	 *
+	 * @var array
+	 *
+	 * @since 3.0.0
+	 */
+	protected $x5c_chain = array();
+
+	/**
+	 * Temporary file for certificate chain
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
+	protected $x5c_temp_file = null;
 
 	/**
 	 * Default constructor
-	 * 
-	 * @param Array              $attestion_object - Default comment.
+	 *
+	 * @param Array              $attestation_object - Default comment.
 	 * @param Authenticator_Data $authenticator_data - Default comment.
-	 * 
+	 *
 	 * @since 3.1.0
 	 */
-	public function __construct( $attestion_object, Authenticator_Data $authenticator_data ) {
-		$this->attestation_object = $attestion_object;
+	public function __construct( $attestation_object, Authenticator_Data $authenticator_data ) {
+		$this->attestation_object = $attestation_object;
 		$this->authenticator_data = $authenticator_data;
 	}
 
@@ -54,6 +85,8 @@ abstract class Format_Base {
 	 * Returns the certificate chain in PEM format.
 	 *
 	 * @return string|null
+	 *
+	 * @since 3.0.0
 	 */
 	public function get_certificate_chain() {
 		if ( $this->x5c_temp_file && \is_file( $this->x5c_temp_file ) ) {
@@ -66,6 +99,8 @@ abstract class Format_Base {
 	 * Returns the key X.509 certificate in PEM format
 	 *
 	 * @return string
+	 *
+	 * @since 3.0.0
 	 */
 	public function get_certificate_pem() {
 		// need to be overwritten.
@@ -80,6 +115,8 @@ abstract class Format_Base {
 	 * @return bool
 	 *
 	 * @throws Web_Authn_Exception - Default comment.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_attestation( $client_data_hash ) {
 		// need to be overwritten.
@@ -94,6 +131,8 @@ abstract class Format_Base {
 	 * @return boolean
 	 *
 	 * @throws Web_Authn_Exception - Default comment.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_root_certificate( $root_cas ) {
 		// need to be overwritten.
@@ -106,6 +145,8 @@ abstract class Format_Base {
 	 * @param string $x5c - Default comment.
 	 *
 	 * @return string
+	 *
+	 * @since 3.0.0
 	 */
 	protected function _create_certificate_pem( $x5c ) {
 		$pem  = '-----BEGIN CERTIFICATE-----' . "\n";
@@ -118,6 +159,8 @@ abstract class Format_Base {
 	 * Creates a PEM encoded chain file
 	 *
 	 * @return string|null
+	 *
+	 * @since 3.0.0
 	 */
 	protected function _create_x5c_chain_file() {
 		$content = '';
@@ -166,6 +209,8 @@ abstract class Format_Base {
 	 * @param int $cose_number - Default comment.
 	 *
 	 * @return \stdClass|null
+	 *
+	 * @since 3.0.0
 	 */
 	protected function _get_cose_algorithm( $cose_number ) {
 		// https://www.iana.org/assignments/cose/cose.xhtml#algorithms .

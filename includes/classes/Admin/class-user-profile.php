@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage user-utils
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -59,8 +59,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			\wp_enqueue_style( 'wp-jquery-ui-dialog' );
 
-			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
-				$user_id = (int) $_GET['user_id']; // phpcs:ignore
+			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$user_id = (int) $_GET['user_id']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$user    = \get_user_by( 'id', $user_id );
 			} else {
 				// Get current user, we're going to need this regardless.
@@ -605,7 +605,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					<?php
 
 					if ( self::can_user_remove_2fa( $user->ID ) ) :
-						echo Generate_Modal::generate_modal( // phpcs:ignore
+						echo Generate_Modal::generate_modal( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							'confirm-remove-2fa',
 							esc_html__( 'Remove 2FA?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							esc_html__( 'Are you sure you want to remove two-factor authentication and lower the security of your user account?', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -638,8 +638,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 		 */
 		public static function inline_2fa_profile_form( $is_shortcode = 'true', $show_preamble = true, array $options = array() ) {
 
-			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore
-				$user_id = (int) $_GET['user_id']; // phpcs:ignore
+			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$user_id = (int) $_GET['user_id']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$user    = \get_user_by( 'id', $user_id );
 			} else {
 				$user = \wp_get_current_user();
@@ -789,7 +789,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			check_ajax_referer( 'wp-2fa-validate-authcode' );
 
 			if ( isset( $_POST['form'] ) ) {
-				$input = wp_unslash( $_POST['form'] ); // phpcs:ignore
+				$input = wp_unslash( $_POST['form'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			} else {
 				wp_send_json_error(
 					array(

@@ -4,7 +4,7 @@
  *
  * @package    wp-2fa
  * @since 3.0.0
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -22,15 +22,46 @@ use WP2FA\Admin\Methods\passkeys\Authenticator_Data;
  */
 class Android_Safety_Net extends Format_Base {
 
+	/**
+	 * Signature chain
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $signature;
+
+	/**
+	 * Signed value
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $signed_value;
+
+	/**
+	 * X5c certificate
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.0
+	 */
 	private $x5c;
+
+	/**
+	 * Payload
+	 *
+	 * @var \stdClass
+	 *
+	 * @since 3.0.0
+	 */
 	private $payload;
 
 	/**
 	 * Default constructor
 	 *
-	 * @param \StdClass                                        $attestion_object - attestation object.
+	 * @param mixed                                            $attestation_object - attestation object.
 	 * @param \WP2FA\Admin\Methods\passkeys\Authenticator_Data $authenticator_data - Authentication data.
 	 *
 	 * @throws Web_Authn_Exception - if can not be created.
@@ -90,7 +121,7 @@ class Android_Safety_Net extends Format_Base {
 		$this->payload = $payload;
 
 		if ( count( $header->x5c ) > 1 ) {
-			for ( $i = 1; $i < count( $header->x5c ); $i++ ) {
+			for ( $i = 1; $i < count( $header->x5c ); $i++ ) { // phpcs:ignore Squiz.PHP.DisallowSizeFunctionsInLoops.Found
 				$this->x5c_chain[] = \base64_decode( $header->x5c[ $i ] );
 			}
 			unset( $i );
@@ -98,28 +129,38 @@ class Android_Safety_Net extends Format_Base {
 	}
 
 	/**
-	 * ctsProfileMatch: A stricter verdict of device integrity.
+	 * A stricter verdict of device integrity.
 	 * If the value of ctsProfileMatch is true, then the profile of the device running your app matches
 	 * the profile of a device that has passed Android compatibility testing and
 	 * has been approved as a Google-certified Android device.
 	 *
 	 * @return bool
+	 *
+	 * @since 3.0.0
 	 */
 	public function ctsProfileMatch() {
 		return isset( $this->payload->ctsProfileMatch ) ? ! ! $this->payload->ctsProfileMatch : false;
 	}
 
-
-	/*
-	 * returns the key certificate in PEM format
+	/**
+	 * Returns the key certificate in PEM format
+	 *
 	 * @return string
+	 *
+	 * @since 3.0.0
 	 */
 	public function getCertificatePem() {
 		return $this->_create_certificate_pem( $this->x5c );
 	}
 
 	/**
-	 * @param string $client_data_hash
+	 * Validates the attestation
+	 *
+	 * @param string $client_data_hash - Hash collected.
+	 *
+	 * @throws Web_Authn_Exception - Throws exception if validation fails.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_attestation( $client_data_hash ) {
 		$public_key = \openssl_pkey_get_public( $this->getCertificatePem() );
@@ -149,9 +190,13 @@ class Android_Safety_Net extends Format_Base {
 	/**
 	 * Validates the certificate against root certificates
 	 *
-	 * @param array $root_cas
+	 * @param array $root_cas - Array with values.
+	 *
 	 * @return boolean
-	 * @throws Web_Authn_Exception
+	 *
+	 * @throws Web_Authn_Exception - Throws exception.
+	 *
+	 * @since 3.0.0
 	 */
 	public function validate_root_certificate( $root_cas ) {
 		$chain_c = $this->_create_x5c_chain_file();
@@ -166,12 +211,14 @@ class Android_Safety_Net extends Format_Base {
 		return $v;
 	}
 
-
 	/**
 	 * Decode base64 url
 	 *
-	 * @param string $data
+	 * @param string $data - Data to decode.
+	 *
 	 * @return string
+	 *
+	 * @since 3.0.0
 	 */
 	private function _base64url_decode( $data ) {
 		return \base64_decode( \strtr( $data, '-_', '+/' ) . \str_repeat( '=', 3 - ( 3 + \strlen( $data ) ) % 4 ) );

@@ -5,6 +5,7 @@
     right: 40px;
     bottom: 40px;
     opacity: 1;
+    will-change: transform, opacity;
   }
   
   #mlp-overlay {
@@ -114,6 +115,7 @@
     vertical-align: middle;
     text-decoration: none;
     transition-timing-function: ease-in-out;
+    will-change: transform, opacity;
   }
   
   #mlp-flyout .mlp-elements-menu-item.accent {

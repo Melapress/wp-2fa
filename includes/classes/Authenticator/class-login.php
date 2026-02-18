@@ -4,7 +4,7 @@
  *
  * @package    wp2fa
  * @subpackage login
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  * @link       https://wordpress.org/plugins/wp-2fa/
  */
@@ -27,6 +27,7 @@ use WP2FA\Methods\Wizards\TOTP_Wizard_Steps;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
 use WP2FA\Admin\SettingsPages\Settings_Page_Policies;
 use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
+use WP2FA\Licensing\Licensing_Factory;
 use WP2FA\Utils\Settings_Utils;
 
 /**
@@ -103,8 +104,6 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				// $install_name = \wp_unslash( $_REQUEST['install_name'] );
 				// $nonce_data   = $user_nonce->get_nonce_data( $user->ID );
 
-				$request_id = \get_user_meta( $user->ID, wpengine\sign_on_plugin::WPE_LOGGED_REQUEST_IDS, false );
-
 				$req_check = new \wpengine\sign_on_plugin\UserRequestIdHelper();
 
 				$request_id = \get_user_meta( $user->ID, \wpengine\sign_on_plugin\UserRequestIdHelper::WPE_LOGGED_REQUEST_IDS, false );
@@ -128,6 +127,9 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 					// Check for specific class + method.
 					if ( 'wpengine\sign_on_plugin\SignOnUserProvider' === $class && 'login_user' === $func ) {
+						return;
+					}
+					if ( '\wpengine\sign_on_plugin\SignOnUserProvider' === $class && 'login_user' === $func ) {
 						return;
 					}
 				}
@@ -301,6 +303,20 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * @param string   $error_msg Optional. Login error message.
 		 */
 		public static function show_2fa_form_grace_form( $user, $login_nonce, $redirect_to, $error_msg = '' ) {
+			/**
+			 * The filter can be user to skip the 2FA "login" form in some cases. For example if the user has set their
+			 * device as trusted.
+			 *
+			 * @param bool $skip
+			 * @param \WP_User $user
+			 *
+			 * @return bool
+			 */
+			$should_form_be_skipped = apply_filters( WP_2FA_PREFIX . 'skip_2fa_login_form', false, $user );
+			if ( $should_form_be_skipped ) {
+				return;
+			}
+
 			$interim_login   = isset( $_REQUEST['interim-login'] ) ? filter_var( wp_unslash( $_REQUEST['interim-login'] ), FILTER_VALIDATE_BOOLEAN ) : false; //phpcs:ignore
 			$rememberme     = intval( self::rememberme() );
 			$global_methods = Methods::get_available_2fa_methods( User_Helper::get_user_role( $user ) );
@@ -1054,7 +1070,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			}
 
 			if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user ), $provider ) ) {
-				wp_die( __( '<p> <strong>WP-2FA</strong>: Please contact the administrator for further assistance!</p>', 'wp-2fa' ) . \esc_html__( 'Invalid provider.', 'wp-2fa' ) ); // phpcs:ignore
+				wp_die( __( '<p> <strong>WP-2FA</strong>: Please contact the administrator for further assistance!</p>', 'wp-2fa' ) . \esc_html__( 'Invalid provider.', 'wp-2fa' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 
 			// If this is an email login, or if the user failed validation previously, lets send the code to the user.
@@ -1082,7 +1098,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				}
 
 				if ( Authentication::check_number_of_attempts( $user ) ) {
-					self::login_html( $user, $login_nonce['key'], \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore
+					self::login_html( $user, $login_nonce['key'], \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				} else {
 					// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.
 					Authentication::clear_login_attempts( $user );
@@ -1108,7 +1124,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 				if ( Backup_Codes::check_number_of_attempts( $user ) ) {
 
-					self::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid backup code.', 'wp-2fa' ), $provider ); // phpcs:ignore
+					self::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid backup code.', 'wp-2fa' ), $provider ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				} else {
 					Backup_Codes::clear_login_attempts( $user );
 					\wp_redirect( \wp_login_url() );
@@ -1161,7 +1177,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			self::delete_login_nonce( $user->ID );
 
 			$rememberme = false;
-			$remember   = ( isset( $_REQUEST['rememberme'] ) ) ? filter_var( $_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN ) : ''; // phpcs:ignore
+			$remember   = ( isset( $_REQUEST['rememberme'] ) ) ? filter_var( $_REQUEST['rememberme'], FILTER_VALIDATE_BOOLEAN ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			if ( ! empty( $remember ) ) {
 				$rememberme = true;
 			}
@@ -1179,11 +1195,11 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 
 			// Must be global because that's how login_header() uses it.
 			global $interim_login;
-			$interim_login = ( isset( $_REQUEST['interim-login'] ) ) ? filter_var( $_REQUEST['interim-login'], FILTER_VALIDATE_BOOLEAN ) : false; // phpcs:ignore
+			$interim_login = ( isset( $_REQUEST['interim-login'] ) ) ? filter_var( $_REQUEST['interim-login'], FILTER_VALIDATE_BOOLEAN ) : false; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 			if ( $interim_login ) {
 				$message       = '<p class="message">' . __( 'You have logged in successfully.', 'wp-2fa' ) . '</p>';
-				$interim_login = 'success'; // phpcs:ignore
+				$interim_login = 'success'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 
 				if ( ! function_exists( 'login_header' ) ) {
 					// We really should migrate login_header() out of `wp-login.php` so it can be called from an includes file.
@@ -1206,7 +1222,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			if ( WP_Helper::is_multisite() && ! get_active_blog_for_user( $user->ID ) && empty( $user->caps ) && empty( $user->caps ) ) {
 				$redirect_to = user_admin_url();
 			} else {
-				$redirect_to = apply_filters( 'login_redirect', \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), $user ); // phpcs:ignore
+				$redirect_to = apply_filters( 'login_redirect', \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), $user ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			}
 
 			Backup_Codes::clear_login_attempts( $user );

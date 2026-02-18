@@ -5,7 +5,7 @@
  * @package    wp2fa
  * @subpackage methods
  *
- * @copyright  2025 Melapress
+ * @copyright  2026 Melapress
  * @license    https://www.apache.org/licenses/LICENSE-2.0 Apache License 2.0
  *
  * @see       https://wordpress.org/plugins/wp-2fa/
@@ -22,8 +22,10 @@ use WP2FA\Admin\User_Profile;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
-use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Methods\Traits\Providers;
+use WP2FA\Admin\Methods\Traits\Settings_Trait;
+use WP2FA\Admin\Methods\Traits\Validation;
+use WP2FA\Admin\Methods\Traits\WhiteLabel;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Methods\Wizards\TOTP_Wizard_Steps;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
@@ -44,6 +46,9 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 	class TOTP {
 
 		use Providers;
+		use Settings_Trait;
+		use Validation;
+		use WhiteLabel;
 
 		/**
 		 * The name of the method.
@@ -130,69 +135,26 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		}
 
 		/**
-		 * Checks the provided user and token and validates them. Returns true if valid, false otherwise.
+		 * Returns the translated name of the provider
 		 *
-		 * @param array       $valid - The current validation value.
-		 * @param integer     $user_id - The user ID to check for.
-		 * @param string|null $token - The token to validate against user provided.
-		 *
-		 * @return array
-		 *
-		 * @since 3.0.0
-		 */
-		public static function api_login_validate( array $valid, int $user_id, ?string $token ): array {
-
-			if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user_id ), self::METHOD_NAME ) ) {
-				return $valid;
-			}
-
-			if ( self::METHOD_NAME !== User_Helper::get_enabled_method_for_user( $user_id ) ) {
-				return $valid;
-			}
-
-			if ( ! is_array( $valid ) || ! isset( $valid['valid'] ) ) {
-				$valid['valid'] = false;
-			}
-
-			// If the login is valid, return it as it is.
-			if ( true === $valid['valid'] ) {
-				return $valid;
-			}
-
-			if ( ! isset( $token ) || empty( $token ) ) {
-				return $valid;
-			}
-
-			// Sanitize the token to ensure it is safe to use.
-			$sanitized_token = \sanitize_text_field( $token );
-
-			$is_valid = Authentication::is_valid_authcode(
-				self::get_totp_key( User_Helper::get_user( $user_id ) ),
-				$sanitized_token
-			);
-
-			if ( ! $is_valid ) {
-				$valid[ self::METHOD_NAME ]['error'] = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
-			}
-
-			$valid['valid'] = $is_valid;
-
-			return $valid;
-		}
-
-		/**
-		 * Adds TOTP translated name
-		 *
-		 * @param array $providers - Array with all currently supported providers and their translated names.
-		 *
-		 * @return array
+		 * @return string
 		 *
 		 * @since 2.6.0
 		 */
-		public static function provider_name_translated( array $providers ) {
-			$providers[ self::METHOD_NAME ] = esc_html__( 'TOTP (one-time code via app)', 'wp-2fa' );
+		public static function get_translated_name(): string {
+			return esc_html__( 'TOTP (one-time code via app)', 'wp-2fa' );
+		}
 
-			return $providers;
+		/**
+		 * Validates the token for TOTP.
+		 *
+		 * @param \WP_User $user - The user.
+		 * @param string   $token - The token.
+		 *
+		 * @return bool
+		 */
+		protected static function validate_token( \WP_User $user, string $token ): bool {
+			return Authentication::is_valid_authcode( self::get_totp_key( $user ), $token );
 		}
 
 		/**
@@ -325,21 +287,6 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 					'qr'  => $new_qr,
 				)
 			);
-		}
-
-		/**
-		 * Adds the extension default settings to the main plugin settings
-		 *
-		 * @param array $default_settings - array with plugin default settings.
-		 *
-		 * @return array
-		 *
-		 * @since 2.6.0
-		 */
-		public static function add_default_settings( array $default_settings ): array {
-			$default_settings[ self::POLICY_SETTINGS_NAME ] = self::POLICY_SETTINGS_NAME;
-
-			return $default_settings;
 		}
 
 		/**

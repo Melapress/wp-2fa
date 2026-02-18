@@ -49,6 +49,9 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
         'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
         'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
         'WP2FA\\Admin\\Methods\\Traits\\Providers' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-provider-trait.php',
+        'WP2FA\\Admin\\Methods\\Traits\\Settings_Trait' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-settings-trait.php',
+        'WP2FA\\Admin\\Methods\\Traits\\Validation' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-validation-trait.php',
+        'WP2FA\\Admin\\Methods\\Traits\\WhiteLabel' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-white-label-trait.php',
         'WP2FA\\Admin\\Methods\\passkeys\\Authenticator_Data' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-authenticator-data.php',
         'WP2FA\\Admin\\Plugin_Updated_Notice' => __DIR__ . '/../..' . '/includes/classes/Admin/class-plugin-updated-notice.php',
         'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
@@ -125,6 +128,10 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
         
         
         
+        'WP2FA\\Licensing\\EDD_Provider' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-edd-provider.php',
+        'WP2FA\\Licensing\\Freemius_Provider' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-freemius-provider.php',
+        'WP2FA\\Licensing\\Licensing_Factory' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-licensing-factory.php',
+        'WP2FA\\Licensing\\Licensing_Provider' => __DIR__ . '/../..' . '/includes/classes/Licensing/interface-licensing-provider.php',
         'WP2FA\\Methods\\Backup_Codes' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/class-backup-codes.php',
         'WP2FA\\Methods\\Email' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/class-email.php',
         'WP2FA\\Methods\\Passkeys' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-passkeys.php',
