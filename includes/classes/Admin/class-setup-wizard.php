@@ -610,6 +610,12 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 					return false;
 				}
+
+				if ( ! Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'specify-email_hotp' ) ) {
+					\wp_send_json_error( new \WP_Error( 400, \esc_html__( 'The email address in the request does not match the user\'s email address. Please try again.', 'wp-2fa' ) ), 400 );
+
+					return false;
+				}
 			}
 
 			$email_address = '';

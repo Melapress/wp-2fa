@@ -143,6 +143,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			// @free:start
 			\add_action( 'wp_ajax_wp_2fa_dismiss_extra_event_banner', array( __CLASS__, 'dismiss_extra_event_banner' ) );
 			\add_action( 'wp_ajax_wp_2fa_dismiss_survey_banner', array( __CLASS__, 'dismiss_survey_banner' ) );
+		\add_action( 'wp_ajax_wp_2fa_take_survey', array( __CLASS__, 'survey_taken' ) );
 			// @free:end
 
 			\add_action( 'wp_ajax_dismiss_survey_notice', array( __CLASS__, 'dismiss_survey_notice' ) );
@@ -473,6 +474,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		public static function show_survey_banner() {
 			$screen = \get_current_screen();
 
+			// Permanently hidden once the user has actually taken the survey.
+			if ( \get_site_option( WP_2FA_PREFIX . '_survey_taken', false ) ) {
+				return;
+			}
+
 			$survey_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_survey_banner_dismissed', false );
 			if ( $survey_banner_dismissed ) {
 				return;
@@ -499,7 +505,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 					<!-- Text Content -->
 					<div class="survey-banner-content">
 						<div class="survey-banner-title"><?php \esc_html_e( 'Got 2 minutes? Help us shape the future of WP 2FA', 'wp-2fa' ); ?></div>
-						<a href="https://getformly.app/ThUFdP" target="_blank" class="survey-cta-link"><?php \esc_html_e( 'Take the survey', 'wp-2fa' ); ?></a>
+						<a href="https://getformly.app/ThUFdP" target="_blank" class="survey-cta-link wp-2fa-survey-cta-link" data-take-nonce="<?php echo \esc_attr( \wp_create_nonce( 'wp_2fa_take_survey_nonce' ) ); ?>"><?php \esc_html_e( 'Take the survey', 'wp-2fa' ); ?></a>
 					</div>
 					
 					<!-- Close Button -->
@@ -521,6 +527,24 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 								nonce : nonce,
 							},
 							success: function ( result ) {		
+								jQuery( '.wp-2fa-survey-banner' ).slideUp( 300 );
+							}
+						});
+					});
+
+					// When the user actually takes the survey, permanently hide it.
+					jQuery( 'body' ).on( 'click', '.wp-2fa-survey-cta-link', function () {
+						var nonce = jQuery( this ).attr( 'data-take-nonce' );
+
+						jQuery.ajax({
+							type: 'POST',
+							url: '<?php echo \esc_url( \admin_url( 'admin-ajax.php' ) ); ?>',
+							async: true,
+							data: {
+								action: 'wp_2fa_take_survey',
+								nonce : nonce,
+							},
+							success: function () {
 								jQuery( '.wp-2fa-survey-banner' ).slideUp( 300 );
 							}
 						});
@@ -630,6 +654,30 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 
 				<?php
 			}
+		}
+
+		/**
+		 * Handles the case where the user actually takes the survey.
+		 * Sets a permanent option so the banner never appears again, regardless of plugin updates.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.0
+		 */
+		public static function survey_taken() {
+			// Grab POSTed data.
+			$nonce = isset( $_POST['nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ) : false;
+
+			// Check nonce.
+			if ( ! \current_user_can( 'manage_options' ) || empty( $nonce ) || ! $nonce || ! \wp_verify_nonce( $nonce, 'wp_2fa_take_survey_nonce' ) ) {
+				\wp_send_json_error( \esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
+			}
+
+			\update_site_option( WP_2FA_PREFIX . '_survey_taken', 'yes' );
+			// Also set the regular dismissed flag so no edge-case shows the banner before next load.
+			\update_site_option( WP_2FA_PREFIX . '_survey_banner_dismissed', 'yes' );
+
+			\wp_send_json_success( \esc_html__( 'Complete.', 'wp-2fa' ) );
 		}
 
 		/**

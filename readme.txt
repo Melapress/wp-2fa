@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, 2-factor authentication, WordPress authentication, Google Authenticator
 Requires at least: 5.5
 Tested up to: 6.9.1
-Stable tag: 3.1.1
+Stable tag: 3.1.1.1
 Requires PHP: 7.4.0
 
 Get better WordPress login security; add two-factor authentication (2FA) for all your users with this easy-to-use plugin.
@@ -145,22 +145,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
-= 3.1.1 (2026-02-17) =
-
- * **New features**
-	 * Added a deactivation form feedback, to optionally capture user feedback.
-
- * **Plugin & functionality improvements**
-	 * Removed some redundant code (Clickatell SDK Premium-only files) from the Free edition of the plugin.
-	 * Refactored the Freemius SDK licensing components for better maintainability.
-	 * AAdded the feedback survey notice to gater user insights and help us improve the plugin.
+= 3.1.1.1 (2026-02-19) =
 
  * **Bug fixes**
-	 * [Premium] Fixed a bug which caused users to not be logged out after completing 2FA setup via Twilio, Authy, or Clickatell methods when the logout-after-setup policy is enabled.
-	 * [Premium] Fixed a bug causing the login button on the 2FA code page to not reflect the custom color configured in the white label settings.
-	 * Fixed a user-reported error: PHP Fatal error: Uncaught TypeError: strpos(): Argument #1 ($haystack) which could occur in /extensions/trusted-devices/class-core.php:299
-	 * Fixed: default email address generation incorrectly stripping the first letter from domains starting with "w". Credits for reporting this go to [David Scott](https://github.com/dave-js).
-	 * Fixed an issue causing the 2FA bypass feature to malfunction if used with the [Free edition of Melapress Login Security](https://wordpress.org/plugins/melapress-login-security/).
-	 * Fixed an error that could appear when using WP Engine Single Sign-on feature with WP 2FA active.
+	 * [Premium] Fixed: a licensing glitch that could cause false quota alerts in certain sites and Premium plan configurations.
+	
 	
 Refer to the complete [plugin changelog](https://melapress.com/support/kb/wp-2fa-plugin-changelog/?utm_source=wordpress.org&utm_medium=referral&utm_campaign=WP2FA&utm_content=plugin+repos+description) for more detailed information about what was new, improved and fixed in previous version updates of WP 2FA.
