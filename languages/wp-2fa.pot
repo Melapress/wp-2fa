@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v3.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 3.1.1\n"
+"Project-Id-Version: WP 2FA - Two-factor authentication for WordPress 3.1.1.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-2fa\n"
 "Last-Translator: WP White Security <info@wpwhitesecurity.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-02-18T09:57:47+00:00\n"
+"POT-Creation-Date: 2026-02-25T13:59:42+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wp-2fa\n"
@@ -1113,14 +1113,14 @@ msgstr ""
 
 #: extensions/out-of-band/class-out-of-band.php:625
 #: includes/classes/Admin/class-settings-page.php:207
-#: includes/classes/Admin/class-setup-wizard.php:644
+#: includes/classes/Admin/class-setup-wizard.php:650
 #: includes/classes/Admin/Helpers/class-user-helper.php:1395
 msgid "Email sent by"
 msgstr ""
 
 #: extensions/out-of-band/class-out-of-band.php:626
 #: includes/classes/Admin/class-settings-page.php:208
-#: includes/classes/Admin/class-setup-wizard.php:645
+#: includes/classes/Admin/class-setup-wizard.php:651
 #: includes/classes/Admin/Helpers/class-user-helper.php:1396
 msgid "WP 2FA plugin."
 msgstr ""
@@ -1481,9 +1481,10 @@ msgstr ""
 #: extensions/settings-import-export/class-settings-import-export.php:213
 #: extensions/settings-import-export/class-settings-import-export.php:240
 #: includes/classes/Admin/class-plugin-updated-notice.php:101
-#: includes/classes/Admin/Helpers/class-wp-helper.php:450
-#: includes/classes/Admin/Helpers/class-wp-helper.php:648
-#: includes/classes/Admin/Helpers/class-wp-helper.php:668
+#: includes/classes/Admin/Helpers/class-wp-helper.php:451
+#: includes/classes/Admin/Helpers/class-wp-helper.php:673
+#: includes/classes/Admin/Helpers/class-wp-helper.php:696
+#: includes/classes/Admin/Helpers/class-wp-helper.php:716
 msgid "Nonce Verification Failed."
 msgstr ""
 
@@ -2660,9 +2661,10 @@ msgid "Automatically identify unauthorized file changes on your WordPress site."
 msgstr ""
 
 #: includes/classes/Admin/class-plugin-updated-notice.php:106
-#: includes/classes/Admin/Helpers/class-wp-helper.php:463
-#: includes/classes/Admin/Helpers/class-wp-helper.php:653
-#: includes/classes/Admin/Helpers/class-wp-helper.php:677
+#: includes/classes/Admin/Helpers/class-wp-helper.php:464
+#: includes/classes/Admin/Helpers/class-wp-helper.php:680
+#: includes/classes/Admin/Helpers/class-wp-helper.php:701
+#: includes/classes/Admin/Helpers/class-wp-helper.php:725
 msgid "Complete."
 msgstr ""
 
@@ -2720,7 +2722,7 @@ msgstr ""
 #: includes/classes/Admin/class-premium-features.php:231
 #: includes/classes/Admin/class-premium-features.php:474
 #: includes/classes/Admin/class-settings-page.php:249
-#: includes/classes/Admin/Helpers/class-wp-helper.php:245
+#: includes/classes/Admin/Helpers/class-wp-helper.php:246
 msgid "Upgrade to Premium"
 msgstr ""
 
@@ -3064,11 +3066,15 @@ msgstr ""
 msgid "When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you'd like to use:"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:653
+#: includes/classes/Admin/class-setup-wizard.php:615
+msgid "The email address in the request does not match the user's email address. Please try again."
+msgstr ""
+
+#: includes/classes/Admin/class-setup-wizard.php:659
 msgid "Email sending failed"
 msgstr ""
 
-#: includes/classes/Admin/class-setup-wizard.php:675
+#: includes/classes/Admin/class-setup-wizard.php:681
 msgid "Welcome to WP 2FA"
 msgstr ""
 
@@ -3399,27 +3405,27 @@ msgstr ""
 msgid "Unable to remove %s due to an unknown error."
 msgstr ""
 
-#: includes/classes/Admin/Helpers/class-wp-helper.php:246
+#: includes/classes/Admin/Helpers/class-wp-helper.php:247
 msgid "Black Friday"
 msgstr ""
 
-#: includes/classes/Admin/Helpers/class-wp-helper.php:246
+#: includes/classes/Admin/Helpers/class-wp-helper.php:247
 msgid " Sale Now Live!"
 msgstr ""
 
-#: includes/classes/Admin/Helpers/class-wp-helper.php:248
+#: includes/classes/Admin/Helpers/class-wp-helper.php:249
 msgid "Get Offer Now"
 msgstr ""
 
-#: includes/classes/Admin/Helpers/class-wp-helper.php:501
+#: includes/classes/Admin/Helpers/class-wp-helper.php:507
 msgid "Got 2 minutes? Help us shape the future of WP 2FA"
 msgstr ""
 
-#: includes/classes/Admin/Helpers/class-wp-helper.php:502
+#: includes/classes/Admin/Helpers/class-wp-helper.php:508
 msgid "Take the survey"
 msgstr ""
 
-#: includes/classes/Admin/Helpers/class-wp-helper.php:672
+#: includes/classes/Admin/Helpers/class-wp-helper.php:720
 msgid "Not enough privileges."
 msgstr ""
 
@@ -4877,51 +4883,51 @@ msgstr ""
 msgid "Failed to deactivate license."
 msgstr ""
 
-#: includes/classes/Licensing/class-freemius-provider.php:629
+#: includes/classes/Licensing/class-freemius-provider.php:624
 msgid "Never miss an important update! Opt-in to our security and feature updates notifications, and non-sensitive diagnostic tracking with freemius.com."
 msgstr ""
 
-#: includes/classes/Licensing/class-freemius-provider.php:630
-#: includes/classes/Licensing/class-freemius-provider.php:665
+#: includes/classes/Licensing/class-freemius-provider.php:625
+#: includes/classes/Licensing/class-freemius-provider.php:660
 msgid "Note: "
 msgstr ""
 
-#: includes/classes/Licensing/class-freemius-provider.php:631
-#: includes/classes/Licensing/class-freemius-provider.php:666
+#: includes/classes/Licensing/class-freemius-provider.php:626
+#: includes/classes/Licensing/class-freemius-provider.php:661
 msgid "NO ACTIVITY LOG ACTIVITY & DATA IS SENT BACK TO OUR SERVERS."
 msgstr ""
 
 #. translators: User's first name
-#: includes/classes/Licensing/class-freemius-provider.php:653
+#: includes/classes/Licensing/class-freemius-provider.php:648
 #, php-format
 msgid "Hey %s"
 msgstr ""
 
 #. translators: 1: Plugin name. 2: Plugin name. 2: Freemius link. 4: Plugin name.
-#: includes/classes/Licensing/class-freemius-provider.php:659
+#: includes/classes/Licensing/class-freemius-provider.php:654
 #, php-format
 msgid "Please help us improve %1$s! If you opt-in, some non-sensitive data about your usage of %2$s will be sent to %3$s, a diagnostic tracking service we use. If you skip this, that's okay! %2$s will still work just fine."
 msgstr ""
 
 #. Translators: Expired message and time
-#: includes/classes/Licensing/class-freemius-provider.php:735
+#: includes/classes/Licensing/class-freemius-provider.php:730
 #, php-format
 msgid "%s You need to renew your license to continue using premium features."
 msgstr ""
 
 #. Translators: Number of sites
-#: includes/classes/Licensing/class-freemius-provider.php:738
+#: includes/classes/Licensing/class-freemius-provider.php:733
 #, php-format
 msgid "The license is limited to %s sub-sites. You need to upgrade your license to cover all the sub-sites on this network."
 msgstr ""
 
 #. translators: plugin version
-#: includes/classes/Licensing/class-freemius-provider.php:772
+#: includes/classes/Licensing/class-freemius-provider.php:767
 #, php-format
 msgid "You need to activate the license key to use WP 2FA - Two-factor authentication for WordPress . %2$s"
 msgstr ""
 
-#: includes/classes/Licensing/class-freemius-provider.php:773
+#: includes/classes/Licensing/class-freemius-provider.php:768
 msgid "Activate the license key now"
 msgstr ""
 

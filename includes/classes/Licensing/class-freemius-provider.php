@@ -119,11 +119,6 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 					User_Licensing::init();
 				}
 			}
-
-			// Initialize user licensing.
-			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
-				User_Licensing::init();
-			}
 		}
 
 		/**
