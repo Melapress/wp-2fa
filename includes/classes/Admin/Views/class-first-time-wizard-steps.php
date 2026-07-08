@@ -43,7 +43,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 			?>
 			<h3><?php \esc_html_e( 'Which 2FA methods can your users use?', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php \esc_html_e( 'When you uncheck any of the below 2FA methods it won\'t be available for your users to use. You can always change this later on from the plugin\'s settings.', 'wp-2fa' ); ?>
+				<?php \esc_html_e( 'Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ); ?>
 			</p>
 				<?php
 				$data_role = 'data-role="global"';
@@ -55,10 +55,10 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 						<th colspan="2"><?php \esc_html_e( 'Which of the below 2FA methods can users use?', 'wp-2fa' ); ?></th>
 					</tr>
 					<tr>
-						<th><label for="2fa-method"><?php \esc_html_e( 'Select the methods', 'wp-2fa' ); ?></label></th>
+						<th><label for="wp-2fa-method"><?php \esc_html_e( 'Select the methods', 'wp-2fa' ); ?></label></th>
 						<td>
 				<?php } ?>
-						<fieldset id="2fa-method-select" class="wp-2fa-method-select">
+						<fieldset id="wp-2fa-method-select" class="wp-2fa-method-select">
 							<p class="method-title" style="padding-bottom: 20px;"><em><?php \esc_html_e( 'Primary 2FA methods:', 'wp-2fa' ); ?></em></p>
 							<?php
 							/**
@@ -153,12 +153,12 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 
 			ob_start();
 			?>
-			<h3><?php \esc_html_e( 'Which alternative 2FA methods can users use?', 'wp-2fa' ); ?></h3>
+			<h3><?php \esc_html_e( 'Which secondary 2FA methods can users use?', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php \esc_html_e( 'An alternative 2FA method allows users to configure another 2FA method that can be used as a backup should the primary 2FA method fail. This can happen if, for example, a user forgets their smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ); ?>
+				<?php \esc_html_e( 'A secondary 2FA method acts as a backup when the primary method cannot be used. For example, if a user loses access to their phone, the device runs out of battery, or email delivery fails. We strongly recommend allowing users to configure at least one backup method at all times.', 'wp-2fa' ); ?>
 			</p>
 			<p class="description">
-				<?php \esc_html_e( 'It is highly recommended to have an alternative 2FA method configured at all times. Below is a list of alternative 2FA methods available through this plugin:', 'wp-2fa' ); ?>
+				<?php \esc_html_e( 'Available secondary 2FA methods:', 'wp-2fa' ); ?>
 			</p>
 
 			<br>
@@ -166,7 +166,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 			<fieldset>
 				<label for="backup-codes">
 					<input type="checkbox" id="backup-codes-global" name="wp_2fa_policy[backup_codes_enabled]" value="yes"
-					<?php checked( WP2FA::get_wp2fa_setting( Backup_Codes::get_settings_name() ), Backup_Codes::get_settings_default_value() ); ?>
+					<?php checked( WP2FA::get_wp2fa_setting( Backup_Codes::get_settings_name(), true ), Backup_Codes::get_settings_default_value() ); ?>
 					>
 					<?php \esc_html_e( 'Backup codes', 'wp-2fa' ); ?>
 				</label>
@@ -200,7 +200,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 			?>
 			<?php
 			$output = ob_get_clean();
-			$output = apply_filters( WP_2FA_PREFIX . 'backup_methods', $output, $setup_wizard );
+			$output = \apply_filters( WP_2FA_PREFIX . 'backup_methods', $output, $setup_wizard );
 
 			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
@@ -216,9 +216,9 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 		 */
 		public static function enforcement_policy( $setup_wizard = false ) {
 			?>
-			<h3 id="enforcement_settings"><?php \esc_html_e( 'Do you want to enforce 2FA for some, or all the users? ', 'wp-2fa' ); ?></h3>
+			<h3 id="enforcement_settings"><?php \esc_html_e( 'Do you want to enforce 2FA for some, or all users?', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php \esc_html_e( 'When you enforce 2FA the users will be prompted to configure 2FA the next time they login. Users have a grace period for configuring 2FA. You can configure the grace period and also exclude user(s) or role(s) in this settings page. ', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-policies-enforce/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=enforcement_policy_help" target="_blank" rel=noopener><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+				<?php \esc_html_e( 'When 2FA is enforced, users will be prompted to configure it the next time they log in. Users are given a grace period to complete the setup before 2FA becomes mandatory. You can configure the grace period and exclude specific users or roles later from the plugin\'s settings.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-policies-enforce/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=enforcement_policy_help" target="_blank" rel=noopener><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 			</p>
 			<?php
 			if ( ! $setup_wizard ) {
@@ -476,7 +476,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 								<div class="option-pill">
 									<label for="excluded_sites_search"><?php \esc_html_e( 'Exclude the following sites', 'wp-2fa' ); ?>
 								<?php } ?>
-										<select multiple="multiple" id="excluded-sites-multi-select" name="wp_2fa_policy[excluded_sites][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
+										<select multiple="multiple" id="excluded-sites-multi-select" name="wp_2fa_policy[excluded_sites]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 										<?php
 											$excluded_sites = (array) WP2FA::get_wp2fa_setting( 'excluded_sites' );
 										if ( ! empty( $excluded_sites ) ) {
@@ -597,7 +597,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 						$last_user_to_update_settings = $user->ID;
 
 						?>
-					<input type="hidden" id="2fa_main_user" name="wp_2fa_policy[2fa_settings_last_updated_by]" value="<?php echo \esc_attr( $last_user_to_update_settings ); ?>">
+					<input type="hidden" id="wp-2fa_main_user" name="wp_2fa_policy[2fa_settings_last_updated_by]" value="<?php echo \esc_attr( $last_user_to_update_settings ); ?>">
 					<?php } else { ?>
 						<p><?php \esc_html_e( 'Note: If users do not configure it within the configured stipulated time, their account will be locked and have to be unlocked manually.', 'wp-2fa' ); ?></p>
 					<?php } ?>

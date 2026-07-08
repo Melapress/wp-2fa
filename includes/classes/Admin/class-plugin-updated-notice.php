@@ -46,6 +46,7 @@ if ( ! class_exists( '\WP2FA\Admin\Plugin_Updated_Notice' ) ) {
 		 * @return void
 		 */
 		public static function plugin_update_banner() {
+			return;
 			global $current_screen;
 
 			if ( ! isset( $current_screen ) ) {

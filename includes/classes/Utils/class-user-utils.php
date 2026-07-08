@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Utils;
 
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
+
 use WP2FA\Methods\Backup_Codes;
 use WP2FA\Admin\Helpers\User_Helper;
 
@@ -66,8 +68,9 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 			// First let's see if the user already has a token.
 			$enabled_methods = User_Helper::get_enabled_method_for_user( $user );
 
+			$enforcement_policy  = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'enforcement-policy' );
 			$no_enforced_methods = false;
-			if ( 'do-not-enforce' === Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'enforcement-policy' ) ) {
+			if ( 'do-not-enforce' === $enforcement_policy || ( 'all-users' !== $enforcement_policy && ! User_Helper::is_user_enforced( $user ) && ! $is_user_excluded ) ) {
 				/**
 				 * Filter that gives methods ability to make themselves enforced even the global enforcement is off.
 				 *
@@ -80,6 +83,15 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 
 			$user_type = array();
 			// Order is important here - for speed optimizations see self::extract_statuses() function of that class - we probably need to redo the whole thing.
+
+			if ( $is_user_excluded ) {
+				$user_type[] = 'user_is_excluded';
+			}
+
+			if ( $is_user_locked ) {
+				$user_type[] = 'user_is_locked';
+			}
+
 			if ( $no_enforced_methods && ! empty( $enabled_methods ) ) {
 				$user_type[] = 'no_required_has_enabled';
 			}
@@ -102,14 +114,6 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 				} else {
 					$user_type[] = 'no_required_not_enabled';
 				}
-			}
-
-			if ( $is_user_excluded ) {
-				$user_type[] = 'user_is_excluded';
-			}
-
-			if ( $is_user_locked ) {
-				$user_type[] = 'user_is_locked';
 			}
 
 			if ( ! empty( $enabled_methods ) ) {
@@ -326,13 +330,13 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 		public static function get_human_readable_user_statuses() {
 			if ( null === self::$statuses ) {
 				self::$statuses = array(
-					'has_enabled_methods'                 => esc_html__( 'Configured', 'wp-2fa' ),
-					'user_needs_to_setup_2fa'             => esc_html__( 'Required but not configured', 'wp-2fa' ),
-					'no_required_has_enabled'             => esc_html__( 'Configured (but not required)', 'wp-2fa' ),
-					'no_required_not_enabled'             => esc_html__( 'Not required & not configured', 'wp-2fa' ),
-					'user_is_excluded'                    => esc_html__( 'Not allowed', 'wp-2fa' ),
-					'user_is_locked'                      => esc_html__( 'Locked', 'wp-2fa' ),
-					User_Helper::USER_UNDETERMINED_STATUS => esc_html__( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
+					'has_enabled_methods'                 => \esc_html__( 'Configured', 'wp-2fa' ),
+					'user_needs_to_setup_2fa'             => \esc_html__( 'Required but not configured', 'wp-2fa' ),
+					'no_required_has_enabled'             => \esc_html__( 'Configured (but not required)', 'wp-2fa' ),
+					'no_required_not_enabled'             => \esc_html__( 'Not required & not configured', 'wp-2fa' ),
+					'user_is_excluded'                    => \esc_html__( 'Not allowed', 'wp-2fa' ),
+					'user_is_locked'                      => \esc_html__( 'Locked', 'wp-2fa' ),
+					User_Helper::USER_UNDETERMINED_STATUS => \esc_html__( 'User has not logged in yet, 2FA status is unknown', 'wp-2fa' ),
 				);
 			}
 

@@ -148,8 +148,10 @@ if ( ! class_exists( '\WP2FA\Utils\Validator' ) ) {
 		 *
 		 * @since 2.8.0
 		 */
-		public static function validate_boolean( string $variable ): bool {
+		public static function validate_boolean( string|bool $variable ): bool {
 			$valid = true;
+
+			$variable = (string) $variable;
 
 			if ( false === ( $valid = self::filter_validate( $variable, 'bool' ) ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
 				self::$errors[] = 'Variable is not valid boolean' . "\n";

@@ -12,6 +12,7 @@
 namespace WP2FA\Admin\Controllers;
 
 use WP2FA\WP2FA;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Helpers\Methods_Helper;
 use WP2FA\Extensions\OutOfBand\Out_Of_Band;
@@ -133,6 +134,69 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 				'There are {available_methods_count} methods available to choose from for 2FA:',
 				'wp-2fa'
 			);
+		}
+
+		/**
+		 * Ensures that at least one primary method is enabled in the global policy.
+		 * If no primary methods remain after a credential-dependent method is removed,
+		 * falls back to enabling TOTP and Email (HOTP) as defaults.
+		 *
+		 * @return void
+		 *
+		 * @since 2.8.0
+		 */
+		public static function ensure_default_methods_available() {
+			$settings = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME );
+
+			if ( ! is_array( $settings ) ) {
+				$settings = array();
+			}
+
+			// Dynamically collect all primary method policy setting keys from registered providers.
+			$has_primary_method  = false;
+			$primary_method_keys = array();
+			$providers           = Settings::get_providers();
+
+			foreach ( $providers as $class => $slug ) {
+				if ( ! \defined( "$class::POLICY_SETTINGS_NAME" ) ) {
+					continue;
+				}
+				// Skip secondary methods (e.g. Backup Codes, Email Backup).
+				if ( \method_exists( $class, 'is_secondary' ) && $class::is_secondary() ) {
+					continue;
+				}
+				// Skip passkeys — passwordless methods don't count as primary 2FA methods.
+				if ( 'passkeys' === $slug ) {
+					continue;
+				}
+				$primary_method_keys[] = $class::POLICY_SETTINGS_NAME;
+			}
+
+			/**
+			 * Filters the list of primary method setting keys to check.
+			 *
+			 * @param array $primary_method_keys The method setting keys.
+			 *
+			 * @since 2.8.0
+			 */
+			$primary_method_keys = \apply_filters( WP_2FA_PREFIX . 'primary_method_keys', $primary_method_keys );
+
+			foreach ( $primary_method_keys as $method_key ) {
+				if ( ! empty( $settings[ $method_key ] ) ) {
+					$has_primary_method = true;
+					break;
+				}
+			}
+
+			if ( ! $has_primary_method ) {
+				// No primary methods remain — fall back to TOTP and Email.
+				$settings['enable_totp']  = 'enable_totp';
+				$settings['enable_email'] = 'enable_email';
+				WP2FA::update_plugin_settings( $settings );
+			}
+
+			// Reset the cached enabled methods so they are re-evaluated.
+			self::$enabled_methods = null;
 		}
 	}
 }

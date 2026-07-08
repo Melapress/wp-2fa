@@ -11,6 +11,7 @@
 
 namespace WP2FA\Admin\SettingsPages;
 
+use WP2FA\Admin\Settings_Page;
 use WP2FA\WP2FA;
 use WP2FA\Utils\Debugging;
 
@@ -24,6 +25,204 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 	 * @since 2.0.0
 	 */
 	class Settings_Page_White_Label {
+
+		/**
+		 * Initialize the settings page.
+		 *
+		 * @since 3.1.1.2
+		 */
+		public static function init() {
+
+			\add_action( WP_2FA_PREFIX . 'settings_new_ajax_save', array( __CLASS__, 'store_settings' ) );
+		}
+
+		/**
+		 * Handle saving Authy options to the site options from the new settings page.
+		 *
+		 * @param array $settings - The settings array with the new values.
+		 *
+		 * @return void
+		 *
+		 * @since 3.1.1.2
+		 */
+		public static function store_settings( array $settings ) {
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				\wp_die( \esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-2fa' ) );
+			}
+
+			if ( isset( $settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+				$options = self::validate_and_sanitize_new( \wp_unslash( $settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+				WP2FA::update_plugin_settings( $options, false, WP_2FA_WHITE_LABEL_SETTINGS_NAME );
+			}
+		}
+
+		/**
+		 * Validate options before saving
+		 *
+		 * @param array $input The settings array.
+		 *
+		 * @return array|void
+		 *
+		 * @since 3.1.1.2
+		 */
+		private static function validate_and_sanitize_new( $input ) {
+
+			$output = array();
+
+			$output['default-text-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-text-code-page', false, false );
+
+			if ( isset( $input['default-text-code-page'] ) && '' !== trim( (string) $input['default-text-code-page'] ) ) {
+				$output['default-text-code-page'] = \wp_kses_post( $input['default-text-code-page'] );
+			}
+
+			$output['default-backup-code-page'] = WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', false, false );
+
+			if ( isset( $input['default-backup-code-page'] ) && '' !== trim( (string) $input['default-backup-code-page'] ) ) {
+				$output['default-backup-code-page'] = \wp_strip_all_tags( $input['default-backup-code-page'] );
+			}
+
+			$output['login-to-view-area'] = WP2FA::get_wp2fa_white_label_setting( 'login-to-view-area', false, false );
+
+			if ( isset( $input['login-to-view-area'] ) && '' !== trim( (string) $input['login-to-view-area'] ) ) {
+				$output['login-to-view-area'] = \wp_strip_all_tags( $input['login-to-view-area'] );
+			}
+
+			$output['use_custom_2fa_message'] = WP2FA::get_wp2fa_white_label_setting( 'use_custom_2fa_message', false, false );
+
+			if ( isset( $input['use_custom_2fa_message'] ) && '' !== trim( (string) $input['use_custom_2fa_message'] ) ) {
+				$output['use_custom_2fa_message'] = \wp_strip_all_tags( $input['use_custom_2fa_message'] );
+			}
+
+			$output['custom-text-app-code-page']            = WP2FA::get_wp2fa_white_label_setting( 'custom-text-app-code-page', false, false );
+			$output['custom-text-email-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-email-code-page', false, false );
+			$output['custom-text-zero-email-code-page']     = WP2FA::get_wp2fa_white_label_setting( 'custom-text-zero-email-code-page', false, false );
+			$output['custom-text-authy-code-page-intro']    = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-intro', false, false );
+			$output['custom-text-authy-code-page-awaiting'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-awaiting', false, false );
+			$output['custom-text-authy-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page', false, false );
+			$output['custom-text-twilio-code-page']         = WP2FA::get_wp2fa_white_label_setting( 'custom-text-twilio-code-page', false, false );
+
+			if ( isset( $input['custom-text-app-code-page'] ) && '' !== trim( (string) $input['custom-text-app-code-page'] ) ) {
+				$output['custom-text-app-code-page'] = \wp_strip_all_tags( $input['custom-text-app-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-email-code-page'] ) && '' !== trim( (string) $input['custom-text-email-code-page'] ) ) {
+				$output['custom-text-email-code-page'] = \wp_strip_all_tags( $input['custom-text-email-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-zero-email-code-page'] ) && '' !== trim( (string) $input['custom-text-zero-email-code-page'] ) ) {
+				$output['custom-text-zero-email-code-page'] = \wp_strip_all_tags( $input['custom-text-zero-email-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-authy-code-page'] ) && '' !== trim( (string) $input['custom-text-authy-code-page'] ) ) {
+				$output['custom-text-authy-code-page'] = \wp_strip_all_tags( $input['custom-text-authy-code-page'] );
+			}
+
+			if ( isset( $input['custom-text-authy-code-page-intro'] ) && '' !== trim( (string) $input['custom-text-authy-code-page-intro'] ) ) {
+				$output['custom-text-authy-code-page-intro'] = \wp_strip_all_tags( $input['custom-text-authy-code-page-intro'] );
+			}
+
+			if ( isset( $input['custom-text-authy-code-page-awaiting'] ) && '' !== trim( (string) $input['custom-text-authy-code-page-awaiting'] ) ) {
+				$output['custom-text-authy-code-page-awaiting'] = \wp_strip_all_tags( $input['custom-text-authy-code-page-awaiting'] );
+			}
+
+			if ( isset( $input['custom-text-twilio-code-page'] ) && '' !== trim( (string) $input['custom-text-twilio-code-page'] ) ) {
+				$output['custom-text-twilio-code-page'] = \wp_strip_all_tags( $input['custom-text-twilio-code-page'] );
+			}
+
+			// If we have the input POSTed, we are on the right page so grab it.
+			if ( isset( $input['enable_wizard_styling'] ) && '' !== trim( (string) $input['enable_wizard_styling'] ) ) {
+				$output['enable_wizard_styling'] = \wp_strip_all_tags( $input['enable_wizard_styling'] );
+			} else {
+				$output['enable_wizard_styling'] = '';
+				$input['enable_wizard_styling']  = '';
+			}
+
+			if ( isset( $input['show_help_text'] ) && '' !== trim( (string) $input['show_help_text'] ) ) {
+				$output['show_help_text'] = \wp_strip_all_tags( $input['show_help_text'] );
+			} else {
+				// $input['show_help_text']  = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
+				// $output['show_help_text'] = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
+				$input['show_help_text']  = '';
+				$output['show_help_text'] = '';
+			}
+
+				// Same as above, but for the optional welcome.
+			if ( isset( $input['enable_welcome'] ) && '' !== trim( (string) $input['enable_welcome'] ) ) {
+				$output['enable_welcome'] = \wp_strip_all_tags( $input['enable_welcome'] );
+			} else {
+				$input['enable_welcome']  = '';
+				$output['enable_welcome'] = '';
+			}
+
+			if ( isset( $input['enable_wizard_logo'] ) && '' !== trim( (string) $input['enable_wizard_logo'] ) ) {
+				// Disable wizard logo if no logo image is set.
+				$logo_value = isset( $input['logo-code-page'] ) ? trim( (string) $input['logo-code-page'] ) : trim( (string) WP2FA::get_wp2fa_white_label_setting( 'logo-code-page', false ) );
+				if ( '' === $logo_value ) {
+					$output['enable_wizard_logo'] = '';
+					$input['enable_wizard_logo']  = '';
+				} else {
+					$output['enable_wizard_logo'] = \wp_strip_all_tags( $input['enable_wizard_logo'] );
+				}
+			} else {
+				$input['enable_wizard_logo']  = '';
+				$output['enable_wizard_logo'] = '';
+			}
+
+			if ( isset( $input['hide_page_generated_by'] ) && '' !== trim( (string) $input['hide_page_generated_by'] ) ) {
+				$output['hide_page_generated_by'] = 'hide_page_generated_by';
+			} else {
+				$input['hide_page_generated_by'] = false;
+			}
+
+
+			if ( isset( $input['login_custom_css'] ) && ! empty( $input['login_custom_css'] ) ) {
+				if ( preg_match( '#</?\w+#', $input['login_custom_css'] ) ) {
+					add_settings_error(
+						WP_2FA_SETTINGS_NAME,
+						\esc_attr( 'markup_invalid_settings_error' ),
+						\esc_html__( 'Markup is not allowed in Login area CSS.', 'wp-2fa' ),
+						'error'
+					);
+					$output['login_custom_css'] = WP2FA::get_wp2fa_white_label_setting( 'login_custom_css', false );
+					$input['login_custom_css']  = WP2FA::get_wp2fa_white_label_setting( 'login_custom_css', false );
+				} else {
+					$output['login_custom_css'] = \wp_strip_all_tags( $input['login_custom_css'] );
+					$input['login_custom_css']  = \wp_strip_all_tags( $input['login_custom_css'] );
+				}
+			}
+
+			if ( isset( $input['disable_login_css'] ) && '' !== trim( (string) $input['disable_login_css'] ) ) {
+				$output['disable_login_css'] = \wp_strip_all_tags( $input['disable_login_css'] );
+			} else {
+
+				$output['disable_login_css'] = '';
+				$input['disable_login_css']  = '';
+
+			}
+
+			// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
+			global $wp_settings_errors;
+			if ( isset( $wp_settings_errors ) ) {
+				$errors             = array_map( 'unserialize', array_unique( array_map( 'serialize', $wp_settings_errors ) ) );
+				$wp_settings_errors = $errors; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			}
+
+			/**
+			 * Filter the values we are about to store in the plugin settings.
+			 *
+			 * @param array $output - The output array with all the data we will store in the settings.
+			 * @param array $input - The input array with all the data we received from the user.
+			 *
+			 * @since 2.0.0
+			 */
+			$output = \apply_filters( WP_2FA_PREFIX . 'filter_output_content_white_label', $output, $input );
+
+			Debugging::log( 'The following settings are being saved (White Label): ' . "\n" . wp_json_encode( $output ) );
+
+			return $output;
+		}
 
 		/**
 		 * Render the settings
@@ -87,7 +286,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 
 			$output['custom-text-app-code-page']            = WP2FA::get_wp2fa_white_label_setting( 'custom-text-app-code-page', false, false );
 			$output['custom-text-email-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-email-code-page', false, false );
-			$output['custom-text-zero-email-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-zero-email-code-page', false, false );
+			$output['custom-text-zero-email-code-page']     = WP2FA::get_wp2fa_white_label_setting( 'custom-text-zero-email-code-page', false, false );
 			$output['custom-text-authy-code-page-intro']    = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-intro', false, false );
 			$output['custom-text-authy-code-page-awaiting'] = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page-awaiting', false, false );
 			$output['custom-text-authy-code-page']          = WP2FA::get_wp2fa_white_label_setting( 'custom-text-authy-code-page', false, false );
@@ -143,12 +342,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					$output['show_help_text'] = \wp_strip_all_tags( $input['show_help_text'] );
 				} else {
 					// Nothing was POSTed, check where we are in case that means we simple an empty/disabled checkbox.
-					if ( $request_area_path && ! strpos( $request_area['query'], 'method_selection' ) ) {
-						$input['show_help_text']  = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
-						$output['show_help_text'] = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
-					} else {
+					if ( $request_area_path && strpos( $request_area['query'], 'white-label-sub-section=welcome' ) ) {
 						$output['show_help_text'] = '';
 						$input['show_help_text']  = '';
+					} else {
+						$input['show_help_text']  = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
+						$output['show_help_text'] = WP2FA::get_wp2fa_white_label_setting( 'show_help_text', false );
 					}
 				}
 
@@ -164,7 +363,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				}
 
 				if ( isset( $input['enable_wizard_logo'] ) && '' !== trim( (string) $input['enable_wizard_logo'] ) ) {
-					$output['enable_wizard_logo'] = \wp_strip_all_tags( $input['enable_wizard_logo'] );
+					// Disable wizard logo if no logo image is set.
+					$logo_value = isset( $input['logo-code-page'] ) ? trim( (string) $input['logo-code-page'] ) : trim( (string) WP2FA::get_wp2fa_white_label_setting( 'logo-code-page', false ) );
+					if ( '' === $logo_value ) {
+						$output['enable_wizard_logo'] = '';
+						$input['enable_wizard_logo']  = '';
+					} else {
+						$output['enable_wizard_logo'] = \wp_strip_all_tags( $input['enable_wizard_logo'] );
+					}
 				} elseif ( strpos( $request_area['query'], 'white-label-sub-section' ) && strpos( $request_area['query'], 'welcome' ) ) {
 						$input['enable_wizard_logo']  = '';
 						$output['enable_wizard_logo'] = '';
@@ -176,7 +382,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				if ( isset( $input['hide_page_generated_by'] ) && '' !== trim( (string) $input['hide_page_generated_by'] ) ) {
 					$output['hide_page_generated_by'] = 'hide_page_generated_by';
 				} else {
-					$input['hide_page_generated_by']  = false;
+					$input['hide_page_generated_by'] = false;
 				}
 			}
 
@@ -249,13 +455,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				$options         = self::validate_and_sanitize( \wp_unslash( $_POST[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) );  // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$settings_errors = get_settings_errors( WP_2FA_WHITE_LABEL_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
-
+					Settings_Page::set_network_admin_notice( 'error', $settings_errors[0]['message'] );
 					// redirect back to our options page.
 					wp_safe_redirect(
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
-								'wp_2fa_network_settings_error' => urlencode_deep( $settings_errors[0]['message'] ),
 							),
 							network_admin_url( 'settings.php' )
 						)
@@ -265,14 +470,29 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 				}
 				WP2FA::update_plugin_settings( $options, false, WP_2FA_WHITE_LABEL_SETTINGS_NAME );
 
-				// redirect back to our options page.
+				Settings_Page::set_network_admin_notice( 'success' );
+				// redirect back to our options page, preserving the current tab/section.
+				$redirect_args = array(
+					'page' => 'wp-2fa-settings',
+					'tab'  => 'white-label-settings',
+				);
+
+				if ( isset( $_POST['_wp_http_referer'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+					$referer_parts = \wp_parse_url( \sanitize_text_field( \wp_unslash( $_POST['_wp_http_referer'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+					if ( ! empty( $referer_parts['query'] ) ) {
+						\wp_parse_str( $referer_parts['query'], $referer_params );
+						if ( ! empty( $referer_params['white-label-section'] ) ) {
+							$redirect_args['white-label-section'] = \sanitize_text_field( $referer_params['white-label-section'] );
+						}
+						if ( ! empty( $referer_params['white-label-sub-section'] ) ) {
+							$redirect_args['white-label-sub-section'] = \sanitize_text_field( $referer_params['white-label-sub-section'] );
+						}
+					}
+				}
+
 				wp_safe_redirect(
 					add_query_arg(
-						array(
-							'page' => 'wp-2fa-settings',
-							'tab'  => 'white-label-settings',
-							'wp_2fa_network_settings_updated' => 'true',
-						),
+						$redirect_args,
 						network_admin_url( 'admin.php' )
 					)
 				);
@@ -321,7 +541,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			<table class="form-table">
 				<tbody>
 					<tr>
-						<th><label for="2fa-method"><?php \esc_html_e( '2FA code page text', 'wp-2fa' ); ?></label></th>
+						<th><label for="wp-2fa-method"><?php \esc_html_e( '2FA code page text', 'wp-2fa' ); ?></label></th>
 						<td>
 							<?php
 
@@ -360,9 +580,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 					?>
 				</tbody>
 			</table>
-				<h3><?php \esc_html_e( 'Change the styling of the user 2FA wizards', 'wp-2fa' ); ?></h3>
+				<h3><?php \esc_html_e( 'Change the styling of the 2FA code page', 'wp-2fa' ); ?></h3>
 				<p class="description">
-					<?php \esc_html_e( 'By default, the user 2FA wizards which the users see and use to set up 2FA have our own styling. Disable the below setting so the wizards use the styling of your website\'s theme.', 'wp-2fa' ); ?>
+					<?php \esc_html_e( 'By default, the 2FA code page uses our own styling. Disable the setting below to make it inherit your website theme\'s styling instead.', 'wp-2fa' ); ?>
 				</p>
 				<table class="form-table">
 					<tbody>

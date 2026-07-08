@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Utils;
 
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
+
 use WP2FA\Admin\Helpers\User_Helper;
 
 if ( ! class_exists( '\WP2FA\Utils\Date_Time_Utils' ) ) {

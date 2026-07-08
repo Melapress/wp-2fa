@@ -246,7 +246,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 					Web_Authn::base64url_decode( $asse_rep['response']['authenticatorData'] ),
 					Web_Authn::base64url_decode( $asse_rep['response']['signature'] ),
 					$user_data['extra']['public_key'],
-					Web_Authn::base64url_decode( $challenge )
+					Web_Authn::base64url_decode( $challenge ),
+					null,
+					true
 				);
 			} catch ( \Throwable $e ) {
 				// Log details server-side only when WP_DEBUG is enabled, return generic error to client.

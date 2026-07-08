@@ -23,6 +23,7 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
+use WP2FA\Admin\Helpers\Email_Templates;
 use WP2FA\Admin\Methods\Traits\Providers;
 use WP2FA\Admin\Methods\Traits\Login_Attempts;
 use WP2FA\Admin\Methods\Traits\Settings_Trait;
@@ -395,11 +396,22 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 				$backup_methods,
 				array(
 					self::METHOD_NAME => array(
-						'wizard-step' => '2fa-wizard-config-backup-codes',
-						'button_name' => WP2FA::get_wp2fa_white_label_setting( 'backup_codes-select-method', true ),
+						'wizard-step' => 'wp-2fa-wizard-config-backup-codes',
+						'button_name' => self::get_select_method_label(),
 					),
 				)
 			);
+		}
+
+		/**
+		 * Returns the white-label select method label for backup codes.
+		 *
+		 * @return string
+		 *
+		 * @since 4.0.0
+		 */
+		public static function get_select_method_label(): string {
+			return (string) WP2FA::get_wp2fa_white_label_setting( 'backup_codes-select-method', true );
 		}
 
 		/**
@@ -474,6 +486,29 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			$codes_remaining = self::codes_remaining_for_user( $user );
 
 			return (bool) $codes_remaining;
+		}
+
+		/**
+		 * Checks if the user is required to setup backup codes (enabled for role and none generated yet).
+		 *
+		 * @param \WP_User|null $user - The WP user to check. Defaults to current user.
+		 *
+		 * @return bool True if the user must setup backup codes, false if optional.
+		 *
+		 * @since 4.0.0
+		 */
+		public static function user_needs_to_setup_backup_codes( $user = null ): bool {
+			$user = User_Helper::get_user_object( $user );
+
+			if ( ! \is_a( $user, '\WP_User' ) ) {
+				return false;
+			}
+
+			if ( ! self::are_backup_codes_enabled_for_role( User_Helper::get_user_role( $user ) ) ) {
+				return false;
+			}
+
+			return 0 === self::codes_remaining_for_user( $user );
 		}
 
 		/**
@@ -570,15 +605,23 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 *
 		 * @since 2.6.0
 		 */
-		public static function send_backup_codes_email( $user_id, $nominated_email_address = 'nominated_email_address' ) {
+		public static function send_backup_codes_email( $user_id = null, $nominated_email_address = 'nominated_email_address' ) {
+
+			$is_ajax = \wp_doing_ajax();
 
 			// If we have a nonce posted, check it.
-			if ( \wp_doing_ajax() && isset( $_POST['_wpnonce'] ) ) {
+			if ( $is_ajax && isset( $_POST['_wpnonce'] ) ) {
 				$nonce_check = \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['_wpnonce'] ) ), 'wp-2fa-send-backup-codes-email-nonce' );
 				if ( ! $nonce_check ) {
+					if ( $is_ajax ) {
+						\wp_send_json_error( 'Invalid nonce.' );
+					}
 					return false;
 				}
 			} else {
+				if ( $is_ajax ) {
+					\wp_send_json_error( 'Missing nonce.' );
+				}
 				\wp_die();
 			}
 
@@ -601,18 +644,30 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 				$stored_codes = self::get_backup_codes_for_user( $user );
 
 				foreach ( $posted_codes as $key => $check_code ) {
-					$check_code = trim( \explode( ':', $check_code )[1] );
+					$parts = \explode( ':', $check_code );
+					if ( ! isset( $parts[1] ) ) {
+						if ( $is_ajax ) {
+							\wp_send_json_error( 'Invalid codes format.' );
+						}
+						\wp_die();
+					}
+					$check_code = trim( $parts[1] );
 					if ( ! \wp_check_password( $check_code, $stored_codes[ $key ], $user->ID ) ) {
-
+						if ( $is_ajax ) {
+							\wp_send_json_error( 'Code verification failed.' );
+						}
 						\wp_die();
 					}
 				}
 			} else {
+				if ( $is_ajax ) {
+					\wp_send_json_error( 'No codes provided.' );
+				}
 				\wp_die();
 			}
 
-			$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_backup_codes_email_subject' ), $user->ID ) );
-			$message = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_backup_codes_email_body' ), $user->ID ) );
+			$subject = wp_strip_all_tags( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'user_backup_codes_email_subject' ), $user->ID ) );
+			$message = wpautop( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'user_backup_codes_email_body' ), $user->ID ) );
 
 			$final_output = str_replace( '{backup_codes}', $codes, $message );
 
@@ -622,7 +677,17 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 				$email_address = $user->user_email;
 			}
 
-			return Settings_Page::send_email( $email_address, $subject, $final_output );
+			$result = Settings_Page::send_email( $email_address, $subject, $final_output );
+
+			if ( $is_ajax ) {
+				if ( $result ) {
+					\wp_send_json_success();
+				} else {
+					\wp_send_json_error( 'Failed to send email.' );
+				}
+			}
+
+			return $result;
 		}
 
 		/**
@@ -649,15 +714,16 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 
 			$default_settings['backup_codes_intro_multi']    = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to configure a backup 2FA method in case you do not have access to the primary 2FA method to generate a code to log in. You can configure any of the below. You can always configure any or both from your user profile page later.', 'wp-2fa' ) . '</p>';
 			$default_settings['backup_codes_intro']          = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p>';
-			$default_settings['backup_codes_intro_continue'] = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Congratulations! You have enabled two-factor authentication for your user. You’ve just helped towards making this website more secure!', 'wp-2fa' ) . '</p><p>' . __( 'You should now generate the list of backup method. Although this is optional, it is highly recommended to have a secondary 2FA method. This can be used as a backup should the primary 2FA method fail. This can happen if, for example, you forget your smartphone, the smartphone runs out of battery, or there are email deliverability problems.', 'wp-2fa' ) . '</p>';
+			$default_settings['backup_codes_intro_continue'] = '<h3>' . __( 'Your login just got more secure', 'wp-2fa' ) . '</h3><p>' . __( 'Two-factor authentication is now enabled for your account. As a next step, we recommend setting up backup codes. These let you log in if you ever cannot use your main 2FA method, for example if you lose your phone, it runs out of battery, or you have trouble receiving emails. Each backup code works only once, so store them somewhere safe.', 'wp-2fa' ) . '</p><p>' . __( 'Backup codes are optional but strongly recommended. Click the button below to generate your list.', 'wp-2fa' ) . '</p>';
 			$default_settings['backup_codes_generate_intro'] = '<h3>' . __( 'Generate list of backup codes', 'wp-2fa' ) . '</h3><p>' . __( 'It is recommended to generate and print some backup codes in case you lose access to your primary 2FA method.', 'wp-2fa' ) . '</p>';
 			$default_settings['backup_codes_generated']      = '<h3>' . __( 'Backup codes generated', 'wp-2fa' ) . '</h3><p>' . __( 'Here are your backup codes:', 'wp-2fa' ) . '</p>';
 			$default_settings['backup_codes-select-method']      = sprintf(
 				/* translators: URL with more information about the backup codes */
 				esc_html__( 'Login with a backup code: you will get 10 backup codes and you can use one of them when you need to login and you cannot generate a code from the app. %s', 'wp-2fa' ),
-				'<a href="https://melapress.com/2fa-backup-codes/" target="_blank">' . esc_html__( 'More information.', 'wp-2fa' ) . '</a>'
+				'<a href="https://melapress.com/2fa-backup-codes/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=backup_codes_select_method_info" target="_blank">' . esc_html__( 'More information.', 'wp-2fa' ) . '</a>'
 			);
 			$default_settings['backup-codes-login-text'] = \esc_html__( 'Or, use a backup code.', 'wp-2fa' );
+			$default_settings['backup_codes_learn_more'] = '<a href="https://melapress.com/2fa-backup-codes/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=backup_codes_user_profile_help" target="_blank">' . \esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 
 			return $default_settings;
 		}

@@ -35,16 +35,26 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		public const PLUGIN_PAGES = array(
 			'wp-2fa_page_wp-2fa-settings',
 			'wp-2fa_page_wp-2fa-settings-network',
+			'wp-2fa_page_wp-2fa-settings-new',
+			'wp-2fa_page_wp-2fa-settings-new-network',
 			'toplevel_page_wp-2fa-policies',
 			'toplevel_page_wp-2fa-policies-network',
 			'wp-2fa_page_wp-2fa-reports',
 			'wp-2fa_page_wp-2fa-reports-network',
+			'wp-2fa_page_wp-2fa-reports-locked',
+			'wp-2fa_page_wp-2fa-reports-locked-network',
 			'wp-2fa_page_wp-2fa-help-contact-us',
 			'wp-2fa_page_wp-2fa-help-contact-us-network',
 			'wp-2fa_page_wp-2fa-premium-features',
 			'wp-2fa_page_wp-2fa-premium-features-network',
 			'wp-2fa_page_wp-2fa-policies-account',
 			'wp-2fa_page_wp-2fa-policies-account-network',
+			'wp-2fa_page_wp-2fa-passkeys',
+			'wp-2fa_page_wp-2fa-passkeys-network',
+			'wp-2fa_page_wp-2fa-white-labeling',
+			'wp-2fa_page_wp-2fa-white-labeling-network',
+			'wp-2fa_page_wp-2fa-about-us',
+			'wp-2fa_page_wp-2fa-about-us-network',
 		);
 
 		/**
@@ -131,19 +141,29 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				\add_action( 'network_admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
 				// @free:start
 				\add_action( 'network_admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ), 20 );
-				\add_action( 'network_admin_notices', array( __CLASS__, 'show_survey_banner' ), 20 );
+				// \add_action( 'network_admin_notices', array( __CLASS__, 'show_survey_banner' ), 20 );
 				// @free:end
 			} else {
 				\add_action( 'admin_notices', array( __CLASS__, 'show_critical_admin_notice' ) );
 				// @free:start
 				\add_action( 'admin_notices', array( __CLASS__, 'show_2025_security_survey_admin_notice' ), 20 );
-				\add_action( 'admin_notices', array( __CLASS__, 'show_survey_banner' ), 20 );
+				// \add_action( 'admin_notices', array( __CLASS__, 'show_survey_banner' ), 20 );
 				// @free:end
 			}
+		}
+
+		/**
+		 * Sets the ajax hooks for the plugin.
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		public static function set_ajax_hooks() {
 			// @free:start
 			\add_action( 'wp_ajax_wp_2fa_dismiss_extra_event_banner', array( __CLASS__, 'dismiss_extra_event_banner' ) );
 			\add_action( 'wp_ajax_wp_2fa_dismiss_survey_banner', array( __CLASS__, 'dismiss_survey_banner' ) );
-		\add_action( 'wp_ajax_wp_2fa_take_survey', array( __CLASS__, 'survey_taken' ) );
+			\add_action( 'wp_ajax_wp_2fa_take_survey', array( __CLASS__, 'survey_taken' ) );
 			// @free:end
 
 			\add_action( 'wp_ajax_dismiss_survey_notice', array( __CLASS__, 'dismiss_survey_notice' ) );
@@ -770,14 +790,14 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			if ( self::is_multisite() ) {
 				global $wpdb;
 				// Build query.
-				$sql =
-					'SELECT blog_id, domain FROM ' . $wpdb->blogs . ( ! is_null( $limit ) ? ' LIMIT ' . $limit : '' );
+				if ( ! is_null( $limit ) ) {
+					$sql = $wpdb->prepare( 'SELECT blog_id, domain FROM ' . $wpdb->blogs . ' LIMIT %d', (int) $limit );
+				} else {
+					$sql = 'SELECT blog_id, domain FROM ' . $wpdb->blogs;
+				}
 
 				// Execute query.
-				// Direct DB query used for performance/scoping. SQL is controlled and
-				// not influenced by user input here; ignore PHPCS DB preparation
-				// warnings for this internal helper.
-				$res = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+				$res = $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 				// Modify result.
 				foreach ( $res as $row ) {

@@ -139,7 +139,20 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 */
 		public static function get_setup_page_link( $force_show = false ) {
 			if ( '' === self::$setup_page_link ) {
-				self::$setup_page_link = self::get_custom_page_link();
+				if ( 'yes' === WP2FA::get_wp2fa_setting( 'create-custom-user-page' ) ) {
+					self::$setup_page_link = self::get_custom_page_link();
+				} else {
+					self::$setup_page_link = '';
+				}
+
+				// If no custom page link found yet, check if integrations (e.g. WooCommerce)
+				// provide a setup page link via the custom_setup_page_link filter.
+				if ( empty( self::$setup_page_link ) ) {
+					$integration_link = (string) \apply_filters( WP_2FA_PREFIX . 'custom_setup_page_link', '', null );
+					if ( ! empty( $integration_link ) ) {
+						self::$setup_page_link = $integration_link;
+					}
+				}
 
 				if ( empty( self::$setup_page_link ) ) {
 					if ( WP_Helper::is_multisite() ) {

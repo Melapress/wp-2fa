@@ -63,7 +63,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 		}
 
 		/**
-		 * Returns result by ID or GET parameters
+		 * Validates the 2FA provider token via POST request.
 		 *
 		 * @param \WP_REST_Request $request The request object.
 		 *
@@ -75,7 +75,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 
 			$request_parameters = $request->get_params();
 
-			if ( ! isset( $request_parameters['user_id'] ) ) {
+			if ( ! isset( $request_parameters['user_id'] ) || ! isset( $request_parameters['token'] ) || ! isset( $request_parameters['provider'] ) || ! isset( $request_parameters['login_nonce'] ) ) {
 				return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 400 ) );
 			}
 
@@ -86,9 +86,10 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 				return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 400 ) );
 			}
 
-			// Simple method enforcement; ensure only POST requests are honored.
-			if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
-				return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 405 ) );
+			// Verify the login nonce from user meta - this is our primary auth mechanism.
+			$login_nonce = \sanitize_text_field( $request_parameters['login_nonce'] );
+			if ( true !== Login::verify_login_nonce( $user_id, $login_nonce ) ) {
+				return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 403 ) );
 			}
 
 			if ( ! self::check_number_of_attempts( $user ) ) {
@@ -103,45 +104,10 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\API\API_Login' ) ) {
 
 			self::increase_login_attempts( $user );
 
-			$proceed = false;
-
-			if ( 0 !== \wp_get_current_user()->ID ) {
-				if ( \wp_get_current_user()->ID === $user_id ) {
-					// Optional action nonce for additional CSRF mitigation when already logged in.
-					$action_nonce = isset( $request_parameters['action_nonce'] ) ? $request_parameters['action_nonce'] : '';
-					if ( empty( $action_nonce ) || ! \wp_verify_nonce( $action_nonce, 'wp2fa_login_api_' . $user_id ) ) {
-						return new \WP_Error( 'invalid_request', 'Authentication failed.', array( 'status' => 400 ) );
-					}
-					$proceed = true;
-
-					// Requested 2fa login is for the currently logged-in user. Destroy the session and proceed.
-
-					// Invalidate the current login session to prevent from being re-used.
-					Login::destroy_current_session_for_user( \wp_get_current_user() );
-
-					// Also clear the cookies which are no longer valid.
-					\wp_clear_auth_cookie();
-				}
-			}
-
-			if ( ! $proceed ) {
-				// The user is not logged in - lets check for our nonce existence and expiration.
-
-				$proceed = true;
-
-				$login_nonce = \get_user_meta( $user_id, Login::USER_META_NONCE_KEY, true );
-				if ( ! $login_nonce || ! \is_array( $login_nonce ) || empty( $login_nonce ) || ! \key_exists( 'expiration', $login_nonce ) ) {
-					$proceed = false;
-				}
-
-				if ( $proceed && time() > $login_nonce['expiration'] ) {
-					Login::delete_login_nonce( $user_id );
-					$proceed = false;
-				}
-			}
-
-			if ( ! $proceed ) {
-				return new \WP_Error( 'invalid_request', 'Unauthorized user 2FA attempt', array( 'status' => 400 ) );
+			// If the user is still logged in (normal login → 2FA flow), destroy the session.
+			if ( 0 !== \wp_get_current_user()->ID && \wp_get_current_user()->ID === $user_id ) {
+				Login::destroy_current_session_for_user( \wp_get_current_user() );
+				\wp_clear_auth_cookie();
 			}
 
 			try {

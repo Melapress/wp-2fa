@@ -274,6 +274,13 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 				return new \WP_Error( 'not_found', 'Fingerprint not found.', array( 'status' => 404 ) );
 			}
 
+			// Only the passkey owner can revoke their own passkey.
+			$meta_key    = Source_Repository::PASSKEYS_META . $fingerprint;
+			$stored_meta = (string) \get_user_meta( $current_user->ID, $meta_key, true );
+			if ( '' === $stored_meta ) {
+				return new \WP_Error( 'forbidden', __( 'Insufficient permissions.', 'wp-2fa' ), array( 'status' => 403 ) );
+			}
+
 			try {
 				Source_Repository::delete_credential_source( $fingerprint, $current_user );
 			} catch ( \Exception $error ) {
@@ -339,7 +346,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 					return new \WP_Error( 'invalid_request', 'Wrong user.', array( 'status' => 400 ) );
 				}
 
-				// Allow the user themselves or an administrator with edit_user capability.
+				// Allow the user themselves or an administrator (manage_options).
 				$current = \wp_get_current_user();
 				if ( $current->ID !== $user->ID && ! \current_user_can( 'edit_user', $user->ID ) ) {
 					return new \WP_Error( 'forbidden', __( 'Insufficient permissions.', 'wp-2fa' ), array( 'status' => 403 ) );

@@ -1,0 +1,524 @@
+/**
+ * WP 2FA - User Profile Section Styles
+ *
+ * Card-based layout for the user profile 2FA settings.
+ * All selectors are prefixed with .wp2fa-profile to avoid conflicts.
+ * Mobile-friendly and frontend/shortcode compatible.
+ */
+
+/* =============================================
+   Container
+   ============================================= */
+.wp2fa-profile {
+	max-width: 960px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	line-height: 1.5;
+	box-sizing: border-box;
+	background: #fff;
+	border-radius: 8px;
+	padding: 24px;
+	border: 1px solid #dcdcde;
+	margin-top: 10px;
+}
+
+.wp2fa-profile *,
+.wp2fa-profile *::before,
+.wp2fa-profile *::after {
+	box-sizing: inherit;
+}
+
+/* =============================================
+   Header
+   ============================================= */
+.wp2fa-profile__title {
+	font-size: 1.5em;
+	font-weight: 700;
+	margin: 0 0 6px;
+	padding: 0;
+}
+
+.wp2fa-profile__desc {
+	margin: 0 0 20px;
+	font-size: 14px;
+}
+
+/* =============================================
+   Summary (Primary / Secondary methods)
+   ============================================= */
+.wp2fa-profile__summary {
+	margin-bottom: 24px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.wp2fa-profile__summary-row {
+	display: flex;
+	align-items: baseline;
+	padding: 6px 0;
+}
+
+.wp2fa-profile__summary-label {
+	font-weight: 700;
+	min-width: 180px;
+	flex-shrink: 0;
+	font-size: 14px;
+}
+
+.wp2fa-profile__summary-value {
+	font-size: 14px;
+}
+
+.wp2fa-profile__configure-now-link {
+	color: #2271b1;
+	text-decoration: underline;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.wp2fa-profile__configure-now-link:hover,
+.wp2fa-profile__configure-now-link:focus {
+	color: #135e96;
+}
+
+/* =============================================
+   Configuration Section Heading
+   ============================================= */
+.wp2fa-profile__section-title {
+	font-size: 1.2em;
+	font-weight: 700;
+	margin: 0 0 16px;
+}
+
+/* =============================================
+   Cards Grid
+   ============================================= */
+.wp2fa-profile__cards {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 20px;
+	margin-bottom: 24px;
+}
+
+/* =============================================
+   Card
+   ============================================= */
+.wp2fa-profile__card {
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	padding: 24px;
+	background: #fff;
+	color: #3c434a;
+}
+
+.wp2fa-profile__card-title {
+	font-size: 15px;
+	font-weight: 700;
+	margin: 0 0 16px;
+}
+
+/* =============================================
+   Buttons
+   ============================================= */
+.wp2fa-profile__btn {
+	display: inline-block;
+	padding: 8px 20px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.5;
+	text-decoration: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	border: 2px solid transparent;
+	margin: 0 8px 10px 0;
+	text-align: center;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.wp2fa-profile__btn:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+
+/* Primary (filled) */
+.wp2fa-profile__btn--primary {
+	background: #2271b1;
+	color: #fff;
+	border-color: #2271b1;
+}
+
+.wp2fa-profile__btn--primary:hover,
+.wp2fa-profile__btn--primary:focus {
+	background: #135e96;
+	border-color: #135e96;
+	color: #fff;
+}
+
+.wp2fa-profile__btn--primary:disabled,
+.wp2fa-profile__btn--primary[disabled] {
+	background: #a7aaad;
+	border-color: #a7aaad;
+	color: #fff;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+/* Secondary (outline) */
+.wp2fa-profile__btn--secondary {
+	background: #fff;
+	color: #2271b1;
+	border-color: #2271b1;
+}
+
+.wp2fa-profile__btn--secondary:hover,
+.wp2fa-profile__btn--secondary:focus {
+	background: #f0f6fc;
+	color: #135e96;
+	border-color: #135e96;
+}
+
+/* Danger (outline red) */
+.wp2fa-profile__btn--danger {
+	background: #fff;
+	color: #d63638;
+	border-color: #d63638;
+}
+
+.wp2fa-profile__btn--danger:hover,
+.wp2fa-profile__btn--danger:focus {
+	background: #fcf0f1;
+	color: #a00;
+	border-color: #a00;
+}
+
+.wp2fa-profile__btn--disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+/* =============================================
+   Button Group (stacked in card)
+   ============================================= */
+.wp2fa-profile__btn-group {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.wp2fa-profile__btn-group .wp2fa-profile__btn {
+	margin: 0;
+	display: block;
+	width: 100%;
+}
+
+/* =============================================
+   Status / Remaining text
+   ============================================= */
+.wp2fa-profile__status-text {
+	font-size: 13px;
+	margin: 4px 0 0;
+}
+
+.wp2fa-profile__status-text a {
+	color: #2271b1;
+	text-decoration: none;
+}
+
+.wp2fa-profile__status-text a:hover {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+/* =============================================
+   TOTP QR Code Details
+   ============================================= */
+.wp2fa-profile__totp-details {
+	margin-bottom: 16px;
+}
+
+.wp2fa-profile__totp-toggle {
+	display: inline-block;
+	padding: 8px 20px;
+	font-size: 13px;
+	font-weight: 600;
+	background: #2271b1;
+	color: #fff;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+.wp2fa-profile__totp-toggle:hover,
+.wp2fa-profile__totp-toggle:focus {
+	background: #135e96;
+}
+
+.wp2fa-profile__totp-content {
+	display: none;
+	margin-top: 12px;
+}
+
+.wp2fa-profile__totp-content.wp2fa-profile__totp-content--open {
+	display: block;
+}
+
+.wp2fa-profile__totp-qr {
+	max-width: 200px;
+	height: auto;
+	display: block;
+	margin-bottom: 10px;
+}
+
+.wp2fa-profile__totp-key-wrap {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.wp2fa-profile__totp-key-input {
+	flex: 1;
+	padding: 6px 10px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	font-family: monospace;
+	font-size: 13px;
+	max-width: 280px;
+}
+
+.wp2fa-profile__copy-btn {
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	background: #2271b1;
+	color: #fff;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	cursor: pointer;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	transition: background-color 0.15s ease;
+	box-sizing: border-box;
+	line-height: normal;
+	align-self: stretch;
+}
+
+.wp2fa-profile__copy-btn:hover,
+.wp2fa-profile__copy-btn:focus {
+	background: #135e96;
+}
+
+/* =============================================
+   Admin actions (for admin viewing other user)
+   ============================================= */
+.wp2fa-profile__admin-actions {
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+}
+
+.wp2fa-profile__admin-title {
+	font-size: 15px;
+	font-weight: 700;
+	margin: 0 0 12px;
+}
+
+.wp2fa-profile__admin-desc {
+	font-size: 13px;
+	margin: 0 0 12px;
+}
+
+/* =============================================
+   Confirmation Dialog (inline modal)
+   ============================================= */
+.wp2fa-profile__confirm-overlay {
+	position: fixed;
+	top: 0;
+	inset-inline-start: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.55);
+	z-index: 100060;
+	display: none;
+	align-items: center;
+	justify-content: center;
+}
+
+.wp2fa-profile__confirm-overlay.wp2fa-profile__confirm--open {
+	display: flex;
+}
+
+.wp2fa-profile__confirm-dialog {
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+	padding: 28px 32px;
+	max-width: 430px;
+	width: 94%;
+	text-align: center;
+	color: #3c434a;
+}
+
+.wp2fa-profile__confirm-dialog h3 {
+	margin: 0 0 8px;
+	font-size: 16px;
+}
+
+.wp2fa-profile__confirm-dialog p {
+	margin: 0 0 20px;
+	font-size: 14px;
+}
+
+.wp2fa-profile__confirm-icon {
+	margin: 0 auto 16px;
+	text-align: center;
+}
+
+.wp2fa-profile__confirm-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+}
+
+.wp2fa-profile__confirm-buttons--stacked {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+}
+
+.wp2fa-profile__confirm-cancel-link {
+	color: #3c5a99;
+	font-size: 14px;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.wp2fa-profile__confirm-cancel-link:hover {
+	text-decoration: underline;
+}
+
+/* =============================================
+   Excluded user notice
+   ============================================= */
+.wp2fa-profile__notice {
+	padding: 12px 16px;
+	border-inline-start: 4px solid #dba617;
+	background: #fcf9e8;
+	margin-bottom: 16px;
+	font-size: 14px;
+}
+
+/* =============================================
+   Backup Codes Generated dialog
+   ============================================= */
+.wp2fa-profile-backup-codes__icon {
+	margin: 0 auto 12px;
+}
+
+.wp2fa-profile-backup-codes__textarea {
+	display: block;
+	width: 80%;
+	max-width: 320px;
+	margin: 16px auto;
+	padding: 12px 16px;
+	font-family: monospace;
+	font-size: 14px;
+	line-height: 1.8;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	background: #f9f9f9;
+	resize: none;
+	color: #3c434a;
+}
+
+.wp2fa-profile-backup-codes__actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: center;
+	margin: 16px 0 8px;
+}
+
+.wp2fa-profile-backup-codes__action-btn {
+	width: 80%;
+	max-width: 320px;
+}
+
+.wp2fa-profile-backup-codes__close-wrap {
+	margin-top: 12px;
+}
+
+.wp2fa-profile-backup-codes__close-link {
+	color: #2271b1;
+	text-decoration: none;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.wp2fa-profile-backup-codes__close-link:hover {
+	text-decoration: underline;
+}
+
+.wp2fa-profile-backup-codes__status {
+	font-size: 13px;
+	margin-top: 10px;
+}
+
+/* =============================================
+   Responsive
+   ============================================= */
+@media (max-width: 782px) {
+	.wp2fa-profile__cards {
+		grid-template-columns: 1fr;
+	}
+
+	.wp2fa-profile__summary-row {
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.wp2fa-profile__summary-label {
+		min-width: 0;
+	}
+}
+
+@media (max-width: 480px) {
+	.wp2fa-profile__card {
+		padding: 16px;
+	}
+
+	.wp2fa-profile__title {
+		font-size: 1.3em;
+	}
+}
+
+/* =============================================
+   Frontend / Shortcode wrapper
+   Ensures consistent appearance when rendered
+   outside wp-admin (e.g., shortcode, WooCommerce).
+   ============================================= */
+.wp-2fa-shortcode-wrapper .wp2fa-profile {
+	max-width: 100%;
+}
+
+.wp-2fa-shortcode-wrapper .wp2fa-profile__btn {
+	font-family: inherit;
+}
+
+/* WooCommerce My Account context */
+.woocommerce-MyAccount-content .wp2fa-profile {
+	max-width: 100%;
+}
+
+.woocommerce-MyAccount-content .wp2fa-profile__cards {
+	grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 782px) {
+	.woocommerce-MyAccount-content .wp2fa-profile__cards {
+		grid-template-columns: 1fr;
+	}
+}

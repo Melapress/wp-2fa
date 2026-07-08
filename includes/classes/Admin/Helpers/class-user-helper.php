@@ -27,8 +27,9 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
 use WP2FA\Licensing\Licensing_Factory;
+use WP2FA\Admin\Helpers\Email_Templates;
+use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
 
 /*
  * User's settings class
@@ -391,7 +392,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		public static function get_login_date_for_user( $user = null ) {
 			self::set_proper_user( $user );
 
-			return self::get_meta( self::USER_RESET_PASSWORD_VALID );
+			return self::get_meta( self::USER_LOGIN_DATE );
 		}
 
 		/**
@@ -1254,6 +1255,19 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				}
 			}
 
+			// For super admin-based policies, always verify live since super admin status can
+			// change independently of the plugin settings (no settings hash change occurs).
+			if ( self::USER_STATE_STATUSES['enforced'] === $state && WP_Helper::is_multisite() ) {
+				$current_policy = Settings_Utils::get_setting_role( self::get_user_role( self::get_user()->ID ), 'enforcement-policy' );
+				if ( 'superadmins-only' === $current_policy || 'superadmins-siteadmins-only' === $current_policy ) {
+					if ( ! self::run_user_enforcement_check( self::get_user() ) ) {
+						self::set_user_state( self::USER_STATE_STATUSES['optional'], self::get_user() );
+
+						return false;
+					}
+				}
+			}
+
 			return (bool) ( self::USER_STATE_STATUSES['enforced'] === $state );
 		}
 
@@ -1362,7 +1376,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 		 */
 		public static function send_expired_grace_email( $user_id ) {
 			// Bail if the user has not enabled this email.
-			if ( 'enable_account_locked_email' !== WP2FA::get_wp2fa_email_templates( 'send_account_locked_email' ) ) {
+			if ( 'enable_account_locked_email' !== Email_Templates::get_wp2fa_email_templates( 'send_account_locked_email' ) ) {
 				return false;
 			}
 
@@ -1384,10 +1398,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				return false;
 			}
 
-			$subject_raw = WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_subject' ), $user_id );
+			$subject_raw = Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'user_account_locked_email_subject' ), $user_id );
 			$subject     = wp_strip_all_tags( $subject_raw );
 			$subject     = sanitize_text_field( $subject );
-			$message     = wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
+			$message     = wpautop( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'user_account_locked_email_body' ), $user_id ) );
 			// Sanitize HTML for email: allow a reasonable set of tags.
 			$message = \wp_kses_post( $message );
 
@@ -1445,7 +1459,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 
 			// Do not lock if user has 2FA configured.
 			$has_enabled_method = self::get_2fa_status();
-			if ( 'has_enabled_methods' === $has_enabled_method ) {
+			if ( 'has_enabled_methods' === $has_enabled_method || ! empty( self::get_enabled_method_for_user( self::get_user() ) ) ) {
 				return false;
 			}
 
@@ -1470,6 +1484,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				if ( true === $should_be_locked ) {
 					// Set the user account as locked.
 					self::set_meta( self::USER_LOCKED_STATUS, true );
+					// Update the 2FA status to reflect the locked state.
+					self::set_2fa_status( 'user_is_locked' );
 				} else {
 					// Remove the user account lock.
 					self::remove_meta( self::USER_LOCKED_STATUS );
@@ -1501,8 +1517,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 					// Send the email to alert the user, only if we have not done so before.
 					$account_notification = get_user_meta( self::get_user()->ID, WP_2FA_PREFIX . 'locked_account_notification', true );
 					if ( ! $account_notification ) {
-						self::send_expired_grace_email( self::get_user()->ID );
-						self::set_meta( WP_2FA_PREFIX . 'locked_account_notification', true );
+						$email_sent = self::send_expired_grace_email( self::get_user()->ID );
+						if ( $email_sent ) {
+							self::set_meta( WP_2FA_PREFIX . 'locked_account_notification', true );
+						}
 					}
 				}
 

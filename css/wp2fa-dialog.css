@@ -1,0 +1,379 @@
+/**
+ * WP 2FA – Unified Dialog Styles
+ *
+ * Styles for the vanilla JS dialog utility (wp2fa-dialog.js).
+ * Works on both admin and frontend contexts.
+ *
+ * @package wp-2fa
+ * @since   4.0.0
+ */
+
+/* =============================================
+   Overlay / Backdrop
+   ============================================= */
+.wp2fa-dialog-overlay {
+	position: fixed;
+	top: 0;
+	inset-inline-start: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.65);
+	z-index: 100100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: wp2faDialogFadeIn 0.2s ease;
+}
+
+@keyframes wp2faDialogFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* =============================================
+   Modal Container
+   ============================================= */
+.wp2fa-dialog-modal {
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+	width: 90%;
+	max-height: 80vh;
+	overflow-y: auto;
+	position: relative;
+	animation: wp2faDialogSlideIn 0.2s ease;
+}
+
+@keyframes wp2faDialogSlideIn {
+	from {
+		transform: translateY(-12px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+/* Size variants */
+.wp2fa-dialog-overlay--small .wp2fa-dialog-modal {
+	max-width: 400px;
+}
+
+.wp2fa-dialog-overlay--medium .wp2fa-dialog-modal {
+	max-width: 520px;
+}
+
+.wp2fa-dialog-overlay--large .wp2fa-dialog-modal {
+	max-width: 640px;
+}
+
+/* =============================================
+   Header
+   ============================================= */
+.wp2fa-dialog-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 24px 0;
+}
+
+.wp2fa-dialog-title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+	line-height: 1.4;
+}
+
+.wp2fa-dialog-close {
+	background: none;
+	border: none;
+	font-size: 22px;
+	line-height: 1;
+	color: #787c82;
+	cursor: pointer;
+	padding: 4px 8px;
+	border-radius: 3px;
+	transition: color 0.15s ease, background 0.15s ease;
+}
+
+.wp2fa-dialog-close:hover,
+.wp2fa-dialog-close:focus {
+	color: #1d2327;
+	background: #f0f0f1;
+	outline: none;
+}
+
+/* =============================================
+   Body
+   ============================================= */
+.wp2fa-dialog-body {
+	padding: 16px 24px;
+	color: #50575e;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.wp2fa-dialog-body p {
+	margin: 0 0 12px;
+}
+
+.wp2fa-dialog-body p:last-child {
+	margin-bottom: 0;
+}
+
+/* =============================================
+   Buttons
+   ============================================= */
+.wp2fa-dialog-buttons {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	padding: 4px 24px 20px;
+}
+
+.wp2fa-dialog-buttons .button {
+	min-width: 80px;
+	text-align: center;
+}
+
+/* =============================================
+   Footer Note
+   ============================================= */
+.wp2fa-dialog-note {
+	margin: 0;
+	padding: 0 24px 20px;
+	font-size: 12px;
+	color: #787c82;
+	font-style: italic;
+	line-height: 1.5;
+}
+
+.wp2fa-premium-badge {
+	cursor: pointer;
+}
+
+/* Reset badge visual styles when used on locked tab labels */
+.tab-label--locked.wp2fa-premium-badge {
+	/* padding: 0; */
+	border: none;
+	border-radius: 0;
+	background: none;
+	font-size: inherit;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	color: inherit;
+	margin-right: 0;
+}
+
+/* =============================================
+   Premium Badge Dialog – Modal Skin
+   ============================================= */
+.wp2fa-dialog-overlay--large .wp2fa-premium-dialog-modal {
+	max-width: 580px;
+	border-radius: 8px;
+	box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+}
+
+.wp2fa-premium-dialog-modal .wp2fa-dialog-header {
+	padding: 28px 28px 0;
+	align-items: flex-start;
+}
+
+.wp2fa-premium-dialog-modal .wp2fa-dialog-title {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	font-size: 22px;
+	line-height: 1.3;
+	font-weight: 700;
+	color: #3c434a;
+	width: 80%;
+}
+
+.wp2fa-premium-dialog-modal .wp2fa-dialog-title::before {
+	content: '';
+	display: inline-block;
+	width: 44px;
+	height: 44px;
+	flex: 0 0 44px;
+	background-repeat: no-repeat;
+	background-size: contain;
+	background-position: center;
+	margin-top: 2px;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='33' height='49' viewBox='0 0 33 49' fill='none'%3E%3Cpath d='M10.7607 16.2846L18.7944 8.17949L26.9017 0H13.414H0V8.17949V16.2846L2.65332 13.6077L5.38035 10.8564L8.03367 13.6077L10.7607 16.2846Z' fill='%2399FFFF'/%3E%3Cpath d='M32.2074 48.9278V37.997V27.1406L21.5205 37.997L10.7598 48.7791L21.5205 48.8534L32.2074 48.9278Z' fill='%233E6BFF'/%3E%3Cpath d='M10.7607 27.1406L8.03367 24.3893L5.38035 21.7124L2.65332 18.9611L0 16.2841V27.1406V37.997L2.65332 35.2457L5.38035 32.5688L8.03367 35.2457L10.7607 37.997L18.7944 29.8175L26.9017 21.7124L29.555 24.3893L32.2084 27.1406V16.2841V5.42773L21.5214 16.2841L10.7607 27.1406Z' fill='%2340D3F0'/%3E%3C/svg%3E");
+}
+
+.wp2fa-premium-dialog-modal .wp2fa-dialog-close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	font-size: 28px;
+	color: #50575e;
+	padding: 4px 8px;
+}
+
+.wp2fa-premium-dialog-modal .wp2fa-dialog-body {
+	padding: 16px 28px 28px;
+}
+
+.wp2fa-dialog-title-highlight {
+	color: #2271b1;
+	display: contents;
+}
+
+/* ── Premium dialog body layout ── */
+.wp2fa-premium-dialog {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.wp2fa-premium-dialog-intro,
+.wp2fa-premium-dialog-description {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.5;
+	color: #50575e;
+}
+
+/* ── Checkmark list – same pattern as wp2fa-reports-teaser-list ── */
+.wp2fa-premium-dialog-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.wp2fa-premium-dialog-list-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.wp2fa-premium-dialog-list-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #2271b1;
+	flex-shrink: 0;
+	position: relative;
+}
+
+.wp2fa-premium-dialog-list-icon::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 17px;
+	height: 17px;
+	transform: translate(-50%, -50%);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+
+.wp2fa-premium-dialog-list-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.wp2fa-premium-dialog-list-title {
+	font-size: 16px;
+	line-height: 1.2;
+	font-weight: 600;
+	color: #3c434a;
+}
+
+.wp2fa-premium-dialog-list-description {
+	font-size: 14px;
+	line-height: 1.34;
+	color: #646970;
+}
+
+.wp2fa-premium-dialog-screenshot {
+	display: block;
+	width: 100%;
+	height: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	background: #f6f7f7;
+}
+
+/* ── CTA button – same style as wp2fa-top-bar-upgrade ── */
+.wp2fa-premium-dialog-cta {
+	display: inline-block;
+	align-self: flex-start;
+	background: #3d6b9e;
+	color: #fff;
+	padding: 7px 16px;
+	border-radius: 4px;
+	font-size: 13px;
+	font-weight: 500;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: background 0.2s ease;
+}
+
+.wp2fa-premium-dialog-cta:hover,
+.wp2fa-premium-dialog-cta:focus {
+	background: #1a2238;
+	color: #fff;
+	text-decoration: none;
+}
+
+.wp2fa-premium-dialog-modal .wp2fa-dialog-buttons {
+	display: none;
+}
+
+/* =============================================
+   Responsive
+   ============================================= */
+@media screen and (max-width: 480px) {
+	.wp2fa-dialog-modal {
+		width: 95%;
+	}
+
+	.wp2fa-dialog-header,
+	.wp2fa-dialog-body,
+	.wp2fa-dialog-buttons,
+	.wp2fa-dialog-note {
+		padding-inline-start: 16px;
+		padding-inline-end: 16px;
+	}
+
+	.wp2fa-dialog-buttons {
+		flex-direction: column;
+	}
+
+	.wp2fa-dialog-buttons .button {
+		width: 100%;
+	}
+
+	.wp2fa-premium-dialog-modal .wp2fa-dialog-header {
+		padding: 16px 16px 0;
+	}
+
+	.wp2fa-premium-dialog-modal .wp2fa-dialog-title {
+		font-size: 18px;
+	}
+
+	.wp2fa-premium-dialog-modal .wp2fa-dialog-title::before {
+		width: 34px;
+		height: 34px;
+		flex-basis: 34px;
+	}
+
+	.wp2fa-premium-dialog-modal .wp2fa-dialog-body {
+		padding: 12px 16px 20px;
+	}
+}

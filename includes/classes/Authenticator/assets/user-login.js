@@ -6,7 +6,7 @@ async function authenticate( nonce) {
 	let token, remember_device, provider = '';
 
 	const loginForm = document.getElementById('loginform');
-	let wp_2fa_submit = document.getElementById('submit');
+	let wp_2fa_submit = document.getElementById('wp-submit');
 
 	let user_id = document.getElementById('wp-auth-id');
 	if (!user_id) {
@@ -42,17 +42,40 @@ async function authenticate( nonce) {
 		remember_device = true;
 	}
 
-	// GET the response to the endpoint that calls.
+	// POST the 2FA token to the validation endpoint.
 	try {
 
-		let path = '/wp-2fa-methods/v1/login/' + user_id + '/' + token + '/' + provider + ((remember_device) ? '/' + remember_device : '');
+		let login_nonce = document.getElementById('wp-auth-nonce');
+		if (!login_nonce) {
+			showError(wp.i18n.__('Login nonce not found.'));
+			throw new Error('Login nonce not found.');
+		}
+		login_nonce = login_nonce.value;
 
-		const response = await window.wp.apiFetch({
-			path: path,
-			method: 'GET',
-			cache: 'no-cache',
-			nonce: nonce,
+		const body = {
+			user_id: parseInt(user_id, 10),
+			token: token,
+			provider: provider,
+			login_nonce: login_nonce,
+		};
+
+		if (remember_device) {
+			body.remember_device = true;
+		}
+
+		const res = await window.fetch(wp2faLogin.restRoot + 'wp-2fa-methods/v1/login/validate', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(body),
 		});
+		const response = await res.json();
+
+		if (!res.ok) {
+			showError(response.message || wp.i18n.__('Authentication failed.'));
+			loginForm.classList.add('shake');
+			wp_2fa_submit.removeAttribute("disabled");
+			throw new Error(response.message || 'Authentication failed.');
+		}
 
 		if (true !== response.status) {
 			showError(response.message);
@@ -101,19 +124,19 @@ function showError(message) {
 	const loginForm = document.getElementById('loginform');
 	loginForm.classList.remove('shake');
 
-	let wp_2fa_submit = document.getElementById('submit');
+	let wp_2fa_submit = document.getElementById('wp-submit');
 	wp_2fa_submit.removeAttribute("disabled");
 
 
 	if ( document.getElementById('login_error') ) {
-		document.getElementById('login_error').innerHTML = message;
+		document.getElementById('login_error').textContent = message;
 	} else {
 
 		// Create Error element if not exists.
 		const errorElement = document.createElement('div');
 		errorElement.id = 'login_error';
 		errorElement.className = 'notice notice-error';
-		errorElement.innerHTML = message;
+		errorElement.textContent = message;
 		errorElement.style.cssText = 'font-weight: bold;';
 
 		// Add error element before login form.
@@ -124,7 +147,7 @@ function showError(message) {
 }
 
 function onClick() {
-	let wp_2fa_submit = document.getElementById('submit');
+	let wp_2fa_submit = document.getElementById('wp-submit');
 	wp_2fa_submit.addEventListener('click', function (event) {
 
 		nonce = wp_2fa_submit.dataset.nonce;
@@ -137,7 +160,7 @@ function onClick() {
 }
 
 window.wp.domReady(async () => {
-	let wp_2fa_submit = document.getElementById('submit');
+	let wp_2fa_submit = document.getElementById('wp-submit');
 	if (wp_2fa_submit) {
 		onClick();
 	}

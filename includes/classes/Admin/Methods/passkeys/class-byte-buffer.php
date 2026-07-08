@@ -27,7 +27,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys\Byte_Buffer' ) ) {
 	 * Modified by Lukas Buchs
 	 * Thanks Thomas for your work!
 	 */
-	class Byte_Buffer implements \JsonSerializable, \Serializable {
+	class Byte_Buffer implements \JsonSerializable {
 
 		/**
 		 * Undocumented variable
@@ -427,7 +427,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys\Byte_Buffer' ) ) {
 		 * @since 3.0.0
 		 */
 		public function unserialize( $serialized ) {
-			$this->data   = \unserialize( $serialized );
+			$this->data   = \unserialize( $serialized, array( 'allowed_classes' => false ) );
 			$this->length = \strlen( $this->data );
 		}
 
@@ -466,7 +466,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys\Byte_Buffer' ) ) {
 		 */
 		public function __unserialize( $data ) {
 			if ( $data && isset( $data['data'] ) ) {
-				$this->data   = \unserialize( $data['data'] );
+				$this->data   = \unserialize( $data['data'], array( 'allowed_classes' => false ) );
 				$this->length = \strlen( $this->data );
 			}
 		}

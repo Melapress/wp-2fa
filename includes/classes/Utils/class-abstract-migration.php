@@ -104,7 +104,7 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 		 *
 		 * @since 1.6.0
 		 */
-		protected static $pad_length = 3;
+		protected static $pad_length = 4;
 
 		/**
 		 * Collects all the migration methods which needs to be executed in order and executes them
@@ -121,14 +121,13 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 				$target_version_as_number  = static::normalize_version( \constant( static::$const_name_of_plugin_version ) );
 				$method_as_version_numbers = static::get_all_migration_methods_as_numbers();
 
+				$stored          = (int) $stored_version_as_number;
+				$target          = (int) $target_version_as_number;
 				$migrate_methods = array_filter(
 					$method_as_version_numbers,
-					function ( $method, $key ) use ( &$stored_version_as_number, &$target_version_as_number ) {
-						if ( $target_version_as_number > $stored_version_as_number ) {
-							return ( in_array( $key, range( $stored_version_as_number, $target_version_as_number ), true ) );
-						}
-
-						return false;
+					function ( $method, $key ) use ( $stored, $target ) {
+						$ver = (int) self::normalize_version( (string) $key );
+						return ( $target > $stored ) && ( $ver > $stored ) && ( $ver <= $target );
 					},
 					ARRAY_FILTER_USE_BOTH
 				);

@@ -35,13 +35,100 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 		public const TOP_MENU_SLUG = 'wp-2fa-passkeys';
 
 		/**
-		 * Renders the settings.
+		 * Initialize hooks for the passkeys settings page.
+		 *
+		 * @since 3.1.1.2
+		 */
+		public static function init() {
+			\add_action(
+				'admin_enqueue_scripts',
+				function ( $hook ) {
+					$allowed_hooks = array(
+						'wp-2fa_page_' . self::TOP_MENU_SLUG,
+						'wp-2fa_page_' . self::TOP_MENU_SLUG . '-network',
+					);
+
+					$page = isset( $_GET['page'] ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+					if ( ! \in_array( $hook, $allowed_hooks, true ) && self::TOP_MENU_SLUG !== $page ) {
+						return;
+					}
+
+					\wp_enqueue_style(
+						'wp_2fa_admin_settings',
+						WP_2FA_URL . 'includes/assets/css/settings.css',
+						array(),
+						WP_2FA_VERSION
+					);
+				}
+			);
+		}
+
+		/**
+		 * Renders the settings using the new template system.
 		 *
 		 * @return void
 		 *
 		 * @since 2.0.0
 		 */
 		public static function render() {
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			$user      = \wp_get_current_user();
+			$main_user = ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) ) ? (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) : \get_current_user_id();
+
+			if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== $user->ID ) {
+				echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+				return;
+			}
+
+			\do_action( WP_2FA_PREFIX . 'before_plugin_settings_passkeys' );
+
+			if ( WP_Helper::is_multisite() ) {
+				$action = 'edit.php?action=update_wp2fa_network_options';
+			} else {
+				$action = 'options.php';
+			}
+			?>
+			<div class="wp-2fa-settings-wrapper wp-2fa-policies-new">
+				<div class="page-header">
+				</div>
+
+				<form id="wp-2fa-admin-settings" action="<?php echo \esc_attr( $action ); ?>" method="post" autocomplete="off" data-disabled-note="<?php echo \esc_attr__( 'Please select at least one role to save.', 'wp-2fa' ); ?>">
+					<?php \settings_fields( WP_2FA_PASSKEYS_SETTINGS_NAME ); ?>
+
+					<div class="main-settings-new">
+						<div class="wrap main-left">
+							<?php include \WP_2FA_PATH . '/includes/classes/Admin/Settings/templates/passkeys/passkeys-settings.php'; ?>
+						</div>
+
+						<?php include \WP_2FA_PATH . '/includes/classes/Admin/Settings/templates/sidebar.php'; ?>
+					</div>
+
+					<div class="save-footer">
+						<?php \submit_button( \esc_html__( 'Save settings', 'wp-2fa' ), 'primary', 'submit', false ); ?>
+						<?php if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+							<span class="wp2fa-save-notice wp2fa-save-notice--success" style="margin-left:12px;font-weight:500;color:#00a32a;"><?php \esc_html_e( 'Settings saved.', 'wp-2fa' ); ?></span>
+							<script>setTimeout(function(){var n=document.querySelector('.save-footer .wp2fa-save-notice');if(n)n.remove();},3500);</script>
+						<?php endif; ?>
+					</div>
+				</form>
+			</div>
+			<?php
+		}
+
+		/**
+		 * Renders the settings (old / legacy interface).
+		 *
+		 * Kept for backward compatibility — not called anywhere.
+		 *
+		 * @return void
+		 *
+		 * @since 2.0.0
+		 */
+		public static function render_old() {
 			if ( ! \current_user_can( 'manage_options' ) ) {
 				return;
 			}
@@ -169,7 +256,11 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 												?>
 												<div>
 													<label for="passkeys-enabled-role-<?php echo \esc_attr( $role ); ?>">
-														<input type="checkbox" id="passkeys-enabled-role-<?php echo \esc_attr( $role ); ?>" value="yes" name="wp_2fa_passkeys[enabled_roles][<?php echo \esc_attr( $role ); ?>]" <?php if ( Passkeys::is_enabled( $role ) ) { ?>checked="checked"<?php } ?>><?php echo \esc_html( $value ); ?>
+														<input type="checkbox" id="passkeys-enabled-role-<?php echo \esc_attr( $role ); ?>" value="yes" name="wp_2fa_passkeys[enabled_roles][<?php echo \esc_attr( $role ); ?>]" 
+																																								<?php
+																																								if ( Passkeys::is_enabled( $role ) ) {
+																																									?>
+															checked="checked"<?php } ?>><?php echo \esc_html( $value ); ?>
 													</label>
 												</div>
 												<?php
@@ -344,7 +435,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 			foreach ( $simple_settings_we_can_loop as $simple_setting ) {
 				if ( ! in_array( $simple_setting, $settings_to_turn_into_bools, true ) ) {
 					// Is item is not one of our possible settings we want to turn into a bool, process.
-					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( (string) sanitize_text_field( $input[ $simple_setting ] ) ) : false;
+					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? trim( (string) \sanitize_text_field( $input[ $simple_setting ] ) ) : false;
 				} else {
 					// This item is one we treat as a bool, so process correctly.
 					$output[ $simple_setting ] = ( isset( $input[ $simple_setting ] ) && ! empty( $input[ $simple_setting ] ) ) ? true : false;
@@ -446,6 +537,11 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 				\remove_filter( WP_2FA_PREFIX . 'filter_output_content', array( Role_Settings_Controller::class, 'validate_and_sanitize' ), 10, 2 );
 			}
 
+			// Remove the policy sanitize callback so that update_option( 'wp_2fa_policy' ) does
+			// not funnel the value through Settings_Page_Policies::validate_and_sanitize(),
+			// which would strip out the passkeys keys it does not know about.
+			\remove_filter( 'sanitize_option_' . WP_2FA_POLICY_SETTINGS_NAME, array( Settings_Page_Policies::class, 'validate_and_sanitize' ) );
+
 			// WordPress saves the option to the database, but we still need to do some work when the settings are saved.
 			WP2FA::update_plugin_settings( $settings );
 
@@ -467,24 +563,32 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 			 */
 			\do_action( WP_2FA_PREFIX . 'after_settings_save', Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() ) );
 
+			// Remove the general-settings sanitize callback so that update_option( 'wp_2fa_settings' )
+			// does not funnel the value through Settings_Page_General::validate_and_sanitize().
+			\remove_filter( 'sanitize_option_' . WP_2FA_SETTINGS_NAME, array( Settings_Page_General::class, 'validate_and_sanitize' ) );
+
+			// Read from WP_2FA_SETTINGS_NAME (general settings), NOT from WP_2FA_POLICY_SETTINGS_NAME
+			// (policy settings). Previously the code read from the policy option and wrote to the
+			// general-settings option, completely overwriting all general settings with policy data.
+			$options = Settings_Utils::get_option( WP_2FA_SETTINGS_NAME, array() );
+
 			if ( isset( $_POST[ WP_2FA_SETTINGS_NAME . 'pass' ]['skip_2fa_for_passkeys'] ) && true === (bool) $_POST[ WP_2FA_SETTINGS_NAME . 'pass' ]['skip_2fa_for_passkeys'] ) {
-				$options                          = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() );
 				$options['skip_2fa_for_passkeys'] = true;
 			} else {
-				$options                          = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() );
 				$options['skip_2fa_for_passkeys'] = false;
 			}
 
 			WP2FA::update_plugin_settings( $options, false, WP_2FA_SETTINGS_NAME );
 
-			Settings_Utils::update_option( self::TOP_MENU_SLUG, $options );
-
-			\wp_safe_redirect( \add_query_arg(
-				array(
-					'page'                           => self::TOP_MENU_SLUG,
-				),
-				\network_admin_url( 'admin.php' )
-			) );
+			\wp_safe_redirect(
+				\add_query_arg(
+					array(
+						'page'             => self::TOP_MENU_SLUG,
+						'settings-updated' => 'true',
+					),
+					\network_admin_url( 'admin.php' )
+				)
+			);
 			exit;
 
 			remove_filter( 'sanitize_option_' . self::TOP_MENU_SLUG, array( __CLASS__, 'validate_and_sanitize' ) );
@@ -507,15 +611,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 
 			if ( isset( $_POST[ WP_2FA_PASSKEYS_SETTINGS_NAME ] ) ) {
 				\check_admin_referer( WP_2FA_PASSKEYS_SETTINGS_NAME . '-options' );
-				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_PASSKEYS_SETTINGS_NAME])); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$options         = self::validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_PASSKEYS_SETTINGS_NAME ] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$settings_errors = \get_settings_errors( WP_2FA_PASSKEYS_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
+					Settings_Page::set_network_admin_notice( 'error', $settings_errors[0]['message'] );
 					// redirect back to our options page.
 					\wp_safe_redirect(
 						\add_query_arg(
 							array(
 								'page' => Settings_Page::TOP_MENU_SLUG,
-								'wp_2fa_network_settings_error' => urlencode_deep( $settings_errors[0]['message'] ),
 							),
 							\network_admin_url( 'admin.php' )
 						)
@@ -524,12 +628,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 				}
 				WP2FA::update_plugin_settings( $options );
 
+				Settings_Page::set_network_admin_notice( 'success' );
 				// redirect back to our options page.
 				\wp_safe_redirect(
 					\add_query_arg(
 						array(
-							'page' => self::TOP_MENU_SLUG,
-							'wp_2fa_network_settings_updated' => 'true',
+							'page'             => self::TOP_MENU_SLUG,
+							'settings-updated' => 'true',
 						),
 						\network_admin_url( 'admin.php' )
 					)

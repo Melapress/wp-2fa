@@ -47,30 +47,36 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 
 					'endpoints' => array(
 						array(
-							'(?P<user_id>\d+)(?:/(?P<token>\w+))(?:/(?P<provider>\w+))(?:/(?P<remember_device>\w+))?' => array(
+							'validate' => array(
 								'methods'          => array(
-									'method'   => \WP_REST_Server::READABLE,
+									'method'   => \WP_REST_Server::CREATABLE,
 									'callback' => 'validate_provider',
 								),
 								'args'             => array(
 									'user_id'         => array(
-										'required'    => true,
-										'type'        => 'integer',
-										'description' => 'User ID',
-										'minimum'     => 1,
+										'required'          => true,
+										'type'              => 'integer',
+										'description'       => 'User ID',
+										'minimum'           => 1,
 										'sanitize_callback' => 'absint',
 									),
 									'token'           => array(
-										'required'    => false,
-										'type'        => 'string',
-										'description' => 'Provider token',
-										'minLength'     => 3,
+										'required'          => true,
+										'type'              => 'string',
+										'description'       => 'Provider token',
+										'sanitize_callback' => 'sanitize_text_field',
 									),
-									'provider'           => array(
-										'required'    => false,
-										'type'        => 'string',
-										'description' => 'Provider name',
-										'minLength'     => 3,
+									'provider'        => array(
+										'required'          => true,
+										'type'              => 'string',
+										'description'       => 'Provider name',
+										'sanitize_callback' => 'sanitize_text_field',
+									),
+									'login_nonce'     => array(
+										'required'          => true,
+										'type'              => 'string',
+										'description'       => 'Login nonce from user meta',
+										'sanitize_callback' => 'sanitize_text_field',
 									),
 									'remember_device' => array(
 										'required'    => false,
@@ -97,6 +103,7 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 		public static function init() {
 
 			\add_action( 'rest_api_init', array( __CLASS__, 'init_endpoints' ) );
+			\add_filter( 'rest_authentication_errors', array( __CLASS__, 'bypass_cookie_nonce_for_login' ), 101 );
 
 			/**
 			 * Enables the API endpoints for the plugin.
@@ -176,6 +183,32 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 		}
 
 		/**
+		 * Bypasses the WordPress REST cookie nonce check for our login validation endpoint.
+		 *
+		 * The login endpoint uses its own authentication mechanism (login nonce stored in user meta)
+		 * and has permission_callback => '__return_true'. When the user session is destroyed mid-request
+		 * (e.g. passkey → 2FA flow), the browser may still send a stale auth cookie on the subsequent
+		 * REST request, triggering a nonce validation failure. This filter clears that error for our
+		 * specific endpoint only.
+		 *
+		 * @param \WP_Error|null|true $errors WP_Error if authentication error, null if not yet handled, true if authenticated.
+		 *
+		 * @return \WP_Error|null|true
+		 *
+		 * @since 4.0.0
+		 */
+		public static function bypass_cookie_nonce_for_login( $errors ) {
+			if ( \is_wp_error( $errors ) && 'rest_cookie_invalid_nonce' === $errors->get_error_code() ) {
+				$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+				if ( false !== strpos( $request_uri, 'wp-2fa-methods/v1/login' ) ) {
+					return null;
+				}
+			}
+
+			return $errors;
+		}
+
+		/**
 		 * Removes GoDaddy style which causing the form elements to be shown
 		 *
 		 * @return void
@@ -187,9 +220,17 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 			\wp_register_script(
 				'wp_2fa_user_login_scripts',
 				WP_2FA_URL . 'includes/classes/Authenticator/assets/user-login.js',
-				array( 'wp-api-fetch', 'wp-dom-ready' ),
+				array( 'wp-dom-ready', 'wp-i18n' ),
 				WP_2FA_VERSION,
 				array( 'in_footer' => true )
+			);
+
+			\wp_localize_script(
+				'wp_2fa_user_login_scripts',
+				'wp2faLogin',
+				array(
+					'restRoot' => \esc_url_raw( \get_rest_url() ),
+				)
 			);
 		}
 	}

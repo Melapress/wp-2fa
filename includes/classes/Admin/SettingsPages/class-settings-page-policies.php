@@ -110,7 +110,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						} else {
 							$action = 'options.php';
 						}
-						if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && '2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+						if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && 'wp-2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 							?>
 						<br/>
 							<?php
@@ -171,7 +171,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		private static function new_page_created( $role = '' ) {
 			$role = ( is_null( $role ) || empty( $role ) || 'global' === $role ) ? '' : $role;
 			// Check if new user page has been published.
-			if ( ! empty( get_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role ) ) ) {
+			if ( ! empty( \get_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role ) ) ) {
 				\delete_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role );
 				$new_page_id = Settings_Utils::get_setting_role( $role, 'custom-user-page-id' );
 				if ( empty( $new_page_id ) ) {
@@ -179,7 +179,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				}
 
 				if ( $new_page_id > 0 ) {
-					$new_page_permalink = get_permalink( $new_page_id );
+					$new_page_permalink = \get_permalink( $new_page_id );
 
 					$new_page_modal_content  = '<h3>' . \esc_html__( 'The plugin created the 2FA settings page with the URL:', 'wp-2fa' ) . '</h3>';
 					$new_page_modal_content .= '<h4><a target="_blank" href="' . \esc_url( $new_page_permalink ) . '">' . \esc_url( $new_page_permalink ) . '</a></h4>';
@@ -356,6 +356,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				} else {
 					$output['grace-period'] = (int) $input['grace-period'];
 				}
+			} else {
+				$output['grace-period'] = 1;
 			}
 
 
@@ -365,6 +367,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] ) || ( isset( $input['create-custom-user-page'] ) && 'no' === $input['create-custom-user-page'] ) ) {
 				$output['create-custom-user-page'] = sanitize_text_field( $input['create-custom-user-page'] );
+			} else {
+				$output['create-custom-user-page'] = 'no';
 			}
 
 			if ( ( isset( $input['create-custom-user-page'] ) && 'yes' === $input['create-custom-user-page'] ) && isset( $input['custom-user-page-url'] ) && ! empty( $input['custom-user-page-url'] ) ) {
@@ -419,7 +423,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					$output['custom-user-page-id']         = '';
 					$output['separate-multisite-page-url'] = '';
 					$output['hide_page_generated_by']      = '';
-					\wp_delete_post( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ), true );
+					$cp_id = (int) WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
+					if ( $cp_id > 0 && ! is_null( get_post( $cp_id ) ) ) {
+						\wp_delete_post( $cp_id, true );
+					}
 				}
 			}
 
@@ -568,12 +575,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_POLICY_SETTINGS_NAME])); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$settings_errors = get_settings_errors( WP_2FA_POLICY_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
+					Settings_Page::set_network_admin_notice( 'error', $settings_errors[0]['message'] );
 					// redirect back to our options page.
 					\wp_safe_redirect(
 						\add_query_arg(
 							array(
 								'page' => Settings_Page::TOP_MENU_SLUG,
-								'wp_2fa_network_settings_error' => \urlencode_deep( $settings_errors[0]['message'] ),
 							),
 							\network_admin_url( 'admin.php' )
 						)
@@ -582,12 +589,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				}
 				WP2FA::update_plugin_settings( $options );
 
+				Settings_Page::set_network_admin_notice( 'success' );
 				// redirect back to our options page.
 				wp_safe_redirect(
 					add_query_arg(
 						array(
 							'page' => Settings_Page::TOP_MENU_SLUG,
-							'wp_2fa_network_settings_updated' => 'true',
 						),
 						network_admin_url( 'admin.php' )
 					)
@@ -634,12 +641,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			);
 
 			// Lets insert the post now.
-			$result = wp_insert_post( $post_data );
+			$result = \wp_insert_post( $post_data );
 
-			if ( $result && ! is_wp_error( $result ) ) {
+			if ( $result && ! \is_wp_error( $result ) ) {
 				$post_id = $result;
-				set_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role, true, 60 );
-				set_site_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role, true, 60 );
+				\set_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role, true, 60 );
+				\set_site_transient( WP_2FA_PREFIX . 'new_custom_page_created' . $role, true, 60 );
 
 				return $post_id;
 			}
@@ -914,7 +921,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			<br>
 			<h3><?php \esc_html_e( 'Should users be asked to setup 2FA instantly or should they have a grace period?', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php \esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 10 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-grace-period/?#utm_source=plugin&utm_medium=wp2fa&utm_campaign=grace_period_settings" target="_blank"><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
+				<?php \esc_html_e( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 90 days.', 'wp-2fa' ); ?> <a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-grace-period/?#utm_source=plugin&utm_medium=wp2fa&utm_campaign=grace_period_settings" target="_blank"><?php \esc_html_e( 'Learn more.', 'wp-2fa' ); ?></a>
 			</p>
 
 			<table class="form-table">

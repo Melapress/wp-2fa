@@ -19,10 +19,11 @@ use WP2FA\Admin\User_Profile;
 use WP2FA\Admin\FlyOut\FlyOut;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Authenticator\Login;
-use WP2FA\Utils\Request_Utils;
 use WP2FA\Methods\Backup_Codes;
 use WP2FA\Utils\Settings_Utils;
-use WP2FA\Admin\Help_Contact_Us;
+use WP2FA\Admin\About_Us;
+use WP2FA\Admin\Docs_And_Support;
+use WP2FA\Admin\License_Page;
 use WP2FA\Admin\User_Registered;
 use WP2FA\Shortcodes\Shortcodes;
 use WP2FA\Utils\Date_Time_Utils;
@@ -38,13 +39,23 @@ use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Controllers\Endpoints;
 use WP2FA\Admin\Plugin_Updated_Notice;
+use WP2FA\Admin\New_Interface_Notice;
+use WP2FA\Admin\Free_Support_Notice;
+use WP2FA\Admin\Top_Bar_Banner;
+use WP2FA\Licensing\Licensing_Factory;
 use WP2FA\Passkeys\Pending_2FA_Helper;
 use WP2FA\Admin\Helpers\Classes_Helper;
 use WP2FA\Admin\Helpers\Methods_Helper;
 use WP2FA\Authenticator\Reset_Password;
+use WP2FA\Admin\Helpers\Email_Templates;
 use WP2FA\Admin\Views\Password_Reset_2FA;
+use WP2FA\Admin\SettingsPages\Settings_Page_New;
+use WP2FA\Admin\SettingsPages\Settings_Page_Policies_New;
+use WP2FA\Admin\SettingsPages\Settings_Page_Passkeys;
+use WP2FA\Admin\SettingsPages\Settings_Page_White_Labeling_New;
+use WP2FA\Admin\SettingsPages\Setup_Wizard_New;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
-use WP2FA\Licensing\Licensing_Factory;
+use WP2FA\Admin\Wizard_Integration;
 
 if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 	/**
@@ -93,7 +104,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 *
 		 * @var array
 		 */
-		protected static $wp_2fa_email_templates;
+		// protected static $wp_2fa_email_templates;
 
 		/**
 		 * Array with all the plugin default settings.
@@ -135,6 +146,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 					'superadmins-role-add'             => 'no',
 					'superadmins-role-exclude'         => 'no',
 					'method_invalid_setting'           => 'login_block',
+					'use_new_interface'                => true,
 				);
 				/**
 				 * Gives the ability to filter the default settings array of the plugin
@@ -172,12 +184,26 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			);
 
 			Methods_Helper::init();
+			Settings_Page_New::init();
+			Settings_Page_Policies_New::init();
+			Settings_Page_Passkeys::init();
+			Settings_Page_White_Labeling_New::init();
+			Setup_Wizard_New::init();
 
 			self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ]      = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() );
 			self::$plugin_settings[ WP_2FA_SETTINGS_NAME ]             = Settings_Utils::get_option( WP_2FA_SETTINGS_NAME, array() );
 			self::$plugin_settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] = ( ! empty( Settings_Utils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME, array() ) ) ) ? Settings_Utils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME, array() ) : White_Label::get_default_settings();
 
-			self::$wp_2fa_email_templates = Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME );
+			// If policy settings ended up empty but the settings hash exists, it means
+			// settings were previously configured but got corrupted/wiped. Restore defaults
+			// to keep the plugin functional. This does NOT trigger if the plugin was never
+			// configured (no hash = first-time install, handled by the wizard).
+			if ( empty( self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] ) && Settings_Utils::get_option( WP_2FA_PREFIX . 'settings_hash' ) ) {
+				self::update_plugin_settings( self::get_default_settings() );
+				self::$plugin_settings[ WP_2FA_POLICY_SETTINGS_NAME ] = self::get_default_settings();
+			}
+
+			// self::$wp_2fa_email_templates = Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME );
 
 			White_Label::init();
 
@@ -194,12 +220,13 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			}
 
 
-			WP_Helper::init();
+			WP_Helper::set_ajax_hooks();
 
 			// Bootstrap.
 			Core\setup();
 
 			if ( \is_admin() && ! \wp_doing_ajax() ) {
+				WP_Helper::init();
 				User_Listing::init();
 				// Hide all unrelated to the plugin notices on the plugin admin pages.
 				\add_action( 'admin_print_scripts', array( WP_Helper::class, 'hide_unrelated_notices' ) );
@@ -211,8 +238,11 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			Shortcodes::init();
 			\add_action( 'after_setup_theme', array( User_Notices::class, 'init' ), 10 );
-			\add_action( 'after_setup_theme', array( FlyOut::class, 'init' ), 10 );
+			// \add_action( 'after_setup_theme', array( FlyOut::class, 'init' ), 10 );
 			Plugin_Updated_Notice::init();
+			New_Interface_Notice::init();
+			Free_Support_Notice::init();
+			Top_Bar_Banner::init();
 
 			self::add_actions();
 
@@ -252,6 +282,9 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				\add_action( 'admin_init', array( Setup_Wizard::class, 'setup_page' ), 10 );
 			}
 
+			// Redirect when the interface mode has changed and the old page slug is requested.
+			\add_action( 'admin_init', array( Settings_Page::class, 'redirect_on_interface_switch' ), 1 );
+
 			// SettingsPage.
 			if ( WP_Helper::is_multisite() ) {
 				\add_action( 'network_admin_menu', array( Settings_Page::class, 'create_settings_admin_menu_multisite' ) );
@@ -290,19 +323,22 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			\add_action( 'wp_logout', array( User_Notices::class, 'reset_nag' ), 10, 1 );
 
 			// User_Profile.
-			global $pagenow;
-			if ( 'profile.php' === $pagenow || 'user-edit.php' === $pagenow ) {
-				\add_action( 'show_user_profile', array( User_Profile::class, 'inline_2fa_profile_form' ) );
-				\add_action( 'edit_user_profile', array( User_Profile::class, 'inline_2fa_profile_form' ) );
-				if ( WP_Helper::is_multisite() ) {
-					\add_action( 'personal_options_update', array( User_Profile::class, 'save_user_2fa_options' ) );
-				}
-			}
+			// global $pagenow;
+			// if ( 'profile.php' === $pagenow || 'user-edit.php' === $pagenow ) {
+			// 	\add_action( 'show_user_profile', array( User_Profile::class, 'inline_2fa_profile_form' ) );
+			// 	\add_action( 'edit_user_profile', array( User_Profile::class, 'inline_2fa_profile_form' ) );
+			// 	if ( WP_Helper::is_multisite() ) {
+			// 		\add_action( 'personal_options_update', array( User_Profile::class, 'save_user_2fa_options' ) );
+			// 	}
+			// }
 			\add_filter( 'user_row_actions', array( User_Profile::class, 'user_2fa_row_actions' ), 10, 2 );
 			if ( WP_Helper::is_multisite() ) {
 				\add_filter( 'ms_user_row_actions', array( User_Profile::class, 'user_2fa_row_actions' ), 10, 2 );
 			}
 			\add_action( 'wp_ajax_validate_authcode_via_ajax', array( User_Profile::class, 'validate_authcode_via_ajax' ) );
+
+			// New extensible JS wizard.
+			Wizard_Integration::init();
 			\add_action( 'wp_ajax_wp2fa_test_email', array( Ajax_Helper::class, 'handle_send_test_email_ajax' ) );
 
 			// Login.
@@ -331,6 +367,10 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			// User Register.
 			\add_action( 'set_user_role', array( User_Registered::class, 'check_user_upon_role_change' ), 10, 3 );
 
+			// Super admin status changes (not a role, so set_user_role doesn't fire).
+			\add_action( 'granted_super_admin', array( User_Helper::class, 'remove_global_settings_hash_for_user' ) );
+			\add_action( 'revoked_super_admin', array( User_Helper::class, 'remove_global_settings_hash_for_user' ) );
+
 			// User is removed from multisite.
 			\add_action( 'remove_user_from_blog', array( User_Helper::class, 'remove_global_settings_hash_for_user' ) );
 
@@ -339,7 +379,14 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			\add_action( $user_block_hook, array( __CLASS__, 'block_unconfigured_users_from_admin' ), 10 );
 
 			// Help & Contact Us.
-			\add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( Help_Contact_Us::class, 'add_extra_menu_item' ) );
+			\add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( Docs_And_Support::class, 'add_extra_menu_item' ) );
+
+			// About Us.
+			// \add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( About_Us::class, 'add_extra_menu_item' ) );
+
+			// License.
+			\add_action( WP_2FA_PREFIX . 'after_admin_menu_created', array( License_Page::class, 'add_extra_menu_item' ) );
+			License_Page::register_ajax_handlers();
 
 			// @free:start
 			// Premium Features.
@@ -347,8 +394,6 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			\add_action( WP_2FA_PREFIX . 'before_plugin_settings', array( Premium_Features::class, 'add_settings_banner' ) );
 			\add_action( 'admin_footer', array( Premium_Features::class, 'pricing_new_tab_js' ) );
 			// @free:end
-
-			\add_action( 'admin_footer', array( User_Profile::class, 'dismiss_nag_notice' ) );
 
 			\add_action( WP_2FA_PREFIX . 'user_authenticated', array( __CLASS__, 'clear_user_after_login' ), 10, 1 );
 
@@ -458,7 +503,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				'/\{(.*?)\}/',
 				function( $matches ) {
 					$key         = $matches[1];
-					$replacement = self::get_wp2fa_white_label_setting( $key );
+					$replacement = self::get_wp2fa_white_label_setting( $key, true );
 					return ( isset( $replacement ) && ! empty( trim( $replacement ) ) ) ? $replacement : $matches[0]; // keep original if key not found.
 				},
 				$input
@@ -542,119 +587,119 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		public static function get_wp2fa_email_templates( $setting_name = '' ) {
+		// public static function get_wp2fa_email_templates( $setting_name = '' ) {
 
-			// If we have no setting name, return what ever is saved.
-			if ( empty( $setting_name ) ) {
-				return self::$wp_2fa_email_templates;
-			}
+		// 	// If we have no setting name, return what ever is saved.
+		// 	if ( empty( $setting_name ) ) {
+		// 		return self::$wp_2fa_email_templates;
+		// 	}
 
-			// If we have a saved setting, return it.
-			if ( $setting_name && isset( self::$wp_2fa_email_templates[ $setting_name ] ) ) {
-				return self::$wp_2fa_email_templates[ $setting_name ];
-			}
+		// 	// If we have a saved setting, return it.
+		// 	if ( $setting_name && isset( self::$wp_2fa_email_templates[ $setting_name ] ) ) {
+		// 		return self::$wp_2fa_email_templates[ $setting_name ];
+		// 	}
 
-			// Create Login Code Message.
-			$login_code_subject = __( 'Your login confirmation code for {site_name}', 'wp-2fa' );
+		// 	// Create Login Code Message.
+		// 	$login_code_subject = __( 'Your login confirmation code for {site_name}', 'wp-2fa' );
 
-			$login_code_body  = '<p>' . \esc_html__( 'Hello {user_display_name},', 'wp-2fa' ) . '</p>';
-			$login_code_body .= '<p>' . \esc_html__( 'You are trying to log in to {site_name} using the username {user_login_name}. To complete your login, please enter the following one-time 2FA code:', 'wp-2fa' ) . '</p>';
-			$login_code_body .= '<p>' . \esc_html__( '{login_code}', 'wp-2fa' ) . '</p>';
-			$login_code_body .= '<p>' . \esc_html__( 'Enter this code on the login page to finish the authentication process and access your account.', 'wp-2fa' ) . '</p>';
-			$login_code_body .= '<p>' . \esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ) . '</p>';
-			$login_code_body .= '<p>' . \esc_html__( 'If you encounter any other issues logging in, feel free to contact us at {admin_email}.', 'wp-2fa' ) . '</p>';
-			$login_code_body .= '<p>' . \esc_html__(
-				'Kind regards,
-				The {site_name} Team',
-				'wp-2fa'
-			) . '</p>';
+		// 	$login_code_body  = '<p>' . \esc_html__( 'Hello {user_display_name},', 'wp-2fa' ) . '</p>';
+		// 	$login_code_body .= '<p>' . \esc_html__( 'You are trying to log in to {site_name} using the username {user_login_name}. To complete your login, please enter the following one-time 2FA code:', 'wp-2fa' ) . '</p>';
+		// 	$login_code_body .= '<p>' . \esc_html__( '{login_code}', 'wp-2fa' ) . '</p>';
+		// 	$login_code_body .= '<p>' . \esc_html__( 'Enter this code on the login page to finish the authentication process and access your account.', 'wp-2fa' ) . '</p>';
+		// 	$login_code_body .= '<p>' . \esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ) . '</p>';
+		// 	$login_code_body .= '<p>' . \esc_html__( 'If you encounter any other issues logging in, feel free to contact us at {admin_email}.', 'wp-2fa' ) . '</p>';
+		// 	$login_code_body .= '<p>' . \esc_html__(
+		// 		'Kind regards,
+		// 		The {site_name} Team',
+		// 		'wp-2fa'
+		// 	) . '</p>';
 
 
-			$login_code_setup_subject = __( 'Your 2FA Setup Verification Code for {site_name}', 'wp-2fa' );
+		// 	$login_code_setup_subject = __( 'Your 2FA Setup Verification Code for {site_name}', 'wp-2fa' );
 
-			$login_code_setup_body  = '<p>' . \esc_html__( 'Hello {user_display_name},', 'wp-2fa' ) . '</p>';
-			$login_code_setup_body .= '<p>' . \esc_html__( 'You have requested to set up two-factor authentication for your user {user_login_name} on the website {site_name} ({site_url}).', 'wp-2fa' ) . '</p>';
+		// 	$login_code_setup_body  = '<p>' . \esc_html__( 'Hello {user_display_name},', 'wp-2fa' ) . '</p>';
+		// 	$login_code_setup_body .= '<p>' . \esc_html__( 'You have requested to set up two-factor authentication for your user {user_login_name} on the website {site_name} ({site_url}).', 'wp-2fa' ) . '</p>';
 
-			$login_code_setup_body .= '<p>' . sprintf(
-			// translators: The login code provided from the plugin.
-				\esc_html__( 'Please enter the following code to complete your setup: %1$1s', 'wp-2fa' ),
-				'<strong>{login_code}</strong>'
-			);
-			$login_code_setup_body .= '</p>';
-			$login_code_setup_body .= '<p>' . \esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ) . '</p>';
-			$login_code_setup_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
-			$login_code_setup_body .= '<p>' . \esc_html__( 'The {site_name} Team', 'wp-2fa' );
-			$login_code_setup_body .= '</p>';
+		// 	$login_code_setup_body .= '<p>' . sprintf(
+		// 	// translators: The login code provided from the plugin.
+		// 		\esc_html__( 'Please enter the following code to complete your setup: %1$1s', 'wp-2fa' ),
+		// 		'<strong>{login_code}</strong>'
+		// 	);
+		// 	$login_code_setup_body .= '</p>';
+		// 	$login_code_setup_body .= '<p>' . \esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ) . '</p>';
+		// 	$login_code_setup_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
+		// 	$login_code_setup_body .= '<p>' . \esc_html__( 'The {site_name} Team', 'wp-2fa' );
+		// 	$login_code_setup_body .= '</p>';
 
-			// Create User Locked Message.
-			$user_locked_subject = __( 'Your user on {site_name} has been locked', 'wp-2fa' );
+		// 	// Create User Locked Message.
+		// 	$user_locked_subject = __( 'Your user on {site_name} has been locked', 'wp-2fa' );
 
-			$user_locked_body  = '<p>' . \esc_html__( 'Hello.', 'wp-2fa' ) . '</p>';
-			$user_locked_body .= '<p>' . sprintf(
-			// translators: %1s - the name of the user
-			// translators: %2s - the name of the site.
-				\esc_html__( 'Since you have not enabled two-factor authentication for the user %1$1s on the website %2$2s within the grace period, your account has been locked.', 'wp-2fa' ),
-				'{user_login_name}',
-				'{site_name}'
-			);
-			$user_locked_body .= '</p>';
-			$user_locked_body .= '<p>' . \esc_html__( 'Contact your website administrator to unlock your account.', 'wp-2fa' ) . '</p>';
-			$user_locked_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
+		// 	$user_locked_body  = '<p>' . \esc_html__( 'Hello.', 'wp-2fa' ) . '</p>';
+		// 	$user_locked_body .= '<p>' . sprintf(
+		// 	// translators: %1s - the name of the user
+		// 	// translators: %2s - the name of the site.
+		// 		\esc_html__( 'Since you have not enabled two-factor authentication for the user %1$1s on the website %2$2s within the grace period, your account has been locked.', 'wp-2fa' ),
+		// 		'{user_login_name}',
+		// 		'{site_name}'
+		// 	);
+		// 	$user_locked_body .= '</p>';
+		// 	$user_locked_body .= '<p>' . \esc_html__( 'Contact your website administrator to unlock your account.', 'wp-2fa' ) . '</p>';
+		// 	$user_locked_body .= '<p>' . \esc_html__( 'Thank you.', 'wp-2fa' ) . '</p>';
 
-			// Create User unlocked Message.
-			$user_unlocked_subject = __( 'Your user on {site_name} has been unlocked', 'wp-2fa' );
-			$user_unlocked_body    = '';
+		// 	// Create User unlocked Message.
+		// 	$user_unlocked_subject = __( 'Your user on {site_name} has been unlocked', 'wp-2fa' );
+		// 	$user_unlocked_body    = '';
 
-			$user_unlocked_body .= '<p>' . __( 'Hello,', 'wp-2fa' ) . '</p><p>' . \esc_html__( 'Your user', 'wp-2fa' ) . ' <strong>{user_login_name}</strong> ' . \esc_html__( 'on the website', 'wp-2fa' ) . ' {site_url} ' . __( 'has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again.', 'wp-2fa' ) . '</p>';
+		// 	$user_unlocked_body .= '<p>' . __( 'Hello,', 'wp-2fa' ) . '</p><p>' . \esc_html__( 'Your user', 'wp-2fa' ) . ' <strong>{user_login_name}</strong> ' . \esc_html__( 'on the website', 'wp-2fa' ) . ' {site_url} ' . __( 'has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again.', 'wp-2fa' ) . '</p>';
 
-			if ( ! empty( self::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
-				$user_unlocked_body .= '<p>' . __( 'You can configure 2FA from this page:', 'wp-2fa' ) . ' <a href="{2fa_settings_page_url}" target="_blank">{2fa_settings_page_url}.</a></p>';
-			}
+		// 	if ( ! empty( self::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
+		// 		$user_unlocked_body .= '<p>' . __( 'You can configure 2FA from this page:', 'wp-2fa' ) . ' <a href="{2fa_settings_page_url}" target="_blank">{2fa_settings_page_url}.</a></p>';
+		// 	}
 
-			$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p>';
+		// 	$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p>';
 
-			// Create User backup codes Message.
-			$user_backup_codes_subject = __( '2FA backup codes for user {user_login_name} on {site_name}', 'wp-2fa' );
-			$user_backup_codes_body    = '';
+		// 	// Create User backup codes Message.
+		// 	$user_backup_codes_subject = __( '2FA backup codes for user {user_login_name} on {site_name}', 'wp-2fa' );
+		// 	$user_backup_codes_body    = '';
 
-			$user_backup_codes_body .= '<p>' . __( 'Hello,', 'wp-2fa' ) . '</p><p>' . \esc_html__( 'Below please find the 2FA backup codes for your user', 'wp-2fa' ) . ' <strong>{user_login_name}</strong> ' . \esc_html__( 'on the website', 'wp-2fa' ) . ' <strong>{site_name}</strong>. ' . __( 'The website\'s URL is', 'wp-2fa' ) . ' {site_url} </p>';
+		// 	$user_backup_codes_body .= '<p>' . __( 'Hello,', 'wp-2fa' ) . '</p><p>' . \esc_html__( 'Below please find the 2FA backup codes for your user', 'wp-2fa' ) . ' <strong>{user_login_name}</strong> ' . \esc_html__( 'on the website', 'wp-2fa' ) . ' <strong>{site_name}</strong>. ' . __( 'The website\'s URL is', 'wp-2fa' ) . ' {site_url} </p>';
 
-			$user_backup_codes_body .= '{backup_codes}';
+		// 	$user_backup_codes_body .= '{backup_codes}';
 
-			$user_backup_codes_body .= '<p>' . __( 'Thank you for enabling 2FA on your account and helping us keeping the website secure.', 'wp-2fa' ) . '</p>';
+		// 	$user_backup_codes_body .= '<p>' . __( 'Thank you for enabling 2FA on your account and helping us keeping the website secure.', 'wp-2fa' ) . '</p>';
 
-			// Array of defaults, now we have things setup above.
-			$default_settings = array(
-				'email_from_setting'                  => 'use-defaults',
-				'custom_from_email_address'           => '',
-				'custom_from_display_name'            => '',
-				'login_code_email_subject'            => $login_code_subject,
-				'login_code_email_body'               => $login_code_body,
-				'login_code_setup_email_subject'      => $login_code_setup_subject,
-				'login_code_setup_email_body'         => $login_code_setup_body,
-				'user_account_locked_email_subject'   => $user_locked_subject,
-				'user_account_locked_email_body'      => $user_locked_body,
-				'user_account_unlocked_email_subject' => $user_unlocked_subject,
-				'user_account_unlocked_email_body'    => $user_unlocked_body,
-				'user_backup_codes_email_subject'     => $user_backup_codes_subject,
-				'user_backup_codes_email_body'        => $user_backup_codes_body,
-				'send_account_locked_email'           => 'enable_account_locked_email',
-				'send_account_unlocked_email'         => 'enable_account_unlocked_email',
-				'send_login_code_email'               => 'enable_send_login_code_email',
-				'send_reset_password_code_email'      => 'enable_send_reset_password_code_email',
-			);
+		// 	// Array of defaults, now we have things setup above.
+		// 	$default_settings = array(
+		// 		'email_from_setting'                  => 'use-defaults',
+		// 		'custom_from_email_address'           => '',
+		// 		'custom_from_display_name'            => '',
+		// 		'login_code_email_subject'            => $login_code_subject,
+		// 		'login_code_email_body'               => $login_code_body,
+		// 		'login_code_setup_email_subject'      => $login_code_setup_subject,
+		// 		'login_code_setup_email_body'         => $login_code_setup_body,
+		// 		'user_account_locked_email_subject'   => $user_locked_subject,
+		// 		'user_account_locked_email_body'      => $user_locked_body,
+		// 		'user_account_unlocked_email_subject' => $user_unlocked_subject,
+		// 		'user_account_unlocked_email_body'    => $user_unlocked_body,
+		// 		'user_backup_codes_email_subject'     => $user_backup_codes_subject,
+		// 		'user_backup_codes_email_body'        => $user_backup_codes_body,
+		// 		'send_account_locked_email'           => 'enable_account_locked_email',
+		// 		'send_account_unlocked_email'         => 'enable_account_unlocked_email',
+		// 		'send_login_code_email'               => 'enable_send_login_code_email',
+		// 		'send_reset_password_code_email'      => 'enable_send_reset_password_code_email',
+		// 	);
 
-			/**
-			 * Allows 3rd party providers to their own settings for the mail templates.
-			 *
-			 * @param array $default_settings - Array with the default settings.
-			 *
-			 * @since 2.0.0
-			 */
-			$default_settings = \apply_filters( WP_2FA_PREFIX . 'mail_default_settings', $default_settings );
+		// 	/**
+		// 	 * Allows 3rd party providers to their own settings for the mail templates.
+		// 	 *
+		// 	 * @param array $default_settings - Array with the default settings.
+		// 	 *
+		// 	 * @since 2.0.0
+		// 	 */
+		// 	$default_settings = \apply_filters( WP_2FA_PREFIX . 'mail_default_settings', $default_settings );
 
-			return $default_settings[ $setting_name ];
-		}
+		// 	return $default_settings[ $setting_name ];
+		// }
 
 		/**
 		 * Util which we use to replace our {strings} with actual, useful stuff.
@@ -668,85 +713,85 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 *
 		 * @since 2.0.0
 		 */
-		public static function replace_email_strings( $input = '', $user_id = '', $token = '', $override_grace_period = '' ) {
+		// public static function replace_email_strings( $input = '', $user_id = '', $token = '', $override_grace_period = '' ) {
 
-			if ( empty( $GLOBALS['wp_rewrite'] ) ) {
-				$GLOBALS['wp_rewrite'] = new \WP_Rewrite(); // phpcs:ignore -- WordPress.WP.GlobalVariablesOverride.Prohibited
-			}
+		// 	if ( empty( $GLOBALS['wp_rewrite'] ) ) {
+		// 		$GLOBALS['wp_rewrite'] = new \WP_Rewrite(); // phpcs:ignore -- WordPress.WP.GlobalVariablesOverride.Prohibited
+		// 	}
 
-			$token = trim( (string) $token );
+		// 	$token = trim( (string) $token );
 
-			// Gather grace period.
-			$grace_period_string = '';
-			if ( isset( $override_grace_period ) && ! empty( $override_grace_period ) ) {
-				$grace_period_string = sanitize_text_field( $override_grace_period );
-			} else {
-				$grace_policy        = self::get_wp2fa_setting( 'grace-policy' );
-				$grace_period_string = Date_Time_Utils::format_grace_period_expiration_string( $grace_policy );
-			}
+		// 	// Gather grace period.
+		// 	$grace_period_string = '';
+		// 	if ( isset( $override_grace_period ) && ! empty( $override_grace_period ) ) {
+		// 		$grace_period_string = sanitize_text_field( $override_grace_period );
+		// 	} else {
+		// 		$grace_policy        = self::get_wp2fa_setting( 'grace-policy' );
+		// 		$grace_period_string = Date_Time_Utils::format_grace_period_expiration_string( $grace_policy );
+		// 	}
 
-			// Setup user data.
-			if ( isset( $user_id ) && ! empty( $user_id ) ) {
-				$user = get_userdata( intval( $user_id ) );
-			} else {
-				$user = wp_get_current_user();
-			}
+		// 	// Setup user data.
+		// 	if ( isset( $user_id ) && ! empty( $user_id ) ) {
+		// 		$user = get_userdata( intval( $user_id ) );
+		// 	} else {
+		// 		$user = wp_get_current_user();
+		// 	}
 
-			// Setup token.
-			if ( isset( $token ) && ! empty( $token ) ) {
-				$login_code = $token;
-			} else {
-				$login_code = '';
-			}
+		// 	// Setup token.
+		// 	if ( isset( $token ) && ! empty( $token ) ) {
+		// 		$login_code = $token;
+		// 	} else {
+		// 		$login_code = '';
+		// 	}
 
-			$new_page_id = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'custom-user-page-id' );
-			if ( ! empty( $new_page_id ) ) {
-				$new_page_permalink = esc_url( \get_permalink( intval( $new_page_id ) ) );
-			} else {
-				$new_page_id = Settings::get_custom_settings_page_id( '', $user );
-				if ( ! empty( $new_page_id ) ) {
-					$new_page_permalink = esc_url( \get_permalink( intval( $new_page_id ) ) );
-				} else {
-					$new_page_permalink = '';
-				}
-			}
+		// 	$new_page_id = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'custom-user-page-id' );
+		// 	if ( ! empty( $new_page_id ) ) {
+		// 		$new_page_permalink = esc_url( \get_permalink( intval( $new_page_id ) ) );
+		// 	} else {
+		// 		$new_page_id = Settings::get_custom_settings_page_id( '', $user );
+		// 		if ( ! empty( $new_page_id ) ) {
+		// 			$new_page_permalink = esc_url( \get_permalink( intval( $new_page_id ) ) );
+		// 		} else {
+		// 			$new_page_permalink = '';
+		// 		}
+		// 	}
 
-			$admin_email = null;
-			if ( 'use-custom-email' === self::get_wp2fa_email_templates( 'email_from_setting' ) ) {
-				$admin_email = sanitize_email( self::get_wp2fa_email_templates( 'custom_from_email_address' ) );
-			} else {
-				$admin_email = Settings_Page::get_default_email_address();
-			}
+		// 	$admin_email = null;
+		// 	if ( 'use-custom-email' === self::get_wp2fa_email_templates( 'email_from_setting' ) ) {
+		// 		$admin_email = sanitize_email( self::get_wp2fa_email_templates( 'custom_from_email_address' ) );
+		// 	} else {
+		// 		$admin_email = Settings_Page::get_default_email_address();
+		// 	}
 
-			// These are the strings we are going to search for, as well as their respective replacements.
-			$replacements = array(
-				'{site_url}'              => \esc_url( \get_bloginfo( 'url' ) ),
-				'{site_name}'             => \sanitize_text_field( \get_bloginfo( 'name' ) ),
-				'{grace_period}'          => \sanitize_text_field( $grace_period_string ),
-				'{user_login_name}'       => \sanitize_text_field( $user->user_login ),
-				'{user_first_name}'       => \sanitize_text_field( $user->user_firstname ),
-				'{user_last_name}'        => \sanitize_text_field( $user->user_lastname ),
-				'{user_display_name}'     => \sanitize_text_field( $user->display_name ),
-				'{login_code}'            => $login_code,
-				'{2fa_settings_page_url}' => $new_page_permalink,
-				'{user_ip_address}'       => esc_attr( Request_Utils::get_ip() ),
-				'{admin_email}'           => $admin_email,
-				'{wp_admin_email}'        => \sanitize_email( \is_multisite() ? \get_blog_option( \get_current_blog_id(), 'admin_email' ) : \get_option( 'admin_email' ) ) ?: $admin_email,
-			);
+		// 	// These are the strings we are going to search for, as well as their respective replacements.
+		// 	$replacements = array(
+		// 		'{site_url}'              => \esc_url( \get_bloginfo( 'url' ) ),
+		// 		'{site_name}'             => \sanitize_text_field( \get_bloginfo( 'name' ) ),
+		// 		'{grace_period}'          => \sanitize_text_field( $grace_period_string ),
+		// 		'{user_login_name}'       => \sanitize_text_field( $user->user_login ),
+		// 		'{user_first_name}'       => \sanitize_text_field( $user->user_firstname ),
+		// 		'{user_last_name}'        => \sanitize_text_field( $user->user_lastname ),
+		// 		'{user_display_name}'     => \sanitize_text_field( $user->display_name ),
+		// 		'{login_code}'            => $login_code,
+		// 		'{2fa_settings_page_url}' => $new_page_permalink,
+		// 		'{user_ip_address}'       => esc_attr( Request_Utils::get_ip() ),
+		// 		'{admin_email}'           => $admin_email,
+		// 		'{wp_admin_email}'        => \sanitize_email( \is_multisite() ? \get_blog_option( \get_current_blog_id(), 'admin_email' ) : \get_option( 'admin_email' ) ) ?: $admin_email,
+		// 	);
 
-			/**
-			 * 3rd party plugins could change the mail strings, or provide their own.
-			 *
-			 * @param array $replacements - The array with all the currently supported strings.
-			 */
-			$replacements = \apply_filters(
-				WP_2FA_PREFIX . 'replacement_email_strings',
-				$replacements
-			);
+		// 	/**
+		// 	 * 3rd party plugins could change the mail strings, or provide their own.
+		// 	 *
+		// 	 * @param array $replacements - The array with all the currently supported strings.
+		// 	 */
+		// 	$replacements = \apply_filters(
+		// 		WP_2FA_PREFIX . 'replacement_email_strings',
+		// 		$replacements
+		// 	);
 
-			$final_output = str_replace( array_keys( $replacements ), array_values( $replacements ), $input );
-			return $final_output;
-		}
+		// 	$final_output = str_replace( array_keys( $replacements ), array_values( $replacements ), $input );
+		// 	return $final_output;
+		// }
 
 		/**
 		 * Util which contextualizes the wording 'reconfigure'/'configure' as needed.
@@ -827,11 +872,17 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				return sanitize_text_field( $input );
 			}
 
-			$available_methods = Methods::get_enabled_methods( User_Helper::get_user_role( $user ) );
+			$role              = User_Helper::get_user_role( $user );
+			$available_methods = Methods::get_enabled_methods( $role );
+
+			// Use methods for the user's role if available, otherwise fall back to global.
+			$role_methods = isset( $available_methods[ $role ] ) && ! empty( $available_methods[ $role ] )
+				? $available_methods[ $role ]
+				: ( isset( $available_methods['global'] ) ? $available_methods['global'] : array() );
 
 			// These are the strings we are going to search for, as well as their respective replacements.
 			$replacements = array(
-				'{available_methods_count}' => intval( count( $available_methods[ User_Helper::get_user_role( $user ) ] ) ),
+				'{available_methods_count}' => intval( count( $role_methods ) ),
 			);
 
 			/**
@@ -867,7 +918,12 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
 				if ( Extensions_Loader::use_proxytron() ) {
+					// When quota is exceeded or no license, fall back to free version
+					// behaviour — still allow the redirect for 2FA configuration.
 					$redirect = User_Licensing::enable_2fa_user_setting( true );
+					if ( ! $redirect && User_Licensing::quota_check() ) {
+						$redirect = true;
+					}
 				}
 			}
 
@@ -924,7 +980,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 						}
 					}
 
-					if ( is_page() ) {
+					if ( is_page() && 'yes' === Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'create-custom-user-page' ) ) {
 						$custom_user_page_id = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'custom-user-page-id' );
 						if ( ! empty( $custom_user_page_id ) && \get_the_ID() === (int) $custom_user_page_id ) {
 							return;
@@ -934,18 +990,35 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 								return;
 							}
 						}
+
+						// If the user is already on the WooCommerce My Account page with the 2FA endpoint, do not redirect.
+						if ( class_exists( 'WooCommerce', false ) && \function_exists( 'is_account_page' ) && \is_account_page() ) {
+							global $wp;
+							$woo_endpoint = 'wp-2fa';
+							if ( class_exists( '\WP2FA\Extensions\Integrations\WP2FA_Integrations' ) ) {
+								$ep = \WP2FA\Extensions\Integrations\WP2FA_Integrations::get_setting( 'woocommerce_endpoint' );
+								if ( ! empty( $ep ) ) {
+									$woo_endpoint = $ep;
+								}
+							}
+							if ( isset( $wp->query_vars[ $woo_endpoint ] ) || isset( $_GET[ $woo_endpoint ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+								return;
+							}
+						}
 					}
 
-					// force a redirect to the 2FA set-up page if it exists.
-					$custom_user_page_id = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'custom-user-page-id' );
-					if ( ! empty( $custom_user_page_id ) ) {
-						\wp_redirect( Settings::get_custom_page_link( $user ) );
-						exit;
-					} else {
-						$custom_user_page_id = Settings::get_custom_settings_page_id( '', $user );
-						if ( ! empty( $custom_user_page_id ) && \get_the_ID() === (int) $custom_user_page_id ) {
-							\wp_redirect( \get_permalink( $custom_user_page_id ) );
+					// force a redirect to the 2FA set-up page if it exists and the feature is enabled.
+					if ( 'yes' === Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'create-custom-user-page' ) ) {
+						$custom_user_page_id = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'custom-user-page-id' );
+						if ( ! empty( $custom_user_page_id ) ) {
+							\wp_safe_redirect( Settings::get_custom_page_link( $user ) );
 							exit;
+						} else {
+							$custom_user_page_id = Settings::get_custom_settings_page_id( '', $user );
+							if ( ! empty( $custom_user_page_id ) && \get_the_ID() === (int) $custom_user_page_id ) {
+								\wp_safe_redirect( \get_permalink( $custom_user_page_id ) );
+								exit;
+							}
 						}
 					}
 
@@ -955,23 +1028,29 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 						// Is there WOO installed? If so, then lets try to extract the redirection rules from there.
 						if ( class_exists( 'WooCommerce', false ) ) {
 
+							$woo_endpoint = 'wp-2fa';
+							if ( class_exists( '\WP2FA\Extensions\Integrations\WP2FA_Integrations' ) ) {
+								$ep = \WP2FA\Extensions\Integrations\WP2FA_Integrations::get_setting( 'woocommerce_endpoint' );
+								if ( ! empty( $ep ) ) {
+									$woo_endpoint = $ep;
+								}
+							}
+
+							// Check if user is already on the WooCommerce 2FA endpoint - do not redirect again.
+							global $wp;
+							if ( \function_exists( 'is_account_page' ) && \is_account_page() && ( isset( $wp->query_vars[ $woo_endpoint ] ) || isset( $_GET[ $woo_endpoint ] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+								return;
+							}
+
 							// Lets check if there is a 2FA implemented within the WOOCommerce myaccount page.
 							$items = \wc_get_account_menu_items();
 
-							if ( isset( $items['wp-2fa'] ) ) {
+							if ( isset( $items[ $woo_endpoint ] ) ) {
+								$url = \wc_get_endpoint_url( $woo_endpoint, '', \wc_get_page_permalink( 'myaccount' ) );
 
-								if ( ! isset( $_GET['wp-2fa'] ) ) {
-									$url = \add_query_arg(
-										array(
-											'wp-2fa' => '',
-										),
-										\get_permalink( \get_option( 'woocommerce_myaccount_page_id' ) )
-									);
+								\wp_safe_redirect( $url );
 
-									\wp_redirect( $url );
-
-									exit;
-								}
+								exit;
 							}
 						}
 
@@ -1021,7 +1100,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 										'To address this, please enable and configure the Front-end 2FA Page:%1$s',
 										'wp-2fa'
 									),
-									'<br><a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-front-end-page-wordpress/">' . \esc_html__( 'Configure Front-end 2FA Page', 'wp-2fa' ) . '</a>'
+									'<br><a href="https://melapress.com/support/kb/wp-2fa-configure-2fa-front-end-page-wordpress/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=frontend_2fa_page_notice">' . \esc_html__( 'Configure Front-end 2FA Page', 'wp-2fa' ) . '</a>'
 								) . '</p>';
 
 								$text .= sprintf(
@@ -1066,7 +1145,13 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 					}
 
 					// custom 2FA page is not set-up, force redirect to the wizard in administration.
-					\wp_redirect( Settings::get_setup_page_link() );
+					if ( $has_cap ) {
+						// User has admin capabilities — redirect to the admin profile page.
+						$admin_setup_url = \add_query_arg( 'show', 'wp-2fa-setup', \get_admin_url( \get_current_blog_id(), 'profile.php' ) );
+						\wp_safe_redirect( $admin_setup_url );
+					} else {
+						\wp_safe_redirect( Settings::get_setup_page_link() );
+					}
 					exit;
 				}
 			}
@@ -1093,7 +1178,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		}
 
 		/**
-		 * Returns currently stored White Labeling settings
+		 * Returns currently stored White labeling settings
 		 *
 		 * @return array
 		 *
@@ -1158,6 +1243,12 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function update_plugin_settings( $settings, $skip_option_save = false, $settings_name = WP_2FA_POLICY_SETTINGS_NAME ) {
+
+			// When saving policy settings, ensure at least one primary method is enabled.
+			if ( WP_2FA_POLICY_SETTINGS_NAME === $settings_name && \is_array( $settings ) ) {
+				$settings = self::ensure_primary_method_in_settings( $settings );
+			}
+
 			// update local copy of settings.
 			self::$plugin_settings[ $settings_name ] = $settings;
 
@@ -1171,6 +1262,56 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				$settings_hash = Settings_Utils::create_settings_hash( self::get_policy_settings() );
 				Settings_Utils::update_option( WP_2FA_PREFIX . 'settings_hash', $settings_hash );
 			}
+		}
+
+		/**
+		 * Ensures that at least one primary 2FA method is enabled in the given settings array.
+		 *
+		 * If no primary method keys are found (or all are falsy), TOTP and Email are
+		 * added as defaults to prevent the plugin from operating without any usable method.
+		 *
+		 * @param array $settings The policy settings array to validate.
+		 *
+		 * @return array The settings array, potentially with default methods added.
+		 *
+		 * @since 4.0.0
+		 */
+		private static function ensure_primary_method_in_settings( array $settings ): array {
+			$providers = Settings::get_providers();
+
+			if ( empty( $providers ) ) {
+				// Providers not yet registered (very early call) — skip validation.
+				return $settings;
+			}
+
+			$has_primary_method = false;
+
+			foreach ( $providers as $class => $slug ) {
+				if ( ! \defined( "$class::POLICY_SETTINGS_NAME" ) ) {
+					continue;
+				}
+				// Skip secondary methods (e.g. Backup Codes).
+				if ( \method_exists( $class, 'is_secondary' ) && $class::is_secondary() ) {
+					continue;
+				}
+				// Skip passkeys — not primary 2FA methods.
+				if ( 'passkeys' === $slug ) {
+					continue;
+				}
+
+				$key = $class::POLICY_SETTINGS_NAME;
+				if ( ! empty( $settings[ $key ] ) ) {
+					$has_primary_method = true;
+					break;
+				}
+			}
+
+			if ( ! $has_primary_method ) {
+				$settings['enable_totp']  = 'enable_totp';
+				$settings['enable_email'] = 'enable_email';
+			}
+
+			return $settings;
 		}
 
 		/**
@@ -1225,7 +1366,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				$admin_page            = \get_current_screen();
 				if ( in_array( $admin_page->base, $whitelist_admin_pages, true ) ) {
 					?>
-					<div class="notice notice-warning" id="config-update-notice">
+					<div class="notice notice-warning wp-2fa-admin-notice" id="config-update-notice">
 						<?php
 						$message = sprintf(
 							'<p>%1$s <a href="https://melapress.com/support/kb/wp-2fa-add-2fa-plugin-encryption-key-wp-config/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=encryption_key_in_wp_config" noopener target="_blank">%2$s</a><br>%3$s</p>',
@@ -1239,7 +1380,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 						?>
 						<p><button id="salt-update" type="button">
 							<span><?php \esc_html_e( 'Write key to file now / Check for the key in file', 'wp-2fa' ); ?></span>
-						</button><button style="margin-left: 15px;" id="dismiss-salt-update" type="button">
+						</button><button id="dismiss-salt-update" type="button">
 							<span><?php \esc_html_e( 'I am aware of the risks. Please do not alert me again about this.', 'wp-2fa' ); ?></span>
 						</button></p>
 					</div>

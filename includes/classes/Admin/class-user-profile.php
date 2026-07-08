@@ -61,7 +61,10 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				$user_id = (int) $_GET['user_id']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-				$user    = \get_user_by( 'id', $user_id );
+				if ( ! \current_user_can( 'edit_user', $user_id ) ) {
+					return;
+				}
+				$user = \get_user_by( 'id', $user_id );
 			} else {
 				// Get current user, we're going to need this regardless.
 				$user = \wp_get_current_user();
@@ -71,8 +74,10 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				return;
 			}
 
-			// Ensure we have something in the settings.
-			if ( empty( Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) ) {
+			// Ensure we have something in the settings — but only bail if the plugin
+			// was never configured (no settings hash). If settings got wiped after
+			// initial configuration, the init() fallback restores them.
+			if ( empty( Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME ) ) && ! Settings_Utils::get_option( WP_2FA_PREFIX . 'settings_hash' ) ) {
 				return;
 			}
 
@@ -114,7 +119,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				 *
 				 * @since 3.0.0
 				 */
-				$form_content = \apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content, $user );
+				$form_content = \wp_kses_post( \apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content, $user ) );
 
 				if ( ! empty( $form_content ) ) {
 					$form_output .= '<h2>' . WP2FA::get_wp2fa_white_label_setting( 'user-profile-form-preamble-title', true ) . '</h2>';
@@ -124,7 +129,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					}
 
 					$form_output .= '
-					<table id="2fa-user-global-configuration" class="form-table wp-2fa-user-profile-form" role="presentation">
+					<table id="wp-2fa-user-global-configuration" class="form-table wp-2fa-user-profile-form" role="presentation">
 						<tbody>
 							<tr>
 								<th><label>' . \esc_html__( '2FA Setup:', 'wp-2fa' ) . '</label></th>
@@ -137,7 +142,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 					echo $form_output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
-				
+
 				return;
 			}
 
@@ -189,7 +194,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 							if ( $codes_remaining > 0 ) {
 								$backup_codes_desc = '<span class="description mt-5px">' . \esc_attr( (int) $codes_remaining ) . ' ' . \esc_html__( 'unused backup codes remaining.', 'wp-2fa' ) . '</span>';
 							} elseif ( 0 === $codes_remaining ) {
-								$backup_codes_desc = '<a class="learn_more_link" href="https://melapress.com/2fa-backup-codes/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=backup_codes_user_profile_help" target="_blank">' . \esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
+								$backup_codes_desc = WP2FA::get_wp2fa_white_label_setting( 'backup_codes_learn_more', true );
 							}
 
 							if ( ! empty( $backup_codes_desc ) ) {
@@ -309,7 +314,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			 *
 			 * @since 3.0.0
 			 */
-			$form_content = \apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content, $user );
+			$form_content = \wp_kses_post( \apply_filters( WP_2FA_PREFIX . 'append_to_profile_form_content', $form_content, $user ) );
 
 			if ( $show_form_table && ! empty( $form_content ) ) {
 
@@ -340,7 +345,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					$form_output .= '<h3 style="font-size: 1.1em;">' . \esc_html__( 'Currently configured:', 'wp-2fa' ) . '</h3>';
 
 					$form_output .= '
-					<table id="2fa-currently-configured-methods" class="form-table wp-2fa-user-profile-form" role="presentation">
+					<table id="wp-2fa-currently-configured-methods" class="form-table wp-2fa-user-profile-form" role="presentation">
 						<tbody>
 								<th><label>' . \esc_html__( 'Primary method:', 'wp-2fa' ) . '</label></th>
 								<td>
@@ -365,7 +370,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 				if ( User_Utils::in_array_all( array( 'has_enabled_methods', 'viewing_own_profile' ), $user_type ) && isset( $enabled_methods ) && TOTP::METHOD_NAME === $enabled_methods ) {
 					$form_output .= '
-					<table id="2fa-configuration-options" class="form-table wp-2fa-user-profile-form remove-tr-padding" role="presentation">
+					<table id="wp-2fa-configuration-options" class="form-table wp-2fa-user-profile-form remove-tr-padding" role="presentation">
 						<tbody>
 							<tr>
 								<th><label>' . Settings::get_providers_translate_names()[ $enabled_methods ] . '</label></th>
@@ -387,7 +392,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				}
 
 				$form_output .= '
-					<table id="2fa-user-global-configuration" class="form-table wp-2fa-user-profile-form" role="presentation">
+					<table id="wp-2fa-user-global-configuration" class="form-table wp-2fa-user-profile-form" role="presentation">
 						<tbody>
 							<tr>
 								<th><label>' . \esc_html__( '2FA Setup:', 'wp-2fa' ) . '</label></th>
@@ -441,7 +446,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 								echo Generate_Modal::generate_modal(
 									'notify-users',
 									'',
-									\wp_kses_post( WP2FA::get_wp2fa_white_label_setting( '2fa_wizard_cancel', true ) ),
+									\wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'wp-2fa_wizard_cancel', true ) ),
 									array(
 										'<button type="button" class="button wp-2fa-button-primary button-primary button-confirm" aria-label="Close this dialog window and the wizard">' . \esc_html__( 'Yes', 'wp-2fa' ) . '</button>',
 										'<button type="button" class="button wp-2fa-button-secondary button-secondary button-decline" data-micromodal-close aria-label="Close this dialog window">' . \esc_html__( 'No', 'wp-2fa' ) . '</button>',
@@ -510,7 +515,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 										<?php
 										if ( 0 !== count( $available_methods[ User_Helper::get_user_role( $user ) ] ) ) {
 											?>
-										<a href="#" class="button wp-2fa-button-primary button-primary 2fa-choose-method" data-name="next_step_setting_modal_wizard" ><?php \esc_html_e( 'Next Step', 'wp-2fa' ); ?></a>
+										<a href="#" class="button wp-2fa-button-primary button-primary wp-2fa-choose-method" data-name="next_step_setting_modal_wizard" ><?php \esc_html_e( 'Next Step', 'wp-2fa' ); ?></a>
 											<?php
 										}
 										?>
@@ -561,12 +566,12 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 								// Create a nonce for use in ajax call to generate codes.
 								if ( Backup_Codes::are_backup_codes_enabled_for_role( User_Helper::get_user_role( $user ) ) ) {
 									?>
-								<div class="wizard-step" id="2fa-wizard-config-backup-codes">
+								<div class="wizard-step" id="wp-2fa-wizard-config-backup-codes">
 									<?php Wizard_Steps::backup_codes_configure(); ?>
 									<?php Wizard_Steps::generated_backup_codes(); ?>
 								</div>
 								<?php } else { ?>
-								<div class="wizard-step" id="2fa-wizard-config-backup-codes">
+								<div class="wizard-step" id="wp-2fa-wizard-config-backup-codes">
 									<?php Wizard_Steps::congratulations_step(); ?>
 								</div>
 							<?php } ?>
@@ -640,7 +645,10 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 			if ( isset( $_GET['user_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				$user_id = (int) $_GET['user_id']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-				$user    = \get_user_by( 'id', $user_id );
+				if ( ! \current_user_can( 'edit_user', $user_id ) ) {
+					return;
+				}
+				$user = \get_user_by( 'id', $user_id );
 			} else {
 				$user = \wp_get_current_user();
 			}
@@ -807,8 +815,16 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				$current_key = sanitize_text_field( wp_unslash( $input['wp-2fa-totp-key'] ) );
 			}
 
-			// Grab authcode and ensure its a number.
+			// Grab authcode and validate format.
 			if ( isset( $input['wp-2fa-totp-authcode'] ) ) {
+				$raw_authcode = trim( (string) $input['wp-2fa-totp-authcode'] );
+				if ( '' !== $raw_authcode && ! preg_match( '/^\d{6}$/', $raw_authcode ) ) {
+					wp_send_json_error(
+						array(
+							'error' => \esc_html__( 'Invalid code. Please enter the correct OTP code generated by your Authenticator app.', 'wp-2fa' ),
+						)
+					);
+				}
 				$input['wp-2fa-totp-authcode'] = (int) $input['wp-2fa-totp-authcode'];
 			}
 
@@ -816,7 +832,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			if ( ! empty( $input['wp-2fa-totp-authcode'] ) && ! empty( $current_key ) ) {
 				if ( Authentication::is_valid_key( $current_key ) || ! is_numeric( $input['wp-2fa-totp-authcode'] ) ) {
 					if ( ! Authentication::is_valid_authcode( $current_key, \sanitize_text_field( \wp_unslash( $input['wp-2fa-totp-authcode'] ) ) ) ) {
-						$our_errors = \esc_html__( 'Invalid Two Factor Authentication code.', 'wp-2fa' );
+						$our_errors = \esc_html__( 'Invalid or expired OTP code. Please try again.', 'wp-2fa' );
 					}
 				} else {
 					$our_errors = \esc_html__( 'Invalid Two Factor Authentication secret key.', 'wp-2fa' );
@@ -905,29 +921,15 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 		}
 
 		/**
-		 * Add script to admin footer to allow for nags to be dismissed from all admin pages.
+		 * Legacy stub: this method existed in older versions and may still be
+		 * registered as a hook callback in the database after an upgrade.
 		 *
 		 * @return void
 		 *
-		 * @since 2.7.0
+		 * @since 2.10.0
 		 */
 		public static function dismiss_nag_notice() {
-			?>
-			<script type="text/javascript">
-				jQuery( document ).on( 'click', '.dismiss-user-configure-nag', function() {
-					const thisNotice = jQuery( this ).closest( '.notice' );
-					jQuery.ajax( {
-						url: '<?php echo \admin_url( 'admin-ajax.php' ); // phpcs:ignore ?>',
-						data: {
-							action: 'dismiss_nag'
-						},
-						complete: function() {
-							jQuery( thisNotice ).slideUp();
-						},
-					} );
-				} );
-			</script>
-			<?php
+			// No-op: retained for backward compatibility during upgrades.
 		}
 	}
 }

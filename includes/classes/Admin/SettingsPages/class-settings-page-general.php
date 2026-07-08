@@ -13,6 +13,7 @@
 
 namespace WP2FA\Admin\SettingsPages;
 
+use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Debugging;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\WP2FA;
@@ -39,6 +40,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				return;
 			}
 			settings_fields( WP_2FA_SETTINGS_NAME );
+			self::use_new_interface_setting();
 			self::no_method_exists();
 			self::disable_brute_force_settings();
 			self::limit_settings_access();
@@ -74,6 +76,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'skip_2fa_for_passkeys',
 				'delete_data_upon_uninstall',
 				'method_invalid_setting',
+				'use_new_interface',
 			);
 
 			/**
@@ -93,6 +96,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'brute_force_disable',
 				'skip_2fa_for_passkeys',
 				'delete_data_upon_uninstall',
+				'use_new_interface',
 			);
 
 			foreach ( $simple_settings_we_can_loop as $simple_setting ) {
@@ -116,7 +120,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				}
 				$policies['2fa_settings_last_updated_by'] = (int) get_current_user_id();
 
+				// Temporarily remove the policy sanitize callback so this
+				// targeted update does not re-run the full policy validation
+				// pipeline (which would wipe role-specific settings via
+				// the filter_output_content hook).
+				\remove_filter( 'sanitize_option_' . WP_2FA_POLICY_SETTINGS_NAME, array( Settings_Page_Policies::class, 'validate_and_sanitize' ) );
+
 				WP2FA::update_plugin_settings( $policies );
+
+				\add_filter( 'sanitize_option_' . WP_2FA_POLICY_SETTINGS_NAME, array( Settings_Page_Policies::class, 'validate_and_sanitize' ) );
 			}
 
 			// Remove duplicates from settings errors. We do this as this sanitization callback is actually fired twice, so we end up with duplicates when saving the settings for the FIRST TIME only. The issue is not present once the settings are in the DB as the sanitization wont fire again. For details on this core issue - https://core.trac.wordpress.org/ticket/21989.
@@ -161,12 +173,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				$options         = self::validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_SETTINGS_NAME ] ) );
 				$settings_errors = get_settings_errors( WP_2FA_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
+					Settings_Page::set_network_admin_notice( 'error', $settings_errors[0]['message'] );
 					// redirect back to our options page.
 					wp_safe_redirect(
 						add_query_arg(
 							array(
 								'page' => 'wp-2fa-settings',
-								'wp_2fa_network_settings_error' => urlencode_deep( $settings_errors[0]['message'] ),
 							),
 							network_admin_url( 'settings.php' )
 						)
@@ -175,13 +187,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				}
 				WP2FA::update_plugin_settings( $options, false, WP_2FA_SETTINGS_NAME );
 
+				Settings_Page::set_network_admin_notice( 'success' );
 				// redirect back to our options page.
 				wp_safe_redirect(
 					add_query_arg(
 						array(
 							'page' => 'wp-2fa-settings',
 							'tab'  => 'generic-settings',
-							'wp_2fa_network_settings_updated' => 'true',
 						),
 						network_admin_url( 'admin.php' )
 					)
@@ -223,7 +235,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			<?php
 			$last_user_to_update_settings = get_current_user_id();
 			?>
-			<input type="hidden" id="2fa_main_user" name="wp_2fa_settings[2fa_settings_last_updated_by]" value="<?php echo \esc_attr( $last_user_to_update_settings ); ?>">
+			<input type="hidden" id="wp-2fa_main_user" name="wp_2fa_settings[2fa_settings_last_updated_by]" value="<?php echo \esc_attr( $last_user_to_update_settings ); ?>">
 			<?php
 		}
 
@@ -416,6 +428,42 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 *
 		 * @since 2.2.0
 		 */
+		/**
+		 * Use new interface setting.
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		private static function use_new_interface_setting() {
+			$use_new_interface = WP2FA::get_wp2fa_general_setting( 'use_new_interface' );
+			// Default to enabled for fresh installs (setting not yet in DB).
+			if ( null === $use_new_interface || '' === $use_new_interface ) {
+				$use_new_interface = true;
+			}
+			?>
+			<h3><?php \esc_html_e( 'Use new interface', 'wp-2fa' ); ?></h3>
+			<p class="description">
+				<?php \esc_html_e( 'Enable this setting to use the new settings and policies interface.', 'wp-2fa' ); ?>
+			</p>
+			<table class="form-table">
+				<tbody>
+					<tr>
+						<th><label for="use_new_interface"><?php \esc_html_e( 'Use new interface', 'wp-2fa' ); ?></label></th>
+						<td>
+							<fieldset>
+								<input type="checkbox" id="use_new_interface" name="wp_2fa_settings[use_new_interface]" value="use_new_interface"
+								<?php \checked( 1, Settings_Utils::string_to_bool( $use_new_interface ), true ); ?>
+								>
+								<?php \esc_html_e( 'Enable the new interface', 'wp-2fa' ); ?>
+							</fieldset>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<?php
+		}
+
 		private static function no_method_exists() {
 			?>
 			<p class="description">

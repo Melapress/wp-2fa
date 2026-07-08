@@ -1,0 +1,452 @@
+/**
+ * WP 2FA – New First-Time Setup Wizard Styles
+ *
+ * Extends the shared CSS custom properties from settings.css.
+ * Loaded only on the setup-wizard page when the new interface is active.
+ *
+ * @package wp-2fa
+ * @since   3.2.0
+ */
+
+/* ── Reset ────────────────────────────────────────────── */
+
+.wp2fa-wizard-new {
+    margin: 0;
+    padding: 0;
+    background: #f0f0f1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    color: #3c434a;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Screen switching ─────────────────────────────────── */
+
+.wp2fa-wizard-screen {
+    display: none;
+}
+
+.wp2fa-wizard-screen--active {
+    display: block;
+}
+
+/* ── Welcome / Finish card ────────────────────────────── */
+
+.wp2fa-wizard-welcome-card {
+    max-width: 600px;
+    margin: 80px auto 0;
+    padding: 48px 48px 40px;
+    background: #fff;
+    border: 1px dashed #c3c4c7;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.wp2fa-wizard-welcome-card h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 0 0 12px;
+}
+
+.wp2fa-wizard-welcome-card p {
+    font-size: 14px;
+    color: #50575e;
+    line-height: 1.6;
+    margin: 0 0 8px;
+}
+
+.wp2fa-wizard-welcome-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.wp2fa-wizard-welcome-actions .button-hero {
+    min-width: 220px;
+    font-size: 15px;
+}
+
+.wp2fa-wizard-skip-link {
+    display: inline-block;
+    min-width: 220px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #3c434a;
+    background: #f0f0f1;
+    /* border: 1px solid #c3c4c7; */
+    border-radius: 4px;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+
+.wp2fa-wizard-skip-link:hover {
+    color: #1d2327;
+    background: #e0e0e1;
+    border-color: #a7aaad;
+}
+
+/* ── Logo ─────────────────────────────────────────────── */
+
+.wp2fa-wizard-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.wp2fa-wizard-logo img {
+    height: 42px;
+    width: auto;
+}
+
+.wp2fa-wizard-logo-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1d2327;
+}
+
+/* ── Steps screen header ──────────────────────────────── */
+
+.wp2fa-wizard-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 25px 38px 4px;
+    border-radius: 6px 6px 0 0;
+}
+
+.wp2fa-wizard-header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 32px;
+    flex-shrink: 0;
+}
+
+.wp2fa-wizard-header-logo img {
+    height: 32px;
+    width: auto;
+}
+
+.wp2fa-wizard-header-logo span {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1d2327;
+}
+
+/* ── Step navigation (breadcrumb-style) ───────────────── */
+
+.wp2fa-wizard-nav {
+    flex: 1;
+}
+
+.wp2fa-wizard-nav ol {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wp2fa-wizard-nav li {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 15px;
+    white-space: nowrap;
+}
+
+.wp2fa-wizard-nav .step-indicator {
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    border: 2px solid #c3c4c7;
+    background: transparent;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.wp2fa-wizard-nav .step-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #a7aaad;
+    transition: color 0.2s ease;
+}
+
+/* Active step */
+.wp2fa-wizard-nav li.is-active .step-indicator {
+    border-color: #2271b1;
+    background: #2271b1;
+}
+
+.wp2fa-wizard-nav li.is-active .step-label {
+    color: #2271b1;
+}
+
+/* Done step */
+.wp2fa-wizard-nav li.is-done .step-indicator {
+    border-color: transparent;
+    background: transparent;
+    position: relative;
+    width: 14px;
+    height: 14px;
+}
+
+.wp2fa-wizard-nav li.is-done .step-indicator::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00a32a;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.wp2fa-wizard-nav li.is-done .step-label {
+    color: #00a32a;
+}
+
+/* ── Main content area ────────────────────────────────── */
+
+.wp2fa-wizard-main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 24px 0;
+}
+
+.wp2fa-wizard-form {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 6px;
+    padding: 40px 48px;
+}
+
+.wp2fa-wizard-form h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 0 0 20px;
+}
+
+.wp2fa-wizard-form .description {
+    font-size: 14px;
+    color: #50575e;
+    line-height: 1.6;
+    margin: 0 0 24px;
+}
+
+/* ── Method cards inside steps ────────────────────────── */
+
+.wizard-method-card {
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+}
+
+.wizard-method-card:hover {
+    border-color: #2271b1;
+}
+
+.wizard-method-desc {
+    font-size: 13px;
+    color: #50575e;
+    line-height: 1.5;
+    margin: 4px 0 0 34px;
+}
+
+/* ── Info / upgrade notices ───────────────────────────── */
+
+.wizard-info-notice {
+    background: #fef3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    color: #856404;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.wizard-info-blue-notice {
+    background: #ECF3F8;
+    border: 1px solid #2B5578;
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    color: #2B5578;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.wizard-upgrade-notice {
+    background: #eef5fc;
+    border: 1px solid #c8dff5;
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #3c434a;
+}
+
+.wizard-upgrade-notice a:first-child {
+    color: #2271b1;
+    text-decoration: underline;
+}
+
+/* ── Inline controls (grace period inputs) ────────────── */
+
+.inline-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.inline-controls .small-text {
+    width: 70px;
+}
+
+.inline-controls select {
+    min-width: 100px;
+}
+
+.grace-period-sub-settings {
+    margin-top: 8px;
+}
+
+/* ── Footer ───────────────────────────────────────────── */
+
+.wp2fa-wizard-footer {
+    margin: 0;
+    padding: 24px 0 0;
+    border-top: 1px solid #dcdcde;
+    margin-top: 24px;
+}
+
+.wp2fa-wizard-footer-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.wp2fa-wizard-footer-inner .button-primary {
+    min-width: 140px;
+    font-size: 14px;
+    padding: 7px;
+    font-weight: 600;
+}
+
+/* ── Error notice ─────────────────────────────────────── */
+
+.wp2fa-wizard-error {
+    display: inline-block;
+    margin-left: 12px;
+    color: #d63638;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+/* ── Multi-select overrides ───────────────────────────── */
+
+.wp2fa-wizard-form .wp2fa-msa-wrap {
+    max-width: 100%;
+}
+
+.wp2fa-wizard-form .settings-row:has(.wp2fa-msa-wrap) {
+    flex-wrap: nowrap;
+}
+
+.wp2fa-wizard-form .settings-row .wp2fa-msa-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .wp2fa-wizard-form .settings-row:has(.wp2fa-msa-wrap) {
+        flex-wrap: wrap;
+    }
+
+    .wp2fa-wizard-form .settings-row .wp2fa-msa-wrap {
+        min-width: 100%;
+    }
+}
+
+/* ── Methods-panel validation notice ──────────────────── */
+
+.wp2fa-wizard-methods-notice {
+    margin: 12px 0;
+    padding: 10px 14px;
+    background: #fcf0f1;
+    border-left: 4px solid #d63638;
+    color: #d63638;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 2px;
+}
+
+.js-wizard-continue.disabled {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+
+@media (max-width: 782px) {
+    .wp2fa-wizard-header {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 25px 38px 4px;
+        border-radius: 6px 6px 0 0;
+    }
+
+    .wp2fa-wizard-header-logo {
+        margin-right: 0;
+    }
+
+    .wp2fa-wizard-nav ol {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .wp2fa-wizard-nav li {
+        padding: 0 8px;
+    }
+
+    .wp2fa-wizard-nav .step-label {
+        font-size: 10px;
+    }
+
+    .wp2fa-wizard-form {
+        padding: 24px 20px;
+    }
+
+    .wp2fa-wizard-welcome-card {
+        margin: 24px 16px 0;
+        padding: 32px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wp2fa-wizard-nav .step-label {
+        display: none;
+    }
+}

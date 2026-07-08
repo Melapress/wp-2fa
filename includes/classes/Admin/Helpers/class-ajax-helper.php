@@ -22,6 +22,7 @@ use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\Email_Templates;
 use WP2FA\Admin\SettingsPages\Settings_Page_Email;
 
 // Exit if accessed directly.
@@ -107,23 +108,26 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 
 			if ( false === $users ) {
 				$users_args = array(
-					'fields' => array( 'ID', 'user_login' ),
+					'fields'         => array( 'ID', 'user_login' ),
+					'search'         => '*' . $term . '*',
+					'search_columns' => array( 'user_login' ),
+					'number'         => 20,
+					'orderby'        => 'user_login',
+					'order'          => 'ASC',
 				);
 				if ( WP_Helper::is_multisite() ) {
 					$users_args['blog_id'] = 0;
 				}
-				$users_data = User_Utils::get_all_user_ids_and_login_names( 'query', $users_args );
+				$users_data = \get_users( $users_args );
 
 				// Create final array which we will fill in below.
 				$users = array();
 
 				foreach ( $users_data as $user ) {
-					if ( stripos( $user['user_login'], $term ) !== false ) {
-						$users[] = array(
-							'value' => $user['user_login'],
-							'label' => $user['user_login'],
-						);
-					}
+					$users[] = array(
+						'value' => $user->user_login,
+						'label' => $user->user_login,
+					);
 				}
 
 				\set_transient( $cache_key, $users, self::CACHE_TTL );
@@ -181,21 +185,28 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 
 			self::verify_request( 'wp-2fa-unlock-account-nonce' );
 
-			$grace_period             = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period' );
-			$grace_period_denominator = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period-denominator' );
-			$create_a_string          = $grace_period . ' ' . $grace_period_denominator;
-			// Turn that string into a time.
-			$grace_expiry = strtotime( $create_a_string );
-
 			$user_id = isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null;
 
 			if ( isset( $user_id ) ) {
 
+				$grace_period             = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period' );
+				$grace_period_denominator = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period-denominator' );
+				$create_a_string          = $grace_period . ' ' . $grace_period_denominator;
+				// Turn that string into a time.
+				$grace_expiry = strtotime( $create_a_string );
+
 				User_Helper::remove_meta( WP_2FA_PREFIX . 'locked_account_notification', $user_id );
 				User_Helper::remove_grace_period( $user_id );
-				User_Helper::remove_meta( User_Helper::USER_LOCKED_STATUS );
+				User_Helper::remove_meta( User_Helper::USER_LOCKED_STATUS, $user_id );
 
 				User_Helper::set_user_expiry_date( (string) $grace_expiry, $user_id );
+
+				// Recalculate the 2FA status based on current plugin settings.
+				$user_obj = User_Helper::get_user( $user_id );
+				if ( $user_obj instanceof \WP_User ) {
+					User_Helper::set_user_status( $user_obj );
+				}
+
 				Settings_Page::send_account_unlocked_email( $user_id );
 
 				/*
@@ -302,7 +313,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 
 			// Allow admins or the user themselves.
 			$current_user_id = (int) \get_current_user_id();
-			$request_user_id = isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null;
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+			$request_user_id = isset( $_POST['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_POST['user_id'] ) ) ) : ( isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null );
 
 			if ( ! \current_user_can( 'manage_options' ) ) {
 				if ( null === $request_user_id || $request_user_id !== $current_user_id ) {
@@ -311,17 +323,24 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 			}
 
 			// Verify nonce.
-			$nonce = isset( $_GET['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_nonce'] ) ) : null;
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+			$nonce = isset( $_POST['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['wp_2fa_nonce'] ) ) : ( isset( $_GET['wp_2fa_nonce'] ) ? \sanitize_text_field( \wp_unslash( $_GET['wp_2fa_nonce'] ) ) : null );
 			if ( null === $nonce || false === $nonce || ! \wp_verify_nonce( $nonce, 'wp-2fa-remove-user-2fa-nonce' ) ) {
 				\wp_send_json_error( esc_html__( 'Nonce verification failed.', 'wp-2fa' ) );
 			}
 
-			$user_id     = isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null;
-			$admin_reset = isset( $_GET['admin_reset'] ) ? (bool) \intval( \sanitize_text_field( \wp_unslash( $_GET['admin_reset'] ) ) ) : false;
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+			$user_id     = isset( $_POST['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_POST['user_id'] ) ) ) : ( isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null );
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+			$admin_reset = isset( $_POST['admin_reset'] ) ? (bool) \intval( \sanitize_text_field( \wp_unslash( $_POST['admin_reset'] ) ) ) : ( isset( $_GET['admin_reset'] ) ? (bool) \intval( \sanitize_text_field( \wp_unslash( $_GET['admin_reset'] ) ) ) : false );
 
 			if ( isset( $user_id ) ) {
 
 				User_Helper::remove_2fa_for_user( $user_id );
+
+				if ( \wp_doing_ajax() ) {
+					\wp_send_json_success();
+				}
 
 				if ( $admin_reset ) {
 					\add_action( 'admin_notices', array( __CLASS__, 'admin_deleted_2fa_notice' ) );
@@ -416,8 +435,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 			$email_templates = Settings_Page_Email::get_email_notification_definitions();
 			foreach ( $email_templates as $email_template ) {
 				if ( $email_id === $email_template->get_email_content_id() ) {
-					$subject = wp_strip_all_tags( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( $email_id . '_email_subject' ) ) );
-					$message = \wpautop( WP2FA::replace_email_strings( WP2FA::get_wp2fa_email_templates( $email_id . '_email_body' ), $user_id ) );
+					$subject = wp_strip_all_tags( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( $email_id . '_email_subject' ) ) );
+					$message = \wpautop( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( $email_id . '_email_body' ), $user_id ) );
 
 					$email_sent = Settings_Page::send_email( $email, $subject, $message );
 					if ( $email_sent ) {
@@ -436,7 +455,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 */
 		public static function user_deleted_2fa_notice() {
 			?>
-			<div class="notice notice-success is-dismissible">
+			<div class="notice notice-success is-dismissible wp-2fa-admin-notice">
 				<p><?php \esc_html_e( '2FA settings have been removed.', 'wp-2fa' ); ?></p>
 				<button type="button" class="notice-dismiss">
 					<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
@@ -452,7 +471,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 */
 		public static function admin_deleted_2fa_notice() {
 			?>
-			<div class="notice notice-success is-dismissible">
+			<div class="notice notice-success is-dismissible wp-2fa-admin-notice">
 				<p><?php \esc_html_e( 'User 2FA settings have been removed.', 'wp-2fa' ); ?></p>
 				<button type="button" class="notice-dismiss">
 					<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>
@@ -468,7 +487,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 */
 		public static function user_unlocked_notice() {
 			?>
-			<div class="notice notice-success is-dismissible">
+			<div class="notice notice-success is-dismissible wp-2fa-admin-notice">
 				<p><?php \esc_html_e( 'User account successfully unlocked. User can login again.', 'wp-2fa' ); ?></p>
 				<button type="button" class="notice-dismiss">
 					<span class="screen-reader-text"><?php \esc_html_e( 'Dismiss this notice.', 'wp-2fa' ); ?></span>

@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Utils;
 
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
+
 if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 	/**
 	 * Utility class for creating modal popup markup.

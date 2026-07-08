@@ -30,7 +30,7 @@ if ( ! class_exists( '\WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation' )
 		 *
 		 * @var string
 		 */
-		const REMOTE_URL = 'https://proxytron.wpwhitesecurity.com';
+		const REMOTE_URL = 'https://proxytron.melapress.com';
 
 		/**
 		 * Get the plugin slug suffix for premium version.
@@ -87,43 +87,43 @@ if ( ! class_exists( '\WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation' )
 			$reasons = array(
 				array(
 					'id'                   => 'unexpected-behavior',
-					'label'                => \__( 'The plugin isn\'t working, caused issues, or has a bug', 'textdomain' ),
-					'feedback_placeholder' => \__( 'Can you briefly describe the issue?', 'textdomain' ),
+					'label'                => \__( 'The plugin isn\'t working, caused issues, or has a bug', 'wp-2fa' ),
+					'feedback_placeholder' => \__( 'Can you briefly describe the issue?', 'wp-2fa' ),
 					'feedback_type'        => 'textarea',
 				),
 				// [
 				// 'id'                   => 'wrong-feature',
-				// 'label'                => \__( "It's not what I was looking for", 'textdomain' ),
-				// 'feedback_placeholder' => \__( 'What were you looking for?', 'textdomain' ),
+				// 'label'                => \__( "It's not what I was looking for", 'wp-2fa' ),
+				// 'feedback_placeholder' => \__( 'What were you looking for?', 'wp-2fa' ),
 				// 'feedback_type'        => 'textarea',
 				// ],
 				// [
 				// 'id'                   => 'not-working',
-				// 'label'                => \__( 'The plugin is not working', 'textdomain' ),
-				// 'feedback_placeholder' => \__( 'Kindly share what didn\'t work so we can fix it for future users...', 'textdomain' ),
+				// 'label'                => \__( 'The plugin is not working', 'wp-2fa' ),
+				// 'feedback_placeholder' => \__( 'Kindly share what didn\'t work so we can fix it for future users...', 'wp-2fa' ),
 				// 'feedback_type'        => 'textarea',
 				// ],
 				array(
 					'id'                   => 'found-better-plugin',
-					'label'                => \__( 'I found a better alternative', 'textdomain' ),
-					'feedback_placeholder' => \__( 'Which plugin did you switch to?', 'textdomain' ),
+					'label'                => \__( 'I found a better alternative', 'wp-2fa' ),
+					'feedback_placeholder' => \__( 'Which plugin did you switch to?', 'wp-2fa' ),
 					'feedback_type'        => 'text',
 				),
 				array(
 					'id'                   => 'missing-feature',
-					'label'                => \__( 'The plugin is missing a specific feature', 'textdomain' ),
-					'feedback_placeholder' => \__( 'What feature were you looking for?', 'textdomain' ),
+					'label'                => \__( 'The plugin is missing a specific feature', 'wp-2fa' ),
+					'feedback_placeholder' => \__( 'What feature were you looking for?', 'wp-2fa' ),
 					'feedback_type'        => 'textarea',
 				),
 				array(
 					'id'                   => 'hard-to-understand',
-					'label'                => \__( 'The plugin is too hard to set up or understand', 'textdomain' ),
-					'feedback_placeholder' => \__( 'Can you tell us a bit more about this?', 'textdomain' ),
+					'label'                => \__( 'The plugin is too hard to set up or understand', 'wp-2fa' ),
+					'feedback_placeholder' => \__( 'Can you tell us a bit more about this?', 'wp-2fa' ),
 					'feedback_type'        => 'text',
 				),
 				array(
 					'id'                   => 'temporary-deactivation',
-					'label'                => \__( 'This is a temporary deactivation', 'textdomain' ),
+					'label'                => \__( 'This is a temporary deactivation', 'wp-2fa' ),
 					'feedback_type'        => false,
 					'feedback_placeholder' => false,
 				),
@@ -135,7 +135,7 @@ if ( ! class_exists( '\WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation' )
 			// Add the "other" reason at the end.
 			$reasons[] = array(
 				'id'                   => 'other',
-				'label'                => \__( 'Other', 'textdomain' ),
+				'label'                => \__( 'Other', 'wp-2fa' ),
 				'feedback_placeholder' => false,
 				'feedback_type'        => false,
 			);
@@ -143,9 +143,9 @@ if ( ! class_exists( '\WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation' )
 			?>
 		<div id="<?php echo \esc_attr( self::plugin_slug() ); ?>-popover" popover>
 			<div style="text-align: center; margin-bottom: 1.5rem;">
-			<img src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ); ?>" alt="<?php echo \esc_attr( 'Plugin Logo', 'textdomain' ); ?>" style="width: 50px; margin-bottom: 1rem;"> </div>
-			<h1><?php \esc_html_e( "We're sorry to see you go", 'textdomain' ); ?></h1>
-			<p><?php \esc_html_e( 'If you have a moment, please let us know why you are deactivating this plugin:', 'textdomain' ); ?></p>
+			<img src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/wizard-logo.png' ); ?>" alt="<?php echo \esc_attr( 'Plugin Logo', 'wp-2fa' ); ?>" style="width: 50px; margin-bottom: 1rem;"> </div>
+			<h1><?php \esc_html_e( "We're sorry to see you go", 'wp-2fa' ); ?></h1>
+			<p><?php \esc_html_e( 'If you have a moment, please let us know why you are deactivating this plugin:', 'wp-2fa' ); ?></p>
 			<form>
 				<?php foreach ( $reasons as $reason ) : ?>
 					<div class="reason-wrapper" data-reason="<?php echo \esc_attr( $reason['id'] ); ?>">
@@ -182,8 +182,8 @@ if ( ! class_exists( '\WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation' )
 				<?php endforeach; ?>
 
 				<div class="actions">
-					<button type="button" class="submit"><?php \esc_html_e( 'Submit & Deactivate', 'textdomain' ); ?></button>
-					<button type="button" class="dismiss"><?php \esc_html_e( 'Skip & Deactivate', 'textdomain' ); ?></button>
+					<button type="button" class="submit"><?php \esc_html_e( 'Submit & Deactivate', 'wp-2fa' ); ?></button>
+					<button type="button" class="dismiss"><?php \esc_html_e( 'Skip & Deactivate', 'wp-2fa' ); ?></button>
 				</div>
 			</form>
 		</div>
