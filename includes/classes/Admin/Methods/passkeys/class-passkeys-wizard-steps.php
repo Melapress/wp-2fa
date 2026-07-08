@@ -91,7 +91,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\PassKeys_Wizard_Steps' ) ) {
 				<div class="option-pill">
 					<?php echo \wp_kses_post( WP2FA::contextual_reconfigure_text( WP2FA::get_wp2fa_white_label_setting( 'passkeys_reconfigure_intro', true ), User_Helper::get_user_object()->ID, Passkeys::METHOD_NAME ) ); ?>
 					<div class="wp2fa-setup-actions">
-						<a href="#" class="button button-primary wp-2fa-button-primary" data-name="next_step_setting_modal_wizard" data-trigger-reset-key <?php echo WP_Helper::create_data_nonce( self::json_nonce() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" data-next-step="2fa-wizard-passkeys"><?php \esc_html_e( 'Reset Key', 'wp-2fa' ); ?></a>
+						<a href="#" class="button button-primary wp-2fa-button-primary" data-name="next_step_setting_modal_wizard" data-trigger-reset-key <?php echo WP_Helper::create_data_nonce( self::json_nonce() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" data-next-step="wp-2fa-wizard-passkeys"><?php \esc_html_e( 'Reset Key', 'wp-2fa' ); ?></a>
 					</div>
 				</div>
 			<?php
@@ -202,7 +202,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\PassKeys_Wizard_Steps' ) ) {
 					echo '<p class="description">';
 					printf(
 						/* translators: link to the knowledge base website */
-						\esc_html__( 'When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ),
+						\esc_html__( 'When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to configure a secondary 2FA method is highly recommended. You can configure this in the next step of the wizard. This allows users to log in using an alternative method if they lose access to their primary 2FA device, such as their phone.', 'wp-2fa' ),
 						'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
 					);
 					echo '</p>';

@@ -1,0 +1,1095 @@
+/**
+ * WP 2FA - Setup Wizard Styles
+ *
+ * Mobile-friendly, white-label ready wizard modal.
+ * All selectors are prefixed with .wp2fa-setup-wizard to avoid conflicts.
+ */
+
+/* =============================================
+   Overlay / Backdrop
+   ============================================= */
+.wp2fa-setup-wizard-overlay {
+	position: fixed;
+	top: 0;
+	inset-inline-start: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.55);
+	z-index: 100050;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.wp2fa-setup-wizard-overlay.wp2fa-wizard-open {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* =============================================
+   Modal Container
+   ============================================= */
+.wp2fa-setup-wizard-modal {
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+	width: 94%;
+	max-width: 640px;
+	max-height: 90vh;
+	overflow-y: auto;
+	position: relative;
+	transform: translateY(20px);
+	transition: transform 0.25s ease;
+}
+
+.wp2fa-wizard-open .wp2fa-setup-wizard-modal {
+	transform: translateY(0);
+}
+
+/* =============================================
+   Header
+   ============================================= */
+.wp2fa-setup-wizard-header {
+	padding: 20px 24px 16px;
+	/* border-bottom: 1px solid #e2e4e7; */
+}
+
+.wp2fa-setup-wizard-header-title-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.wp2fa-setup-wizard-header-logo-row {
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+.wp2fa-setup-wizard-header-logo {
+	max-height: 50px;
+	width: auto;
+}
+
+.wp2fa-setup-wizard-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #1e1e1e;
+	margin: 0;
+	line-height: 1.4;
+}
+
+.wp2fa-setup-wizard-close {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 24px;
+	line-height: 1;
+	color: #666;
+	padding: 4px;
+	transition: color 0.15s ease;
+	position: absolute;
+	top: 10px;
+	inset-inline-end: 20px;
+}
+
+.wp2fa-setup-wizard-close:hover,
+.wp2fa-setup-wizard-close:focus {
+	color: #1e1e1e;
+	outline: none;
+}
+
+/* =============================================
+   Body / Steps Container
+   ============================================= */
+.wp2fa-setup-wizard-body {
+	padding: 24px;
+	/* margin-top: -80px; */
+}
+
+/* =============================================
+   Step Panels
+   ============================================= */
+.wp2fa-wizard-step {
+	display: none;
+}
+
+.wp2fa-wizard-step.wp2fa-wizard-step-active {
+	display: block;
+}
+
+/* =============================================
+   Method Selection (Radio Group)
+   ============================================= */
+.wp2fa-wizard-methods-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.wp2fa-wizard-method-item {
+	margin-bottom: 12px;
+}
+
+.wp2fa-wizard-method-label {
+	display: flex;
+	align-items: center;
+	padding: 16px 20px;
+	border: 2px solid #dcdcde;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+	gap: 12px;
+}
+
+.wp2fa-wizard-method-label:hover {
+	border-color: #b0b5ba;
+	background-color: #f9f9f9;
+}
+
+.wp2fa-wizard-method-radio {
+	margin-top: 0;
+	flex-shrink: 0;
+	accent-color: #2271b1;
+	width: 18px;
+	height: 18px;
+}
+
+.wp2fa-wizard-method-radio:checked + .wp2fa-wizard-method-info {
+	/* Intentionally empty - parent label handles selected state */
+}
+
+.wp2fa-wizard-method-label:has(.wp2fa-wizard-method-radio:checked) {
+	border-color: #2271b1;
+	background-color: #f0f6fc;
+}
+
+.wp2fa-wizard-method-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.wp2fa-wizard-method-name {
+	/* display: none; */
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e1e1e;
+	margin-bottom: 2px;
+}
+
+#wp2fa-wizard-backup-methods-list .wp2fa-wizard-method-name {
+	display: block !important;
+}
+
+.wp2fa-wizard-method-description {
+	display: block;
+	font-size: 13px;
+	color: #666;
+	line-height: 1.5;
+}
+
+/* =============================================
+   Method Hint (info icon + expandable text)
+   ============================================= */
+.wp2fa-wizard-hint-toggle {
+	background: transparent;
+	color: #3c434a;
+	border: none;
+	width: 20px;
+	height: 20px;
+	border-radius: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+	margin-inline-start: 6px;
+	vertical-align: middle;
+	line-height: 1;
+	opacity: 0.8;
+	transition: background-color 0.15s ease, opacity 0.15s ease;
+	position: relative;
+	top: 0;
+}
+
+.wp2fa-wizard-hint-toggle:hover,
+.wp2fa-wizard-hint-toggle.wp2fa-wizard-hint-active {
+	background: rgba(34, 113, 177, 0.12);
+	border-radius: 50%;
+	opacity: 1;
+}
+
+.wp2fa-wizard-hint-icon {
+	display: inline-flex;
+	width: 20px;
+	height: 20px;
+	line-height: 0;
+}
+
+.wp2fa-wizard-hint-icon svg {
+	display: block;
+	width: 20px;
+	height: 20px;
+}
+
+.wp2fa-wizard-method-hint {
+	display: block;
+	font-size: 13px;
+	color: #50575e;
+	line-height: 1.6;
+	margin-top: 6px;
+	padding: 10px 12px;
+	background: #f0f0f1;
+	border-radius: 6px;
+}
+
+.wp2fa-wizard-method-hint p {
+	margin: 0 0 4px;
+}
+
+.wp2fa-wizard-method-hint p:last-child {
+	margin-bottom: 0;
+}
+
+.wp2fa-wizard-method-hint a {
+	color: #2271b1;
+	text-decoration: underline;
+}
+
+.wp2fa-wizard-method-hint a:hover {
+	color: #135e96;
+}
+
+/* =============================================
+   Footer / Actions
+   ============================================= */
+.wp2fa-setup-wizard-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 24px 20px;
+	border-top: 1px solid #e2e4e7;
+}
+
+.wp2fa-wizard-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 20px;
+	font-size: 14px;
+	font-weight: 500;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	text-decoration: none;
+	line-height: 1.6;
+	border: 1px solid transparent;
+	min-height: 36px;
+	box-sizing: border-box;
+}
+
+.wp2fa-setup-wizard-footer .wp2fa-wizard-btn.wp2fa-wizard-btn-secondary {
+	padding: 8px 20px;
+	line-height: 1.6;
+	font-size: 14px;
+	min-height: 36px;
+	border-width: 1px;
+}
+
+.wp2fa-wizard-btn:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.wp2fa-wizard-btn-primary {
+	background-color: #2271b1;
+	color: #fff;
+	border-color: #2271b1;
+}
+
+.wp2fa-wizard-btn-primary:hover {
+	background-color: #135e96;
+	border-color: #135e96;
+	color: #fff;
+}
+
+.wp2fa-wizard-btn-primary:disabled,
+.wp2fa-wizard-btn-primary[disabled] {
+	background-color: #a7aaad;
+	border-color: #a7aaad;
+	cursor: not-allowed;
+}
+
+.wp2fa-wizard-btn-secondary {
+	background-color: #fff;
+	color: #2271b1;
+	border-color: #2271b1;
+}
+
+.wp2fa-wizard-btn-secondary:hover {
+	background-color: #f0f6fc;
+	color: #135e96;
+	border-color: #135e96;
+}
+
+/* =============================================
+   default_styling fallback — when the admin disables
+   the plugin's built-in styling, our button classes are
+   removed by JS and replaced with WP-native `button` /
+   `button-primary` classes. No CSS overrides needed here
+   since our selectors (.wp2fa-wizard-btn etc.) no longer
+   match those elements.
+   ============================================= */
+
+/* =============================================
+   TOTP Configuration Step
+   ============================================= */
+.wp2fa-totp-setup-wrapper {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.wp2fa-totp-qr-wrapper {
+	flex-shrink: 0;
+}
+
+.wp2fa-totp-qr-code {
+	display: block;
+	width: 180px;
+	height: 180px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.wp2fa-totp-instructions {
+	flex: 1;
+	min-width: 0;
+}
+
+.wp2fa-totp-steps-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	counter-reset: totp-step;
+}
+
+.wp2fa-totp-step-item {
+	counter-increment: totp-step;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 12px;
+	margin-bottom: 16px;
+	font-size: 14px;
+	line-height: 1.5;
+	color: #1e1e1e;
+	align-items: start;
+}
+
+.wp2fa-totp-step-item::before {
+	content: counter(totp-step);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	min-width: 28px;
+	background-color: #2271b1;
+	color: #fff;
+	border-radius: 50%;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.wp2fa-totp-key-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	grid-column: 2;
+	margin-top: 8px;
+	margin-inline-start: 0;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 8px 12px;
+}
+
+.wp2fa-totp-key-input {
+	flex: 1;
+	border: none;
+	background: transparent;
+	font-family: monospace;
+	font-size: 14px;
+	color: #1e1e1e;
+	padding: 0;
+	outline: none;
+}
+
+.wp2fa-totp-key-copy {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	color: #666;
+	transition: color 0.15s ease;
+	display: flex;
+	align-items: center;
+}
+
+.wp2fa-totp-key-copy:hover {
+	color: #2271b1;
+}
+
+.wp2fa-totp-key-copy svg {
+	width: 18px;
+	height: 18px;
+}
+
+.wp2fa-copy-tooltip {
+	position: absolute;
+	bottom: 100%;
+	inset-inline-start: 50%;
+	transform: translateX(-50%);
+	background: #1d2327;
+	color: #fff;
+	font-size: 12px;
+	padding: 4px 8px;
+	border-radius: 3px;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.wp2fa-copy-tooltip.visible {
+	opacity: 1;
+}
+
+/* =============================================
+   TOTP Verification Step
+   ============================================= */
+/* .wp2fa-totp-verify-wrapper {
+	max-width: 400px;
+} */
+
+.wp2fa-totp-verify-wrapper label {
+	display: block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #1e1e1e;
+	margin-bottom: 8px;
+}
+
+.wp2fa-totp-verify-input {
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 16px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.wp2fa-totp-verify-input:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+/* =============================================
+   Email Configuration Step
+   ============================================= */
+.wp2fa-email-setup-description {
+	font-size: 14px;
+	color: #1e1e1e;
+	line-height: 1.6;
+	margin-bottom: 20px;
+}
+
+.wp2fa-email-options-list {
+	list-style: none;
+	margin: 0 0 16px;
+	padding: 0;
+}
+
+.wp2fa-email-option-item {
+	margin-bottom: 12px;
+}
+
+.wp2fa-email-option-label {
+	display: flex;
+	align-items: flex-start;
+	padding: 14px 18px;
+	border: 2px solid #dcdcde;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+	gap: 12px;
+}
+
+.wp2fa-email-option-label:hover {
+	border-color: #b0b5ba;
+	background-color: #f9f9f9;
+}
+
+.wp2fa-email-option-label:has(input:checked) {
+	border-color: #2271b1;
+	background-color: #f0f6fc;
+}
+
+.wp2fa-email-option-radio {
+	margin-top: 2px;
+	flex-shrink: 0;
+	accent-color: #2271b1;
+	width: 18px;
+	height: 18px;
+}
+
+.wp2fa-email-option-text {
+	font-size: 14px;
+	color: #1e1e1e;
+	flex: 1;
+}
+
+.wp2fa-email-custom-input {
+	display: block;
+	width: 100%;
+	margin-top: 8px;
+	padding: 8px 12px;
+	font-size: 14px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.wp2fa-email-custom-input:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.wp2fa-email-notice {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 12px 16px;
+	background: #fcf9e8;
+	border: 1px solid #dba617;
+	border-radius: 4px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #6e4e00;
+	margin-top: 16px;
+}
+ .wp2fa-email-notice p:first-child {
+	margin-top: 0px !important;
+ }
+
+.wp2fa-email-notice-icon {
+	flex-shrink: 0;
+	font-size: 16px;
+	line-height: 1.3;
+}
+
+/* =============================================
+   Email Verification Step
+   ============================================= */
+/* .wp2fa-email-verify-wrapper {
+	max-width: 400px;
+} */
+
+.wp2fa-email-verify-wrapper label {
+	display: block;
+	font-size: 14px;
+	font-weight: 500;
+	color: #1e1e1e;
+	margin-bottom: 8px;
+}
+
+.wp2fa-email-verify-input {
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 16px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.wp2fa-email-verify-input:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+/* =============================================
+   Verification Response Message
+   ============================================= */
+.wp2fa-wizard-verification-response {
+	margin-top: 12px;
+	padding: 10px 14px;
+	border-radius: 4px;
+	font-size: 13px;
+	line-height: 1.5;
+	display: none;
+}
+
+.wp2fa-wizard-verification-response.wp2fa-response-success {
+	display: block;
+	background: #edfaef;
+	border: 1px solid #46b450;
+	color: #1e4620;
+}
+
+.wp2fa-wizard-verification-response.wp2fa-response-error {
+	display: block;
+	background: #fcf0f1;
+	border: 1px solid #d63638;
+	color: #8a1c1f;
+}
+
+/* =============================================
+   Resend Code Link
+   ============================================= */
+.wp2fa-resend-code-link {
+	display: inline-block;
+	margin-top: 12px;
+	font-size: 13px;
+	color: #2271b1;
+	cursor: pointer;
+	text-decoration: underline;
+	background: none;
+	border: none;
+	padding: 0;
+}
+
+.wp2fa-resend-code-link:hover {
+	color: #135e96;
+}
+
+/* =============================================
+   Loading Spinner
+   ============================================= */
+.wp2fa-wizard-spinner {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	margin-inline-start: 8px;
+	border: 2px solid #dcdcde;
+	border-top-color: #2271b1;
+	border-radius: 50%;
+	animation: wp2fa-spin 0.6s linear infinite;
+	vertical-align: middle;
+}
+
+@keyframes wp2fa-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* =============================================
+   Backup Method Selection Step
+   ============================================= */
+.wp2fa-wizard-backup-select-success {
+	margin-bottom: 20px;
+}
+
+.wp2fa-wizard-success-icon {
+	margin-bottom: 16px;
+}
+
+.wp2fa-wizard-backup-select-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #1e1e1e;
+	margin: 0 0 10px;
+}
+
+.wp2fa-wizard-backup-select-description {
+	font-size: 14px;
+	color: #555;
+	line-height: 1.6;
+	margin: 0;
+}
+
+.wp2fa-wizard-backup-select-section-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1e1e1e;
+	margin: 0 0 12px;
+}
+
+.wp2fa-wizard-btn-close-later {
+	color: #d63638;
+	border-color: #d63638;
+}
+
+.wp2fa-wizard-btn-close-later:hover,
+.wp2fa-wizard-btn-close-later:focus {
+	color: #8a1c1f;
+	border-color: #8a1c1f;
+	background-color: #fcf0f1;
+}
+
+/* =============================================
+   Backup Codes Step
+   ============================================= */
+.wp2fa-backup-codes-intro {
+	font-size: 14px;
+	color: #1e1e1e;
+	line-height: 1.6;
+	margin-bottom: 20px;
+}
+
+.wp2fa-backup-codes-textarea {
+	display: block;
+	width: 100%;
+	padding: 12px 16px;
+	font-family: monospace;
+	font-size: 15px;
+	line-height: 2;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	color: #1e1e1e;
+	resize: none;
+	box-sizing: border-box;
+	margin-bottom: 16px;
+}
+
+.wp2fa-backup-codes-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-bottom: 16px;
+}
+
+.wp2fa-backup-codes-actions .wp2fa-wizard-btn {
+	min-width: 100px;
+}
+
+/* =============================================
+   Profile Page Button
+   ============================================= */
+.wp2fa-open-wizard-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 16px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #fff;
+	background-color: #2271b1;
+	border: 1px solid #2271b1;
+	border-radius: 4px;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background-color 0.15s ease;
+}
+
+.wp2fa-open-wizard-btn:hover,
+.wp2fa-open-wizard-btn:focus {
+	background-color: #135e96;
+	border-color: #135e96;
+	color: #fff;
+	outline: none;
+}
+
+/* =============================================
+   Mobile Responsive
+   ============================================= */
+@media screen and (max-width: 600px) {
+	.wp2fa-setup-wizard-modal {
+		width: 100%;
+		max-width: 100%;
+		max-height: 100vh;
+		border-radius: 0;
+		margin: 0;
+	}
+
+	.wp2fa-setup-wizard-header {
+		padding: 16px 16px 12px;
+	}
+
+	.wp2fa-setup-wizard-body {
+		padding: 16px;
+		/* margin-top: -64px; */
+	}
+
+	.wp2fa-setup-wizard-footer {
+		padding: 12px 16px 16px;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.wp2fa-setup-wizard-title {
+		font-size: 16px;
+	}
+
+	.wp2fa-wizard-method-label {
+		padding: 12px 14px;
+	}
+
+	.wp2fa-totp-setup-wrapper {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.wp2fa-totp-qr-code {
+		width: 160px;
+		height: 160px;
+	}
+
+	.wp2fa-totp-key-wrapper {
+		flex-wrap: wrap;
+	}
+
+	.wp2fa-totp-key-input {
+		width: 100%;
+		font-size: 12px;
+	}
+
+	.wp2fa-email-option-label {
+		padding: 12px 14px;
+	}
+
+	.wp2fa-wizard-btn {
+		padding: 8px 14px;
+		font-size: 13px;
+	}
+}
+
+@media screen and (max-width: 400px) {
+	.wp2fa-setup-wizard-header,
+	.wp2fa-setup-wizard-body,
+	.wp2fa-setup-wizard-footer {
+		padding-inline-start: 12px;
+		padding-inline-end: 12px;
+	}
+
+	.wp2fa-totp-qr-code {
+		width: 140px;
+		height: 140px;
+	}
+}
+
+/* -------------------------------------------------------
+ * Close confirmation dialog
+ * ------------------------------------------------------- */
+.wp2fa-wizard-confirm-overlay {
+	position: absolute;
+	top: 0;
+	inset-inline-start: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.55);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100;
+	border-radius: inherit;
+}
+
+.wp2fa-wizard-confirm-dialog {
+	background: #fff;
+	border-radius: 8px;
+	padding: 28px 32px 20px;
+	max-width: 400px;
+	width: 90%;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+	text-align: center;
+	color: #3c434a;
+}
+
+.wp2fa-wizard-confirm-body h3 {
+	margin: 0 0 8px;
+	font-size: 18px;
+}
+
+.wp2fa-wizard-confirm-body p {
+	margin: 0 0 4px;
+	color: #555;
+}
+
+.wp2fa-wizard-confirm-footer {
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+	margin-top: 20px;
+}
+
+.wp2fa-wizard-confirm-footer .wp2fa-wizard-btn {
+	min-width: 80px;
+}
+
+.wp2fa-wizard-confirm-footer.wp2fa-profile__confirm-buttons--stacked {
+	flex-direction: column;
+	align-items: center;
+}
+
+/* =============================================
+   default_styling overrides
+   When the admin disables "Enable our CSS within user wizards",
+   the modal gets class `default_styling`. These rules strip cosmetic
+   styling (colors, shadows, rounded corners, backgrounds) so the
+   wizard inherits the WordPress / theme appearance while keeping
+   structural layout intact.
+   On the frontend, --wp-admin-theme-color is not available, so we
+   use `inherit` / `currentColor` to let the theme cascade apply.
+   ============================================= */
+
+/* --- Modal container --- */
+.default_styling.wp2fa-setup-wizard-modal {
+	background: #fff;
+	border-radius: 0;
+	box-shadow: none;
+	border: 1px solid #c3c4c7;
+}
+
+/* --- Header --- */
+/* .default_styling .wp2fa-setup-wizard-header {
+	border-bottom: 1px solid #c3c4c7;
+} */
+
+.default_styling .wp2fa-setup-wizard-title {
+	color: inherit;
+	font-size: 1.3em;
+}
+
+.default_styling .wp2fa-setup-wizard-close {
+	color: #50575e;
+}
+
+.default_styling .wp2fa-setup-wizard-close:hover,
+.default_styling .wp2fa-setup-wizard-close:focus {
+	color: #d63638;
+}
+
+/* --- Body text --- */
+.default_styling .wp2fa-setup-wizard-body {
+	color: inherit;
+}
+
+/* --- Method cards --- */
+.default_styling .wp2fa-wizard-method-label {
+	border: 1px solid #c3c4c7;
+	border-radius: 0;
+	background: #fff;
+}
+
+.default_styling .wp2fa-wizard-method-label:hover {
+	border-color: #8c8f94;
+	background-color: #f6f7f7;
+}
+
+.default_styling .wp2fa-wizard-method-label:has(.wp2fa-wizard-method-radio:checked) {
+	border-color: currentColor;
+	background-color: #f0f6fc;
+}
+
+.default_styling .wp2fa-wizard-method-radio {
+	accent-color: auto;
+}
+
+.default_styling .wp2fa-wizard-method-name {
+	color: inherit;
+	/* display: none; */
+}
+
+.default_styling .wp2fa-wizard-method-description {
+	color: inherit;
+	opacity: 0.75;
+}
+
+/* --- Hint toggle --- */
+.default_styling .wp2fa-wizard-hint-toggle:hover,
+.default_styling .wp2fa-wizard-hint-toggle.wp2fa-wizard-hint-active {
+	background: #dcdcde;
+	border-radius: 0;
+}
+
+.default_styling .wp2fa-wizard-method-hint {
+	background: #f6f7f7;
+	border-radius: 0;
+	border: 1px solid #c3c4c7;
+}
+
+/* --- Footer --- */
+.default_styling .wp2fa-setup-wizard-footer {
+	border-top: 1px solid #c3c4c7;
+}
+
+/* --- TOTP step numbers --- */
+.default_styling .wp2fa-totp-step-item::before {
+	background-color: #50575e;
+	border-radius: 0;
+}
+
+/* --- Input fields --- */
+.default_styling .wp2fa-totp-verify-input:focus,
+.default_styling .wp2fa-email-verify-input:focus,
+.default_styling .wp2fa-email-custom-input:focus {
+	border-color: #8c8f94;
+	box-shadow: none;
+	outline: 1px solid #8c8f94;
+}
+
+.default_styling .wp2fa-totp-key-wrapper {
+	border-radius: 0;
+}
+
+.default_styling .wp2fa-totp-qr-code {
+	border-radius: 0;
+}
+
+/* --- Email option cards --- */
+.default_styling .wp2fa-email-option-label {
+	border: 1px solid #c3c4c7;
+	border-radius: 0;
+}
+
+.default_styling .wp2fa-email-option-label:hover {
+	border-color: #8c8f94;
+	background-color: #f6f7f7;
+}
+
+.default_styling .wp2fa-email-option-label:has(input:checked) {
+	border-color: currentColor;
+	background-color: #f0f6fc;
+}
+
+.default_styling .wp2fa-email-option-radio {
+	accent-color: auto;
+}
+
+/* --- Email notice --- */
+.default_styling .wp2fa-email-notice {
+	border-radius: 0;
+}
+
+/* --- Verification response --- */
+.default_styling .wp2fa-wizard-verification-response {
+	border-radius: 0;
+}
+
+/* --- Links --- */
+.default_styling .wp2fa-resend-code-link {
+	color: inherit;
+}
+
+/* --- Spinner --- */
+.default_styling .wp2fa-wizard-spinner {
+	border-top-color: currentColor;
+}
+
+/* --- Backup codes --- */
+.default_styling .wp2fa-backup-codes-textarea {
+	border-radius: 0;
+}
+
+/* --- Confirm dialog --- */
+.default_styling .wp2fa-wizard-confirm-dialog {
+	border-radius: 0;
+	box-shadow: none;
+	border: 1px solid #c3c4c7;
+}

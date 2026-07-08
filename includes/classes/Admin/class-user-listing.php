@@ -36,7 +36,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 *
 		 * @since 3.0.0
 		 */
-		private static $column_name = '2fa-status';
+		private static $column_name = 'wp-2fa-status';
 
 		/**
 		 * Inits all the hooks used for showing the extra user data in the users column
@@ -155,13 +155,27 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 				foreach ( (array) $user_ids as $user_id ) {
 					User_Helper::remove_2fa_for_user( (int) $user_id );
 				}
-				$redirect_url = add_query_arg( '2fa-removed', count( (array) $user_ids ), $redirect_url );
+				\set_site_transient(
+					'wp_2fa_bulk_notice_' . \get_current_user_id(),
+					array(
+						'type'  => 'removed',
+						'count' => count( (array) $user_ids ),
+					),
+					30
+				);
 			}
 
 			if ( class_exists( '\WP2FA\Extensions\TrustedDevices\Core' ) && 'remove-2fa-trusted' === $action ) {
 
 				Core::remove_trusted_devices_for_users( (array) $user_ids );
-				$redirect_url = add_query_arg( '2fa-trusted-removed', count( (array) $user_ids ), $redirect_url );
+				\set_site_transient(
+					'wp_2fa_bulk_notice_' . \get_current_user_id(),
+					array(
+						'type'  => 'trusted-removed',
+						'count' => count( (array) $user_ids ),
+					),
+					30
+				);
 			}
 
 			return esc_url_raw( $redirect_url );
@@ -192,8 +206,18 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 * @since 2.2.2
 		 */
 		public static function show_admin_notice() {
-			if ( ! empty( $_REQUEST['2fa-removed'] ) ) {
-				$num_changed = (int) $_REQUEST['2fa-removed'];
+			$transient_key = 'wp_2fa_bulk_notice_' . \get_current_user_id();
+			$notice        = \get_site_transient( $transient_key );
+
+			if ( ! $notice || ! is_array( $notice ) || ! isset( $notice['type'] ) ) {
+				return;
+			}
+
+			\delete_site_transient( $transient_key );
+
+			$num_changed = (int) ( $notice['count'] ?? 0 );
+
+			if ( 'removed' === $notice['type'] ) {
 				printf(
 					'<div id="message" class="updated notice is-dismissable"><p>' .
 					// translators: The number of the affected users.
@@ -201,9 +225,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 					'</p></div>',
 					$num_changed
 				);
-			}
-			if ( ! empty( $_REQUEST['2fa-trusted-removed'] ) ) {
-				$num_changed = (int) $_REQUEST['2fa-trusted-removed'];
+			} elseif ( 'trusted-removed' === $notice['type'] ) {
 				printf(
 					'<div id="message" class="updated notice is-dismissable"><p>' .
 					// translators: The number of the affected users.

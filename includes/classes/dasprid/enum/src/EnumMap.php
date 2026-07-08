@@ -21,7 +21,7 @@ use Traversable;
  * Iterators returned by the collection views are not consistent: They may or may not show the effects of modifications
  * to the map that occur while the iteration is in progress.
  */
-final class EnumMap implements Serializable, IteratorAggregate
+final class EnumMap implements IteratorAggregate
 {
     /**
      * The class name of the key.
@@ -88,7 +88,12 @@ final class EnumMap implements Serializable, IteratorAggregate
     }
     public function __unserialize(array $data) : void
     {
-        $this->unserialize(\serialize($data));
+        $this->__construct($data['keyType'], $data['valueType'], $data['allowNullValues']);
+        foreach ($this->keyUniverse as $key) {
+            if (\array_key_exists($key->ordinal(), $data['values'])) {
+                $this->put($key, $data['values'][$key->ordinal()]);
+            }
+        }
     }
     /**
      * Checks whether the map types match the supplied ones.

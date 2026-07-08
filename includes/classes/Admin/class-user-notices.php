@@ -81,14 +81,19 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 
 			if ( ! $current_profile_user_id ||
 			isset( $_GET['user_id'] ) &&
-			$_GET['user_id'] !== User_Helper::get_user_object()->ID ||
-			User_Helper::get_user_enforced_instantly( User_Helper::get_user_object() ) ) {
+			$_GET['user_id'] !== User_Helper::get_user_object()->ID ) {
+				return;
+			}
+
+			// In admin context, enforced-instantly users get the wizard auto-opened,
+			// so we skip the nag. On FE (shortcode), we still need to show it.
+			if ( 'output_shortcode' !== $is_shortcode && User_Helper::get_user_enforced_instantly( User_Helper::get_user_object() ) ) {
 				return;
 			}
 
 			$grace_expiry = (int) User_Helper::get_user_expiry_date( User_Helper::get_user_object() );
 
-			$class = 'notice notice-info wp-2fa-nag';
+			$class = 'notice notice-info wp-2fa-nag wp-2fa-admin-notice';
 
 			if ( User_Helper::get_user_needs_to_reconfigure_2fa( User_Helper::get_user_object() ) ) {
 				$message = WP2FA::get_wp2fa_white_label_setting( 'default-2fa-resetup-required-notice', true );
@@ -126,22 +131,39 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 			}
 
 			// If the nag has not already been dismissed, and of course if the user is eligible, lets show them something.
-			if ( ! $is_nag_dismissed && $is_nag_needed && empty( $enabled_methods ) && ! $is_user_excluded && ! empty( $grace_expiry ) ) {
+			$is_enforced_instantly = User_Helper::get_user_enforced_instantly( User_Helper::get_user_object() );
+			if ( ! $is_nag_dismissed && $is_nag_needed && empty( $enabled_methods ) && ! $is_user_excluded && ( ! empty( $grace_expiry ) || $is_enforced_instantly ) ) {
 
 				$show = true;
 
 				if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
 					if ( Extensions_Loader::use_proxytron() ) {
 						$show = User_Licensing::enable_2fa_user_setting( true );
+						// When quota is exceeded or no license, fall back to free
+						// version behaviour — still show the nag.
+						if ( ! $show && User_Licensing::quota_check() ) {
+							$show = true;
+						}
 					}
 				}
 
 				if ( $show ) {
-					echo '<div class="' . \esc_attr( $class ) . '">';
+					$is_frontend = ( isset( $is_shortcode ) && 'output_shortcode' === $is_shortcode );
+					$nag_id      = 'wp-2fa-nag-' . wp_unique_id();
+
+					echo '<div id="' . \esc_attr( $nag_id ) . '" class="' . \esc_attr( $class ) . '">';
 					echo wpautop( \wp_kses_post( WP2FA::replace_remaining_grace_period( $message, (int) $grace_expiry ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo ' <a href="' . \esc_url( $setup_url ) . '" class="button button-primary">' . \esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
-					echo ' <a href="#" class="button button-secondary dismiss-user-configure-nag">' . \esc_html__( 'Remind me on next login', 'wp-2fa' ) . '</a></p>';
+
+					if ( $is_frontend ) {
+						echo ' <a href="' . \esc_url( $setup_url ) . '" class="button button-primary" data-wp2fa-nag-configure="' . \esc_attr( $nag_id ) . '">' . \esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
+					} else {
+						echo ' <a href="' . \esc_url( $setup_url ) . '" class="button button-primary">' . \esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
+					}
+
+					echo ' <a href="#" class="button button-secondary wp-2fa-dismiss-nag" data-wp-2fa-nag-dismiss="' . \esc_attr( $nag_id ) . '">' . \esc_html__( 'Remind me on next login', 'wp-2fa' ) . '</a></p>';
 					echo '</div>';
+
+					self::inline_nag_scripts( $nag_id );
 				}
 			} else {
 				self::user_reconfigure_2fa_nag();
@@ -157,7 +179,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 
 			// If the nag has not already been dismissed, and of course if the user is eligible, lets show them something.
 			if ( User_Helper::needs_to_reconfigure_method() ) {
-				$class = 'notice notice-info wp-2fa-nag';
+				$class = 'notice notice-info wp-2fa-nag wp-2fa-admin-notice';
 
 				$message = \esc_html__( 'The 2FA method you were using is no longer allowed on this website. Please reconfigure 2FA using one of the supported methods.', 'wp-2fa' );
 
@@ -170,11 +192,76 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 
 
 		/**
+		 * Outputs inline vanilla JS for nag dismiss and configure buttons.
+		 *
+		 * @param string $nag_id - The unique ID of the nag element.
+		 *
+		 * @return void
+		 *
+		 * @since 2.10.0
+		 */
+		private static function inline_nag_scripts( $nag_id ) {
+			$ajax_url  = \esc_url( \admin_url( 'admin-ajax.php' ) );
+			$nag_nonce = \wp_create_nonce( 'wp-2fa-dismiss-nag' );
+			?>
+			<script type="text/javascript">
+			(function() {
+				var nagEl = document.getElementById('<?php echo \esc_js( $nag_id ); ?>');
+				if (!nagEl) return;
+
+				var dismissBtn = nagEl.querySelector('[data-wp-2fa-nag-dismiss="<?php echo \esc_js( $nag_id ); ?>"]');
+				if (dismissBtn) {
+					dismissBtn.addEventListener('click', function(e) {
+						e.preventDefault();
+						var xhr = new XMLHttpRequest();
+						xhr.open('POST', '<?php echo $ajax_url; // phpcs:ignore ?>', true);
+						xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+						xhr.onreadystatechange = function() {
+							if (xhr.readyState === 4) {
+								nagEl.style.transition = 'opacity 0.3s, max-height 0.3s';
+								nagEl.style.overflow = 'hidden';
+								nagEl.style.opacity = '0';
+								nagEl.style.maxHeight = '0';
+								setTimeout(function() { nagEl.style.display = 'none'; }, 300);
+							}
+						};
+						xhr.send('action=dismiss_nag&nonce=<?php echo \esc_js( $nag_nonce ); ?>');
+					});
+				}
+
+				var configureBtn = nagEl.querySelector('[data-wp2fa-nag-configure="<?php echo \esc_js( $nag_id ); ?>"]');
+				if (configureBtn) {
+					configureBtn.addEventListener('click', function(e) {
+						e.preventDefault();
+						// New wizard system (v4+).
+						var wizardBtn = document.querySelector('[data-wp2fa-open-wizard]');
+						if (wizardBtn) {
+							wizardBtn.click();
+							return;
+						}
+						// Legacy wizard (MicroModal).
+						if (document.getElementById('configure-2fa') && typeof window.wp2fa_fireWizard === 'function') {
+							window.wp2fa_fireWizard();
+							return;
+						}
+						// Fallback: navigate to setup URL.
+						if (configureBtn.href && configureBtn.href !== '#') {
+							window.location.href = configureBtn.href;
+						}
+					});
+				}
+			})();
+			</script>
+			<?php
+		}
+
+		/**
 		 * Dismiss notice and setup a user meta value so we know its been dismissed
 		 *
 		 * @since 3.0.0
 		 */
 		public static function dismiss_nag() {
+			check_ajax_referer( 'wp-2fa-dismiss-nag', 'nonce' );
 			User_Helper::set_nag_status( true );
 		}
 

@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Utils;
 
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
+
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;

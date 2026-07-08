@@ -280,7 +280,7 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 			$new_prefix = 'wp_2fa_trusted_device_';
 			$old_prefix = 'wp2fa_trusted_device_';
 
-			delete_transient( 'wp_2fa_config_file_hash' );
+			\delete_transient( 'wp_2fa_config_file_hash' );
 
 			$wpdb->query(
 				$wpdb->prepare(
@@ -290,9 +290,9 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 				 WHERE meta_key LIKE %s
 				 ",
 					array(
-						sanitize_key( $old_prefix ),
-						sanitize_key( $new_prefix ),
-						sanitize_key( $old_prefix . '%' ),
+						\sanitize_key( $old_prefix ),
+						\sanitize_key( $new_prefix ),
+						\sanitize_key( $old_prefix . '%' ),
 					)
 				)
 			);
@@ -406,6 +406,156 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 				$settings['enable_rest'] = false;
 
 				self::set_settings( self::$plugin_settings_name, $settings );
+			}
+		}
+
+		/**
+		 * Migration for version upto 4.0.0
+		 *
+		 * Disable the new interface for existing (upgrading) users.
+		 * Fresh installs will default to enabled since the option won't exist.
+		 *
+		 * Also renames settings keys that previously started with '2fa_' to 'wp-2fa_'
+		 * to comply with CSS naming conventions (no class/ID names starting with a digit).
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		protected static function migrate_up_to_400() {
+
+			\delete_transient( 'wp_2fa_config_file_hash' );
+
+			// On multisite, delete the config hash transient from ALL subsites
+			// to prevent stale checksums from blocking extensions after upgrade.
+			if ( \is_multisite() ) {
+				$sites = \get_sites( array( 'fields' => 'ids', 'number' => 0 ) );
+				foreach ( $sites as $blog_id ) {
+					\switch_to_blog( $blog_id );
+					\delete_transient( 'wp_2fa_config_file_hash' );
+					\restore_current_blog();
+				}
+			}
+
+			// Detect fresh install: if no policy settings exist, this is a new install
+			// (migration runs before the activation hook can set the version).
+			// In that case, skip interface/dialog changes so the new interface is enabled
+			// by default and the first-time wizard can run unimpeded.
+			$existing_policy = self::get_settings( self::$plugin_policy_name );
+			$is_fresh_install = empty( $existing_policy );
+
+			$settings = self::get_settings( self::$plugin_settings_name );
+
+			if ( ! \is_array( $settings ) ) {
+				$settings = array();
+			}
+
+			if ( ! $is_fresh_install ) {
+				$settings['use_new_interface'] = false;
+
+				self::set_settings( self::$plugin_settings_name, $settings );
+			}
+
+			self::rename_white_label_keys();
+
+			self::migrate_sms_templates();
+
+			// Show the new interface announcement dialog only for upgrades.
+			// Skip for fresh installs, WP-CLI and bulk updates.
+			if ( ! $is_fresh_install ) {
+				$show_dialog = true;
+
+				if ( defined( 'WP_CLI' ) && WP_CLI ) {
+					$show_dialog = false;
+				} else {
+					$manual_update = \get_transient( 'wp_2fa_manual_update' );
+					if ( '0' === $manual_update ) {
+						$show_dialog = false;
+					}
+					\delete_transient( 'wp_2fa_manual_update' );
+				}
+
+				if ( $show_dialog ) {
+					Settings_Utils::update_option( \WP2FA\Admin\New_Interface_Notice::SHOW_DIALOG_OPTION, 1 );
+				}
+			}
+		}
+
+		/**
+		 * Migrates SMS template settings from plain string format to array format.
+		 *
+		 * Prior to version 4.0.0, SMS templates were stored as plain strings:
+		 *   "default-twilio-registration-text" => "custom text"
+		 *
+		 * From version 4.0.0 onwards, they must be stored as arrays with a 'body' key:
+		 *   "default-twilio-registration-text" => array( "body" => "custom text" )
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		private static function migrate_sms_templates() {
+			$email_settings = self::get_settings( self::$plugin_email_settings_name );
+
+			if ( ! \is_array( $email_settings ) ) {
+				return;
+			}
+
+			$sms_keys = array(
+				'default-twilio-registration-text',
+				'default-twilio-code-text',
+			);
+
+			$updated = false;
+
+			foreach ( $sms_keys as $key ) {
+				if ( isset( $email_settings[ $key ] ) && \is_string( $email_settings[ $key ] ) ) {
+					$email_settings[ $key ] = array( 'body' => $email_settings[ $key ] );
+					$updated                = true;
+				}
+			}
+
+			if ( $updated ) {
+				self::set_settings( self::$plugin_email_settings_name, $email_settings );
+			}
+		}
+
+		/**
+		 * Renames white label settings keys that are also used as wp_editor HTML
+		 * element IDs, from '2fa_*' to 'wp-2fa_*' so they no longer start with a digit.
+		 *
+		 * Only keys that directly become HTML id attributes are renamed.
+		 * Internal-only settings keys (e.g. '2fa_settings_last_updated_by') and
+		 * user meta keys (e.g. 'wp_2fa_2fa_status') are left unchanged because
+		 * their final resolved values never start with a digit.
+		 *
+		 * @return void
+		 *
+		 * @since 4.0.0
+		 */
+		private static function rename_white_label_keys() {
+
+			$white_label_key_map = array(
+				'2fa_required_intro' => 'wp-2fa_required_intro',
+				'2fa_wizard_cancel'  => 'wp-2fa_wizard_cancel',
+			);
+
+			$white_label_settings = self::get_settings( self::$plugin_white_label_name );
+
+			if ( \is_array( $white_label_settings ) ) {
+				$updated = false;
+
+				foreach ( $white_label_key_map as $old_key => $new_key ) {
+					if ( \array_key_exists( $old_key, $white_label_settings ) && ! \array_key_exists( $new_key, $white_label_settings ) ) {
+						$white_label_settings[ $new_key ] = $white_label_settings[ $old_key ];
+						unset( $white_label_settings[ $old_key ] );
+						$updated = true;
+					}
+				}
+
+				if ( $updated ) {
+					self::set_settings( self::$plugin_white_label_name, $white_label_settings );
+				}
 			}
 		}
 

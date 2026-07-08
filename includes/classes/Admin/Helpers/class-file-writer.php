@@ -464,7 +464,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 
 			if ( empty( $result ) ) {
 				// Empty result here means invalid custom path or a problem with WordPress (uploads folder issue or mission WP_CONTENT_DIR).
-				return new \WP_Error( '2fa_uplaods_dir_missing', __( 'The base of WSAL working directory cannot be determined. Custom path is invalid or there is some other issue with your WordPress installation.', 'wp-2fa' ) );
+				return new \WP_Error( 'wp-2fa_uplaods_dir_missing', __( 'The base of WSAL working directory cannot be determined. Custom path is invalid or there is some other issue with your WordPress installation.', 'wp-2fa' ) );
 			}
 
 			// Append site specific subfolder in multisite context.

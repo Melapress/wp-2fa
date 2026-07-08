@@ -20,6 +20,7 @@ namespace WP2FA\Licensing;
 use WP2FA\WP2FA;
 use WP2FA\Extensions_Loader;
 use WP2FA\Freemius\User_Licensing;
+use WP2FA\Utils\Settings_Utils;
 
 if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 
@@ -29,6 +30,22 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 	 * @since 3.2.0
 	 */
 	class Freemius_Provider implements Licensing_Provider {
+
+		/**
+		 * Freemius premium option name.
+		 *
+		 * @var string
+		 * @since 4.0.0
+		 */
+		private const FS_WP2FAP_OPTION = 'fs_wp2fap';
+
+		/**
+		 * Freemius plugin ID.
+		 *
+		 * @var string
+		 * @since 4.0.0
+		 */
+		private const FREEMIUS_PLUGIN_ID = '8257';
 
 		/**
 		 * Cache for availability check.
@@ -113,6 +130,12 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 			self::add_action( 'is_submenu_visible', array( __CLASS__, 'hide_submenu_items' ), 10, 2 );
 			self::add_filter( 'default_to_anonymous_feedback', '__return_true' );
 			self::add_filter( 'show_deactivation_feedback_form', '__return_false' );
+			self::add_action(
+				'connect/before',
+				function () {
+					echo '<style>.fs-freemium-licensing { display: none !important; }</style>';
+				}
+			);
 
 			if ( Extensions_Loader::use_proxytron() ) {
 				if ( class_exists( '\WP2FA\Freemius\User_Licensing' ) ) {
@@ -137,7 +160,24 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return false;
 			}
 
-			return $fs->is_registered() && $fs->has_active_valid_license();
+			$is_valid = $fs->is_registered() && $fs->has_active_valid_license();
+
+			// On multisite subsites, the per-site install may not exist, causing
+			// is_registered() to return false. Fall back to checking the main site's
+			// cached premium status which is set by sync_premium_license().
+			if ( ! $is_valid && \is_multisite() && ! \is_network_admin() ) {
+				$main_blog_id      = \get_main_site_id();
+				$current_blog_id   = \get_current_blog_id();
+
+				if ( $current_blog_id !== $main_blog_id ) {
+					$main_site_premium = \get_blog_option( $main_blog_id, self::FS_WP2FAP_OPTION, 'no' );
+					if ( 'yes' === $main_site_premium ) {
+						$is_valid = true;
+					}
+				}
+			}
+
+			return $is_valid;
 		}
 
 		/**
@@ -165,7 +205,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return false;
 			}
 
-			return 'yes' === get_option( 'fs_wp2fap' );
+			return 'yes' === get_option( self::FS_WP2FAP_OPTION );
 		}
 
 		/**
@@ -184,13 +224,30 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return false;
 			}
 
-			return $fs->is_registered();
+			$is_registered = $fs->is_registered();
+
+			// On multisite subsites, the per-site install may not exist.
+			// Check the main site's premium status as a proxy for registration.
+			if ( ! $is_registered && \is_multisite() && ! \is_network_admin() ) {
+				$main_blog_id    = \get_main_site_id();
+				$current_blog_id = \get_current_blog_id();
+
+				if ( $current_blog_id !== $main_blog_id ) {
+					$main_site_premium = \get_blog_option( $main_blog_id, self::FS_WP2FAP_OPTION, 'no' );
+					if ( 'yes' === $main_site_premium ) {
+						$is_registered = true;
+					}
+				}
+			}
+
+			return $is_registered;
 		}
 
 		/**
 		 * Get the Freemius license object.
 		 *
 		 * @return mixed License object or null.
+		 *
 		 * @since 3.2.0
 		 */
 		public static function get_license() {
@@ -204,6 +261,26 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 			}
 
 			return $fs->_get_license();
+		}
+
+		/**
+		 * Check if the current license is a free license.
+		 *
+		 * @return bool True if it's a trial, false otherwise.
+		 *
+		 * @since 4.0.0
+		 */
+		public static function is_free(): bool {
+			if ( ! self::is_available() ) {
+				return false;
+			}
+
+			$fs = self::wp2fa_freemius();
+			if ( null === $fs ) {
+				return false;
+			}
+
+			return $fs->is_free_plan();
 		}
 
 		/**
@@ -256,12 +333,12 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 */
 		public static function get_pricing_url(): string {
 			if ( ! self::is_available() ) {
-				return 'https://melapress.com/wordpress-2fa/pricing/';
+				return 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_pricing_fallback';
 			}
 
 			$fs = self::wp2fa_freemius();
 			if ( null === $fs ) {
-				return 'https://melapress.com/wordpress-2fa/pricing/';
+				return 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_pricing_fallback';
 			}
 
 			return $fs->pricing_url();
@@ -275,12 +352,12 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 */
 		public static function get_account_url(): string {
 			if ( ! self::is_available() ) {
-				return 'https://melapress.com/account/';
+				return 'https://melapress.com/account/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=account_fallback';
 			}
 
 			$fs = self::wp2fa_freemius();
 			if ( null === $fs ) {
-				return 'https://melapress.com/account/';
+				return 'https://melapress.com/account/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=account_fallback';
 			}
 
 			return $fs->get_account_url();
@@ -297,7 +374,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return false;
 			}
 
-			$option_name = 'fs_wp2fap';
+			$option_name = self::FS_WP2FAP_OPTION;
 			$old_value   = get_option( $option_name );
 
 			// determine new value via Freemius SDK.
@@ -476,8 +553,8 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 			require_once $freemius_path;
 
 			if ( function_exists( 'fs_dynamic_init' ) ) {
-				if ( ! defined( 'WP_FS__PRODUCT_8257_MULTISITE' ) ) {
-					define( 'WP_FS__PRODUCT_8257_MULTISITE', true );
+				if ( ! defined( 'WP_FS__PRODUCT_' . self::FREEMIUS_PLUGIN_ID . '_MULTISITE' ) ) {
+					define( 'WP_FS__PRODUCT_' . self::FREEMIUS_PLUGIN_ID . '_MULTISITE', true );
 				}
 
 				// Trial arguments.
@@ -487,14 +564,14 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				);
 
 				// Check anonymous mode.
-				$freemius_state = get_site_option( 'melapress_login_security_freemius_state', 'anonymous' );
+				$freemius_state = get_site_option( 'wp_2fa_freemius_state', 'anonymous' );
 				$is_anonymous   = 'anonymous' === $freemius_state || 'skipped' === $freemius_state;
 				$is_premium     = true;
 				$is_anonymous   = ( $is_premium ? false : $is_anonymous );
 
 				self::$freemius_instance = \fs_dynamic_init(
 					array(
-						'id'                  => '8257',
+						'id'                  => self::FREEMIUS_PLUGIN_ID,
 						'slug'                => 'wp-2fa',
 						'type'                => 'plugin',
 						'public_key'          => 'pk_b8cc4c0bbe2df3365f23c225a7889',
@@ -554,7 +631,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 * @return boolean
 		 */
 		public static function is_premium_freemius() {
-			return 'yes' === get_option( 'fs_wp2fap' );
+			return 'yes' === get_option( self::FS_WP2FAP_OPTION );
 		}
 
 		/**
@@ -569,7 +646,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return;
 			}
 
-			$freemius_transient = get_transient( 'fs_mls_premium' );
+			$freemius_transient = get_transient( self::FS_WP2FAP_OPTION );
 			if ( false === $freemius_transient || ! in_array( $freemius_transient, array( 'yes', 'no' ) ) ) {
 				// transient expired or invalid.
 				self::sync_premium_license();
@@ -585,7 +662,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 * @see WP2FA\Freemius\Freemius_Helper::maybe_sync_premium_license()
 		 */
 		public static function sync_premium_license() {
-			$option_name = 'fs_wp2fap';
+			$option_name = self::FS_WP2FAP_OPTION;
 			$old_value   = \get_option( $option_name );
 
 			// determine new value via Freemius SDK.
@@ -683,6 +760,10 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function can_show_admin_notice( $show, $msg ) {
+			if ( isset( $msg['id'] ) && 'connect_account' === $msg['id'] ) {
+				return false;
+			}
+
 			return current_user_can( 'manage_options' );
 		}
 
@@ -693,6 +774,15 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 */
 		public static function on_premium_version_activation() {
 			self::sync_premium_license();
+
+			// Auto-enable "Bypass 2FA after Passkey login" when upgrading from free to premium.
+			// In the free edition passkeys always bypass 2FA (hardcoded), so we must preserve that
+			// behaviour after upgrading – regardless of what value the free save handler stored.
+			$settings = Settings_Utils::get_option( WP_2FA_SETTINGS_NAME, array() );
+			if ( \is_array( $settings ) && empty( $settings['skip_2fa_for_passkeys'] ) ) {
+				$settings['skip_2fa_for_passkeys'] = true;
+				Settings_Utils::update_option( WP_2FA_SETTINGS_NAME, $settings );
+			}
 		}
 
 		/**

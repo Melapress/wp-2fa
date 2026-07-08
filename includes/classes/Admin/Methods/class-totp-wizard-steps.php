@@ -72,6 +72,8 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 			\add_action( WP_2FA_PREFIX . 'modal_methods', array( __CLASS__, 'modal_configure' ) );
 			\add_filter( WP_2FA_PREFIX . 'methods_re_configure', array( __CLASS__, 'totp_re_configure' ), 10, 2 );
 			\add_filter( WP_2FA_PREFIX . 'methods_settings', array( __CLASS__, 'totp_wizard_settings' ), 10, 4 );
+
+			self::common_init();
 		}
 
 		/**
@@ -94,7 +96,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 				<div class="option-pill">
 					<?php echo \wp_kses_post( WP2FA::contextual_reconfigure_text( WP2FA::get_wp2fa_white_label_setting( 'totp_reconfigure_intro', true ), User_Helper::get_user_object()->ID, TOTP::METHOD_NAME ) ); ?>
 					<div class="wp2fa-setup-actions">
-						<a href="#" class="button button-primary wp-2fa-button-primary" data-name="next_step_setting_modal_wizard" data-trigger-reset-key <?php echo WP_Helper::create_data_nonce( self::json_nonce() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" data-next-step="2fa-wizard-totp"><?php \esc_html_e( 'Reset Key', 'wp-2fa' ); ?></a>
+						<a href="#" class="button button-primary wp-2fa-button-primary" data-name="next_step_setting_modal_wizard" data-trigger-reset-key <?php echo WP_Helper::create_data_nonce( self::json_nonce() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> data-user-id="<?php echo \esc_attr( User_Helper::get_user_object()->ID ); ?>" data-next-step="wp-2fa-wizard-totp"><?php \esc_html_e( 'Reset Key', 'wp-2fa' ); ?></a>
 					</div>
 				</div>
 			<?php
@@ -163,7 +165,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 		public static function modal_configure( $user ) {
 			if ( TOTP::is_enabled( User_Helper::get_user_role( $user ) ) ) {
 				?>
-				<div class="wizard-step" id="2fa-wizard-totp">
+				<div class="wizard-step" id="wp-2fa-wizard-totp">
 					<fieldset>
 						<?php self::totp_configure( $user ); ?>
 					</fieldset>
@@ -282,7 +284,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 						<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_verification_totp_pre', true ) ); ?>
 					</div>
 					<fieldset>
-						<label for="2fa-totp-authcode">
+						<label for="wp-2fa-totp-authcode">
 							<?php \esc_html_e( 'Verification Code:', 'wp-2fa' ); ?>
 							<input type="tel" name="wp-2fa-totp-authcode" id="wp-2fa-totp-authcode" class="input" value="" size="20" pattern="[0-9]*" autocomplete="off"/>
 							<script>
@@ -345,7 +347,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 				?>
 				<div id="<?php echo \esc_attr( TOTP::METHOD_NAME ); ?>-method-wrapper" class="method-wrapper">
 					<?php
-					\esc_html_e( 'You need to install the libxml extension to use this method. Ask the host support for enabling it.', 'wp-2fa' );
+					\esc_html_e( 'Setting up TOTP (one-time codes via an authenticator app) requires the libxml PHP extension to generate the QR code. Please contact your hosting provider and ask them to enable it on your server.', 'wp-2fa' );
 
 					?>
 				</div>
@@ -376,7 +378,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 					echo '<p class="description">';
 					printf(
 						/* translators: link to the knowledge base website */
-						\esc_html__( 'When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to set up a secondary 2FA method is highly recommended. You can do this in the next step of the wizard. This will allow users to log in using an alternative method should they, for example lose access to their phone.', 'wp-2fa' ),
+						\esc_html__( 'When using this method, users will need to configure a 2FA app to get the one-time login code. The plugin supports all standard 2FA apps. Refer to the %s for more information. Allowing users to configure a secondary 2FA method is highly recommended. You can configure this in the next step of the wizard. This allows users to log in using an alternative method if they lose access to their primary 2FA device, such as their phone.', 'wp-2fa' ),
 						'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_2fa_apps" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
 					);
 					echo '</p>';
@@ -385,8 +387,8 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 					echo '<p class="description">';
 					printf(
 						/* translators: link to the knowledge base website */
-						\esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
-						'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_2fa_apps_2" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
+						\esc_html__( 'Refer to the %s for step-by-step instructions on how to set up this method.', 'wp-2fa' ),
+				'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-wordpress-user/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_totp_user_settings" target="_blank">' . \esc_html__( 'setup guide', 'wp-2fa' ) . '</a>'
 					);
 					echo '</p>';
 				}
@@ -430,6 +432,32 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 					</script>
 				</p>
 			<?php
+		}
+
+		/**
+		 * Returns an inline hint shown next to the TOTP method title.
+		 *
+		 * @return string
+		 *
+		 * @since 4.0.0
+		 */
+		public static function get_method_title_hint(): string {
+			return ''; //' - <a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=totp_aplications_help" target="_blank" rel="noopener">' . \esc_html__( 'complete list of supported 2FA apps.', 'wp-2fa' ) . '</a>';
+		}
+
+		/**
+		 * Returns a description for the TOTP method shown below the title.
+		 *
+		 * @return string
+		 *
+		 * @since 4.0.0
+		 */
+		public static function get_method_description(): string {
+			return \wp_sprintf(
+				/* translators: link to the knowledge base website */
+				\esc_html__( 'Refer to the %s for step-by-step instructions on how to set up this method.', 'wp-2fa' ),
+				'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-wordpress-user/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_totp_user_settings" target="_blank">' . \esc_html__( 'setup guide', 'wp-2fa' ) . '</a>'
+			);
 		}
 	}
 }

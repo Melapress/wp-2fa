@@ -172,6 +172,8 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 					'toplevel_page_wp-2fa-policies',
 					'profile',
 					'profile-network',
+					'user-edit',
+					'user-edit-network',
 				),
 				true
 			) ) || true === $shortcodes )
@@ -192,11 +194,62 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 					\wp_enqueue_script(
 						self::USER_PROFILE_JS_MODULE,
 						\trailingslashit( WP_2FA_URL ) . \trailingslashit( self::PASSKEY_DIR ) . 'assets/js/user-profile-ajax.js',
-						array( 'jquery', 'wp-dom-ready', 'wp-i18n' ),
+						array( 'wp-dom-ready', 'wp-i18n' ),
 						WP_2FA_VERSION,
 						array( 'in_footer' => true )
 					);
+
+					\wp_localize_script(
+						self::USER_PROFILE_JS_MODULE,
+						'wp2faData',
+						array(
+							'ajaxURL' => \admin_url( 'admin-ajax.php' ),
+						)
+					);
 				}
+
+				// Passkeys profile CSS.
+				\wp_enqueue_style(
+					'wp-2fa-passkeys-profile',
+					\trailingslashit( WP_2FA_URL ) . 'css/passkeys/user-profile.css',
+					array(),
+					WP_2FA_VERSION
+				);
+
+				// Passkeys profile modal JS (vanilla, non-module).
+				\wp_enqueue_script(
+					'wp-2fa-passkeys-profile-modal',
+					\trailingslashit( WP_2FA_URL ) . 'js/passkeys/user-profile.js',
+					array( 'wp-dom-ready', 'wp-util' ),
+					WP_2FA_VERSION,
+					array( 'in_footer' => true )
+				);
+
+				\wp_localize_script(
+					'wp-2fa-passkeys-profile-modal',
+					'wp2faPasskeys',
+					array(
+						'nonce'               => \wp_create_nonce( 'wp2fa_profile_register' ),
+						'setupTitle'          => \esc_html__( 'Set up Passkey Login', 'wp-2fa' ),
+						'setupDescription'    => \esc_html__( 'Passkeys replace traditional passwords with a quick and secure login method built right into your device. Depending on your setup, this could be a fingerprint, facial recognition, or another trusted device. Even if your device doesn\'t support biometrics, you can still create and use a passkey. A Passkey is stored safely on your device. So it can\'t be phished, leaked, or reused by hackers.', 'wp-2fa' ),
+						'stepsHeading'        => \esc_html__( 'Steps to add a passkey:', 'wp-2fa' ),
+						'step1'               => \esc_html__( 'Click the "Add Passkey" button and a pop-up will appear.', 'wp-2fa' ),
+						'step2'               => \esc_html__( 'Follow the instructions on the popup', 'wp-2fa' ),
+						'step3'               => \esc_html__( 'Specify a name for your passkey and that is it!', 'wp-2fa' ),
+						'cancelLabel'         => \esc_html__( 'Cancel and back', 'wp-2fa' ),
+						'usbLabel'            => \esc_html__( 'Add a USB Security Key', 'wp-2fa' ),
+						'passkeyLabel'        => \esc_html__( 'Add a Passkey', 'wp-2fa' ),
+						'successTitle'        => \esc_html__( 'Passkey Added!', 'wp-2fa' ),
+						'successDescription'  => \esc_html__( 'The passkey has been added successfully. Give it a name or leave for auto-generated name.', 'wp-2fa' ),
+						'namePlaceholder'     => \esc_html__( 'Passkey name', 'wp-2fa' ),
+						'submitLabel'         => \esc_html__( 'Continue', 'wp-2fa' ),
+						'nameValidationError' => \esc_html__( 'Only letters, numbers, dashes, underscores, and spaces allowed.', 'wp-2fa' ),
+					)
+				);
+
+				// Print passkey templates in admin footer.
+				\add_action( 'admin_footer', array( '\WP2FA\Passkeys\Passkeys_User_Profile', 'print_passkey_templates' ) );
+				\add_action( 'wp_footer', array( '\WP2FA\Passkeys\Passkeys_User_Profile', 'print_passkey_templates' ) );
 			}
 		}
 

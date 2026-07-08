@@ -127,6 +127,7 @@ class Source_Repository {
 			$ret_arr['created']       = $array['extra']['created'] ?? '';
 			$ret_arr['last_used']     = $array['extra']['last_used'] ?? '';
 			$ret_arr['enabled']       = $array['extra']['enabled'] ?? '';
+			$ret_arr['revoked']       = $array['extra']['revoked'] ?? false;
 			$ret_arr['credential_id'] = $array['extra']['credential_id'] ?? '';
 
 		}
@@ -275,7 +276,7 @@ class Source_Repository {
 			throw new \Exception( 'User not found.', 404 );
 		}
 
-		// Allow the user themselves or a caller with capability to edit the user.
+		// Only the passkey owner can revoke their own passkey.
 		$current = \get_current_user_id();
 		if ( $current !== $user->ID && ! current_user_can( 'edit_user', $user->ID ) ) {
 			throw new \Exception( 'User not found or insufficient permissions.', 404 );

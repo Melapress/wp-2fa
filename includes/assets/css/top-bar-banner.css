@@ -1,0 +1,130 @@
+/**
+ * WP 2FA Top Bar Banner Styles
+ *
+ * @since 4.0.0
+ */
+
+#wp2fa-top-bar-banner {
+    --wp2fa-font-size-base: var(--font-size-base, 14px);
+    --wp2fa-blue-color: var(--blue-color, #2271B1);
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin: -5px 0 20px -20px;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    width: calc(100% + 17px);
+}
+
+.wp2fa-top-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Left section: logo + title + optional update badge */
+.wp2fa-top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wp2fa-top-bar-logo {
+    width: 28px;
+    height: auto;
+}
+
+.wp2fa-top-bar-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a2238;
+    letter-spacing: -0.2px;
+}
+
+/* Update available badge */
+.wp2fa-top-bar-update-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #eef3fc;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #1a2238;
+    margin-left: 6px;
+}
+
+.wp2fa-update-dot {
+    width: 10px;
+    height: 10px;
+    background: #3d6b9e;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.wp2fa-update-link {
+    color: var(--wp2fa-blue-color);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.wp2fa-update-link:hover {
+    color: #1a2238;
+}
+
+/* Right section: version + links + optional upgrade button */
+.wp2fa-top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wp2fa-top-bar-version {
+    color: #2B5578;
+    font-size: var(--wp2fa-font-size-base);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 160%;
+}
+
+.wp2fa-top-bar-separator {
+    color: #ccc;
+    font-size: var(--wp2fa-font-size-base);
+}
+
+.wp2fa-top-bar-link {
+    color: var(--wp2fa-blue-color);
+    font-size: var(--wp2fa-font-size-base);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 160%;
+    text-decoration: none;
+}
+
+.wp2fa-top-bar-link:hover {
+    color: var(--wp2fa-blue-color);
+    text-decoration: underline;
+}
+
+/* Upgrade to Premium button (free version only) */
+.wp2fa-top-bar-upgrade {
+    display: inline-block;
+    background: #3d6b9e;
+    color: #fff;
+    padding: 7px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    margin-left: 8px;
+    transition: background 0.2s ease;
+}
+
+.wp2fa-top-bar-upgrade:hover {
+    background: #1a2238;
+    color: #fff;
+}

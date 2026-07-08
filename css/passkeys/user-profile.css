@@ -1,0 +1,445 @@
+/**
+ * Passkeys User Profile Styles
+ *
+ * @package wp2fa
+ * @since   4.0.0
+ */
+
+/* ── Add Passkey button ────────────────────────────────────── */
+
+.wp-2fa-passkey-add-btn {
+	margin-bottom: 12px !important;
+	background-color: #2271b1 !important;
+	text-decoration: none !important;
+	color: #fff !important;
+}
+
+/* ── Passkey list table ────────────────────────────────────── */
+
+.wp-2fa-passkey-list-table {
+	border: 1px solid #31333b;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	border-spacing: 0;
+	border-collapse: collapse;
+	table-layout: fixed;
+}
+
+/* Column widths for consistent header-cell alignment */
+.wp-2fa-passkey-list-table .column-name {
+	width: 25%;
+}
+.wp-2fa-passkey-list-table .column-status {
+	width: 15%;
+}
+.wp-2fa-passkey-list-table .column-created-date {
+	width: 20%;
+}
+.wp-2fa-passkey-list-table .column-last-used-date {
+	width: 20%;
+}
+.wp-2fa-passkey-list-table .column-action {
+	width: 20%;
+}
+
+/* Header & footer: gray background */
+.wp-2fa-passkey-list-table thead th,
+.wp-2fa-passkey-list-table tfoot th {
+	padding: 10px 16px !important;
+	font-weight: 600;
+	text-align:start;
+	border-bottom: 1px solid #c3c4c7;
+	border-top: 1px solid #c3c4c7;
+	font-size: 13px;
+	line-height: 1.4em;
+	background: #f6f7f7;
+}
+
+/* Body rows: white background, no striping */
+.wp-2fa-passkey-list-table.striped > tbody > tr:nth-child(odd),
+.wp-2fa-passkey-list-table.striped > tbody > tr:nth-child(even),
+.wp-2fa-passkey-list-table tbody tr {
+	background: #fff !important;
+}
+
+.wp-2fa-passkey-list-table tbody tr + tr {
+	border-top: 1px solid #e1e1e1;
+}
+
+/* Cells */
+.wp-2fa-passkey-list-table td {
+	padding: 16px 16px !important;
+	vertical-align: middle !important;
+	line-height: 1.5 !important;
+	text-align:start;
+	font-size: 13px;
+}
+
+/* ── Sortable column headers ───────────────────────────────── */
+
+.wp-2fa-passkey-list-table th.sortable a,
+.wp-2fa-passkey-list-table th.sorted a {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	text-decoration: none;
+	color: inherit;
+	cursor: pointer;
+	padding: 8px 8px 8px 0;
+}
+
+.wp-2fa-passkey-list-table th.sortable a:hover,
+.wp-2fa-passkey-list-table th.sorted a:hover {
+	color: #135e96;
+}
+
+/* ── Action links ──────────────────────────────────────────── */
+
+.wp-2fa-passkey-list-table .button-link.enable_styling {
+	background: none;
+	border: none;
+	color: #2271b1;
+	cursor: pointer;
+	text-decoration: underline;
+	padding: 0;
+	font-size: 13px;
+	line-height: 1.5;
+	margin-inline-end: 12px;
+}
+
+.wp-2fa-passkey-list-table .button-link.enable_styling:last-child {
+	margin-inline-end: 0;
+}
+
+.wp-2fa-passkey-list-table .button-link.enable_styling:hover,
+.wp-2fa-passkey-list-table .button-link.enable_styling:focus {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+/* ── Status labels ─────────────────────────────────────────── */
+
+.wp-2fa-passkey-status {
+	font-weight: 400;
+}
+
+@media screen and (max-width: 782px) {
+	.wp-2fa-passkey-list-table thead,
+	.wp-2fa-passkey-list-table tfoot {
+		display: none !important;
+	}
+
+	.wp-2fa-passkey-list-table td::before {
+		content: attr(data-label) !important;
+		font-weight: bold !important;
+		text-align:start !important;
+		position: absolute !important;
+		inset-inline-start: 10px !important;
+		top: 50% !important;
+		transform: translateY(-50%) !important;
+		white-space: nowrap !important;
+	}
+
+	.wp-2fa-passkey-list-table td {
+		display: block !important;
+		width: 100% !important;
+		text-align:end !important;
+		position: relative !important;
+		padding-inline-start: 50% !important;
+	}
+}
+
+td.editing {
+	background-color: #f0f8ff;
+}
+
+input.invalid {
+	border: 2px solid #d9534f;
+	background-color: #ffe6e6;
+}
+
+.cell-error {
+	color: #d9534f;
+	font-size: 11px;
+	margin-top: 4px;
+	display: block;
+}
+
+/* ── Modal overlay ─────────────────────────────────────────── */
+
+.wp2fa-passkey-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	justify-content: center;
+	align-items: center;
+	z-index: 100000;
+}
+
+.wp2fa-passkey-overlay.is-visible {
+	display: flex;
+}
+
+/* ── Modal container ───────────────────────────────────────── */
+
+.wp2fa-passkey-modal {
+	background: #fff;
+	border-radius: 4px;
+	width: 640px;
+	max-width: 90vw;
+	max-height: 85vh;
+	overflow-y: auto;
+	box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
+	position: relative;
+	display: flex;
+	flex-direction: column;
+}
+
+/* ── Modal header ──────────────────────────────────────────── */
+
+.wp2fa-passkey-modal__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 24px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.wp2fa-passkey-modal__title {
+	font-size: 22px;
+	font-weight: 600;
+	margin: 0;
+	line-height: 1.3;
+}
+
+.wp2fa-passkey-modal__close {
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	padding: 4px 8px;
+	line-height: 1;
+	border-radius: 2px;
+}
+
+.wp2fa-passkey-modal__close:hover,
+.wp2fa-passkey-modal__close:focus {
+	background: #f0f0f1;
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}
+
+/* ── Modal body ────────────────────────────────────────────── */
+
+.wp2fa-passkey-modal__body {
+	padding: 24px;
+	flex: 1;
+}
+
+.wp2fa-passkey-modal__body p {
+	font-size: 14px;
+	line-height: 1.6;
+	margin: 0 0 16px;
+}
+
+/* ── Steps list ────────────────────────────────────────────── */
+
+.wp2fa-passkey-steps-heading {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 20px 0 12px;
+}
+
+.wp2fa-passkey-steps {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 16px;
+	counter-reset: passkey-step;
+}
+
+.wp2fa-passkey-steps li {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 10px 0;
+	font-size: 14px;
+	line-height: 1.5;
+	counter-increment: passkey-step;
+}
+
+.wp2fa-passkey-steps li::before {
+	content: counter(passkey-step);
+	flex-shrink: 0;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #2271b1;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ── Modal footer ──────────────────────────────────────────── */
+
+.wp2fa-passkey-modal__footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 24px;
+	border-top: 1px solid #dcdcde;
+	border-radius: 0 0 4px 4px;
+	gap: 12px;
+}
+
+.wp2fa-passkey-modal__footer-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.wp2fa-passkey-modal__cancel {
+	background: none;
+	border: none;
+	color: #2271b1;
+	cursor: pointer;
+	font-size: 13px;
+	text-decoration: none;
+	padding: 4px 2px;
+}
+
+.wp2fa-passkey-modal__cancel:hover,
+.wp2fa-passkey-modal__cancel:focus {
+	color: #135e96;
+	text-decoration: underline;
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+/* ── Success screen ────────────────────────────────────────── */
+
+.wp2fa-passkey-success {
+	text-align: center;
+	padding: 40px 24px;
+}
+
+.wp2fa-passkey-success__icon {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	background: #e8f5e8;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto 20px;
+}
+
+.wp2fa-passkey-success__icon svg {
+	width: 36px;
+	height: 36px;
+	color: #46b450;
+}
+
+.wp2fa-passkey-success__title {
+	font-size: 22px;
+	font-weight: 600;
+	margin: 0 0 12px;
+}
+
+.wp2fa-passkey-success__description {
+	font-size: 14px;
+	margin: 0 0 24px;
+	line-height: 1.5;
+}
+
+.wp2fa-passkey-success__input-wrap {
+	max-width: 320px;
+	margin: 0 auto 20px;
+}
+
+.wp2fa-passkey-success__input {
+	width: 100%;
+	padding: 10px 14px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	font-size: 14px;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+.wp2fa-passkey-success__input:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.wp2fa-passkey-success__input.is-invalid {
+	border-color: #d63638;
+	box-shadow: 0 0 0 1px #d63638;
+}
+
+.wp2fa-passkey-success__error {
+	color: #d63638;
+	font-size: 13px;
+	margin-top: 8px;
+	min-height: 20px;
+}
+
+.wp2fa-passkey-success__submit {
+	display: block;
+	width: 100%;
+	max-width: 320px;
+	margin: 0 auto;
+	padding: 10px 20px;
+	background: #2271b1;
+	color: #fff;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.wp2fa-passkey-success__submit:hover,
+.wp2fa-passkey-success__submit:focus {
+	background: #135e96;
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.wp2fa-passkey-success__submit:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* ── Error message area ────────────────────────────────────── */
+
+.wp2fa-passkey-modal__error {
+	color: #d63638;
+	font-size: 13px;
+	margin-top: 8px;
+	padding: 0 24px;
+}
+
+/* ── Button overrides ──────────────────────────────────────── */
+/* 
+.wp2fa-passkey-modal .button-primary {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+}
+
+.wp2fa-passkey-modal .button-primary:hover,
+.wp2fa-passkey-modal .button-primary:focus {
+	background: #135e96;
+	border-color: #135e96;
+} */
+
+/* ── Focus visible for accessibility ───────────────────────── */
+
+.wp2fa-passkey-modal :focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}

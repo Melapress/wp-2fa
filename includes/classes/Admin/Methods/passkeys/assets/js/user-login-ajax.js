@@ -55,6 +55,18 @@ async function authenticate( username, redirectTo ) {
 				redirect_to = urlParams.get('redirect_to') || '/wp-admin';
 			}
 
+			// Validate redirect is same-origin to prevent open redirect attacks.
+			try {
+				const parsed = new URL(redirect_to, window.location.origin);
+				if (parsed.origin !== window.location.origin) {
+					redirect_to = '/wp-admin';
+				}
+			} catch (e) {
+				if (!redirect_to.startsWith('/')) {
+					redirect_to = '/wp-admin';
+				}
+			}
+
 			// Redirect to redirect url or wp-admin as default.
 			window.location.href = redirect_to;
 		}
@@ -75,7 +87,7 @@ function showError(message) {
 	const errorElement = document.createElement('div');
 	errorElement.id = 'login_error';
 	errorElement.className = 'notice notice-error';
-	errorElement.innerHTML = message;
+	errorElement.textContent = message;
 
 	// Add error element before login form.
 	loginForm.parentNode.insertBefore(errorElement, loginForm);

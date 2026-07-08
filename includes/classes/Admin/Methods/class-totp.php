@@ -20,14 +20,15 @@ namespace WP2FA\Methods;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User_Profile;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Settings_Builder;
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Methods\Traits\Providers;
-use WP2FA\Admin\Methods\Traits\Settings_Trait;
 use WP2FA\Admin\Methods\Traits\Validation;
 use WP2FA\Admin\Methods\Traits\WhiteLabel;
-use WP2FA\Authenticator\Authentication;
 use WP2FA\Methods\Wizards\TOTP_Wizard_Steps;
+use WP2FA\Admin\Methods\Traits\Settings_Trait;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
 
 /**
@@ -58,6 +59,15 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 * @since 2.6.0
 		 */
 		public const METHOD_NAME = 'totp';
+
+		/**
+		 * The internal name of the method.
+		 *
+		 * @var string
+		 *
+		 * @since 2.5.0
+		 */
+		public const METHOD_INTERNAL_NAME = self::METHOD_NAME;
 
 		/**
 		 * Secret TOTP key meta name.
@@ -132,6 +142,303 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			\add_action( WP_2FA_PREFIX . 'white_label_wizard_options', array( __CLASS__, 'white_label_option_labels' ) );
 
 			TOTP_Wizard_Steps::init();
+
+			\add_filter( WP_2FA_PREFIX . 'providers_settings_labels', array( __CLASS__, 'provider_settings_labels' ) );
+		}
+
+		/**
+		 * Adds the OOB settings in the white label default settings array
+		 *
+		 * @param array $labels - array with white label default settings.
+		 *
+		 * @return array
+		 *
+		 * @since 3.1.1.2
+		 */
+		public static function provider_settings_labels( array $labels ): array {
+			\ob_start();
+			?>
+				<div class="form-group settings-row">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html__( 'TOTP (one-time code via app) Option label', 'wp-2fa' ),
+							'type' => 'settings-label',
+						)
+					);
+					?>
+					<div class="settings-control ">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'totp-option-label',
+								'type'        => 'text',
+								'placeholder' => \esc_html__( 'Provider\'s name', 'wp-2fa' ),
+								'class'       => 'form-input',
+								'option_name' => 'wp_2fa_white_label[totp-option-label]',
+								'default'     => \esc_html( WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true ) ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html__( 'TOTP option hint', 'wp-2fa' ),
+							'type' => 'settings-label',
+						)
+					);
+					?>
+					<div class="settings-control ">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'totp-option-label-hint',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[totp-option-label-hint]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'totp-option-label-hint', true ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'text' => \esc_html(
+						\wp_sprintf(
+						// translators: Method option label.
+						__( '%s help text', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+						)
+						),
+						'type' => 'settings-label',
+						)
+						);
+
+						Settings_Builder::build_option(
+						array(
+						'text'  => \wp_sprintf(
+						// translators: Method option label.
+						\esc_html__( 'This message is shown to users when configuring %s.', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+						),
+						'class' => 'description-settings-card',
+						'id'    => 'general-settings-tab',
+						'type'  => 'description',
+						)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'id'          => 'method_help_totp_intro',
+						'type'        => 'editor',
+						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+						'option_name' => 'wp_2fa_white_label[method_help_totp_intro]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_intro', true ),
+						)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'text' => \esc_html(
+						\wp_sprintf(
+						// translators: Method option label.
+						\esc_html__( '%s setup step 1', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+						)
+						),
+						'type' => 'settings-label',
+						)
+						);
+
+						// Settings_Builder::build_option(
+						// array(
+						// 'text'  => \wp_sprintf(
+						// \esc_html__( 'Step-by-step guidance for the authenticator-app (TOTP) method, e.g. Step 1: open your authenticator app and tap +. Step 2: scan the QR code. Step 3: enter the 6-digit code shown. %1$s', 'wp-2fa' ),
+						// \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/wp-2fa-customize-user-2fa-experience/?#utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_customize_2fa_user_experience', \esc_html__( 'Learn more', 'wp-2fa' ) )
+						// ),
+						// 'class' => 'description-settings-card',
+						// 'id'    => 'totp-step-1-desc',
+						// 'type'  => 'description',
+						// )
+						// );
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'method_help_totp_step_1',
+								'type'        => 'text',
+								'placeholder' => \esc_html__( 'Enter text', 'wp-2fa' ),
+								'class'       => 'form-input',
+								'option_name' => 'wp_2fa_white_label[method_help_totp_step_1]',
+								'default'     => \esc_html( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_step_1', true ) ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html(
+								\wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( '%s setup step 2', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+								)
+							),
+							'type' => 'settings-label',
+						)
+					);
+					?>
+					<div class="settings-control ">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'method_help_totp_step_2',
+								'type'        => 'text',
+								'placeholder' => \esc_html__( 'Enter text', 'wp-2fa' ),
+								'class'       => 'form-input',
+								'option_name' => 'wp_2fa_white_label[method_help_totp_step_2]',
+								'default'     => \esc_html( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_step_2', true ) ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html__(
+								\wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( '%s setup step 3', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+								)
+							),
+							'type' => 'settings-label',
+						)
+					);
+					?>
+					<div class="settings-control ">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'method_help_totp_step_3',
+								'type'        => 'text',
+								'placeholder' => \esc_html__( 'Enter text', 'wp-2fa' ),
+								'class'       => 'form-input',
+								'option_name' => 'wp_2fa_white_label[method_help_totp_step_3]',
+								'default'     => \esc_html( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_step_3', true ) ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html(
+								\wp_sprintf(
+								// translators: Method option label.
+									__( 'This message is shown when a user presses the info button for the %s method.', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+								)
+							),
+							'type' => 'settings-label',
+						)
+					);
+					?>
+					<div class="settings-control ">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'method_help_totp_more_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[method_help_totp_more_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_more_intro', true ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'text' => \esc_html(
+						\wp_sprintf(
+						// translators: Method option label.
+						\esc_html__( '%s pre-submission text', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+						)
+						),
+						'type' => 'settings-label',
+						)
+						);
+
+						Settings_Builder::build_option(
+						array(
+						'text'  => \esc_html(
+						\wp_sprintf(
+						// translators: Method option label.
+						\esc_html__( 'This message is shown to users prior to configuring %s method.', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+						)
+						),
+						'class' => 'description-settings-card',
+						'id'    => 'general-settings-tab',
+						'type'  => 'description',
+						)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'id'          => 'method_verification_totp_pre',
+						'type'        => 'editor',
+						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+						'option_name' => 'wp_2fa_white_label[method_verification_totp_pre]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_verification_totp_pre', true ),
+						)
+						);
+						?>
+					</div>
+				</div>
+
+
+			<?php
+			$content = \ob_get_clean();
+
+			$labels[ self::METHOD_NAME ] = array(
+				'provider_name' => \esc_html( WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true ) ),
+				'content'       => $content,
+			);
+
+			return $labels;
 		}
 
 		/**
@@ -265,6 +572,8 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			// Grab current user.
 			$user = wp_get_current_user();
 
+			check_ajax_referer( 'wp-2fa-backup-codes-generate-json-' . $user->ID );
+
 			$key = Authentication::generate_key();
 
 			$site_name = site_url();
@@ -281,7 +590,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			$totp_title = apply_filters( WP_2FA_PREFIX . 'totp_title', $site_name . ':' . $user->user_login, $user );
 			$new_qr     = Authentication::get_google_qr_code( $totp_title, $key, $site_name );
 
-			wp_send_json_success(
+			\wp_send_json_success(
 				array(
 					'key' => Authentication::decrypt_key_if_needed( $key ),
 					'qr'  => $new_qr,
@@ -520,8 +829,8 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			$default_settings['method_help_totp_more_intro']  = $mth;
 			$default_settings['totp-option-label-hint']       = sprintf(
 			/* translators: link to the knowledge base website */
-				\esc_html__( 'Refer to the %s for more information on how to setup these apps and which apps are supported.', 'wp-2fa' ),
-				'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_2fa_apps_3" target="_blank">' . \esc_html__( 'guide on how to set up 2FA apps', 'wp-2fa' ) . '</a>'
+				\esc_html__( 'Refer to the %s for step-by-step instructions on how to set up this method.', 'wp-2fa' ),
+				'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-wordpress-user/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_how_to_setup_totp_app_hint" target="_blank">' . \esc_html__( 'setup guide', 'wp-2fa' ) . '</a>'
 			);
 
 			return $default_settings;

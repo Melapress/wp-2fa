@@ -119,7 +119,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			} else {
 				// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.
 				self::clear_login_attempts( $user_data );
-				\wp_redirect( \wp_login_url() );
+				\wp_safe_redirect( \wp_login_url() );
 			}
 
 			exit;
@@ -190,7 +190,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 						</p>
 					</p>
 
-					<p class="2fa-email-resend">
+					<p class="wp-2fa-email-resend">
 						<input type="submit" class="button"
 						name="<?php echo \esc_attr( Login::INPUT_NAME_RESEND_CODE ); ?>"
 						value="<?php \esc_attr_e( 'Resend Code', 'wp-2fa' ); ?>"/>
@@ -263,7 +263,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				} else {
 					// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.
 					self::clear_login_attempts( $user );
-					\wp_redirect( \wp_login_url() );
+					\wp_safe_redirect( \wp_login_url() );
 				}
 
 				exit;
@@ -281,7 +281,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				exit;
 			}
 
-			\wp_redirect( site_url( 'wp-login.php?action=lostpassword' ) );
+			\wp_safe_redirect( site_url( 'wp-login.php?action=lostpassword' ) );
 		}
 	}
 }

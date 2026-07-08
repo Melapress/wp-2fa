@@ -539,7 +539,7 @@ if ( ! class_exists( '\WP2FA\Licensing\EDD_Provider' ) ) {
 			$status = get_option( self::LICENSE_STATUS_OPTION );
 
 			if ( 'expired' === $status ) {
-				echo '<div class="notice notice-error"><p>';
+				echo '<div class="notice notice-error wp-2fa-admin-notice"><p>';
 				printf(
 					/* translators: %s: account URL */
 					esc_html__( 'Your WP 2FA Premium license has expired. Please %s to renew your license and continue receiving updates and support.', 'wp-2fa' ),
@@ -547,7 +547,7 @@ if ( ! class_exists( '\WP2FA\Licensing\EDD_Provider' ) ) {
 				);
 				echo '</p></div>';
 			} elseif ( 'invalid' === $status ) {
-				echo '<div class="notice notice-warning"><p>';
+				echo '<div class="notice notice-warning wp-2fa-admin-notice"><p>';
 				esc_html_e( 'Your WP 2FA Premium license is invalid. Please check your license key or contact support.', 'wp-2fa' );
 				echo '</p></div>';
 			}

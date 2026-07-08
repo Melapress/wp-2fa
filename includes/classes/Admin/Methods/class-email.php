@@ -20,14 +20,15 @@ namespace WP2FA\Methods;
 use WP2FA\WP2FA;
 use WP2FA\Admin\Setup_Wizard;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Settings_Builder;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
-use WP2FA\Admin\Controllers\API\API_Login;
 use WP2FA\Admin\Methods\Traits\Providers;
-use WP2FA\Admin\Methods\Traits\Settings_Trait;
+use WP2FA\Admin\Controllers\API\API_Login;
 use WP2FA\Admin\Methods\Traits\WhiteLabel;
 use WP2FA\Methods\Wizards\Email_Wizard_Steps;
+use WP2FA\Admin\Methods\Traits\Settings_Trait;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
 
 /**
@@ -57,6 +58,15 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 * @since 2.6.0
 		 */
 		public const METHOD_NAME = 'email';
+
+		/**
+		 * The internal name of the method.
+		 *
+		 * @var string
+		 *
+		 * @since 2.5.0
+		 */
+		public const METHOD_INTERNAL_NAME = self::METHOD_NAME;
 
 		/**
 		 * The name of the method stored in the policy
@@ -129,6 +139,249 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 			\add_action( WP_2FA_PREFIX . 'white_label_wizard_options', array( __CLASS__, 'white_label_option_labels' ) );
 
 			Email_Wizard_Steps::init();
+
+			\add_filter( WP_2FA_PREFIX . 'providers_settings_labels', array( __CLASS__, 'provider_settings_labels' ) );
+		}
+
+		/**
+		 * Adds the OOB settings in the white label default settings array
+		 *
+		 * @param array $labels - array with white label default settings.
+		 *
+		 * @return array
+		 *
+		 * @since 3.1.1.2
+		 */
+		public static function provider_settings_labels( array $labels ): array {
+			\ob_start();
+			?>
+				<div class="form-group settings-row">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html__( 'Email option label', 'wp-2fa' ),
+							'type' => 'settings-label',
+						)
+					);
+					?>
+					<div class="settings-control ">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'email-option-label',
+								'type'        => 'text',
+								'placeholder' => \esc_html__( 'Provider\'s name', 'wp-2fa' ),
+								'class'       => 'form-input',
+								'option_name' => 'wp_2fa_white_label[email-option-label]',
+								'default'     => \esc_html( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'text' => \esc_html__( 'Email option hint', 'wp-2fa' ),
+								'type' => 'settings-label',
+							)
+						);
+
+						Settings_Builder::build_option(
+							array(
+								'text'  => \esc_html__( 'Add a helpful tip that users will see when configuring Email (HOTP) as their 2FA method. This text is displayed via a help icon during setup. Leave this field empty to hide the help icon.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'general-settings-tab',
+								'type'  => 'description',
+							)
+						);
+						?>
+					</div>
+					<div class="settings-control ">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'email-option-label-hint',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[email-option-label-hint]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'email-option-label-hint', true ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'text' => \esc_html(
+						\wp_sprintf(
+						// translators: Method option label.
+						__( '%s help text', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
+						)
+						),
+						'type' => 'settings-label',
+						)
+						);
+
+						Settings_Builder::build_option(
+						array(
+						'text'  => \wp_sprintf(
+						// translators: Method option label.
+						\esc_html__( 'This message is shown to users when configuring %s.', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
+						),
+						'class' => 'description-settings-card',
+						'id'    => 'general-settings-tab',
+						'type'  => 'description',
+						)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'id'          => 'method_help_hotp_intro',
+						'type'        => 'editor',
+						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+						'option_name' => 'wp_2fa_white_label[method_help_hotp_intro]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_intro', true ),
+						)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'text' => \esc_html__( 'Link via email help text', 'wp-2fa' ),
+						'type' => 'settings-label',
+						)
+						);
+
+						Settings_Builder::build_option(
+						array(
+						'text'  => \esc_html__( 'This message is shown to users in the final step before email verification when using the "Link via email" method. It should explain that they need to check their email and, if required, whitelist the sender address.', 'wp-2fa' ),
+						'class' => 'description-settings-card',
+						'id'    => 'method-help-hotp-help-desc',
+						'type'  => 'description',
+						)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'id'          => 'method_help_hotp_help',
+						'type'        => 'editor',
+						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+						'option_name' => 'wp_2fa_white_label[method_help_hotp_help]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_help', true ),
+						)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'text' => \esc_html__( 'One-time code via email help text', 'wp-2fa' ),
+						'type' => 'settings-label',
+						)
+						);
+
+						Settings_Builder::build_option(
+						array(
+						'text'  => \esc_html__( 'This message is shown to users in the final step before email verification when using the "Code via email (HOTP)" method. It should explain that they need to check their email and, if required, whitelist the sender address.', 'wp-2fa' ),
+						'class' => 'description-settings-card',
+						'id'    => 'method-help-hotp-help-email-desc',
+						'type'  => 'description',
+						)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'id'          => 'method_help_hotp_help_email',
+						'type'        => 'editor',
+						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+						'option_name' => 'wp_2fa_white_label[method_help_hotp_help_email]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_help_hotp_help_email', true ),
+						)
+						);
+						?>
+					</div>
+				</div>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'text' => \esc_html(
+						\wp_sprintf(
+						// translators: Method option label.
+						__( '%s pre-submission text', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
+						)
+						),
+						'type' => 'settings-label',
+						)
+						);
+
+						Settings_Builder::build_option(
+						array(
+						'text'  => \esc_html(
+						\wp_sprintf(
+						// translators: Method option label.
+						\esc_html__( 'This message is shown to users prior to configuring %s method.', 'wp-2fa' ),
+						WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
+						)
+						),
+						'class' => 'description-settings-card',
+						'id'    => 'general-settings-tab',
+						'type'  => 'description',
+						)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+						array(
+						'id'          => 'method_verification_hotp_pre',
+						'type'        => 'editor',
+						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+						'option_name' => 'wp_2fa_white_label[method_verification_hotp_pre]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_verification_hotp_pre', true ),
+						)
+						);
+						?>
+					</div>
+				</div>
+
+
+			<?php
+			$content = \ob_get_clean();
+
+			$labels[ self::METHOD_NAME ] = array(
+				'provider_name' => \esc_html( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) ),
+				'content'       => $content,
+			);
+
+			return $labels;
 		}
 
 		/**
@@ -174,7 +427,7 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 				$valid[ self::METHOD_NAME ]['error'] = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
 				if ( API_Login::check_number_of_attempts( User_Helper::get_user( $user_id ) ) ) {
 
-					if ( ! empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
+					if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
 						Setup_Wizard::send_authentication_setup_email( $user_id, 'nominated_email_address' );
 						if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
 							User_Helper::remove_meta( WP_2FA_PREFIX . 'code_sent' );
@@ -247,14 +500,13 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 * @since 3.0.0
 		 */
 		public static function add_whitelabel_settings( array $default_settings ): array {
-
-			$default_settings['method_help_hotp_intro']       = '<h3>' . __( 'Setting up HOTP ({email-option-label})', 'wp-2fa' ) . '</h3><p>' . __( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
-			$default_settings['method_help_hotp_help']        = __( 'To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator', 'wp-2fa' );
-			$default_settings['method_help_hotp_help_email']  = '<b>' . __( 'IMPORTANT', 'wp-2fa' ) . '</b><p>' . __( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is {from_email}', 'wp-2fa' ) . '</p>';
-			$default_settings['method_verification_hotp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code sent to your email address to finalize the setup', 'wp-2fa' ) . '</p>';
-			$default_settings['hotp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} one-time code over email method', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the email address where the one-time code should be sent.', 'wp-2fa' ) . '</p>';
-			$default_settings['email-option-label']           = __( 'One-time code via email', 'wp-2fa' );
+			$default_settings['email-option-label']           = \__( 'One-time code via email', 'wp-2fa' );
 			$default_settings['email-option-label-hint']      = '';
+			$default_settings['method_help_hotp_intro']       = '<h3>' . \__( 'Setting up HOTP ({email-option-label})', 'wp-2fa' ) . '</h3><p>' . \__( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
+			$default_settings['method_help_hotp_help']        = \__( 'To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator', 'wp-2fa' );
+			$default_settings['method_help_hotp_help_email']  = '<b>' . \__( 'IMPORTANT', 'wp-2fa' ) . '</b><p>' . \__( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is {from_email}', 'wp-2fa' ) . '</p>';
+			$default_settings['method_verification_hotp_pre'] = '<h3>' . \__( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . \__( 'Please type in the one-time code sent to your email address to finalize the setup', 'wp-2fa' ) . '</p>';
+			$default_settings['hotp_reconfigure_intro']       = '<h3>' . \__( '{reconfigure_or_configure_capitalized} one-time code over email method', 'wp-2fa' ) . '</h3><p>' . \__( 'Click the below button to {reconfigure_or_configure} the email address where the one-time code should be sent.', 'wp-2fa' ) . '</p>';
 
 			return $default_settings;
 		}
@@ -268,13 +520,13 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		 */
 		public static function white_label_option_labels() {
 			?>
-			<strong class="description"><?php esc_html_e( 'Email option label', 'wp-2fa' ); ?></strong>
+			<strong class="description"><?php \esc_html_e( 'Email option label', 'wp-2fa' ); ?></strong>
 			<br><br>
 			<fieldset>
 				<input type="text" id="email-option-label" name="wp_2fa_white_label[email-option-label]" class="large-text" value="<?php echo \esc_attr( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) ); ?>">
 			</fieldset>
 			<br>
-			<strong class="description"><?php esc_html_e( 'Email option hint', 'wp-2fa' ); ?></strong>
+			<strong class="description"><?php \esc_html_e( 'Email option hint', 'wp-2fa' ); ?></strong>
 			<br>
 			<fieldset>
 				<?php

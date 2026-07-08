@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Utils;
 
+defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
+
 use WP2FA\WP2FA;
 
 if ( ! class_exists( '\WP2FA\Utils\Generate_Modal' ) ) {

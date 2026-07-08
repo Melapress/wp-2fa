@@ -126,6 +126,8 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 			// Apply light rate limiting for unauthenticated login attempts.
 			self::maybe_rate_limit( 'signin_response' );
 
+			$user = null;
+
 			if ( ! empty( $_POST['user'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Public sign-in endpoint cannot require nonce
 				$data['user'] = \sanitize_user( \wp_unslash( $_POST['user'] ) );
 				$user_login   = \get_user_by( 'login', $data['user'] );
@@ -191,15 +193,16 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 				return \wp_send_json_error( __( 'Authentication failed.', 'wp-2fa' ), 400 );
 			}
 
-			$data = $webauthn->process_get(
-				Web_Authn::base64url_decode( $asse_rep['response']['clientDataJSON'] ),
-				Web_Authn::base64url_decode( $asse_rep['response']['authenticatorData'] ),
-				Web_Authn::base64url_decode( $asse_rep['response']['signature'] ),
-				$user_data['extra']['public_key'],
-				Web_Authn::base64url_decode( $challenge )
-			);
-
 			try {
+				$data = $webauthn->process_get(
+					Web_Authn::base64url_decode( $asse_rep['response']['clientDataJSON'] ),
+					Web_Authn::base64url_decode( $asse_rep['response']['authenticatorData'] ),
+					Web_Authn::base64url_decode( $asse_rep['response']['signature'] ),
+					$user_data['extra']['public_key'],
+					Web_Authn::base64url_decode( $challenge ),
+					null,
+					true
+				);
 
 				if ( Passkeys::is_enabled( User_Helper::get_user_role( (int) $uid ) ) ) {
 					if ( ! $user_data['extra']['enabled'] ) {
@@ -244,7 +247,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 			 * @param string           $requested_redirect_to The requested redirect destination URL passed as a parameter.
 			 * @param WP_User|WP_Error $user                  WP_User object if login was successful, WP_Error object otherwise.
 			 */
-			$redirect_to = apply_filters( 'login_redirect', $redirect_to, '', $user );
+			$redirect_to = \wp_validate_redirect( apply_filters( 'login_redirect', $redirect_to, '', $user ), \admin_url() );
 
 			if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || \admin_url() === $redirect_to ) ) {
 				// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
@@ -566,7 +569,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 			$fingerprint = (string) \sanitize_text_field( \wp_unslash( ( $_POST['fingerprint'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 			$current = \get_current_user_id();
-			if ( $current !== $user_id && ! \current_user_can( 'edit_user', $user_id ) ) {
+			if ( $current !== $user_id ) {
 				\wp_send_json_error( __( 'Insufficient permissions.', 'wp-2fa' ), 403 );
 
 				\wp_die();

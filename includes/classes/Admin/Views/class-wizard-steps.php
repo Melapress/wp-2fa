@@ -13,10 +13,10 @@ namespace WP2FA\Admin\Views;
 
 use WP2FA\WP2FA;
 use WP2FA\Utils\User_Utils;
+use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
-use WP2FA\Utils\Settings_Utils;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -89,7 +89,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 			<form method="post" class="wp2fa-setup-form">
 				<?php wp_nonce_field( 'wp2fa-step-addon' ); ?>
 				<div class="mb-20">
-					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( '2fa_required_intro', true ) ); ?>
+					<?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'wp-2fa_required_intro', true ) ); ?>
 				</div>
 
 				<div class="wp2fa-setup-actions">
@@ -117,8 +117,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 			$redirect = Settings::get_settings_page_link();
 
 			?>
-			<h3><?php \esc_html_e( 'Let us help you get started', 'wp-2fa' ); ?></h3>
-			<p><?php \esc_html_e( 'Thank you for installing the WP 2FA plugin. This quick wizard will assist you with configuring the plugin and the two-factor authentication (2FA) settings for your user and the users on this website.', 'wp-2fa' ); ?></p>
+			<h3><?php \esc_html_e( 'Let\'s get you started', 'wp-2fa' ); ?></h3>
+			<p><?php \esc_html_e( 'Thank you for installing WP 2FA. This quick setup wizard will guide you through configuring the plugin and setting up two-factor authentication (2FA) for your user account and the users on this website.', 'wp-2fa' ); ?></p>
 
 			<div class="wp2fa-setup-actions">
 				<a class="button button-primary"
@@ -400,7 +400,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Wizard_Steps' ) ) {
 		public static function choose_backup_method() {
 			$redirect = esc_url( self::determine_redirect_url() );
 			?>
-			<div class="wizard-step" id="2fa-wizard-backup-methods">
+			<div class="wizard-step" id="wp-2fa-wizard-backup-methods">
 				<div class="option-pill mb-20">
 					<?php echo wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_multi', true ) ); ?>
 				</div>

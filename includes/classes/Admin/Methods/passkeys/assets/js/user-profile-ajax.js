@@ -1,115 +1,95 @@
 import { browserSupportsWebAuthn, startRegistration } from "./index.js";
 
 /**
- * Create Passkey Registration.
+ * Create Passkey Registration via AJAX (vanilla fetch).
  */
-async function createRegistration(event, isUsb = false ) {
-	event.preventDefault();
+async function createRegistration( nonce, isUsb = false ) {
 	let attResp;
 
-	const registerButton = event.target;
-	const nonce = registerButton.dataset.nonce;
+	const body = new URLSearchParams();
+	body.append( '_wpnonce', nonce );
+	body.append( 'action', 'wp2fa_profile_register' );
+	body.append( 'is_usb', isUsb ? '1' : '0' );
 
 	try {
-		const response = await jQuery.post(
-			wp2faData.ajaxURL,
-			{
-				"_wpnonce": nonce,
-				"action": "wp2fa_profile_register",
-				'is_usb': isUsb,
-			},);
-
-		attResp = await startRegistration(response.data);
-	} catch (error) {
+		const res = await fetch( wp2faData.ajaxURL, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: body,
+		} );
+		const json = await res.json();
+		if ( ! json.success ) {
+			throw new Error( json.data || 'Registration request failed' );
+		}
+		attResp = await startRegistration( json.data );
+	} catch ( error ) {
 		throw error;
 	}
 
-	const passkeyName = await openPrompt();
+	const passkeyName = await window.wp2faOpenPasskeyPrompt();
 
-	// POST the response to the endpoint that calls.
+	const responseBody = new URLSearchParams();
+	responseBody.append( '_wpnonce', nonce );
+	responseBody.append( 'action', 'wp2fa_profile_response' );
+	responseBody.append( 'data', JSON.stringify( attResp ) );
+	responseBody.append( 'passkey_name', passkeyName );
+
 	try {
-		const response = await jQuery.post(
-			wp2faData.ajaxURL,
-			{
-				"_wpnonce": nonce,
-				"action": "wp2fa_profile_response",
-				"data": attResp,
-				'passkey_name': passkeyName,
-			},);
-
-		if (response.success === true) {
+		const res = await fetch( wp2faData.ajaxURL, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: responseBody,
+		} );
+		const json = await res.json();
+		if ( json.success === true ) {
 			window.location.reload();
 		}
-	} catch (error) {
+	} catch ( error ) {
 		throw error;
 	}
 }
 
 /**
- * Passkey Registration Handler.
+ * Passkey Registration Handler via custom event from modal.
  */
-wp.domReady(() => {
-	const registerButton = document.querySelector('.wp-2fa-register-new-passkey');
-	const registerMessage = document.querySelector('.wp-register-passkey--message');
-	const registerUsbButton = document.querySelector( '.wp-2fa-register-new-usbpasskey' );
-
-	if (!registerButton || !registerMessage) {
-		return;
-	}
-
+wp.domReady( () => {
 	// Hide register button if browser doesn't support WebAuthn.
-	if (!browserSupportsWebAuthn()) {
-		registerButton.style.display = 'none';
+	if ( ! browserSupportsWebAuthn() ) {
+		const addBtn = document.querySelector( '[data-open-configure-2fa-wizard-passkey]' );
+		if ( addBtn ) {
+			addBtn.style.display = 'none';
+		}
 		return;
 	}
 
-	registerButton.addEventListener('click', async (event) => {
+	// Listen for registration events from the new modal.
+	document.addEventListener( 'wp2fa-passkey-register', async ( e ) => {
+		const { isUsb, nonce } = e.detail;
 		try {
-			await createRegistration(event, false);
-		} catch (error) {
-			// Some basic error handling
-			if (error.name === 'InvalidStateError') {
-				registerMessage.innerText = wp.i18n.__(
-					'Error: Authenticator was probably already registered by you',
-					'wp-2fa',
-				);
-			} else {
-				registerMessage.innerText = `Error: ${error.message}`;
-			}
-			registerMessage.classList.add('error');
-		}
-	});
-
-	registerUsbButton.addEventListener( 'click', async (event) => {
-		try {
-			await createRegistration( event, true );
+			await createRegistration( nonce, isUsb );
 		} catch ( error ) {
-			// Some basic error handling
 			if ( error.name === 'InvalidStateError' ) {
-				registerMessage.innerText = wp.i18n.__(
-					'Error: Authenticator was probably already registered by you',
-					'wp-2fa',
+				window.wp2faShowPasskeySetupError(
+					wp.i18n.__( 'Error: Authenticator was probably already registered by you', 'wp-2fa' )
 				);
 			} else {
-				registerMessage.innerText = `Error: ${ error.message }`;
+				window.wp2faShowPasskeySetupError( 'Error: ' + error.message );
 			}
-			registerMessage.classList.add( 'error' );
 		}
 	} );
-});
+} );
 
 /**
- * Revoke Passkey.
+ * Revoke Passkey via AJAX (vanilla fetch).
  *
  * @param {Event} event The event.
  */
-async function revokePasskey(event) {
+async function revokePasskey( event ) {
 	event.preventDefault();
 
 	if (
-		// eslint-disable-next-line no-alert
-		!window.confirm(
-			wp.i18n.__('Are you sure you want to revoke this passkey? This action cannot be undone.', 'wp-2fa'),
+		! window.confirm(
+			wp.i18n.__( 'Are you sure you want to revoke this passkey? This action cannot be undone.', 'wp-2fa' )
 		)
 	) {
 		return;
@@ -120,30 +100,33 @@ async function revokePasskey(event) {
 	const nonce = revokeButton.dataset.nonce;
 	const user_id = revokeButton.dataset.userid;
 
-	try {
-		const response = await jQuery.post(
-			wp2faData.ajaxURL,
-			{
-				"_wpnonce": nonce,
-				"user_id": user_id,
-				"fingerprint": fingerprint,
-				"action": "wp2fa_profile_revoke_key",
-			},);
+	const body = new URLSearchParams();
+	body.append( '_wpnonce', nonce );
+	body.append( 'user_id', user_id );
+	body.append( 'fingerprint', fingerprint );
+	body.append( 'action', 'wp2fa_profile_revoke_key' );
 
-		if (response.success === true) {
+	try {
+		const res = await fetch( wp2faData.ajaxURL, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: body,
+		} );
+		const json = await res.json();
+		if ( json.success === true ) {
 			window.location.reload();
 		}
-	} catch (error) {
+	} catch ( error ) {
 		throw error;
 	}
 }
 
 /**
- * Enable/Disable Passkey.
+ * Enable/Disable Passkey via AJAX (vanilla fetch).
  *
  * @param {Event} event The event.
  */
-async function enableDisablePasskey(event) {
+async function enableDisablePasskey( event ) {
 	event.preventDefault();
 
 	const enableButton = event.target;
@@ -151,178 +134,44 @@ async function enableDisablePasskey(event) {
 	const nonce = enableButton.dataset.nonce;
 	const user_id = enableButton.dataset.userid;
 
-	try {
-		const response = await jQuery.post(
-			wp2faData.ajaxURL,
-			{
-				"_wpnonce": nonce,
-				"user_id": user_id,
-				"fingerprint": fingerprint,
-				"action": "wp2fa_profile_enable_key",
-			},);
+	const body = new URLSearchParams();
+	body.append( '_wpnonce', nonce );
+	body.append( 'user_id', user_id );
+	body.append( 'fingerprint', fingerprint );
+	body.append( 'action', 'wp2fa_profile_enable_key' );
 
-		if (response.success === true) {
+	try {
+		const res = await fetch( wp2faData.ajaxURL, {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: body,
+		} );
+		const json = await res.json();
+		if ( json.success === true ) {
 			window.location.reload();
 		}
-	} catch (error) {
+	} catch ( error ) {
 		throw error;
 	}
 }
 
 /**
- * Passkey Revoke handler.
- */
-wp.domReady(() => {
-	const revokeButtons = document.querySelectorAll('.wp-2fa-passkey-list-table button.delete');
-
-	if ( revokeButtons ) {
-			
-		revokeButtons.forEach(revokeButton => {
-			revokeButton.addEventListener('click', revokePasskey);
-		});
-
-	}
-	const enableButtons = document.querySelectorAll('.wp-2fa-passkey-list-table button.disable');
-
-	if ( enableButtons ) {
-			
-		enableButtons.forEach( enableButtons => {
-			enableButtons.addEventListener('click', enableDisablePasskey);
-		});
-
-	}
-
-});
-
-  const overlay = document.getElementById("overlay");
-  const customPrompt = document.getElementById("customPrompt");
-  const submitBtn = document.getElementById("submitBtn");
-  const userInput = document.getElementById("userInput");
-  const errorDiv = document.getElementById("error");
-
-  // Unicode-safe regex: letters (any language), digits, dash, underscore, space
-  const validPattern = /^[\p{L}\p{N}\-_ ]+$/u;
-// Core async function
-  function openPrompt() {
-    return new Promise((resolve) => {
-		const registerButton = document.querySelector('.wp-2fa-register-new-passkey');
-		const registerUsbButton = document.querySelector( '.wp-2fa-register-new-usbpasskey' );
-
-		registerButton.disabled = true;
-		registerUsbButton.disabled = true;
-
-      overlay.style.display = "flex";
-      userInput.value = "";
-      userInput.focus();
-      errorDiv.textContent = "";
-
-      function handleSubmit(e) {
-		e.cancelBubble = true;
-		e.preventDefault();
-		e.stopPropagation();
-        const value = userInput.value.trim();
-
-        if (!value) {
-          errorDiv.textContent = "Input cannot be empty.";
-          return;
-        }
-
-        if (!validateInput(value)) {
-          errorDiv.textContent = "Only letters, numbers, dashes, underscores, and spaces allowed.";
-          return;
-        }
-
-        // Clean up
-        overlay.style.display = "none";
-        userInput.removeEventListener("keypress", handleKeypress);
-        submitBtn.removeEventListener("click", handleSubmit);
-
-        resolve(value);
-      }
-
-      function handleKeypress(e) {
-		e.cancelBubble = true;
-		e.stopPropagation();
-        if (e.key === "Enter") {
-			e.stopPropagation();
-			handleSubmit(e);
-		}
-		if (e.key === "Escape") {
-			overlay.style.display = "none";
-			userInput.removeEventListener("keypress", handleKeypress);
-        	submitBtn.removeEventListener("click", handleSubmit);
-		}
-      }
-
-      submitBtn.addEventListener("click", handleSubmit);
-      userInput.addEventListener("keypress", handleKeypress);
-	  
-	  customPrompt.addEventListener("keydown", (e) => {
-		e.stopPropagation();
-		if (e.key === "Escape") {
-			overlay.style.display = "none";
-			userInput.removeEventListener("keypress", handleKeypress);
-			submitBtn.removeEventListener("click", handleSubmit);
-
-
-			registerButton.disabled = false;
-			registerUsbButton.disabled = false;
-		}
-		});
-    });
-  }
-
-  function validateInput(value) {
-    return validPattern.test(value);
-  }
-
-//   function handleSubmit(e) {
-// 	e.preventDefault();
-//     const value = userInput.value.trim();
-
-//     if (!value) {
-//       errorDiv.textContent = "Input cannot be empty.";
-//       return;
-//     }
-
-//     if (!validateInput(value)) {
-//       errorDiv.textContent = "Only letters, numbers, dashes, underscores, and spaces allowed.";
-//       return;
-//     }
-
-//     // Valid input
-//     alert("You entered: " + value);
-//     overlay.style.display = "none";
-//     userInput.value = "";
-//   }
-
-
-//   submitBtn.addEventListener("click", handleSubmit);
-
-//   userInput.addEventListener("keypress", (e) => {
-//     if (e.key === "Enter") handleSubmit();
-//   });
-/**
- * Passkey Revoke handler.
+ * Passkey Revoke/Enable handler.
  */
 wp.domReady( () => {
 	const revokeButtons = document.querySelectorAll( '.wp-2fa-passkey-list-table button.delete' );
 
-	if (revokeButtons) {
-
-		revokeButtons.forEach(revokeButton => {
-			revokeButton.addEventListener('click', revokePasskey);
-		});
-
-	}
-	const enableButtons = document.querySelectorAll('.wp-2fa-passkey-list-table button.disable');
-
-	if (enableButtons) {
-
-		enableButtons.forEach(enableButtons => {
-			enableButtons.addEventListener('click', enableDisablePasskey);
-		});
-
+	if ( revokeButtons ) {
+		revokeButtons.forEach( revokeButton => {
+			revokeButton.addEventListener( 'click', revokePasskey );
+		} );
 	}
 
-});
+	const enableButtons = document.querySelectorAll( '.wp-2fa-passkey-list-table button.disable' );
+
+	if ( enableButtons ) {
+		enableButtons.forEach( enableButton => {
+			enableButton.addEventListener( 'click', enableDisablePasskey );
+		} );
+	}
+} );

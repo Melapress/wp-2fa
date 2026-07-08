@@ -76,7 +76,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		 */
 		public static function reset_settings( string $role = '', string $name_prefix = '', string $data_role = '', string $role_id = '' ) {
 			ob_start();
-			
+
 			$password_reset_action = Settings_Utils::get_setting_role( sanitize_text_field( $role ), self::RE_LOGIN_SETTINGS_NAME, true );
 			?>
 			<div class="sub-setting-indent">

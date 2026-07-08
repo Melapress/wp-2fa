@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     3.1.1.2
+ * Version:     4.0.0
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -39,6 +39,7 @@
 
 use WP2FA\WP2FA;
 use WP2FA\Utils\Migration;
+use WP2FA\Utils\Upgrade_Guard;
 use WP2FA\Admin\Setup_Wizard;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\File_Writer;
@@ -54,7 +55,7 @@ if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '3.1.1.2' );
+	define( 'WP_2FA_VERSION', '4.0.0' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -69,6 +70,7 @@ if ( ! defined( 'WP_2FA_VERSION' ) ) {
 	define( 'WP_2FA_WHITE_LABEL_SETTINGS_NAME', WP_2FA_PREFIX . 'white_label' );
 	define( 'WP_2FA_PASSKEYS_SETTINGS_NAME', WP_2FA_PREFIX . 'passkeys' );
 	define( 'WP_2FA_EMAIL_SETTINGS_NAME', WP_2FA_PREFIX . 'email_settings' );
+	define( 'WP_2FA_NEW_SETTINGS_NAME', WP_2FA_PREFIX . 'settings_new' );
 
 	define( 'WP_2FA_PREFIX_PAGE', 'wp-2fa-' );
 
@@ -180,6 +182,12 @@ if ( ! function_exists( 'wp_2fa_action_doing_it_wrong_run' ) ) {
 \add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 0, 3 );
 \add_action( 'doing_it_wrong_run', 'wp_2fa_action_doing_it_wrong_run', 20, 3 );
 
+// Load upgrade guard BEFORE the autoloader — catches stale class references during updates.
+if ( file_exists( WP_2FA_INC . 'classes/Utils/class-upgrade-guard.php' ) ) {
+	require_once WP_2FA_INC . 'classes/Utils/class-upgrade-guard.php';
+	Upgrade_Guard::init();
+}
+
 // Require Composer autoloader if it exists.
 if ( file_exists( WP_2FA_PATH . 'vendor/autoload.php' ) ) {
 	require_once WP_2FA_PATH . 'vendor/autoload.php';
@@ -218,6 +226,18 @@ if ( WP_Helper::is_multisite() ) {
 
 \add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
 \add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
+
+// Declare compatibility with WooCommerce features.
+\add_action(
+	'before_woocommerce_init',
+	function () {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', WP_2FA_FILE );
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', WP_2FA_FILE );
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'product_block_editor', WP_2FA_FILE );
+		}
+	}
+);
 
 // Include files.
 // require_once WP_2FA_INC . 'functions/core.php';
@@ -309,7 +329,7 @@ if ( ! function_exists( 'check_ssl' ) ) {
 
 			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
-			exit();
+			\wp_die();
 		}
 	}
 }
