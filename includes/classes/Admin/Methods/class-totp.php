@@ -21,6 +21,7 @@ use WP2FA\WP2FA;
 use WP2FA\Admin\User_Profile;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Settings_Builder;
+use WP2FA\Authenticator\Login;
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Authenticator\Authentication;
@@ -138,6 +139,8 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 
 			\add_filter( WP_2FA_PREFIX . 'white_label_default_settings', array( __CLASS__, 'add_whitelabel_settings' ) );
 			\add_action( WP_2FA_PREFIX . 'validate_login_api', array( __CLASS__, 'api_login_validate' ), 10, 3 );
+
+			\add_filter( WP_2FA_PREFIX . 'validate_login_form', array( __CLASS__, 'validate_login_form' ), 10, 3 );
 
 			\add_action( WP_2FA_PREFIX . 'white_label_wizard_options', array( __CLASS__, 'white_label_option_labels' ) );
 
@@ -461,7 +464,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 * @return bool
 		 */
 		protected static function validate_token( \WP_User $user, string $token ): bool {
-			return Authentication::is_valid_authcode( self::get_totp_key( $user ), $token );
+			return Authentication::is_valid_authcode( self::get_totp_key( $user ), $token, $user );
 		}
 
 		/**
@@ -533,7 +536,8 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			if ( ! empty( $_REQUEST['authcode'] ) ) {  //phpcs:ignore
 				$valid = Authentication::is_valid_authcode(
 					self::get_totp_key( $user ),
-					\sanitize_text_field( \wp_unslash( $_REQUEST['authcode'] ) )
+					\sanitize_text_field( \wp_unslash( $_REQUEST['authcode'] ) ),
+					$user
 				);
 				if ( $valid ) {
 					Authentication::clear_login_attempts( $user );
@@ -544,6 +548,56 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			}
 
 			return false;
+		}
+
+		/**
+		 * Validates the TOTP login form submission.
+		 *
+		 * @param bool     $authenticated Whether authentication has passed.
+		 * @param \WP_User $user          The user being authenticated.
+		 * @param string   $provider      The provider name.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.0.1
+		 */
+		public static function validate_login_form( $authenticated, $user, $provider ) {
+			if ( self::METHOD_NAME !== $provider ) {
+				return $authenticated;
+			}
+
+			if ( $authenticated ) {
+				return $authenticated;
+			}
+
+			if ( true === self::validate_totp_authentication( $user ) ) {
+				return true;
+			}
+
+			// Validation failed.
+			\do_action(
+				'wp_login_failed',
+				$user->user_login,
+				new \WP_Error(
+					'authentication_failed',
+					__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
+				)
+			);
+
+			Login::delete_login_nonce( $user->ID );
+			$login_nonce = Login::create_login_nonce( $user->ID );
+			if ( ! $login_nonce ) {
+				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+			}
+
+			if ( Authentication::check_number_of_attempts( $user ) ) {
+				Login::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore
+			} else {
+				// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.
+				Authentication::clear_login_attempts( $user );
+				\wp_safe_redirect( \wp_login_url() );
+			}
+			exit;
 		}
 
 		/**

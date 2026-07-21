@@ -5,6 +5,8 @@
  * @package wp-2fa
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Admin\Settings_Builder;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\SettingsPages\Settings_Page_New;

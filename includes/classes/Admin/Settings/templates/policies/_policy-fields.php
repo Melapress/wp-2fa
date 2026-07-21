@@ -17,6 +17,8 @@
  * @since 3.1.2
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\WP2FA;
 use WP2FA\Methods\TOTP;
 use WP2FA\Methods\Email;
@@ -270,12 +272,12 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 			 */
 			if ( ! $has_premium_license ) :
 				$premium_methods_list = array(
-					'authy'           => \esc_html__( 'Push notification via Authy app', 'wp-2fa' ),
-					'oob'             => \esc_html__( 'Link via email', 'wp-2fa' ),
-					'twilio'          => \esc_html__( 'One-time code via SMS (Twilio)', 'wp-2fa' ),
-					'clickatell'      => \esc_html__( 'One-time code via SMS (Clickatell)', 'wp-2fa' ),
-					'yubico'          => \esc_html__( 'One-time password via YubiKey', 'wp-2fa' ),
-					'0_setup_email'   => \esc_html__( 'One-time code via email (zero-setup)', 'wp-2fa' ),
+					'authy'         => \esc_html__( 'Push notification via Authy app', 'wp-2fa' ),
+					'oob'           => \esc_html__( 'Link via email', 'wp-2fa' ),
+					'twilio'        => \esc_html__( 'One-time code via SMS (Twilio)', 'wp-2fa' ),
+					'clickatell'    => \esc_html__( 'One-time code via SMS (Clickatell)', 'wp-2fa' ),
+					'yubico'        => \esc_html__( 'One-time password via YubiKey', 'wp-2fa' ),
+					'0_setup_email' => \esc_html__( 'One-time code via email (zero-setup)', 'wp-2fa' ),
 				);
 
 				// Remove any that are already shown (in case they somehow registered).
@@ -291,12 +293,13 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 						'twilio'        => 'wp-2fa-policies:method-sms',
 						'clickatell'    => 'wp-2fa-policies:method-sms',
 					);
-				?>
+					?>
 				<div class="wp2fa-premium-gate wp2fa-premium-gate-locked">
 					<ul class="wp2fa-sortable-list wp2fa-premium-methods-preview">
-						<?php foreach ( $premium_methods_list as $method_id => $method_title ) :
+						<?php
+						foreach ( $premium_methods_list as $method_id => $method_title ) :
 							$badge_context = isset( $premium_method_contexts[ $method_id ] ) ? $premium_method_contexts[ $method_id ] : 'wp-2fa-policies-methods';
-						?>
+							?>
 						<li class="wp2fa-sortable-item wp2fa-premium-method-item">
 							<span class="wp2fa-sortable-handle" aria-hidden="true">&#9776;</span>
 							<label class="wp2fa-sortable-checkbox toggle-switch">
@@ -309,7 +312,7 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 						<?php endforeach; ?>
 					</ul>
 				</div>
-				<?php
+					<?php
 				endif;
 			endif;
 
@@ -686,14 +689,14 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 				?>
 				<div class="no-width">
 					<?php
-				Settings_Builder::build_option(
-					array(
-						'text' => \esc_html__( 'Enable frontend 2FA settings page', 'wp-2fa' ),
-						'id'   => 'custom-user-page-label' . $id_suffix,
-						'type' => 'settings-label',
-					)
-				);
-				?>
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html__( 'Enable frontend 2FA settings page', 'wp-2fa' ),
+							'id'   => 'custom-user-page-label' . $id_suffix,
+							'type' => 'settings-label',
+						)
+					);
+					?>
 				</div>
 			</div>
 
@@ -715,6 +718,13 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 						$custom_slug = \get_post_field( 'post_name', \get_post( $custom_page_id ) );
 					} else {
 						$custom_slug = $custom_page_url;
+						// Fallback: try to resolve page ID from slug when it was not stored.
+						if ( ! empty( $custom_slug ) ) {
+							$page_by_slug = \get_page_by_path( $custom_slug );
+							if ( $page_by_slug ) {
+								$custom_page_id = $page_by_slug->ID;
+							}
+						}
 					}
 
 					Settings_Builder::build_option(

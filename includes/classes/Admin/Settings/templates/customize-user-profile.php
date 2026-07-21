@@ -7,6 +7,8 @@
  * @since 4.0.0
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\WP2FA;
 use WP2FA\Admin\Settings_Builder;
 
@@ -125,6 +127,44 @@ use WP2FA\Admin\Settings_Builder;
 					)
 				);
 				?>
+				</div>
+			</div>
+		</div>
+
+		<div class="settings-card">
+			<div class="form-group settings-row">
+				<div class="settings-label-group">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'text' => \esc_html__( 'Backup codes learn more link', 'wp-2fa' ),
+							'id'   => 'backup-codes-learn-more-label',
+							'type' => 'settings-label',
+						)
+					);
+
+					Settings_Builder::build_option(
+						array(
+							'text'  => \esc_html__( 'This link is shown to users next to the "Generate list of backup codes" button when no backup codes are available.', 'wp-2fa' ),
+							'class' => 'description-settings-card',
+							'id'    => 'backup-codes-learn-more-desc',
+							'type'  => 'description',
+						)
+					);
+					?>
+				</div>
+				<div class="settings-control">
+					<?php
+					Settings_Builder::build_option(
+						array(
+							'id'          => 'backup_codes_learn_more',
+							'type'        => 'editor',
+							'placeholder' => \esc_html__( 'Enter custom link HTML', 'wp-2fa' ),
+							'option_name' => 'wp_2fa_white_label[backup_codes_learn_more]',
+							'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_learn_more', true ),
+						)
+					);
+					?>
 				</div>
 			</div>
 		</div>

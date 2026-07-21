@@ -5,6 +5,8 @@
  * @package wp-2fa
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\WP2FA;
 use WP2FA\Admin\Settings_Builder;
 use WP2FA\Methods\Passkeys;
@@ -209,9 +211,6 @@ Settings_Builder::build_option(
 	?>
 </div>
 <?php endif; ?>
-<?php
-// @premium:end
-?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

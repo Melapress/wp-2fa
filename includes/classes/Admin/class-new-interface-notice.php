@@ -50,6 +50,12 @@ if ( ! class_exists( '\WP2FA\Admin\New_Interface_Notice' ) ) {
 		 * @since 4.0.0
 		 */
 		public static function init() {
+			// Always register AJAX handlers so they are available even when
+			// object caching returns stale option values during the AJAX request.
+			\add_action( 'wp_ajax_wp2fa_switch_new_interface', array( __CLASS__, 'ajax_switch_new_interface' ) );
+			\add_action( 'wp_ajax_wp2fa_dismiss_new_interface_dialog', array( __CLASS__, 'ajax_dismiss_dialog' ) );
+			\add_action( 'wp_ajax_wp2fa_dismiss_new_interface_banner', array( __CLASS__, 'ajax_dismiss_banner' ) );
+
 			// If the new interface is already in use, no need to advertise it.
 			if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_general_setting( 'use_new_interface' ) ) ) {
 				return;
@@ -61,10 +67,6 @@ if ( ! class_exists( '\WP2FA\Admin\New_Interface_Notice' ) ) {
 			if ( ! $show_dialog && ! $show_banner ) {
 				return;
 			}
-
-			\add_action( 'wp_ajax_wp2fa_switch_new_interface', array( __CLASS__, 'ajax_switch_new_interface' ) );
-			\add_action( 'wp_ajax_wp2fa_dismiss_new_interface_dialog', array( __CLASS__, 'ajax_dismiss_dialog' ) );
-			\add_action( 'wp_ajax_wp2fa_dismiss_new_interface_banner', array( __CLASS__, 'ajax_dismiss_banner' ) );
 
 			if ( $show_dialog ) {
 				\add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_dialog_assets' ) );

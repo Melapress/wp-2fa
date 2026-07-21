@@ -12,6 +12,8 @@
  * @since 4.0.0
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Admin\Settings_Builder;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Labeling_New;
 use WP2FA\Licensing\Licensing_Factory;

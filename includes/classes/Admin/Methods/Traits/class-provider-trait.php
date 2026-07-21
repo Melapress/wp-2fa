@@ -92,11 +92,13 @@ if ( ! class_exists( '\WP2FA\Admin\Methods\Traits\Providers' ) ) {
 		 * @return boolean
 		 */
 		public static function is_enabled( ?string $role = null ): bool {
-			if ( null === static::$enabled || ! isset( static::$enabled[ $role ] ) ) {
-				static::$enabled[ $role ] = empty( Settings_Utils::get_setting_role( $role, static::POLICY_SETTINGS_NAME ) ) ? false : true;
+			$cache_key = $role ?? '';
+
+			if ( null === static::$enabled || ! isset( static::$enabled[ $cache_key ] ) ) {
+				static::$enabled[ $cache_key ] = empty( Settings_Utils::get_setting_role( $role, static::POLICY_SETTINGS_NAME ) ) ? false : true;
 			}
 
-			return static::$enabled[ $role ];
+			return static::$enabled[ $cache_key ];
 		}
 
 		/**

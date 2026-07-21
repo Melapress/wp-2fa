@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Licensing;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\WP2FA;
 use WP2FA\Extensions_Loader;
 use WP2FA\Freemius\User_Licensing;
@@ -46,6 +48,16 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 * @since 4.0.0
 		 */
 		private const FREEMIUS_PLUGIN_ID = '8257';
+
+		private const PLUGIN_INTERNAL_SLUG = 'wp_2fa';
+
+		private const PLUGIN_SLUG = 'wp-2fa';
+
+		private const PLUGIN_PATH = WP_2FA_PATH;
+
+		private const PLUGIN_FILE = WP_2FA_FILE;
+
+		private const PLUGIN_PUBLIC_KEY = 'pk_b8cc4c0bbe2df3365f23c225a7889';
 
 		/**
 		 * Cache for availability check.
@@ -77,7 +89,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 			// Initialize Freemius SDK and helper.
 			add_action( 'admin_init', array( __CLASS__, 'maybe_redirect_to_external_pricing_page' ), 9 );
 			add_action( 'admin_init', array( __CLASS__, 'maybe_sync_premium_license' ) );
-			add_action( 'wp2fa_freemius_loaded', array( __CLASS__, 'adjust_freemius_strings' ) );
+			add_action( self::PLUGIN_INTERNAL_SLUG . '_freemius_loaded', array( __CLASS__, 'adjust_freemius_strings' ) );
 
 			self::add_filter( 'connect_message', array( __CLASS__, 'change_connect_message' ), 10, 6 );
 			self::add_filter(
@@ -116,7 +128,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 			self::add_filter(
 				'plugin_icon',
 				function ( $plugin_icon ) {
-					return WP_2FA_PATH . 'dist/images/wp-2fa-square.png';
+					return self::PLUGIN_PATH . 'dist/images/wp-2fa-square.png';
 				}
 			);
 
@@ -155,7 +167,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return false;
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return false;
 			}
@@ -191,7 +203,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return false;
 			}
 
-			return self::wp2fa_freemius();
+			return self::plugin_freemius();
 		}
 
 		/**
@@ -219,7 +231,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return false;
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return false;
 			}
@@ -255,7 +267,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return null;
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return null;
 			}
@@ -268,14 +280,14 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 *
 		 * @return bool True if it's a trial, false otherwise.
 		 *
-		 * @since 4.0.0
+		 * @since 4.1.0
 		 */
 		public static function is_free(): bool {
 			if ( ! self::is_available() ) {
 				return false;
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return false;
 			}
@@ -298,10 +310,10 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 			/**
 			 * If the quota of the license is null, that in terms of freemius means unlimited - set the quota to the maximum integer which is allowed by the PHP
 			 */
-			if ( null === self::wp2fa_freemius()->_get_license()->quota ) {
+			if ( null === self::plugin_freemius()->_get_license()->quota ) {
 				$quota = PHP_INT_MAX;
 			} else {
-				$quota = (int) self::wp2fa_freemius()->_get_license()->quota;
+				$quota = (int) self::plugin_freemius()->_get_license()->quota;
 			}
 
 			return $quota;
@@ -336,7 +348,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_pricing_fallback';
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_pricing_fallback';
 			}
@@ -355,7 +367,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return 'https://melapress.com/account/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=account_fallback';
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return 'https://melapress.com/account/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=account_fallback';
 			}
@@ -469,12 +481,12 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 */
 		public static function get_plugin_basename(): string {
 			if ( ! self::is_available() ) {
-				return plugin_basename( WP_2FA_FILE );
+				return plugin_basename( self::PLUGIN_FILE );
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
-				return plugin_basename( WP_2FA_FILE );
+				return plugin_basename( self::PLUGIN_FILE );
 			}
 
 			return $fs->get_plugin_basename();
@@ -495,7 +507,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return;
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return;
 			}
@@ -518,7 +530,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				return;
 			}
 
-			$fs = self::wp2fa_freemius();
+			$fs = self::plugin_freemius();
 			if ( null === $fs ) {
 				return;
 			}
@@ -533,7 +545,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 *
 		 * @return mixed|null Freemius instance or null when unavailable.
 		 */
-		private static function wp2fa_freemius() {
+		private static function plugin_freemius() {
 			if ( ! self::is_available() ) {
 				return null;
 			}
@@ -564,7 +576,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				);
 
 				// Check anonymous mode.
-				$freemius_state = get_site_option( 'wp_2fa_freemius_state', 'anonymous' );
+				$freemius_state = get_site_option( self::PLUGIN_INTERNAL_SLUG . '_freemius_state', 'anonymous' );
 				$is_anonymous   = 'anonymous' === $freemius_state || 'skipped' === $freemius_state;
 				$is_premium     = true;
 				$is_anonymous   = ( $is_premium ? false : $is_anonymous );
@@ -572,9 +584,9 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				self::$freemius_instance = \fs_dynamic_init(
 					array(
 						'id'                  => self::FREEMIUS_PLUGIN_ID,
-						'slug'                => 'wp-2fa',
+						'slug'                => self::PLUGIN_SLUG,
 						'type'                => 'plugin',
-						'public_key'          => 'pk_b8cc4c0bbe2df3365f23c225a7889',
+						'public_key'          => self::PLUGIN_PUBLIC_KEY,
 						'premium_suffix'      => '',
 						'is_premium'          => true,
 						// If your plugin is a serviceware, set this option to false.
@@ -584,7 +596,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 						'has_affiliation'     => false,
 						'trial'               => $trial_args,
 						'menu'                => array(
-							'slug'        => 'wp-2fa-policies',
+							'slug'        => self::PLUGIN_SLUG . '-policies',
 							'support'     => false,
 							'affiliation' => false,
 							'network'     => true,
@@ -599,7 +611,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 				 *
 				 * @since 2.0.0
 				 */
-				do_action( 'wp2fa_freemius_loaded' );
+				do_action( self::PLUGIN_INTERNAL_SLUG . '_freemius_loaded' );
 			}
 
 			return self::$freemius_instance;
@@ -611,7 +623,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 * @return string
 		 */
 		private static function get_freemius_path(): string {
-			return WP_2FA_PATH . DIRECTORY_SEPARATOR . implode(
+			return self::PLUGIN_PATH . DIRECTORY_SEPARATOR . implode(
 				DIRECTORY_SEPARATOR,
 				array(
 					'third-party',
@@ -847,11 +859,11 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 */
 		public static function adjust_freemius_strings() {
 			// only update these messages if using premium plugin.
-			if ( ( ! self::wp2fa_freemius()->is_premium() ) || ( ! method_exists( self::wp2fa_freemius(), 'override_il8n' ) ) ) {
+			if ( ( ! self::plugin_freemius()->is_premium() ) || ( ! method_exists( self::plugin_freemius(), 'override_il8n' ) ) ) {
 				return;
 			}
 
-			self::wp2fa_freemius()->override_i18n(
+			self::plugin_freemius()->override_i18n(
 				array(
 					/* translators: plugin version */
 					'few-plugin-tweaks' => __( 'You need to activate the license key to use WP 2FA - Two-factor authentication for WordPress . %2$s', 'wp-2fa' ),

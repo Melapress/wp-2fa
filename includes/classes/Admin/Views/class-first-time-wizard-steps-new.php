@@ -145,12 +145,21 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 									'type'        => 'checkbox',
 									'option_name' => self::NAME_PREFIX . '[' . Email::POLICY_SETTINGS_NAME . ']',
 									'default'     => $email_enabled ? Email::POLICY_SETTINGS_NAME : '',
-									'text'        => '<strong>' . \esc_html__( 'One-time code via email', 'wp-2fa' ) . '</strong>- '  . \esc_html__( 'ensure email deliverability with the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>',
+									'text'        => '<strong>' . \esc_html__( 'One-time code via email', 'wp-2fa' ) . '</strong>',
 									'not_bool'    => true,
 									'not_id'      => true,
 									'value'       => Email::POLICY_SETTINGS_NAME,
 								)
 							);
+							/*
+							?>
+							<p class="wp2fa-sortable-title-hint" style="margin: 2px 0 0 28px;">
+								<?php
+								echo \esc_html__( 'This method relies on your site being able to send emails reliably. If codes arrive late or not at all,', 'wp-2fa' ) . ' <a href="https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=policies_help_text" target="_blank">' . \esc_html__( 'learn more about email delivery', 'wp-2fa' ) . '</a>.';
+								?>
+							</p>
+							<?php
+							*/
 							?>
 							<p class="wizard-method-desc">
 								<?php

@@ -15,6 +15,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Admin\Views;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
 

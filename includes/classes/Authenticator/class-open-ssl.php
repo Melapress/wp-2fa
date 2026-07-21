@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Authenticator;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\WP2FA;
 
 use function WP2FA\Core\wp_salt;

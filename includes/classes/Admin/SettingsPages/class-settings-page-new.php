@@ -271,6 +271,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 			if ( isset( $_POST['email_from_setting'] ) ) {
 				$options = Settings_Page_Email::validate_and_sanitize_new( \wp_unslash( $_POST ) );
 
+				// Merge with existing email settings to preserve keys not present
+				// in POST (e.g. SMS templates for non-enterprise plans).
+				$existing_email = Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME );
+				if ( \is_array( $existing_email ) && \is_array( $options ) ) {
+					$options = \array_merge( $existing_email, $options );
+				}
+
 				Settings_Utils::update_option( WP_2FA_EMAIL_SETTINGS_NAME, $options );
 			}
 
@@ -370,7 +377,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 			}
 
 			\wp_send_json_error(
-				array( 'message' => \esc_html__( 'Failed to send test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider.', 'wp-2fa' ) )
+				array( 'message' => \wp_sprintf( \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) )
 			);
 		}
 

@@ -148,7 +148,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 
 			<h3><?php \esc_html_e( 'Email delivery test', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php \esc_html_e( 'The plugin sends emails with one-time codes, blocked account notifications and more. Use the button below to confirm the plugin can successfully send emails.', 'wp-2fa' ); ?>
+				<?php
+				echo \wp_sprintf(
+					\esc_html__( 'Send a test email to confirm your site can deliver 2FA codes by email. Delivery issues are usually caused by SMTP or hosting configuration. %1$s.', 'wp-2fa' ),
+					\wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_help_text', \esc_html__( 'Learn more about email deliverability', 'wp-2fa' ) )
+				);
+				?>
 			</p>
 			<p>
 				<button type="button" name="test_email_config_test"

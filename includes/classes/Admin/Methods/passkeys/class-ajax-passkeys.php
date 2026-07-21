@@ -49,50 +49,25 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 		}
 
 		/**
-		 * Get client IP address best-effort for rate limiting/logging.
-		 *
-		 * @return string
-		 *
-		 * @since 3.1.0
-		 */
-		private static function get_client_ip(): string {
-			$ip = '';
-			if ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
-				$candidate = \sanitize_text_field( \wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) );
-				$ip        = filter_var( $candidate, FILTER_VALIDATE_IP ) ? $candidate : '';
-			}
-			// If REMOTE_ADDR is empty or invalid, consider X-Forwarded-For (best-effort).
-			if ( empty( $ip ) && ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-				$xff       = \sanitize_text_field( \wp_unslash( (string) $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
-				$parts     = explode( ',', $xff );
-				$candidate = trim( $parts[0] );
-				$ip        = filter_var( $candidate, FILTER_VALIDATE_IP ) ? $candidate : '';
-			}
-			return (string) $ip;
-		}
-
-		/**
 		 * Basic transient-based rate limiting.
 		 * Limiter key is derived from action and client IP.
 		 *
 		 * @param string $action Unique action key.
-		 * @param int    $max    Max requests per window.
-		 * @param int    $window Window in seconds.
+		 * @param int    $max    Max requests per window (unused; retained for signature compatibility).
+		 * @param int    $window Window in seconds (unused; retained for signature compatibility).
 		 *
 		 * @return void
 		 *
 		 * @since 3.1.0
 		 */
 		private static function maybe_rate_limit( string $action, int $max = 30, int $window = 300 ): void {
-			$ip       = self::get_client_ip();
-			$key      = sprintf( '%s_rl_%s', Source_Repository::PASSKEYS_META, md5( $action . '|' . $ip ) );
-			$attempts = (int) get_transient( $key );
-			++$attempts;
-			set_transient( $key, $attempts, $window );
-			if ( $attempts > $max ) {
-				wp_send_json_error( __( 'Too many requests. Please try again later.', 'wp-2fa' ), 429 );
-				wp_die();
+			// Delegate to the shared limiter so the REST and admin-ajax sign-in paths
+			// stay in lockstep (see Passkeys_Rate_Limiter). guard_ajax() emits a JSON
+			// 429 and stops the request when the per-IP bucket is exceeded.
+			if ( ! class_exists( '\WP2FA\Passkeys\Passkeys_Rate_Limiter', false ) ) {
+				require_once __DIR__ . '/class-passkeys-rate-limiter.php';
 			}
+			Passkeys_Rate_Limiter::guard_ajax( $action );
 		}
 
 		/**
@@ -260,11 +235,16 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 				}
 			}
 
+			// Return only the path component to avoid host mismatches in proxied environments.
+			$redirect_path = ! empty( $redirect_to ) ? \wp_parse_url( $redirect_to, PHP_URL_PATH ) : '/wp-admin/';
+			$redirect_query = \wp_parse_url( $redirect_to, PHP_URL_QUERY );
+			$redirect_to = $redirect_path . ( $redirect_query ? '?' . $redirect_query : '' );
+
 			\wp_send_json_success(
 				array(
 					'status'      => 'verified',
 					'message'     => __( 'Successfully signin with Passkey.', 'wp-2fa' ),
-					'redirect_to' => $redirect_to ?? '',
+					'redirect_to' => $redirect_to,
 				)
 			);
 		}
@@ -354,8 +334,14 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 
 			$data = $_POST['data'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
 
+			// The AJAX JS sends data as a JSON string via URLSearchParams; decode it.
+			if ( is_string( $data ) ) {
+				$data = json_decode( wp_unslash( $data ), true );
+			}
+
 			if ( ! $data || ! \is_array( $data ) || empty( $data ) ) {
-				return new \WP_Error( 'invalid_request', __( 'Invalid request.', 'wp-2fa' ), array( 'status' => 400 ) );
+				\wp_send_json_error( __( 'Invalid request.', 'wp-2fa' ), 400 );
+				return;
 			}
 
 			try {

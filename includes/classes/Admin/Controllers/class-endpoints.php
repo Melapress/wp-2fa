@@ -200,7 +200,9 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 		public static function bypass_cookie_nonce_for_login( $errors ) {
 			if ( \is_wp_error( $errors ) && 'rest_cookie_invalid_nonce' === $errors->get_error_code() ) {
 				$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
-				if ( false !== strpos( $request_uri, 'wp-2fa-methods/v1/login' ) ) {
+				// Strip query string to prevent bypass via injected query parameters.
+				$request_path = (string) strtok( $request_uri, '?' );
+				if ( false !== strpos( $request_path, 'wp-2fa-methods/v1/login' ) ) {
 					return null;
 				}
 			}

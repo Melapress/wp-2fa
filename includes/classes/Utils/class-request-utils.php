@@ -27,37 +27,51 @@ if ( ! class_exists( '\WP2FA\Utils\Request_Utils' ) ) {
 	class Request_Utils {
 
 		/**
-		 * Extracts the IP address for the currently browsing user
+		 * Extracts the IP address for the currently browsing user.
+		 *
+		 * Security: forwarded headers (X-Forwarded-For, etc.) are only trusted when
+		 * REMOTE_ADDR is a private/reserved IP, indicating a reverse proxy.
+		 * When reading forwarded headers, the rightmost public IP is used (closest
+		 * to the trusted infrastructure) to prevent client-side spoofing.
 		 *
 		 * @return string
 		 *
 		 * @since 2.0.0
 		 */
 		public static function get_ip(): string {
-			$ip_address = '';
+			$remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) ? trim( (string) \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
 
-			foreach (
-				array(
-					'HTTP_CLIENT_IP',
-					'HTTP_X_FORWARDED_FOR',
-					'HTTP_X_FORWARDED',
-					'HTTP_X_CLUSTER_CLIENT_IP',
-					'HTTP_FORWARDED_FOR',
-					'HTTP_FORWARDED',
-					'REMOTE_ADDR',
-				) as $key
-			) {
+			// If REMOTE_ADDR is a valid public IP, use it directly — no proxy involved.
+			if ( filter_var( $remote_addr, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
+				return $remote_addr;
+			}
+
+			// REMOTE_ADDR is private/reserved, meaning we are behind a reverse proxy.
+			// Read forwarded headers and pick the rightmost valid public IP.
+			$forwarded_headers = array(
+				'HTTP_X_FORWARDED_FOR',
+				'HTTP_X_FORWARDED',
+				'HTTP_FORWARDED_FOR',
+				'HTTP_FORWARDED',
+				'HTTP_CLIENT_IP',
+				'HTTP_X_CLUSTER_CLIENT_IP',
+			);
+
+			foreach ( $forwarded_headers as $key ) {
 				if ( array_key_exists( $key, $_SERVER ) ) {
-					foreach ( array_map( 'trim', explode( ',', \wp_unslash( $_SERVER[ $key ] ) ) ) as $ip ) {
+					$ips = array_map( 'trim', explode( ',', \wp_unslash( $_SERVER[ $key ] ) ) );
+					// Iterate from right to left — rightmost entries are added by trusted proxies.
+					$ips = array_reverse( $ips );
+					foreach ( $ips as $ip ) {
 						if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
-							$ip_address = $ip;
-							break 2;
+							return $ip;
 						}
 					}
 				}
 			}
 
-			return $ip_address;
+			// Fallback: return REMOTE_ADDR even if private (e.g. local/dev environments).
+			return filter_var( $remote_addr, FILTER_VALIDATE_IP ) !== false ? $remote_addr : '';
 		}
 
 		/**

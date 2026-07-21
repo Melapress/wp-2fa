@@ -23,6 +23,7 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Settings_Builder;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Authenticator\Login;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Methods\Traits\Providers;
 use WP2FA\Admin\Controllers\API\API_Login;
@@ -135,6 +136,8 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 			\add_filter( WP_2FA_PREFIX . 'white_label_default_settings', array( __CLASS__, 'add_whitelabel_settings' ) );
 
 			\add_action( WP_2FA_PREFIX . 'validate_login_api', array( __CLASS__, 'api_login_validate' ), 10, 3 );
+
+			\add_filter( WP_2FA_PREFIX . 'validate_login_form', array( __CLASS__, 'validate_login_form' ), 10, 3 );
 
 			\add_action( WP_2FA_PREFIX . 'white_label_wizard_options', array( __CLASS__, 'white_label_option_labels' ) );
 
@@ -535,6 +538,71 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 			</fieldset>
 			<br>
 			<?php
+		}
+
+		/**
+		 * Validates the Email login form submission.
+		 *
+		 * @param bool     $authenticated Whether authentication has passed.
+		 * @param \WP_User $user          The user being authenticated.
+		 * @param string   $provider      The provider name.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.0.1
+		 */
+		public static function validate_login_form( $authenticated, $user, $provider ) {
+			if ( self::METHOD_NAME !== $provider ) {
+				return $authenticated;
+			}
+
+			if ( $authenticated ) {
+				return $authenticated;
+			}
+
+			// If this is an email login, or if the user failed validation previously, lets send the code to the user.
+			if ( true !== Login::pre_process_email_authentication( $user ) ) {
+				$login_nonce = Login::create_login_nonce( $user->ID );
+				if ( ! $login_nonce ) {
+					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+				}
+			}
+
+			if ( true === Login::validate_email_authentication( $user ) ) {
+				return true;
+			}
+
+			// Validation failed.
+			\do_action(
+				'wp_login_failed',
+				$user->user_login,
+				new \WP_Error(
+					'authentication_failed',
+					__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
+				)
+			);
+
+			Login::delete_login_nonce( $user->ID );
+			$login_nonce = Login::create_login_nonce( $user->ID );
+			if ( ! $login_nonce ) {
+				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+			}
+
+			if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) { // phpcs:ignore
+				Login::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore
+			} elseif ( Authentication::check_number_of_attempts( $user ) ) {
+				$msg = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
+				if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
+					$msg .= \esc_html__( ' For security reasons you have been sent a new code via email. Please use this new code to log in.', 'wp-2fa' );
+				}
+				Login::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), $msg, $provider ); // phpcs:ignore
+			} else {
+				Authentication::clear_login_attempts( $user );
+				User_Helper::remove_meta( WP_2FA_PREFIX . 'code_sent', $user );
+				\wp_safe_redirect( \wp_login_url() );
+			}
+
+			exit;
 		}
 	}
 }

@@ -252,7 +252,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		public static function validate_and_sanitize( $input ) {
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['action'] ) && ! check_admin_referer( 'wp2fa-step-choose-method' ) ) {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			// When called via options.php (no AJAX action), verify our own nonce.
+			if ( ! isset( $_POST['action'] ) && ! check_admin_referer( 'wp2fa-step-choose-method' ) ) {
 				return;
 			}
 

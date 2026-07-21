@@ -1038,7 +1038,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				return false;
 			}
 
-			if ( $nonce !== $login_nonce['key'] || time() > $login_nonce['expiration'] ) {
+			if ( ! hash_equals( $login_nonce['key'], $nonce ) || time() > $login_nonce['expiration'] ) {
 				self::delete_login_nonce( $user_id );
 				return false;
 			}
@@ -1082,138 +1082,29 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			$provider = isset( $_POST['provider'] ) ? \sanitize_textarea_field( \wp_unslash( $_POST['provider'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 			if ( ! Settings::is_provider_enabled_for_role( User_Helper::get_user_role( $user ), $provider ) ) {
-				wp_die( __( '<p> <strong>WP-2FA</strong>: Please contact the administrator for further assistance!</p>', 'wp-2fa' ) . \esc_html__( 'Invalid provider.', 'wp-2fa' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			}
-
-			// If this is an email login, or if the user failed validation previously, lets send the code to the user.
-			if ( Email::METHOD_NAME === $provider && true !== self::pre_process_email_authentication( $user ) ) {
-				$login_nonce = self::create_login_nonce( $user->ID );
-				if ( ! $login_nonce ) {
-					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
-				}
+				wp_die( __( '<p> <strong>WP-2FA</strong>: A server error prevented your login from being verified. Please contact the website administrator.!</p>', 'wp-2fa' ) . \esc_html__( 'Invalid provider.', 'wp-2fa' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			}
 
 			$authenticated = false;
 
-			// Validate TOTP.
-			if ( TOTP::METHOD_NAME === $provider && true !== TOTP::validate_totp_authentication( $user ) ) {
-				\do_action(
-					'wp_login_failed',
-					$user->user_login,
-					new \WP_Error(
-						'authentication_failed',
-						__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
-					)
-				);
-
-				self::delete_login_nonce( $user->ID );
-				$login_nonce = self::create_login_nonce( $user->ID );
-				if ( ! $login_nonce ) {
-					wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
-				}
-
-				if ( Authentication::check_number_of_attempts( $user ) ) {
-					self::login_html( $user, $login_nonce['key'], \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' ), $provider ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				} else {
-					// Reached the maximum number of attempts - clear the attempts and redirect the user to the login page.
-					Authentication::clear_login_attempts( $user );
-					\wp_safe_redirect( \wp_login_url() );
-				}
-				exit;
-			}
-
-			if ( TOTP::METHOD_NAME === $provider ) {
-				$authenticated = true;
-			}
-
-			// Backup Codes.
-			if ( Backup_Codes::METHOD_NAME === $provider && true !== Backup_Codes::validate_backup_codes( $user ) ) {
-				do_action(
-					'wp_login_failed',
-					$user->user_login,
-					new \WP_Error(
-						'authentication_failed',
-						__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
-					)
-				);
-				self::delete_login_nonce( $user->ID );
-				$login_nonce = self::create_login_nonce( $user->ID );
-				if ( ! $login_nonce ) {
-					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
-				}
-
-				if ( Backup_Codes::check_number_of_attempts( $user ) ) {
-
-					self::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid backup code.', 'wp-2fa' ), $provider ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				} else {
-					Backup_Codes::clear_login_attempts( $user );
-					\wp_safe_redirect( \wp_login_url() );
-				}
-				exit;
-			}
-
-			if ( Backup_Codes::METHOD_NAME === $provider ) {
-				$authenticated = true;
-			}
-
-			// Validate Email.
-			if ( Email::METHOD_NAME === $provider && true !== self::validate_email_authentication( $user ) ) {
-				\do_action(
-					'wp_login_failed',
-					$user->user_login,
-					new \WP_Error(
-						'authentication_failed',
-						__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
-					)
-				);
-
-				self::delete_login_nonce( $user->ID );
-				$login_nonce = self::create_login_nonce( $user->ID );
-				if ( ! $login_nonce ) {
-					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
-				}
-
-				if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) {
-					self::login_html( $user, $login_nonce['key'], \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider );
-				} elseif ( Authentication::check_number_of_attempts( $user ) ) {
-					$msg = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
-					if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
-						$msg .= \esc_html__( ' For security reasons you have been sent a new code via email. Please use this new code to log in.', 'wp-2fa' );
-					}
-					self::login_html( $user, $login_nonce['key'], \esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), $msg, $provider );
-				} else {
-					Authentication::clear_login_attempts( $user );
-					User_Helper::remove_meta( WP_2FA_PREFIX . 'code_sent', $user );
-					\wp_safe_redirect( \wp_login_url() );
-				}
-
-				exit;
-			}
-
-			if ( Email::METHOD_NAME === $provider ) {
-				$authenticated = true;
-			}
-
 			/**
-			 * Allows 3rd parties to validate their own 2FA "login" form.
-			 * Third-party providers should call exit on failure, or use the
-			 * `wp_2fa_authenticated_login_form` filter to signal success.
+			 * Allows providers to validate their 2FA "login" form.
+			 * Providers should return true on successful validation, or call exit on failure
+			 * (e.g. to re-display the login form with an error message).
+			 * Default-deny: if no provider signals success, authentication is rejected.
 			 *
-			 * @param \WP_User $user - User for which the login form is shown.
-			 * @param string $provider - The name of the provider.
+			 * @param bool     $authenticated Whether authentication has passed.
+			 * @param \WP_User $user          The user being authenticated.
+			 * @param string   $provider      The provider name.
 			 *
 			 * @since 2.0.0
+			 * @since 4.0.1 Changed from do_action to apply_filters with $authenticated parameter (default-deny).
 			 */
-			\do_action( WP_2FA_PREFIX . 'validate_login_form', $user, $provider );
-
-			// If execution reaches here (action handlers exit on failure),
-			// the provider validated successfully.
-			if ( ! $authenticated ) {
-				$authenticated = true;
-			}
+			$authenticated = \apply_filters( WP_2FA_PREFIX . 'validate_login_form', $authenticated, $user, $provider );
 
 			/**
-			 * Filters whether a third-party provider has authenticated the user.
+			 * Filters whether a provider has authenticated the user.
+			 * This is a secondary gate that can override the result of the validation filter.
 			 *
 			 * @param bool     $authenticated Whether the user has been authenticated.
 			 * @param \WP_User $user          The user being authenticated.
@@ -1223,7 +1114,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 			 */
 			$authenticated = \apply_filters( WP_2FA_PREFIX . 'authenticated_login_form', $authenticated, $user, $provider );
 
-			if ( ! $authenticated ) {
+			if ( true !== $authenticated ) {
 				self::delete_login_nonce( $user->ID );
 				\wp_die( \esc_html__( 'Authentication failed.', 'wp-2fa' ) );
 			}

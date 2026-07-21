@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Shortcodes;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Core;
 use WP2FA\WP2FA;
 use WP2FA\Admin\User_Notices;

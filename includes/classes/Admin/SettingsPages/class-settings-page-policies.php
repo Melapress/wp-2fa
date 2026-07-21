@@ -226,7 +226,13 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			\do_action( WP_2FA_PREFIX . 'change_referer' );
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! current_user_can( 'manage_options' ) || ! isset( $_POST['action'] ) && ! check_admin_referer( 'wp2fa-step-choose-method' ) ) {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			// When called via options.php (no AJAX action), verify our own nonce.
+			// AJAX callers (e.g. ajax_save) verify their nonce before invoking this.
+			if ( ! isset( $_POST['action'] ) && ! check_admin_referer( 'wp2fa-step-choose-method' ) ) {
 				return;
 			}
 
@@ -389,7 +395,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 								\restore_current_blog();
 							}
 						} else {
-							self::generate_custom_user_profile_page( $output['custom-user-page-url'] );
+							$output['custom-user-page-id'] = (int) self::generate_custom_user_profile_page( $output['custom-user-page-url'] );
 						}
 					}
 				} elseif ( WP_Helper::is_multisite() && isset( $input['separate-multisite-page-url'] ) && Settings_Utils::get_setting_role( null, 'separate-multisite-page-url' ) !== $input['separate-multisite-page-url'] && ! empty( $input['custom-user-page-url'] ) ) {
@@ -434,7 +440,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				\add_settings_error(
 					WP_2FA_POLICY_SETTINGS_NAME,
 					\esc_attr( 'no_page_slug_provided' ),
-					\esc_html__( 'You must provide a new page slug.', 'wp-2fa' ),
+					\esc_html__( 'Please specify the page slug for the Frontend settings page', 'wp-2fa' ),
 					'error'
 				);
 			}

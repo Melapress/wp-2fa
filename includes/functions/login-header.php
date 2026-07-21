@@ -1,4 +1,5 @@
 <?php
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Output the login page header.
@@ -113,7 +114,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		} else {
 				$login_header_text = $login_header_title;
 		}
-		$classes = array( 'login-action-' . $action, 'wp-core-ui' );
+		$classes = array( 'login-action-' . $action, 'wp-core-ui', 'admin-color-modern' );
 		if ( is_rtl() ) {
 				$classes[] = 'rtl';
 		}
