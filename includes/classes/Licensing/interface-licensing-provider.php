@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Licensing;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Interface for licensing providers.
  *

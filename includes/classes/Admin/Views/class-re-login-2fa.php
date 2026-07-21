@@ -53,6 +53,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\Re_Login_2FA' ) ) {
 		 * @since 2.7.0
 		 */
 		public static function redirect_after_logout() {
+			\check_ajax_referer( 'wp2fa-verify-wizard-page' );
+
 			$enabled_method = User_Helper::get_enabled_method_for_user();
 			if ( empty( $enabled_method ) ) {
 				\wp_send_json_error();

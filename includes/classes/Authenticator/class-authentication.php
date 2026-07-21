@@ -21,6 +21,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Authenticator;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA_Vendor\BaconQrCode\Writer;
@@ -40,7 +42,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		const DEFAULT_CRYPTO              = 'sha1';
 		const DEFAULT_DIGIT_COUNT         = 6;
 		const DEFAULT_TIME_STEP_SEC       = 30;
-		const DEFAULT_TIME_STEP_ALLOWANCE = 4;
+		const DEFAULT_TIME_STEP_ALLOWANCE = 2;
 
 		/**
 		 * Holds the name of the meta key for the allowed login attempts
@@ -68,11 +70,11 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		private static $base_32_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 		/**
-		 * String with the decrypted key
+		 * Cache of decrypted keys, keyed by ciphertext.
 		 *
-		 * @var string
+		 * @var array<string, string>
 		 */
-		private static $decrypted_key = '';
+		private static $decrypted_key = array();
 
 		/**
 		 * Generate QR code
@@ -179,7 +181,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function clear_decrypted_key() {
-			self::$decrypted_key = '';
+			self::$decrypted_key = array();
 		}
 
 		/**
@@ -204,14 +206,15 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		/**
 		 * Checks if a given code is valid for a given key, allowing for a certain amount of time drift
 		 *
-		 * @param string $key      The share secret key to use.
-		 * @param string $authcode The code to test.
+		 * @param string        $key      The share secret key to use.
+		 * @param string        $authcode The code to test.
+		 * @param \WP_User|null $user     Optional. User for replay protection (persists last accepted step).
 		 *
 		 * @return bool Whether the code is valid within the time frame
 		 *
 		 * @since 3.1.0
 		 */
-		public static function is_valid_authcode( $key, $authcode ) {
+		public static function is_valid_authcode( $key, $authcode, $user = null ) {
 
 			self::decrypt_key_if_needed( $key );
 			/**
@@ -223,6 +226,12 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 			 */
 			$max_ticks = apply_filters( WP_2FA_PREFIX . 'totp_time_step_allowance', self::DEFAULT_TIME_STEP_ALLOWANCE );
 
+			// Retrieve the last accepted time step for replay protection.
+			$last_used_step = 0;
+			if ( $user instanceof \WP_User && $user->ID > 0 ) {
+				$last_used_step = (int) \get_user_meta( $user->ID, WP_2FA_PREFIX . 'last_totp_step', true );
+			}
+
 			// Array of all ticks to allow, sorted using absolute value to test closest match first.
 			$ticks = range( - $max_ticks, $max_ticks );
 			usort( $ticks, array( __CLASS__, 'abssort' ) );
@@ -230,8 +239,17 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 			$time = time() / self::DEFAULT_TIME_STEP_SEC;
 			foreach ( $ticks as $offset ) {
 				$log_time    = $time + $offset;
+				$step        = (int) floor( $log_time );
 				$calculdated = (string) self::calc_totp( $key, $log_time );
 				if ( hash_equals( $calculdated, (string) $authcode ) ) {
+					// Reject replayed codes: same or earlier step already used.
+					if ( $last_used_step > 0 && $step <= $last_used_step ) {
+						return false;
+					}
+					// Persist the accepted step to prevent replay.
+					if ( $user instanceof \WP_User && $user->ID > 0 ) {
+						\update_user_meta( $user->ID, WP_2FA_PREFIX . 'last_totp_step', $step );
+					}
 					return true;
 				}
 			}
@@ -552,20 +570,20 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 * @throws \RuntimeException - The key could not be decrypted.
 		 */
 		public static function decrypt_key_if_needed( string &$key ): string {
-			if ( '' === trim( self::$decrypted_key ) ) {
+			if ( ! isset( self::$decrypted_key[ $key ] ) ) {
 				if ( Open_SSL::is_ssl_available() && strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) === 0 ) {
 					$decrypted = Open_SSL::decrypt( substr( $key, strlen( Open_SSL::SECRET_KEY_PREFIX ) ) );
 					if ( false !== $decrypted ) {
-						self::$decrypted_key = $decrypted;
+						self::$decrypted_key[ $key ] = $decrypted;
 					} else {
 						throw new \RuntimeException( 'Failed to decrypt the key.' );
 					}
 				} else {
-					self::$decrypted_key = $key;
+					self::$decrypted_key[ $key ] = $key;
 				}
 			}
 
-			return ( $key = self::$decrypted_key ); // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found
+			return ( $key = self::$decrypted_key[ $key ] ); // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found
 		}
 	}
 }

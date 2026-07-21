@@ -124,7 +124,26 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\SMS_Templates' ) ) {
 
 			// If we have a saved setting, return it.
 			if ( $setting_name && isset( self::$wp_2fa_sms_templates[ $setting_name ] ) ) {
-				return self::$wp_2fa_sms_templates[ $setting_name ];
+				$template = self::$wp_2fa_sms_templates[ $setting_name ];
+
+				// If the stored value has a valid body, return it as-is.
+				if ( \is_array( $template ) && ! empty( $template['body'] ) ) {
+					return $template;
+				}
+
+				// Stored value exists but body is empty/missing — fall back to default.
+				$default_body = (string) WP2FA::get_wp2fa_white_label_setting( $setting_name, true );
+				if ( ! empty( $default_body ) ) {
+					return array( 'body' => $default_body );
+				}
+
+				return $template;
+			}
+
+			// Setting not found in stored options — fall back to white label default.
+			$default_body = (string) WP2FA::get_wp2fa_white_label_setting( $setting_name, true );
+			if ( ! empty( $default_body ) ) {
+				return array( 'body' => $default_body );
 			}
 		}
 

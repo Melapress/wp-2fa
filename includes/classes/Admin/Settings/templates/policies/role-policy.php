@@ -12,6 +12,8 @@
  * @since 3.1.2
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Settings_Builder;
 

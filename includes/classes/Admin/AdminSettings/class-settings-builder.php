@@ -1738,10 +1738,10 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 										<?php echo $has_extra ? 'data-has-extra="1"' : ''; ?>>
 									<span class="toggle-slider"></span>
 										<span class="wp2fa-sortable-title"> <?php echo \esc_html( $item['title'] ); ?></span>
-										<?php if ( ! empty( $item['title_hint'] ) ) { ?>
-											<span class="wp2fa-sortable-title-hint"><?php echo $item['title_hint']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped HTML with links. ?></span>
-										<?php } ?>
 								</label>
+								<?php if ( ! empty( $item['title_hint'] ) ) { ?>
+									<span class="wp2fa-sortable-title-hint"><?php echo $item['title_hint']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped HTML with links. ?></span>
+								<?php } ?>
 							<?php } else { ?>
 							<span class="wp2fa-sortable-title"><?php echo \esc_html( $item['title'] ); ?></span>
 							<?php } ?>
@@ -1823,6 +1823,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 			.wp2fa-sortable-checkbox { flex-shrink: 0; display: inline-flex; align-items: center; gap: 12px; }
 			.wp2fa-sortable-checkbox input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
 			.wp2fa-sortable-title { font-weight: 500; font-size: 14px; flex: 1; margin-left: 10px; }
+			.wp2fa-sortable-title-hint { display: block; width: 100%; padding-left: 91px; font-size: 13px; color: #646970; margin-top: 2px; }
 			.wp2fa-sortable-desc { font-size: 12px; color: #646970; }
 			.wp2fa-sortable-extra-settings {
 				width: 100%; padding: 10px 0 4px 91px; border-top: 1px solid #f0f0f1;

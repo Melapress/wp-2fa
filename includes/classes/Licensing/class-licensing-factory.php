@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Licensing;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Extensions_Loader;
 use WP2FA\Licensing\EDD_Provider;
 use WP2FA\Licensing\Freemius_Provider;
@@ -274,7 +276,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
 		 *
 		 * @return bool True if free, false otherwise.
 		 *
-		 * @since 4.0.0
+		 * @since 4.1.0
 		 */
 		public static function is_free(): bool {
 			$provider = self::get_provider();

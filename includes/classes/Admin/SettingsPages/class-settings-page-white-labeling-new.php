@@ -140,7 +140,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Labeling_Ne
 		 * @since 4.0.0
 		 */
 		public static function collect_tabs(): array {
-			$lbl = \esc_html__( 'Customize Emails Templates', 'wp-2fa' );
+			$lbl = \esc_html__( 'Customize email templates', 'wp-2fa' );
 
 			$settings_array = array(
 				'email-settings'         => array(

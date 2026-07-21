@@ -170,9 +170,23 @@
 
 		var modal = document.createElement( 'div' );
 		modal.style.cssText =
-			'background:#fff;border-radius:4px;padding:28px 32px 24px;' +
-			'max-width:540px;width:90%;max-height:80vh;overflow-y:auto;' +
-			'box-shadow:0 8px 32px rgba(0,0,0,0.28);position:relative;';
+			'background:#fff;border-radius:8px;padding:32px 32px 28px;' +
+			'max-width:440px;width:90%;max-height:80vh;overflow-y:auto;' +
+			'box-shadow:0 8px 32px rgba(0,0,0,0.28);position:relative;' +
+			'text-align:center;';
+
+		// --- Error icon circle -----------------------------------------------
+		var iconWrap = document.createElement( 'div' );
+		iconWrap.style.cssText =
+			'width:56px;height:56px;border-radius:50%;' +
+			'background:#fef2f2;display:flex;align-items:center;' +
+			'justify-content:center;margin:0 auto 16px;';
+		iconWrap.innerHTML =
+			'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63638" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+			'<line x1="18" y1="6" x2="6" y2="18"></line>' +
+			'<line x1="6" y1="6" x2="18" y2="18"></line>' +
+			'</svg>';
+		modal.appendChild( iconWrap );
 
 		var title = document.createElement( 'h2' );
 		title.id = 'wp2fa-error-modal-title';
@@ -180,38 +194,14 @@
 		title.style.cssText = 'margin:0 0 8px;font-size:16px;font-weight:600;color:#1d2327;';
 		modal.appendChild( title );
 
-		if ( summary ) {
-			var summaryEl = document.createElement( 'p' );
-			summaryEl.textContent = summary;
-			summaryEl.style.cssText = 'margin:0 0 16px;color:#50575e;font-size:13px;';
-			modal.appendChild( summaryEl );
-		}
-
 		var list = document.createElement( 'ul' );
-		list.style.cssText = 'margin:12px 0 20px;padding:0;list-style:none;';
+		list.style.cssText = 'margin:12px 0 20px;padding:0;list-style:none;text-align:center;';
 
 		errors.forEach( function ( err ) {
-			var isError = err.type === 'error';
 			var li = document.createElement( 'li' );
 			li.style.cssText =
-				'display:flex;align-items:flex-start;gap:8px;' +
-				'padding:10px 12px;margin-bottom:6px;border-radius:3px;' +
-				'border-left:4px solid ' + ( isError ? '#d63638' : '#dba617' ) + ';' +
-				'background:' + ( isError ? '#fef7f7' : '#fffbf0' ) + ';';
-
-			var icon = document.createElement( 'span' );
-			icon.setAttribute( 'aria-hidden', 'true' );
-			icon.style.cssText =
-				'flex-shrink:0;font-size:16px;line-height:1.4;' +
-				'color:' + ( isError ? '#d63638' : '#dba617' ) + ';';
-			icon.textContent = isError ? '\u26A0' : '\u2022';
-
-			var text = document.createElement( 'span' );
-			text.style.cssText = 'font-size:13px;line-height:1.5;color:#1d2327;';
-			text.textContent = err.message;
-
-			li.appendChild( icon );
-			li.appendChild( text );
+				'padding:4px 0;font-size:13px;line-height:1.5;color:#1d2327;';
+			li.textContent = err.message;
 			list.appendChild( li );
 		} );
 		modal.appendChild( list );
@@ -220,7 +210,7 @@
 		closeBtn.type = 'button';
 		closeBtn.className = 'button button-primary';
 		closeBtn.textContent = cfg.errorsModalClose || 'OK, I understand';
-		closeBtn.style.cssText = 'display:block;margin-top:4px;';
+		closeBtn.style.cssText = 'display:inline-block;margin-top:4px;';
 		closeBtn.addEventListener( 'click', function () { overlay.remove(); } );
 		modal.appendChild( closeBtn );
 

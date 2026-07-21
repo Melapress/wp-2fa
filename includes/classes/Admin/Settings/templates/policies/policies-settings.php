@@ -8,6 +8,8 @@
  * @package wp-2fa
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Admin\Settings_Builder;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Licensing\Licensing_Factory;

@@ -264,10 +264,9 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						>
 						<?php
 						echo \esc_html( WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true ) );
-						\esc_html_e( ' - ensure email deliverability with the free plugin ', 'wp-2fa' );
-						echo '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>.';
 						?>
 					</label>
+					<!-- <span class="wp2fa-sortable-title-hint"><?php echo \esc_html__( 'This method relies on your site being able to send emails reliably. If codes arrive late or not at all,', 'wp-2fa' ) . ' <a href="https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=policies_help_text" target="_blank">' . \esc_html__( 'learn more about email delivery', 'wp-2fa' ) . '</a>.'; ?></span> -->
 					<?php
 					if ( $setup_wizard ) {
 						echo '<p class="description">' . \esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . \esc_html__( 'Allowing users to configure a secondary 2FA method is highly recommended. You can configure this in the next step of the wizard. This allows users to log in using an alternative method if they lose access to their primary 2FA device, such as their phone.', 'wp-2fa' ) . '</p>';
@@ -452,7 +451,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 		 * @since 4.0.0
 		 */
 		public static function get_method_title_hint(): string {
-			return ' - ' . \esc_html__( 'ensure email deliverability with the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a>.';
+			return \esc_html__( 'This method relies on your site being able to send emails reliably. If codes arrive late or not at all,', 'wp-2fa' ) . ' <a href="https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=policies_help_text" target="_blank">' . \esc_html__( 'learn more about email delivery', 'wp-2fa' ) . '</a>.';
 		}
 	}
 }

@@ -5,6 +5,8 @@
  * @package wp-2fa
  */
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\WP2FA;
 use WP2FA\Admin\Settings_Builder;
 use WP2FA\Admin\Helpers\Email_Templates;
@@ -244,6 +246,15 @@ $ie_show_custom_email  = ( 'use-custom-email' === Email_Templates::get_wp2fa_ema
 			}
 
 			/**
+			 * Escape a string for safe insertion into HTML.
+			 */
+			function escapeHtml(str) {
+				var div = document.createElement('div');
+				div.appendChild(document.createTextNode(str));
+				return div.innerHTML;
+			}
+
+			/**
 			 * Read the JSON file and start checking/importing each setting.
 			 */
 			function buildFileInfo(doImport) {
@@ -296,7 +307,10 @@ $ie_show_custom_email  = ( 'use-custom-email' === Email_Templates::get_wp2fa_ema
 						if (doImport === 'false') {
 							var li = document.createElement('li');
 							li.setAttribute('data-ie-option', optName);
-							li.innerHTML = '<div class="ie-option-label">' + label + '</div>';
+							var labelDiv = document.createElement('div');
+							labelDiv.className = 'ie-option-label';
+							labelDiv.textContent = label;
+							li.appendChild(labelDiv);
 							settingsOutput.appendChild(li);
 						}
 
@@ -350,14 +364,14 @@ $ie_show_custom_email  = ( 'use-custom-email' === Email_Templates::get_wp2fa_ema
 				fetch(ajaxurl, { method: 'POST', body: formData })
 					.then(function(r) { return r.json(); })
 					.then(function(result) {
-						var li = settingsOutput.querySelector('[data-ie-option="' + optName + '"]');
+						var li = settingsOutput.querySelector('[data-ie-option="' + CSS.escape(optName) + '"]');
 						if (!li) {
 							return;
 						}
 
 						if (result.success) {
 							if (doImport === 'true' && result.data && result.data.import_confirmation) {
-								li.insertAdjacentHTML('beforeend', '<span class="ie-status ie-success">' + result.data.import_confirmation + '</span>');
+								li.insertAdjacentHTML('beforeend', '<span class="ie-status ie-success">' + escapeHtml(result.data.import_confirmation) + '</span>');
 							} else {
 								li.insertAdjacentHTML('beforeend', '<span class="ie-status ie-success dashicons dashicons-yes-alt"></span>');
 							}
@@ -366,7 +380,7 @@ $ie_show_custom_email  = ( 'use-custom-email' === Email_Templates::get_wp2fa_ema
 							li.insertAdjacentHTML('beforeend',
 								'<span class="ie-status ie-error">' +
 								' <span class="dashicons dashicons-info" aria-hidden="true"></span>' +
-								' <span class="ie-error-message">' + reason + '</span>' +
+								' <span class="ie-error-message">' + escapeHtml(reason) + '</span>' +
 								'</span>'
 							);
 						}

@@ -175,6 +175,7 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
         'WP2FA\\Passkeys\\Format\\U2f' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/format/u2f.php',
         'WP2FA\\Passkeys\\Helpers\\Authenticators_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/helpers/class-authenticators-helper.php',
         'WP2FA\\Passkeys\\PassKeys_Endpoints' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-passkeys-endpoints.php',
+        'WP2FA\\Passkeys\\Passkeys_Rate_Limiter' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-passkeys-rate-limiter.php',
         'WP2FA\\Passkeys\\Passkeys_User_Profile' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-passkeys-user-profile.php',
         'WP2FA\\Passkeys\\Pending_2FA_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-pending-2fa-helper.php',
         'WP2FA\\Passkeys\\Source_Repository' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-source-repository.php',

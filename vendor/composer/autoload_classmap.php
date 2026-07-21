@@ -149,6 +149,7 @@ return array(
     'WP2FA\\Passkeys\\Format\\U2f' => $baseDir . '/includes/classes/Admin/Methods/passkeys/format/u2f.php',
     'WP2FA\\Passkeys\\Helpers\\Authenticators_Helper' => $baseDir . '/includes/classes/Admin/Methods/passkeys/helpers/class-authenticators-helper.php',
     'WP2FA\\Passkeys\\PassKeys_Endpoints' => $baseDir . '/includes/classes/Admin/Methods/passkeys/class-passkeys-endpoints.php',
+    'WP2FA\\Passkeys\\Passkeys_Rate_Limiter' => $baseDir . '/includes/classes/Admin/Methods/passkeys/class-passkeys-rate-limiter.php',
     'WP2FA\\Passkeys\\Passkeys_User_Profile' => $baseDir . '/includes/classes/Admin/Methods/passkeys/class-passkeys-user-profile.php',
     'WP2FA\\Passkeys\\Pending_2FA_Helper' => $baseDir . '/includes/classes/Admin/Methods/passkeys/class-pending-2fa-helper.php',
     'WP2FA\\Passkeys\\Source_Repository' => $baseDir . '/includes/classes/Admin/Methods/passkeys/class-source-repository.php',

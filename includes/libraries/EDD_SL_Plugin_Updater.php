@@ -17,6 +17,8 @@
  * @since       3.2.0
  */
 
+defined( 'ABSPATH' ) || exit;
+
 if ( ! class_exists( 'EDD_SL_Plugin_Updater' ) ) {
 
 	/**

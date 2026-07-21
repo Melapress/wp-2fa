@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Authenticator;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Methods\Email;
 use WP2FA\Authenticator\Login;
 use WP2FA\Utils\Settings_Utils;
@@ -108,7 +110,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				return $errors;
 			}
 
-			$login_nonce = Login::create_login_nonce( $user_data->ID );
+			$login_nonce = Login::create_login_nonce( $user_data->ID, 'reset_2fa' );
 			if ( ! $login_nonce ) {
 				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
@@ -220,7 +222,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 			}
 
 			$nonce = ( isset( $_POST['wp-auth-nonce'] ) ) ? \sanitize_textarea_field( wp_unslash( $_POST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			if ( true !== Login::verify_login_nonce( $user->ID, $nonce ) ) {
+			if ( true !== Login::verify_login_nonce( $user->ID, $nonce, 'reset_2fa' ) ) {
 				\wp_safe_redirect( \get_bloginfo( 'url' ) );
 				exit;
 			}
@@ -231,7 +233,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 
 			// If this is an email login, or if the user failed validation previously, lets send the code to the user.
 			if ( Email::METHOD_NAME === $provider && true !== Login::pre_process_email_authentication( $user, true ) ) {
-				$login_nonce = Login::create_login_nonce( $user->ID );
+				$login_nonce = Login::create_login_nonce( $user->ID, 'reset_2fa' );
 				if ( ! $login_nonce ) {
 					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}
@@ -248,7 +250,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 					)
 				);
 
-				$login_nonce = Login::create_login_nonce( $user->ID );
+				$login_nonce = Login::create_login_nonce( $user->ID, 'reset_2fa' );
 				if ( ! $login_nonce ) {
 					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 				}

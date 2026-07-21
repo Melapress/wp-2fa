@@ -44,6 +44,18 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 		 * @since 3.1.0 - Added request parameter.
 		 */
 		public static function signin_request_action( \WP_REST_Request $request ) {
+			// Public endpoint: throttle by IP and bound the body size before any parsing.
+			if ( ! class_exists( '\WP2FA\Passkeys\Passkeys_Rate_Limiter', false ) ) {
+				require_once __DIR__ . '/class-passkeys-rate-limiter.php';
+			}
+			$rate_limited = Passkeys_Rate_Limiter::guard_rest( 'signin_request' );
+			if ( null !== $rate_limited ) {
+				return \rest_ensure_response( $rate_limited );
+			}
+			if ( Passkeys_Rate_Limiter::body_too_large( $request ) ) {
+				return \rest_ensure_response( new \WP_Error( 'request_too_large', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 413 ) ) );
+			}
+
 			$data = $request->get_json_params();
 
 			$user = null;
@@ -51,6 +63,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			// Safer parsing for user: treat emails and logins differently, avoid enumeration.
 			if ( ! empty( $data['user'] ) ) {
 				$raw_user = \wp_unslash( (string) $data['user'] );
+				if ( strlen( $raw_user ) > Passkeys_Rate_Limiter::MAX_USER_LEN ) {
+					return \rest_ensure_response( new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) ) );
+				}
 				if ( false !== strpos( $raw_user, '@' ) ) {
 					$email = \sanitize_email( $raw_user );
 					if ( ! $email || ! \is_email( $email ) ) {
@@ -69,6 +84,12 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			if ( ! $user ) {
 				// Avoid user enumeration by returning a generic error.
 				return \rest_ensure_response( new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) ) );
+			}
+
+			// Optional secondary per-account bucket (off by default) — bounds IP-rotating abuse of one account.
+			$account_limited = Passkeys_Rate_Limiter::guard_rest_account( 'signin_request', (int) $user->ID );
+			if ( null !== $account_limited ) {
+				return \rest_ensure_response( $account_limited );
 			}
 
 			// leave if the user is not required to have 2FA enabled due to and exclusion rule.
@@ -133,6 +154,18 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 		 * @since 3.0.0
 		 */
 		public static function signin_response_action( \WP_REST_Request $request ) {
+			// Public endpoint: throttle by IP and bound the body size before any parsing/crypto.
+			if ( ! class_exists( '\WP2FA\Passkeys\Passkeys_Rate_Limiter', false ) ) {
+				require_once __DIR__ . '/class-passkeys-rate-limiter.php';
+			}
+			$rate_limited = Passkeys_Rate_Limiter::guard_rest( 'signin_response' );
+			if ( null !== $rate_limited ) {
+				return \rest_ensure_response( $rate_limited );
+			}
+			if ( Passkeys_Rate_Limiter::body_too_large( $request ) ) {
+				return \rest_ensure_response( new \WP_Error( 'request_too_large', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 413 ) ) );
+			}
+
 			$data = $request->get_json_params();
 
 			if ( ! $data ) {
@@ -165,6 +198,12 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			}
 
 			$uid = $user ? (string) $user->ID : '';
+
+			// Optional secondary per-account bucket (off by default).
+			$account_limited = Passkeys_Rate_Limiter::guard_rest_account( 'signin_response', (int) $uid );
+			if ( null !== $account_limited ) {
+				return \rest_ensure_response( $account_limited );
+			}
 
 			$request_id = isset( $data['request_id'] ) ? (string) $data['request_id'] : '';
 			if ( '' === $request_id ) {
@@ -312,6 +351,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			 */
 			$redirect_to = apply_filters( 'login_redirect', $redirect_to, '', $user );
 
+			// Validate the redirect URL to prevent open redirects and ensure same-origin.
+			$redirect_to = \wp_validate_redirect( $redirect_to, \admin_url() );
+
 			if ( ( empty( $redirect_to ) || 'wp-admin/' === $redirect_to || \admin_url() === $redirect_to ) ) {
 				// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
 				if ( \is_multisite() && ! \get_active_blog_for_user( $user->ID ) && ! \is_super_admin( $user->ID ) ) {
@@ -323,11 +365,16 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 				}
 			}
 
+			// Return only the path component to avoid host mismatches in proxied environments.
+			$redirect_path = ! empty( $redirect_to ) ? \wp_parse_url( $redirect_to, PHP_URL_PATH ) : '/wp-admin/';
+			$redirect_query = \wp_parse_url( $redirect_to, PHP_URL_QUERY );
+			$redirect_to = $redirect_path . ( $redirect_query ? '?' . $redirect_query : '' );
+
 			return \rest_ensure_response(
 				array(
 					'status'      => 'verified',
 					'message'     => __( 'Successfully signin with Passkey.', 'wp-2fa' ),
-					'redirect_to' => $redirect_to ?? '',
+					'redirect_to' => $redirect_to,
 				)
 			);
 		}

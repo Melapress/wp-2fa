@@ -6,6 +6,7 @@
  */
 
 namespace WP2FA\Core;
+defined( 'ABSPATH' ) || exit;
 
 use WP2FA\WP2FA;
 use WP2FA\Utils\Settings_Utils;

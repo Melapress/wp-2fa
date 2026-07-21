@@ -582,7 +582,12 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys\Web_Authn' ) ) {
 
 			// The RP ID must be equal to the origin's effective domain, or a registrable
 			// domain suffix of the origin's effective domain.
-			return \preg_match( '/' . \preg_quote( $this->rp_id ) . '$/i', $host ) === 1;
+			// Enforce label boundary: host must equal rp_id or be a subdomain (preceded by a dot).
+			if ( strcasecmp( $host, $this->rp_id ) === 0 ) {
+				return true;
+			}
+
+			return \preg_match( '/\.' . \preg_quote( $this->rp_id, '/' ) . '$/i', $host ) === 1;
 		}
 
 		/**

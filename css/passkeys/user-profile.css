@@ -22,6 +22,7 @@
 	border-spacing: 0;
 	border-collapse: collapse;
 	table-layout: fixed;
+	margin-top:10px;
 }
 
 /* Column widths for consistent header-cell alignment */

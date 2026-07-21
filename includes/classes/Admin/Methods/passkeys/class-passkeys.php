@@ -203,7 +203,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 						self::USER_PROFILE_JS_MODULE,
 						'wp2faData',
 						array(
-							'ajaxURL' => \admin_url( 'admin-ajax.php' ),
+							'ajaxURL' => \wp_parse_url( \admin_url( 'admin-ajax.php' ), PHP_URL_PATH ),
 						)
 					);
 				}
@@ -282,7 +282,7 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 				);
 
 				$variables = array(
-					'ajaxurl' => \admin_url( 'admin-ajax.php' ),
+					'ajaxurl' => \wp_parse_url( \admin_url( 'admin-ajax.php' ), PHP_URL_PATH ),
 				);
 				\wp_localize_script( self::USER_LOGIN_JS_MODULE, 'login', $variables );
 			}

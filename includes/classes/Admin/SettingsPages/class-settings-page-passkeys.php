@@ -415,7 +415,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 			\do_action( WP_2FA_PREFIX . 'change_referer' );
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! \current_user_can( 'manage_options' ) || ! isset( $_POST['action'] ) && ! \check_admin_referer( 'wp2fa-step-choose-method' ) ) {
+			if ( ! \current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			// When called via options.php (no AJAX action), verify our own nonce.
+			if ( ! isset( $_POST['action'] ) && ! \check_admin_referer( 'wp2fa-step-choose-method' ) ) {
 				return;
 			}
 			$output = array();

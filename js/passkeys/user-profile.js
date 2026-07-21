@@ -35,6 +35,14 @@
 		overlay.id = 'wp2fa-passkey-overlay';
 		overlay.setAttribute( 'aria-hidden', 'true' );
 		document.body.appendChild( overlay );
+
+		// Attach the overlay-click-to-close handler once, not per modal open.
+		overlay.addEventListener( 'click', function ( e ) {
+			if ( e.target === overlay ) {
+				hideModal();
+			}
+		} );
+
 		return overlay;
 	}
 
@@ -147,13 +155,6 @@
 				e.preventDefault();
 				hideModal();
 			} );
-		} );
-
-		// Overlay click to close.
-		getOverlay().addEventListener( 'click', function ( e ) {
-			if ( e.target === getOverlay() ) {
-				hideModal();
-			}
 		} );
 
 		// Bind register buttons.

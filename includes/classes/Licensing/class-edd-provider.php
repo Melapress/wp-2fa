@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace WP2FA\Licensing;
 
+defined( 'ABSPATH' ) || exit;
+
 if ( ! class_exists( '\WP2FA\Licensing\EDD_Provider' ) ) {
 
 	/**

@@ -127,7 +127,7 @@ if ( ! class_exists( '\\WP2FA\\Passkeys\\Pending_2FA_Helper' ) ) {
 		/**
 		 * Enforce pending 2FA on normal page requests.
 		 *
-		 * - Skips REST and AJAX requests by default.
+		 * - Blocks AJAX and REST requests (except 2FA challenge endpoints) when additional 2FA is required.
 		 * - Skips if a filter reports current request is the challenge view.
 		 * - Fires an action for custom enforcement or optionally redirects to a URL provided by filter.
 		 *
@@ -138,24 +138,8 @@ if ( ! class_exists( '\\WP2FA\\Passkeys\\Pending_2FA_Helper' ) ) {
 		 * @since 3.1.0
 		 */
 		public static function enforce_on_request(): void {
-			// Skip during Cron, REST, or AJAX.
+			// Skip during Cron (not relevant to user interaction).
 			if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
-				return;
-			}
-			if ( function_exists( 'wp_doing_ajax' ) && \wp_doing_ajax() ) {
-				return;
-			}
-			if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-				return;
-			}
-			// Extra REST guards for safety.
-			$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? \sanitize_text_field( \wp_unslash( (string) $_SERVER['REQUEST_URI'] ) ) : '';
-			if ( $request_uri && 0 === strpos( $request_uri, '/wp-json/' ) ) {
-				return;
-			}
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Not processing form data; only routing context check.
-			$rest_route = isset( $_GET['rest_route'] ) ? \sanitize_text_field( \wp_unslash( (string) $_GET['rest_route'] ) ) : '';
-			if ( $rest_route && 0 === strpos( $rest_route, '/' ) ) {
 				return;
 			}
 
@@ -167,6 +151,73 @@ if ( ! class_exists( '\\WP2FA\\Passkeys\\Pending_2FA_Helper' ) ) {
 			$payload = self::get_pending( $user_id );
 			if ( null === $payload ) {
 				return;
+			}
+
+			// Determine if this is an AJAX or REST request.
+			$is_ajax     = function_exists( 'wp_doing_ajax' ) && \wp_doing_ajax();
+			$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? \sanitize_text_field( \wp_unslash( (string) $_SERVER['REQUEST_URI'] ) ) : '';
+			// Strip query string from URI to prevent route-string injection via query parameters.
+			$request_path = (string) strtok( $request_uri, '?' );
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Not processing form data; only routing context check.
+			$rest_route  = isset( $_GET['rest_route'] ) ? \sanitize_text_field( \wp_unslash( (string) $_GET['rest_route'] ) ) : '';
+			$is_rest     = ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+						|| ( $request_path && 0 === strpos( $request_path, '/wp-json/' ) )
+						|| ( $rest_route && 0 === strpos( $rest_route, '/' ) );
+
+			if ( $is_ajax || $is_rest ) {
+				// @free:start
+				$skip_for_passkeys = 1;
+				// @free:end
+
+
+				// If passkey alone is sufficient (skip_2fa is true), allow through — pending will be
+				// cleared on the next normal page load.
+				if ( $skip_for_passkeys ) {
+					return;
+				}
+
+				// Allow the 2FA validation REST endpoint (authenticates via login_nonce, not session).
+				if ( $is_rest ) {
+					// Derive the actual REST route from a single authoritative source to prevent
+					// injection via query parameters on pretty-permalink URLs.
+					$actual_route = '';
+					if ( $rest_route ) {
+						// Plain permalinks: route comes from ?rest_route= (this IS the route).
+						$actual_route = $rest_route;
+					} elseif ( 0 === strpos( $request_path, '/wp-json/' ) ) {
+						// Pretty permalinks: extract route from the path after the REST prefix.
+						$actual_route = substr( $request_path, strlen( '/wp-json' ) );
+					}
+
+					if ( false !== strpos( $actual_route, 'wp-2fa-methods/v1/login/validate' ) ) {
+						return;
+					}
+					// Allow only passkey sign-in endpoints (not management routes like register/revoke/enable).
+					if ( false !== strpos( $actual_route, 'wp-2fa-passkeys/v1/singin/' ) ) {
+						return;
+					}
+				}
+
+				// Allow AJAX actions that the 2FA challenge UI itself uses.
+				if ( $is_ajax ) {
+					$action = isset( $_REQUEST['action'] ) ? \sanitize_text_field( \wp_unslash( $_REQUEST['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					$allowed_actions = array( 'custom_ajax_logout', 'wp2fa_signin_request', 'wp2fa_signin_response' );
+					if ( in_array( $action, $allowed_actions, true ) ) {
+						return;
+					}
+				}
+
+				// Allow challenge-related requests indicated by filter.
+				$is_challenge = (bool) \apply_filters( 'wp_2fa_is_challenge_request', false );
+				if ( $is_challenge ) {
+					return;
+				}
+
+				// Block all other AJAX/REST while additional 2FA is pending.
+				\wp_send_json_error(
+					array( 'message' => \__( 'Two-factor authentication is required to complete sign-in.', 'wp-2fa' ) ),
+					403
+				);
 			}
 
 			$is_challenge = (bool) \apply_filters( 'wp_2fa_is_challenge_request', false );

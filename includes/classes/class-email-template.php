@@ -10,6 +10,8 @@
 
 namespace WP2FA;
 
+defined( 'ABSPATH' ) || exit;
+
 if ( ! class_exists( '\WP2FA\Email_Template' ) ) {
 
 	/**

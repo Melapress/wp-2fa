@@ -10,6 +10,8 @@
 
 namespace WP2FA;
 
+defined( 'ABSPATH' ) || exit;
+
 use WP2FA\Methods\TOTP;
 use WP2FA\Utils\White_Label;
 use WP2FA\Admin\Setup_Wizard;

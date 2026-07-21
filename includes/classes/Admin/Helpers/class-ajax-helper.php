@@ -429,7 +429,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 					\wp_send_json_success( esc_html__( 'Test email was successfully sent to ', 'wp-2fa' ) . '<strong>' . esc_html( $email ) . '</strong>' );
 				}
 
-				\wp_send_json_error( esc_html__( 'Failed to send test email.', 'wp-2fa' ) );
+				\wp_send_json_error( \wp_sprintf( \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) );
 			}
 
 			$email_templates = Settings_Page_Email::get_email_notification_definitions();
@@ -443,7 +443,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 						\wp_send_json_success( esc_html__( 'Test email ', 'wp-2fa' ) . '<strong>' . \esc_html( $email_template->get_title() ) . '</strong>' . esc_html__( ' was successfully sent to ', 'wp-2fa' ) . '<strong>' . \esc_html( $email ) . '</strong>' );
 					}
 
-					\wp_send_json_error( esc_html__( 'Failed to send test email.', 'wp-2fa' ) );
+					\wp_send_json_error( \wp_sprintf( \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) );
 				}
 			}
 		}

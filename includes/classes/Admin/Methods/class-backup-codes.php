@@ -22,6 +22,7 @@ use WP2FA\Admin\Settings_Page;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
+use WP2FA\Authenticator\Login;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Helpers\Email_Templates;
 use WP2FA\Admin\Methods\Traits\Providers;
@@ -150,6 +151,8 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			\add_filter( WP_2FA_PREFIX . 'white_label_default_settings', array( __CLASS__, 'add_whitelabel_settings' ) );
 
 			\add_action( WP_2FA_PREFIX . 'validate_login_api', array( __CLASS__, 'api_login_validate' ), 10, 3 );
+
+			\add_filter( WP_2FA_PREFIX . 'validate_login_form', array( __CLASS__, 'validate_login_form' ), 10, 3 );
 		}
 
 		/**
@@ -726,6 +729,55 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			$default_settings['backup_codes_learn_more'] = '<a href="https://melapress.com/2fa-backup-codes/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=backup_codes_user_profile_help" target="_blank">' . \esc_html__( 'Learn more about backup codes', 'wp-2fa' ) . '</a>';
 
 			return $default_settings;
+		}
+
+		/**
+		 * Validates the Backup Codes login form submission.
+		 *
+		 * @param bool     $authenticated Whether authentication has passed.
+		 * @param \WP_User $user          The user being authenticated.
+		 * @param string   $provider      The provider name.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.0.1
+		 */
+		public static function validate_login_form( $authenticated, $user, $provider ) {
+			if ( self::METHOD_NAME !== $provider ) {
+				return $authenticated;
+			}
+
+			if ( $authenticated ) {
+				return $authenticated;
+			}
+
+			if ( true === self::validate_backup_codes( $user ) ) {
+				return true;
+			}
+
+			// Validation failed.
+			\do_action(
+				'wp_login_failed',
+				$user->user_login,
+				new \WP_Error(
+					'authentication_failed',
+					__( '<strong>Error</strong>: User can not be authenticated.', 'wp-2fa' )
+				)
+			);
+
+			Login::delete_login_nonce( $user->ID );
+			$login_nonce = Login::create_login_nonce( $user->ID );
+			if ( ! $login_nonce ) {
+				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+			}
+
+			if ( self::check_number_of_attempts( $user ) ) {
+				Login::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'ERROR: Invalid backup code.', 'wp-2fa' ), $provider ); // phpcs:ignore
+			} else {
+				self::clear_login_attempts( $user );
+				\wp_safe_redirect( \wp_login_url() );
+			}
+			exit;
 		}
 	}
 }
