@@ -14,6 +14,8 @@ namespace WP2FA\Admin\SettingsPages;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\WP2FA;
 use WP2FA\Utils\Debugging;
+use WP2FA\Utils\Settings_Utils;
+use WP2FA\Utils\White_Label;
 
 /**
  * White labeling settings tab
@@ -46,15 +48,29 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		 * @since 3.1.1.2
 		 */
 		public static function store_settings( array $settings ) {
-			if ( ! \current_user_can( 'manage_options' ) ) {
+			if ( ! Settings_Page::can_manage_settings() ) {
 				\wp_die( \esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-2fa' ) );
 			}
 
 			if ( isset( $settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-				$options = self::validate_and_sanitize_new( \wp_unslash( $settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				// ajax_save() already unslashed the complete POST before this hook.
+				$input   = $settings[ WP_2FA_WHITE_LABEL_SETTINGS_NAME ];
+				$options = self::validate_and_sanitize_new( $input ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-				WP2FA::update_plugin_settings( $options, false, WP_2FA_WHITE_LABEL_SETTINGS_NAME );
+				if ( ! is_array( $input ) || ! is_array( $options ) ) {
+					return;
+				}
+
+				$existing = Settings_Utils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME, array() );
+				$merged   = is_array( $existing ) ? $existing : array();
+				foreach ( $options as $key => $value ) {
+					if ( array_key_exists( $key, $input ) || ! array_key_exists( $key, $merged ) ) {
+						$merged[ $key ] = $value;
+					}
+				}
+
+				WP2FA::update_plugin_settings( $merged, false, WP_2FA_WHITE_LABEL_SETTINGS_NAME );
 			}
 		}
 
@@ -219,6 +235,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			 */
 			$output = \apply_filters( WP_2FA_PREFIX . 'filter_output_content_white_label', $output, $input );
 
+			// After the filter: what the plan does not include stays as stored.
+			$output = White_Label::keep_business_only_settings( $output );
+
 			Debugging::log( 'The following settings are being saved (White Label): ' . "\n" . wp_json_encode( $output ) );
 
 			return $output;
@@ -252,8 +271,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 		public static function validate_and_sanitize( $input ) {
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
+			if ( ! Settings_Page::can_manage_settings() ) {
+				return Settings_Utils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME, array() );
 			}
 
 			// When called via options.php (no AJAX action), verify our own nonce.
@@ -324,6 +343,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			if ( isset( $input['custom-text-twilio-code-page'] ) && '' !== trim( (string) $input['custom-text-twilio-code-page'] ) ) {
 				$output['custom-text-twilio-code-page'] = \wp_strip_all_tags( $input['custom-text-twilio-code-page'] );
 			}
+
+			// Only a form post carries the referer; anything else must not read these undefined.
+			$request_area      = array( 'query' => '' );
+			$request_area_path = false;
 
 			if ( isset( $_REQUEST['_wp_http_referer'] ) ) {
 				$request_area      = \wp_parse_url( \sanitize_text_field( \wp_unslash( $_REQUEST['_wp_http_referer'] ) ) );
@@ -437,6 +460,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_White_Label' ) ) 
 			 * @since 2.0.0
 			 */
 			$output = \apply_filters( WP_2FA_PREFIX . 'filter_output_content_white_label', $output, $input );
+
+			// After the filter: what the plan does not include stays as stored.
+			$output = White_Label::keep_business_only_settings( $output );
 
 			Debugging::log( 'The following settings are being saved (White Label): ' . "\n" . wp_json_encode( $output ) );
 

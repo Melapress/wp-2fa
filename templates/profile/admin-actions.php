@@ -38,7 +38,7 @@ $admin = $data['admin_actions_data'];
 
 	<?php if ( ! empty( $admin['unlock_url'] ) ) : ?>
 		<a href="<?php echo \esc_url( $admin['unlock_url'] ); ?>" class="wp2fa-profile__btn wp2fa-profile__btn--secondary">
-			<?php \esc_html_e( 'Unlock user and reset the grace period', 'wp-2fa' ); ?>
+			<?php echo \esc_html( ! empty( $admin['unlock_label'] ) ? $admin['unlock_label'] : __( 'Unlock user and reset the grace period', 'wp-2fa' ) ); ?>
 		</a>
 	<?php endif; ?>
 </div>

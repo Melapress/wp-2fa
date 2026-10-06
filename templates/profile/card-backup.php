@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 $backup = $data['backup_card_data'];
 ?>
 <div class="wp2fa-profile__card" id="wp2fa-backup-card">
-	<h4 class="wp2fa-profile__card-title"><?php \esc_html_e( 'Backup 2FA Method', 'wp-2fa' ); ?></h4>
+	<h4 class="wp2fa-profile__card-title"><?php echo \esc_html( \WP2FA\WP2FA::get_wp2fa_white_label_setting( 'user-profile-backup-card-title', true ) ); ?></h4>
 	<div class="wp2fa-profile__btn-group">
 		<?php if ( $backup['show_generate_codes'] ) { ?>
 			<button type="button"

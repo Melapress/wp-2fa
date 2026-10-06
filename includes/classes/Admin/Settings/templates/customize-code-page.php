@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 use WP2FA\WP2FA;
 use WP2FA\Admin\Settings_Builder;
-use WP2FA\Licensing\Licensing_Factory;
+use WP2FA\Admin\Helpers\MLS_Cross_Sell;
 
 ?>
 	<div class="settings-page" id="customize-code-page-wrap">
@@ -80,7 +80,7 @@ use WP2FA\Licensing\Licensing_Factory;
 		══════════════════════════════════════════════════════════ -->
 		<div class="tab-panel tab-panel-content">
 			<?php
-			$is_enterprise = Licensing_Factory::has_active_valid_license() && ( Licensing_Factory::provider_call( 'is_plan_or_trial__premium_only', 'business', true ) || Licensing_Factory::provider_call( 'is_plan_or_trial__premium_only', 'ent', true ) || Licensing_Factory::provider_call( 'is_plan_or_trial__premium_only', 'enterprise', true ) );
+			$is_enterprise = \WP2FA\Utils\White_Label::code_page_customization_allowed();
 			$enterprise_plan_url = 'https://melapress.com/wordpress-2fa/pricing/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=white-labeling-page';
 			if ( ! $is_enterprise ) :
 			?>
@@ -316,6 +316,69 @@ use WP2FA\Licensing\Licensing_Factory;
 								$setting
 							);
 							?>
+							</div>
+						</div>
+						<?php
+					}
+
+					/*
+					 * The 2FA page URL is not WP 2FA's to change — that is what the companion
+					 * plugin does — so this row offers it rather than pretending to a setting.
+					 * Hidden once the plugin is active, and for anyone who could not install it.
+					 */
+					if ( MLS_Cross_Sell::should_offer() ) {
+						$mls_installed = MLS_Cross_Sell::is_installed();
+
+						$mls_url = $mls_installed
+							? \wp_nonce_url(
+								\self_admin_url( 'plugins.php?action=activate&plugin=' . rawurlencode( MLS_Cross_Sell::PLUGIN_FILE ) ),
+								'activate-plugin_' . MLS_Cross_Sell::PLUGIN_FILE
+							)
+							: \wp_nonce_url(
+								\self_admin_url( 'update.php?action=install-plugin&plugin=' . rawurlencode( MLS_Cross_Sell::PLUGIN_SLUG ) ),
+								'install-plugin_' . MLS_Cross_Sell::PLUGIN_SLUG
+							);
+						?>
+						<div class="form-group settings-row">
+							<div class="settings-label-group">
+							<?php
+							Settings_Builder::build_option(
+								array(
+									'text' => \esc_html__( 'Change 2FA login page URL with Melapress Login Security', 'wp-2fa' ),
+									'id'   => 'mls-login-url-label',
+									'type' => 'settings-label',
+								)
+							);
+
+							Settings_Builder::build_option(
+								array(
+									'text'  => \esc_html__( 'Change the URL users visit to enter their 2FA code.', 'wp-2fa' ),
+									'class' => 'description-settings-card',
+									'id'    => 'mls-login-url-desc',
+									'type'  => 'description',
+								)
+							);
+							?>
+							</div>
+							<div class="settings-control">
+								<div class="wp2fa-mls-crosssell">
+									<p class="wp2fa-mls-crosssell-title"><?php \esc_html_e( 'Want to change the 2FA page URL?', 'wp-2fa' ); ?></p>
+									<p class="wp2fa-mls-crosssell-text"><?php \esc_html_e( 'You can customize it for free with Melapress Login Security, our free companion plugin for securing the WordPress login process.', 'wp-2fa' ); ?></p>
+									<a class="button button-primary" href="<?php echo \esc_url( $mls_url ); ?>">
+										<?php
+										echo $mls_installed
+											? \esc_html__( 'Activate Melapress Login Security', 'wp-2fa' )
+											: \esc_html__( 'Install Melapress Login Security', 'wp-2fa' );
+										?>
+									</a>
+									<p class="wp2fa-mls-crosssell-note">
+										<?php
+										echo $mls_installed
+											? \esc_html__( 'This will activate the already installed Melapress Login Security plugin.', 'wp-2fa' )
+											: \esc_html__( 'This will install the free Melapress Login Security plugin.', 'wp-2fa' );
+										?>
+									</p>
+								</div>
 							</div>
 						</div>
 						<?php

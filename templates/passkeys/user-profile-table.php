@@ -154,7 +154,6 @@ use WP2FA\WP2FA;
 					?>
 					<tr>
 						<td data-field="name"
-							data-id="<?php echo \esc_attr( $fingerprint ); ?>"
 							data-label="<?php echo \esc_attr__( 'Name', 'wp-2fa' ); ?>"
 							data-sort-value="<?php echo \esc_attr( $extra_data['name'] ?? '' ); ?>">
 							<?php echo \esc_html( $extra_data['name'] ?? '' ); ?>

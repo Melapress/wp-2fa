@@ -43,6 +43,43 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 		protected static $wp_2fa_email_templates = null;
 
 		/**
+		 * Tags that exist only in the body of one particular template.
+		 *
+		 * A tag belongs here rather than in the shared list when only one email substitutes
+		 * it. {backup_codes} is replaced in Backup_Codes::send_backup_codes_email(), and only
+		 * in the message body — the subject is built from the same template set but never runs
+		 * that replacement. Offering the tag everywhere would put a literal "{backup_codes}"
+		 * into the delivered mail of every other template, which is the same trap {login_code}
+		 * already sets in a subject line.
+		 *
+		 * Keyed by template name as used by get_email_templates().
+		 *
+		 * @var array<string,string[]>
+		 *
+		 * @since 4.2.1
+		 */
+		private const TEMPLATE_BODY_TAGS = array(
+			'user_backup_codes' => array( '{backup_codes}' ),
+		);
+
+		/**
+		 * The tags offered for one template's body: the shared ones plus anything only that
+		 * template can resolve.
+		 *
+		 * @param string $template_name - Template name as keyed by get_email_templates().
+		 *
+		 * @return string[]
+		 *
+		 * @since 4.2.1
+		 */
+		public static function get_mail_template_body_tags( string $template_name ): array {
+			return array_merge(
+				self::get_mail_template_tags( true ),
+				self::TEMPLATE_BODY_TAGS[ $template_name ] ?? array()
+			);
+		}
+
+		/**
 		 * Function to return the email templates.
 		 *
 		 * @param string $email_template Optional parameter to return only a specific email template.
@@ -243,6 +280,129 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 		}
 
 		/**
+		 * Points the default "contact the administrator" lines at the site admin.
+		 *
+		 * The login code emails told users who had not asked for a code, or could
+		 * not log in, to write to {admin_email} - which is the address the plugin
+		 * sends from, very often a no-reply wordpress@ or wp2fa@ mailbox nobody
+		 * reads. The defaults now use {wp_admin_email}, the site's administration
+		 * address.
+		 *
+		 * A site that ever saved its email settings has its own copy of each
+		 * template, which the new default does not reach. In those copies, only
+		 * the two untouched default sentences are changed - in English or in the
+		 * site's language. Anything the site wrote itself, including a deliberate
+		 * {admin_email}, is left exactly as it is.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		public static function point_default_contact_lines_at_site_admin(): void {
+			$stored = Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME );
+			if ( ! is_array( $stored ) ) {
+				return;
+			}
+
+			$replacements = array();
+			foreach ( array_unique( array( \determine_locale(), 'en_US' ) ) as $locale ) {
+				$switched = \determine_locale() !== $locale && \switch_to_locale( $locale );
+
+				/* translators: %1$s: the IP address the request came from; %2$s: the site administrator's email address. */
+				$request_line = \esc_html__( 'This request was made from IP address %1$s. If you did not request this, please contact the site administrator at %2$s.', 'wp-2fa' );
+				/* translators: %s: the site administrator's email address. */
+				$contact_line = \esc_html__( 'If you encounter any other issues logging in, feel free to contact us at %s.', 'wp-2fa' );
+
+				$replacements[ sprintf( $request_line, '{user_ip_address}', '{admin_email}' ) ] = sprintf( $request_line, '{user_ip_address}', '{wp_admin_email}' );
+				$replacements[ sprintf( $contact_line, '{admin_email}' ) ]                      = sprintf( $contact_line, '{wp_admin_email}' );
+
+				if ( $switched ) {
+					\restore_previous_locale();
+				}
+			}
+
+			$changed = false;
+			foreach ( array( 'login_code_email_body', 'login_code_setup_email_body' ) as $key ) {
+				if ( ! isset( $stored[ $key ] ) || ! is_string( $stored[ $key ] ) ) {
+					continue;
+				}
+				$updated = strtr( $stored[ $key ], $replacements );
+				if ( $updated !== $stored[ $key ] ) {
+					$stored[ $key ] = $updated;
+					$changed        = true;
+				}
+			}
+
+			if ( $changed ) {
+				Settings_Utils::update_option( WP_2FA_EMAIL_SETTINGS_NAME, $stored );
+				self::$wp_2fa_email_templates = null;
+			}
+		}
+
+		/**
+		 * Repair a stored copy of the broken default "account unlocked" email.
+		 *
+		 * Saving the email settings stores every template, defaults included, so
+		 * sites carry the broken default from before the fix: no site name after
+		 * "on the website", and an empty last paragraph where "Thank you." should
+		 * be. Only that exact default wording is touched, in the site's language
+		 * and in English; a template someone has rewritten is left alone.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		public static function repair_default_unlocked_email(): void {
+			$stored = Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME );
+			if ( ! is_array( $stored ) || ! isset( $stored['user_account_unlocked_email_body'] ) || ! is_string( $stored['user_account_unlocked_email_body'] ) ) {
+				return;
+			}
+
+			$body     = $stored['user_account_unlocked_email_body'];
+			$repaired = $body;
+
+			foreach ( array_unique( array( \determine_locale(), 'en_US' ) ) as $locale ) {
+				$switched = \determine_locale() !== $locale && \switch_to_locale( $locale );
+
+				$on_the_website = \esc_html__( 'on the website', 'wp-2fa' );
+				$unlocked       = __( 'has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again.', 'wp-2fa' );
+				$thank_you      = __( 'Thank you.', 'wp-2fa' );
+
+				if ( $switched ) {
+					\restore_previous_locale();
+				}
+
+				$broken = $on_the_website . ' ' . $unlocked;
+				if ( false === strpos( $repaired, $broken ) ) {
+					continue;
+				}
+
+				$repaired = str_replace( $broken, $on_the_website . ' <strong>{site_name}</strong> ' . $unlocked, $repaired );
+
+				/*
+				 * The "Thank you." that fell off the end left an empty paragraph
+				 * behind - which wpautop() on save usually turned into a stray
+				 * closing tag, "</p></p>".
+				 */
+				if ( false === strpos( $repaired, $thank_you ) ) {
+					$repaired = (string) preg_replace(
+						array( '#<p>\s*</p>(\s*)$#', '#(</p>)\s*</p>(\s*)$#' ),
+						array( '<p>' . $thank_you . '</p>$1', '$1<p>' . $thank_you . '</p>$2' ),
+						$repaired,
+						1
+					);
+				}
+				break;
+			}
+
+			if ( $repaired !== $body ) {
+				$stored['user_account_unlocked_email_body'] = $repaired;
+				Settings_Utils::update_option( WP_2FA_EMAIL_SETTINGS_NAME, $stored );
+				self::$wp_2fa_email_templates = null;
+			}
+		}
+
+		/**
 		 * Util function to grab EMAIL settings or apply defaults if no settings are saved into the db.
 		 *
 		 * @param  string $setting_name Settings to grab value of.
@@ -277,6 +437,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 			);
 
 			$default_settings = array_merge( $default_settings, self::login_code_email_template() );
+			$default_settings = array_merge( $default_settings, self::reset_password_code_email_template() );
 			$default_settings = array_merge( $default_settings, self::login_code_setup_email_template() );
 			$default_settings = array_merge( $default_settings, self::user_locked_email_template() );
 			$default_settings = array_merge( $default_settings, self::user_unlocked_email_template() );
@@ -303,7 +464,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 		 */
 		private static function user_backup_codes_email_template(): array {
 			// Create User backup codes Message.
-			$user_backup_codes_subject = __( '2FA backup codes for user {user_login_name} on {site_name}', 'wp-2fa' );
+			$user_backup_codes_subject = sprintf( /* translators: %1$s: the user's login name; %2$s: the site name. */ __( '2FA backup codes for user %1$s on %2$s', 'wp-2fa' ), '{user_login_name}', '{site_name}' );
 
 			$user_backup_codes_body = \wp_sprintf(
 				'<p>%s</p><p>%s <strong>%s</strong> %s <strong>%s</strong>. %s %s </p>%s<p>%s</p>',
@@ -333,20 +494,36 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 		 */
 		private static function user_unlocked_email_template(): array {
 			// Create User unlocked Message.
-			$user_unlocked_subject = __( 'Your user on {site_name} has been unlocked', 'wp-2fa' );
+			$user_unlocked_subject = sprintf( /* translators: %s: the site name. */ __( 'Your user on %s has been unlocked', 'wp-2fa' ), '{site_name}' );
 
+			/*
+			 * The page link paragraph is only there when a 2FA page is set, and its
+			 * arguments have to come and go with it. They used to be passed either
+			 * way, so without a page the format had three arguments too many: the
+			 * last one, "Thank you.", fell off the end and an empty paragraph took
+			 * its place. The site name had no slot at all - "on the website has
+			 * been unlocked".
+			 */
 			$user_unlocked_body = \wp_sprintf(
-				'<p>%s</p><p>%s <strong>%s</strong> %s %s</p>' . ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ? '<p>%s <a href="%s" target="_blank">%s</a></p>' : '' ) . '<p>%s</p>',
+				'<p>%s</p><p>%s <strong>%s</strong> %s <strong>%s</strong> %s</p>',
 				__( 'Hello,', 'wp-2fa' ),
 				\esc_html__( 'Your user', 'wp-2fa' ),
 				'{user_login_name}',
 				\esc_html__( 'on the website', 'wp-2fa' ),
-				__( 'has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again.', 'wp-2fa' ),
-				! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ? __( 'You can configure 2FA from this page:', 'wp-2fa' ) : '',
-				! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ? '{2fa_settings_page_url}' : '',
-				! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ? '{2fa_settings_page_url}.' : '',
-				__( 'Thank you.', 'wp-2fa' )
+				'{site_name}',
+				__( 'has been unlocked. Please configure two-factor authentication within the grace period, otherwise your account will be locked again.', 'wp-2fa' )
 			);
+
+			if ( ! empty( WP2FA::get_wp2fa_setting( 'custom-user-page-id' ) ) ) {
+				$user_unlocked_body .= \wp_sprintf(
+					'<p>%s <a href="%s" target="_blank">%s</a></p>',
+					__( 'You can configure 2FA from this page:', 'wp-2fa' ),
+					'{2fa_settings_page_url}',
+					'{2fa_settings_page_url}.'
+				);
+			}
+
+			$user_unlocked_body .= '<p>' . __( 'Thank you.', 'wp-2fa' ) . '</p>';
 
 			return array(
 				'user_account_unlocked_email_subject' => $user_unlocked_subject,
@@ -363,7 +540,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 		 */
 		private static function user_locked_email_template(): array {
 			// Create User Locked Message.
-			$user_locked_subject = __( 'Your user on {site_name} has been locked', 'wp-2fa' );
+			$user_locked_subject = sprintf( /* translators: %s: the site name. */ __( 'Your user on %s has been locked', 'wp-2fa' ), '{site_name}' );
 
 			$user_locked_body = \wp_sprintf(
 				'<p>%s</p><p>%s</p><p>%s</p><p>%s</p>',
@@ -393,20 +570,20 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 		 * @since 3.1.1.2
 		 */
 		private static function login_code_setup_email_template(): array {
-			$login_code_setup_subject = __( 'Your 2FA Setup Verification Code for {site_name}', 'wp-2fa' );
+			$login_code_setup_subject = sprintf( /* translators: %s: the site name. */ __( 'Your 2FA Setup Verification Code for %s', 'wp-2fa' ), '{site_name}' );
 
 			$login_code_setup_body = \wp_sprintf(
 				'<p>%s</p><p>%s</p><p>%s</p><p>%s</p><p>%s</p><p>%s</p>',
-				\esc_html__( 'Hello {user_display_name},', 'wp-2fa' ),
-				\esc_html__( 'You have requested to set up two-factor authentication for your user {user_login_name} on the website {site_name} ({site_url}).', 'wp-2fa' ),
+				sprintf( /* translators: %s: the user's display name. */ \esc_html__( 'Hello %s,', 'wp-2fa' ), '{user_display_name}' ),
+				sprintf( /* translators: %1$s: the user's login name; %2$s: the site name; %3$s: the site URL. */ \esc_html__( 'You have requested to set up two-factor authentication for your user %1$s on the website %2$s (%3$s).', 'wp-2fa' ), '{user_login_name}', '{site_name}', '{site_url}' ),
 				sprintf(
 					// translators: The login code provided from the plugin.
 					\esc_html__( 'Please enter the following code to complete your setup: %1$1s', 'wp-2fa' ),
 					'<strong>{login_code}</strong>'
 				),
-				\esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ),
+				sprintf( /* translators: %1$s: the IP address the request came from; %2$s: the site administrator's email address. */ \esc_html__( 'This request was made from IP address %1$s. If you did not request this, please contact the site administrator at %2$s.', 'wp-2fa' ), '{user_ip_address}', '{wp_admin_email}' ),
 				\esc_html__( 'Thank you.', 'wp-2fa' ),
-				\esc_html__( 'The {site_name} Team', 'wp-2fa' )
+				sprintf( /* translators: %s: the site name. */ \esc_html__( 'The %s Team', 'wp-2fa' ), '{site_name}' )
 			);
 
 			return array(
@@ -424,17 +601,19 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Email_Templates' ) ) {
 		 */
 		private static function login_code_email_template(): array {
 			// Create Login Code Message.
-			$login_code_subject = __( 'Your login confirmation code for {site_name}', 'wp-2fa' );
+			$login_code_subject = sprintf( /* translators: %s: the site name. */ __( 'Your login confirmation code for %s', 'wp-2fa' ), '{site_name}' );
 
 			$login_code_body = \wp_sprintf(
 				'<p>%s</p><p>%s</p><p>%s</p><p>%s</p><p>%s</p><p>%s</p><p>%s</p>',
-				\esc_html__( 'Hello {user_display_name},', 'wp-2fa' ),
-				\esc_html__( 'You are trying to log in to {site_name} using the username {user_login_name}. To complete your login, please enter the following one-time 2FA code:', 'wp-2fa' ),
-				\esc_html__( '{login_code}', 'wp-2fa' ),
+				sprintf( /* translators: %s: the user's display name. */ \esc_html__( 'Hello %s,', 'wp-2fa' ), '{user_display_name}' ),
+				sprintf( /* translators: %1$s: the site name; %2$s: the user's login name. */ \esc_html__( 'You are trying to log in to %1$s using the username %2$s. To complete your login, please enter the following one-time 2FA code:', 'wp-2fa' ), '{site_name}', '{user_login_name}' ),
+				// A substitution tag on its own: nothing to translate, and a translator who
+				// altered it would break the replacement silently.
+				'{login_code}',
 				\esc_html__( 'Enter this code on the login page to finish the authentication process and access your account.', 'wp-2fa' ),
-				\esc_html__( 'This request was made from IP address {user_ip_address}. If you did not request this, please contact the site administrator at {admin_email}.', 'wp-2fa' ),
-				\esc_html__( 'If you encounter any other issues logging in, feel free to contact us at {admin_email}.', 'wp-2fa' ),
-				\esc_html__( 'Kind regards, The {site_name} Team', 'wp-2fa' )
+				sprintf( /* translators: %1$s: the IP address the request came from; %2$s: the site administrator's email address. */ \esc_html__( 'This request was made from IP address %1$s. If you did not request this, please contact the site administrator at %2$s.', 'wp-2fa' ), '{user_ip_address}', '{wp_admin_email}' ),
+				sprintf( /* translators: %s: the site administrator's email address. */ \esc_html__( 'If you encounter any other issues logging in, feel free to contact us at %s.', 'wp-2fa' ), '{wp_admin_email}' ),
+				sprintf( /* translators: %s: the site name. */ \esc_html__( 'Kind regards, The %s Team', 'wp-2fa' ), '{site_name}' )
 			);
 
 			return array(

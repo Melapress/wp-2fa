@@ -17,6 +17,7 @@ use WP2FA\Methods\TOTP;
 use WP2FA\Methods\Backup_Codes;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Settings_Builder;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -175,7 +176,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 					echo '<p class="description">';
 					printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						'%1$s <a href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a> <br><br>',
-						\esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page - ', 'wp-2fa' ),
+						\esc_html__( 'Backup codes allow users to log in to WordPress should they find themselves unable to log in via the primary 2FA method. Backup codes are enabled by default and are generated during the 2FA configuration process. Each backup code can be used only once. Once the initial list is exhausted, more backup codes can be generated through the user’s WordPress profile page -', 'wp-2fa' ),
 						esc_url( 'https://melapress.com/support/kb/wp-2fa-what-are-2fa-backup-codes/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=backup_codes_info' ),
 						\esc_html__( 'More information', 'wp-2fa' )
 					);
@@ -260,16 +261,32 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 									<fieldset class="hidden certain-users-only-inputs">
 										<div>
 											<p>
-												<label for="enforced_users-multi-select"><?php \esc_html_e( 'Users :', 'wp-2fa' ); ?></label> <select multiple="multiple" id="enforced_users-multi-select" name="wp_2fa_policy[enforced_users][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
+												<label for="enforced-users"><?php \esc_html_e( 'Users :', 'wp-2fa' ); ?></label>
 												<?php
-												$enforced_users = (array) WP2FA::get_wp2fa_setting( 'enforced_users' );
-												foreach ( $enforced_users as $user ) {
-													?>
-														<option selected="selected" value="<?php echo \esc_attr( $user ); ?>"><?php echo \esc_attr( $user ); ?></option>
-														<?php
-												}
+												$enforced_users = array_values( array_filter( (array) WP2FA::get_wp2fa_setting( 'enforced_users' ) ) );
+												Settings_Builder::build_option(
+													array(
+														'id'          => 'enforced-users',
+														'type'        => 'multi-select-ajax',
+														'option_name' => 'wp_2fa_policy[enforced_users]',
+														'default'     => implode( ',', $enforced_users ),
+														'placeholder' => \esc_attr__( 'Type to search users…', 'wp-2fa' ),
+														'items'       => array_map(
+															function ( $user ) {
+																return array(
+																	'id'   => $user,
+																	'text' => $user,
+																);
+															},
+															$enforced_users
+														),
+														'data_attrs'  => array(
+															'search-type' => 'users',
+															'min-chars'   => '2',
+														),
+													)
+												);
 												?>
-												</select>
 											</p>
 										</div>
 									</fieldset>
@@ -277,21 +294,32 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 										<div>
 											<p style="margin-top: 0;">
 												<label for="enforced-roles-multi-select"><?php \esc_html_e( 'Roles :', 'wp-2fa' ); ?></label>
-												<select multiple="multiple" id="enforced-roles-multi-select" name="wp_2fa_policy[enforced_roles][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 												<?php
 												$all_roles      = WP_Helper::get_roles_wp();
-												$enforced_roles = (array) WP2FA::get_wp2fa_setting( 'enforced_roles' );
-												foreach ( $all_roles as $role => $role_name ) {
-													$selected = '';
-													if ( in_array( $role, $enforced_roles, true ) ) {
-														$selected = 'selected="selected"';
-													}
-													?>
-														<option <?php echo $selected; ?> value="<?php echo \esc_attr( strtolower( $role ) ); ?>"><?php echo \esc_html( $role_name );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></option>
-													<?php
-												}
+												$enforced_roles = array_values( array_filter( (array) WP2FA::get_wp2fa_setting( 'enforced_roles' ) ) );
+												Settings_Builder::build_option(
+													array(
+														'id'          => 'enforced-roles',
+														'type'        => 'multi-select-ajax',
+														'option_name' => 'wp_2fa_policy[enforced_roles]',
+														'default'     => implode( ',', $enforced_roles ),
+														'placeholder' => \esc_attr__( 'Type to search roles…', 'wp-2fa' ),
+														'items'       => array_map(
+															function ( $role ) use ( $all_roles ) {
+																return array(
+																	'id'   => $role,
+																	'text' => isset( $all_roles[ $role ] ) ? $all_roles[ $role ] : ucfirst( $role ),
+																);
+															},
+															$enforced_roles
+														),
+														'data_attrs'  => array(
+															'search-type' => 'roles',
+															'min-chars'   => '2',
+														),
+													)
+												);
 												?>
-												</select>
 											</p>
 										</div>
 									<?php if ( WP_Helper::is_multisite() ) { ?>
@@ -312,25 +340,36 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 										</label>
 										<fieldset class="hidden all-sites">
 											<p>
-												<label for="enforced-sites-multi-select"><?php \esc_html_e( 'Sites :', 'wp-2fa' ); ?></label> <select multiple="multiple" id="enforced-sites-multi-select" name="wp_2fa_policy[included_sites][]" style="display:none; width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
+												<label for="enforced-sites"><?php \esc_html_e( 'Sites :', 'wp-2fa' ); ?></label>
 													<?php
-													$selected_sites = (array) WP2FA::get_wp2fa_setting( 'included_sites' );
+													$selected_sites       = array_filter( (array) WP2FA::get_wp2fa_setting( 'included_sites' ) );
+													$included_sites_items = array();
 													foreach ( WP_Helper::get_multi_sites() as $site ) {
-														$args = array(
-															'blog_id' => $site->blog_id,
-														);
-
-														// $current_blog_details = get_blog_details( $args );
-														$selected = '';
-														if ( in_array( $site->blog_id, $selected_sites, true ) ) {
-															$selected = 'selected="selected"';
+														// Stored loosely across versions: compare as int and as string.
+														if ( in_array( $site->blog_id, $selected_sites, true )
+															|| in_array( (string) $site->blog_id, $selected_sites, true ) ) {
+															$included_sites_items[] = array(
+																'id'   => $site->blog_id,
+																'text' => $site->blogname,
+															);
 														}
-														?>
-														<option <?php echo $selected; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> value="<?php echo \esc_attr( $site->blog_id ); ?>"><?php echo \esc_html( $site->blogname ); ?></option>
-														<?php
 													}
+
+													Settings_Builder::build_option(
+														array(
+															'id'          => 'enforced-sites',
+															'type'        => 'multi-select-ajax',
+															'option_name' => 'wp_2fa_policy[included_sites]',
+															'default'     => implode( ',', \wp_list_pluck( $included_sites_items, 'id' ) ),
+															'placeholder' => \esc_attr__( 'Type to search sites…', 'wp-2fa' ),
+															'items'       => $included_sites_items,
+															'data_attrs'  => array(
+																'search-type' => 'sites',
+																'min-chars'   => '2',
+															),
+														)
+													);
 													?>
-												</select>
 											</p>
 										</fieldset>
 									</div>
@@ -367,7 +406,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 		 */
 		public static function exclude_users( $setup_wizard = false ) {
 			?>
-			<h3><?php \esc_html_e( 'Do you want to exclude any users or roles from 2FA? ', 'wp-2fa' ); ?></h3>
+			<h3><?php \esc_html_e( 'Do you want to exclude any users or roles from 2FA?', 'wp-2fa' ); ?></h3>
 			<p class="description">
 				<?php \esc_html_e( 'If you are enforcing 2FA on all users but for some reason you would like to exclude individual user(s) or users with a specific role, you can exclude them below', 'wp-2fa' ); ?>
 			</p>
@@ -384,16 +423,31 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 			<?php } ?>
 						<fieldset>
 							<div>
-								<select multiple="multiple" id="excluded-users-multi-select" name="wp_2fa_policy[excluded_users][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 								<?php
-								$excluded_users = (array) WP2FA::get_wp2fa_setting( 'excluded_users' );
-								foreach ( $excluded_users as $user ) {
-									?>
-									<option selected="selected" value="<?php echo \esc_attr( $user ); ?>"><?php echo \esc_html( $user ); ?></option>
-									<?php
-								}
+								$excluded_users = array_values( array_filter( (array) WP2FA::get_wp2fa_setting( 'excluded_users' ) ) );
+								Settings_Builder::build_option(
+									array(
+										'id'          => 'excluded-users',
+										'type'        => 'multi-select-ajax',
+										'option_name' => 'wp_2fa_policy[excluded_users]',
+										'default'     => implode( ',', $excluded_users ),
+										'placeholder' => \esc_attr__( 'Type to search users…', 'wp-2fa' ),
+										'items'       => array_map(
+											function ( $user ) {
+												return array(
+													'id'   => $user,
+													'text' => $user,
+												);
+											},
+											$excluded_users
+										),
+										'data_attrs'  => array(
+											'search-type' => 'users',
+											'min-chars'   => '2',
+										),
+									)
+								);
 								?>
-								</select>
 							</div>
 							<?php
 							if ( ! $setup_wizard ) {
@@ -409,21 +463,32 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 							<br>
 								<label for="excluded-roles-multi-select"><?php \esc_html_e( 'Exclude the following roles', 'wp-2fa' ); ?></label>
 							<?php } ?>
-									<select multiple="multiple" id="excluded-roles-multi-select" name="wp_2fa_policy[excluded_roles][]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 									<?php
 									$all_roles      = WP_Helper::get_roles_wp();
-									$excluded_roles = (array) WP2FA::get_wp2fa_setting( 'excluded_roles' );
-									foreach ( $all_roles as $role => $role_name ) {
-										$selected = '';
-										if ( in_array( strtolower( $role ), $excluded_roles, true ) ) {
-											$selected = 'selected="selected"';
-										}
-										?>
-											<option <?php echo $selected;  // phpcs:ignore ?> value="<?php echo \esc_attr( strtolower( $role ) ); ?>"><?php echo \esc_html( $role_name ); ?></option>
-											<?php
-									}
+									$excluded_roles = array_values( array_filter( (array) WP2FA::get_wp2fa_setting( 'excluded_roles' ) ) );
+									Settings_Builder::build_option(
+										array(
+											'id'          => 'excluded-roles',
+											'type'        => 'multi-select-ajax',
+											'option_name' => 'wp_2fa_policy[excluded_roles]',
+											'default'     => implode( ',', $excluded_roles ),
+											'placeholder' => \esc_attr__( 'Type to search roles…', 'wp-2fa' ),
+											'items'       => array_map(
+												function ( $role ) use ( $all_roles ) {
+													return array(
+														'id'   => $role,
+														'text' => isset( $all_roles[ $role ] ) ? $all_roles[ $role ] : ucfirst( $role ),
+													);
+												},
+												$excluded_roles
+											),
+											'data_attrs'  => array(
+												'search-type' => 'roles',
+												'min-chars'   => '2',
+											),
+										)
+									);
 									?>
-									</select>
 							<br>
 								<?php if ( WP_Helper::is_multisite() ) { ?>
 							<div style="margin-top:10px;">
@@ -476,19 +541,36 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 								<div class="option-pill">
 									<label for="excluded_sites_search"><?php \esc_html_e( 'Exclude the following sites', 'wp-2fa' ); ?>
 								<?php } ?>
-										<select multiple="multiple" id="excluded-sites-multi-select" name="wp_2fa_policy[excluded_sites]" style=" display:none;width:<?php echo ( $setup_wizard ) ? '100' : '50'; ?>%">
 										<?php
-											$excluded_sites = (array) WP2FA::get_wp2fa_setting( 'excluded_sites' );
-										if ( ! empty( $excluded_sites ) ) {
-											foreach ( $excluded_sites as $site_id ) {
-												$site = get_blog_details( $site_id )->blogname;
-												?>
-														<option selected="selected" value="<?php echo \esc_attr( $site_id ); ?>"><?php echo \esc_html( $site ); ?></option>
-													<?php
+										$excluded_sites       = array_values( array_filter( (array) WP2FA::get_wp2fa_setting( 'excluded_sites' ) ) );
+										$excluded_sites_items = array();
+										foreach ( $excluded_sites as $site_id ) {
+											$details = \get_blog_details( $site_id );
+											if ( ! $details ) {
+												// A site deleted since it was excluded: keep the id, label it plainly.
+												continue;
 											}
+											$excluded_sites_items[] = array(
+												'id'   => $site_id,
+												'text' => $details->blogname,
+											);
 										}
+
+										Settings_Builder::build_option(
+											array(
+												'id'          => 'excluded-sites',
+												'type'        => 'multi-select-ajax',
+												'option_name' => 'wp_2fa_policy[excluded_sites]',
+												'default'     => implode( ',', \wp_list_pluck( $excluded_sites_items, 'id' ) ),
+												'placeholder' => \esc_attr__( 'Type to search sites…', 'wp-2fa' ),
+												'items'       => $excluded_sites_items,
+												'data_attrs'  => array(
+													'search-type' => 'sites',
+													'min-chars'   => '2',
+												),
+											)
+										);
 										?>
-										</select>
 										<?php
 										if ( $setup_wizard ) {
 											?>
@@ -535,7 +617,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps' ) ) {
 					<input type="radio" name="wp_2fa_policy[grace-policy]" id="no-grace-period" value="no-grace-period"
 					<?php checked( WP2FA::get_wp2fa_setting( 'grace-policy' ), 'no-grace-period' ); ?>
 					>
-				<span><?php \esc_html_e( 'Users have to configure 2FA straight away.', 'wp-2fa' ); ?></span>
+				<span><?php \esc_html_e( 'Require users to configure 2FA immediately', 'wp-2fa' ); ?></span>
 				</label>
 
 				<label for="use-grace-period">

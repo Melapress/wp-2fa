@@ -1,0 +1,344 @@
+/**
+ * Melapress Licensing Form Styles.
+ *
+ * Reusable license activation/management card design.
+ * Include this CSS in any Melapress plugin's licensing page.
+ *
+ * @package Melapress\Licensing
+ * @since   1.0.0
+ */
+
+.wp2fa-license-wrap {
+	max-width: 620px;
+	margin: 40px auto 0;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.wp2fa-license-wrap h2 {
+	font-size: 22px;
+	font-weight: 400;
+	margin: 0 0 20px;
+	color: #1d2327;
+}
+
+.wp2fa-license-card {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 48px 48px 40px;
+	text-align: center;
+}
+
+.wp2fa-license-logo {
+	display: block;
+	width: 64px;
+	height: 64px;
+	margin: 0 auto 24px;
+	object-fit: contain;
+}
+
+.wp2fa-license-card-title {
+	font-size: 15px;
+	color: #3c434a;
+	margin: 0 0 28px;
+	line-height: 1.5;
+}
+
+.wp2fa-license-card-title strong {
+	font-weight: 600;
+}
+
+.wp2fa-license-input-row {
+	display: flex;
+	gap: 0;
+	max-width: 440px;
+	margin: 0 auto 16px;
+}
+
+.wp2fa-license-input-row input[type="text"],
+.wp2fa-license-input-row input[type="password"] {
+	flex: 1;
+	height: 42px;
+	padding: 0 14px;
+	font-size: 14px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px 0 0 4px;
+	outline: none;
+	box-shadow: none;
+	transition: border-color 0.2s;
+	margin: 0;
+}
+
+.wp2fa-license-input-row input[type="text"]:focus,
+.wp2fa-license-input-row input[type="password"]:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.wp2fa-license-input-row input[type="text"]::placeholder {
+	color: #a7aaad;
+}
+
+.wp2fa-license-input-row .wp2fa-license-btn {
+	height: 42px;
+	padding: 0 20px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #fff;
+	background: #2271b1;
+	border: 1px solid #2271b1;
+	border-radius: 0 4px 4px 0;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: background-color 0.2s;
+	line-height: 42px;
+	margin: 0;
+}
+
+.wp2fa-license-input-row .wp2fa-license-btn:hover {
+	background: #135e96;
+	border-color: #135e96;
+}
+
+.wp2fa-license-input-row .wp2fa-license-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.wp2fa-license-help {
+	font-size: 13px;
+	color: #646970;
+	margin: 0 0 0;
+}
+
+.wp2fa-license-help a {
+	color: #2271b1;
+	text-decoration: underline;
+}
+
+.wp2fa-license-help a:hover {
+	color: #135e96;
+}
+
+.wp2fa-license-divider {
+	border: none;
+	border-top: 1px solid #e0e0e0;
+	margin: 24px 0;
+}
+
+.wp2fa-license-status-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+}
+
+.wp2fa-license-status-label {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wp2fa-license-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	padding: 4px 12px;
+	border-radius: 16px;
+	font-weight: 500;
+}
+
+.wp2fa-license-badge::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+}
+
+.wp2fa-license-badge--inactive {
+	color: #d63638;
+	background: #fcf0f1;
+	border: 1px solid #facfd2;
+}
+
+.wp2fa-license-badge--inactive::before {
+	background: #d63638;
+}
+
+.wp2fa-license-badge--active {
+	color: #00a32a;
+	background: #edfaef;
+	border: 1px solid #b8e6bf;
+}
+
+.wp2fa-license-badge--active::before {
+	background: #00a32a;
+}
+
+.wp2fa-license-badge--expired {
+	color: #996800;
+	background: #fcf9e8;
+	border: 1px solid #f0c33c;
+}
+
+.wp2fa-license-badge--expired::before {
+	background: #996800;
+}
+
+.wp2fa-license-footer {
+	font-size: 13px;
+	color: #646970;
+	margin: 20px 0 0;
+	line-height: 1.5;
+	text-align: center;
+}
+
+.wp2fa-license-footer strong {
+	font-weight: 600;
+	color: #3c434a;
+}
+
+/* Active license extras */
+.wp2fa-license-details {
+	margin-top: 16px;
+	text-align: center;
+}
+
+.wp2fa-license-details-table {
+	display: inline-flex;
+	flex-direction: column;
+	gap: 8px;
+	text-align: left;
+}
+
+.wp2fa-license-detail-row {
+	display: flex;
+	gap: 12px;
+	font-size: 13px;
+}
+
+.wp2fa-license-detail-row dt {
+	font-weight: 600;
+	color: #3c434a;
+	min-width: 100px;
+}
+
+.wp2fa-license-detail-row dd {
+	color: #646970;
+	margin: 0;
+}
+
+/* Deactivate/Sync buttons when active */
+.wp2fa-license-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+	margin-top: 16px;
+}
+
+.wp2fa-license-actions .wp2fa-license-btn-secondary {
+	height: 36px;
+	padding: 0 16px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #2271b1;
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.2s;
+	line-height: 36px;
+}
+
+.wp2fa-license-actions .wp2fa-license-btn-secondary:hover {
+	background: #f0f0f1;
+	border-color: #8c8f94;
+	color: #135e96;
+}
+
+.wp2fa-license-actions .wp2fa-license-btn-cancel {
+	color: #d63638;
+	background: #fcf0f1;
+	border-color: #facfd2;
+}
+
+.wp2fa-license-actions .wp2fa-license-btn-cancel:hover {
+	background: #f7e1e2;
+	border-color: #d63638;
+	color: #b32d2e;
+}
+
+/* Notice messages */
+.wp2fa-license-notice {
+	display: none;
+	max-width: 440px;
+	margin: 0 auto 16px;
+	padding: 10px 14px;
+	border-radius: 4px;
+	font-size: 13px;
+	text-align: left;
+}
+
+.wp2fa-license-notice--success {
+	display: block;
+	background: #edfaef;
+	border: 1px solid #b8e6bf;
+	color: #00a32a;
+}
+
+.wp2fa-license-notice--error {
+	display: block;
+	background: #fcf0f1;
+	border: 1px solid #facfd2;
+	color: #d63638;
+}
+
+.wp2fa-license-notice--info {
+	display: block;
+	background: #f0f6fc;
+	border: 1px solid #72aee6;
+	color: #2271b1;
+}
+
+/* Progress bar (multisite) */
+.wp2fa-license-progress {
+	display: none;
+	max-width: 440px;
+	margin: 0 auto 16px;
+	text-align: left;
+}
+
+.wp2fa-license-progress--visible {
+	display: block;
+}
+
+.wp2fa-license-progress p {
+	font-size: 13px;
+	color: #646970;
+	margin: 0 0 8px;
+}
+
+.wp2fa-license-progress progress {
+	width: 100%;
+	height: 8px;
+	border-radius: 4px;
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.wp2fa-license-progress progress::-webkit-progress-bar {
+	background: #f0f0f1;
+	border-radius: 4px;
+}
+
+.wp2fa-license-progress progress::-webkit-progress-value {
+	background: #2271b1;
+	border-radius: 4px;
+}
+
+.wp2fa-license-progress progress::-moz-progress-bar {
+	background: #2271b1;
+	border-radius: 4px;
+}

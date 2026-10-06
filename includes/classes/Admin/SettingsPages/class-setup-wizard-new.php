@@ -19,6 +19,9 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Settings_Page;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Helpers\WP_Helper;
+use WP2FA\Admin\Helpers\MLS_Cross_Sell;
+use WP2FA\Admin\Migrations\Wordfence_Login_Security;
+use WP2FA\Admin\Migrations\Wordfence_Migration_Page;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Views\First_Time_Wizard_Steps_New;
 use WP2FA\Extensions\RoleSettings\Role_Settings_Controller;
@@ -169,6 +172,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 					'skipConfirmMessage'  => \__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the <b>WP 2FA</b> entry in your WordPress dashboard menu.', 'wp-2fa' ),
 					'skipConfirmOk'       => \esc_html__( 'OK, close the wizard', 'wp-2fa' ),
 					'skipConfirmCancel'   => \esc_html__( 'Continue with the wizard', 'wp-2fa' ),
+					// The companion-plugin install, fired in the background from the last slide.
+					'mlsAction'           => MLS_Cross_Sell::AJAX_ACTION,
+					'mlsNonce'            => \wp_create_nonce( MLS_Cross_Sell::NONCE_ACTION ),
 				)
 			);
 
@@ -249,6 +255,18 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 							<span class="step-indicator"></span>
 							<span class="step-label"><?php \esc_html_e( 'SET GRACE PERIOD', 'wp-2fa' ); ?></span>
 						</li>
+						<?php if ( Wordfence_Login_Security::is_available() ) : ?>
+						<li data-step="wordfence">
+							<span class="step-indicator"></span>
+							<span class="step-label"><?php \esc_html_e( 'WORDFENCE MIGRATION', 'wp-2fa' ); ?></span>
+						</li>
+						<?php endif; ?>
+						<?php if ( MLS_Cross_Sell::should_offer() ) : ?>
+						<li data-step="next-steps">
+							<span class="step-indicator"></span>
+							<span class="step-label"><?php \esc_html_e( 'NEXT STEPS', 'wp-2fa' ); ?></span>
+						</li>
+						<?php endif; ?>
 					</ol>
 				</nav>
 			</header>
@@ -281,11 +299,23 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 					<?php First_Time_Wizard_Steps_New::step_grace_period(); ?>
 				</div>
 
+				<?php if ( Wordfence_Login_Security::is_available() ) : ?>
+				<div class="wp2fa-wizard-panel" data-panel="wordfence" style="display:none;">
+					<?php Wordfence_Migration_Page::render_wizard_step(); ?>
+				</div>
+				<?php endif; ?>
+
+				<?php if ( MLS_Cross_Sell::should_offer() ) : ?>
+				<div class="wp2fa-wizard-panel" data-panel="next-steps" style="display:none;">
+					<?php self::render_cross_sell_step(); ?>
+				</div>
+				<?php endif; ?>
+
 				<footer class="wp2fa-wizard-footer">
 					<div class="wp2fa-wizard-footer-inner">
 						<button type="button" class="button button-primary js-wizard-continue"><?php \esc_html_e( 'Continue', 'wp-2fa' ); ?></button>
 						<button type="button" class="button button-primary js-wizard-finish" style="display:none;"><?php \esc_html_e( 'Finish Setup', 'wp-2fa' ); ?></button>
-						<a href="<?php echo $skip_url; // phpcs:ignore ?>" class="wp2fa-wizard-skip-link"><?php \esc_html_e( 'Skip Wizard', 'wp-2fa' ); ?></a>
+						<a href="<?php echo $skip_url; // phpcs:ignore ?>" class="wp2fa-wizard-skip-link"><?php \esc_html_e( 'Skip wizard', 'wp-2fa' ); ?></a>
 					</div>
 				</footer>
 			</form>
@@ -344,7 +374,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 			}
 
 			// 2. Capability.
-			if ( ! \current_user_can( 'manage_options' ) ) {
+			// Settings are stored network-wide on a multisite install, so a site
+			// administrator's manage_options is not enough to change them.
+			if ( ! \WP2FA\Admin\Settings_Page::can_manage_settings() ) {
 				\wp_send_json_error(
 					array( 'message' => \esc_html__( 'Permission denied.', 'wp-2fa' ) ),
 					403
@@ -454,6 +486,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 			Settings_Utils::delete_option( WP_2FA_PREFIX . 'default_settings_applied' );
 			Settings_Utils::delete_option( 'wizard_not_finished' );
 
+			// 6b. Wordfence migration, offered on the last slide when that plugin is present.
+			Wordfence_Migration_Page::save_wizard_step( \wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput
+
 			// 7. Fire extension hook.
 			\do_action( WP_2FA_PREFIX . 'policies_new_ajax_save', \wp_unslash( $_POST ) ); // phpcs:ignore
 
@@ -467,6 +502,57 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 					'isCurrentUserExcluded' => (bool) $is_excluded,
 				)
 			);
+		}
+
+		/**
+		 * The last wizard slide: an offer to add the free companion plugin.
+		 *
+		 * The toggle is off to begin with, and nothing happens on this slide unless it is
+		 * switched on. Installing is left to the wizard script so the install runs after the
+		 * user has already moved on, rather than holding up the step they pressed.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function render_cross_sell_step(): void {
+			$logo = WP_2FA_URL . 'dist/images/login-security.jpeg';
+			?>
+			<div class="wp2fa-wizard-crosssell" data-mls-step>
+				<h2><?php \esc_html_e( 'Take your WordPress login security one step further', 'wp-2fa' ); ?></h2>
+
+				<p class="wp2fa-wizard-crosssell-intro">
+					<?php
+					printf(
+						/* translators: %s: Melapress Login Security (free), in bold. */
+						\esc_html__( 'WP 2FA protects your user accounts with two-factor authentication. For even stronger login security, you can also install %s, a separate plugin from the same team.', 'wp-2fa' ),
+						'<strong>' . \esc_html__( 'Melapress Login Security (free)', 'wp-2fa' ) . '</strong>'
+					);
+					?>
+				</p>
+
+				<div class="wp2fa-wizard-crosssell-card">
+					<img class="wp2fa-wizard-crosssell-logo" src="<?php echo \esc_url( $logo ); ?>" alt="" aria-hidden="true">
+
+					<div class="wp2fa-wizard-crosssell-body">
+						<span class="wp2fa-wizard-crosssell-badge"><?php \esc_html_e( 'Recommended', 'wp-2fa' ); ?></span>
+						<h3><?php \esc_html_e( 'Melapress Login Security (free)', 'wp-2fa' ); ?></h3>
+						<p><?php \esc_html_e( 'Add strong password policies, limit login attempts and restrict access by IP address.', 'wp-2fa' ); ?></p>
+						<a href="https://melapress.com/wordpress-login-security/?utm_source=plugin&amp;utm_medium=wp2fa&amp;utm_campaign=wizard_cross_sell" target="_blank" rel="noopener noreferrer">
+							<?php \esc_html_e( 'Learn more', 'wp-2fa' ); ?>
+						</a>
+					</div>
+
+					<div class="wp2fa-wizard-crosssell-choice">
+						<label class="wp2fa-wizard-toggle">
+							<input type="checkbox" id="wp2fa-install-mls" data-mls-toggle value="1">
+							<span class="wp2fa-wizard-toggle-track" aria-hidden="true"></span>
+						</label>
+						<span class="wp2fa-wizard-crosssell-choice-label"><?php \esc_html_e( 'Install this plugin', 'wp-2fa' ); ?></span>
+					</div>
+				</div>
+			</div>
+			<?php
 		}
 	}
 }

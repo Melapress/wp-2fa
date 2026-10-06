@@ -32,6 +32,23 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 		const POLICY_SETTINGS_NAME = 'methods_order';
 
 		/**
+		 * The 2FA methods every build ships, free and premium alike.
+		 *
+		 * Class name (relative to METHODS_NAMESPACE) mapped to method slug. Written
+		 * out rather than read from each class's METHOD_NAME constant on purpose:
+		 * the callers that need this list are the ones running at a moment when
+		 * those classes did not load, so reaching for them would defeat the point.
+		 *
+		 * @var array
+		 *
+		 * @since 4.2.0
+		 */
+		private const DEFAULT_METHODS = array(
+			'TOTP'  => 'totp',
+			'Email' => 'email',
+		);
+
+		/**
 		 * Cached methods array
 		 *
 		 * @var array
@@ -218,6 +235,64 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Methods_Helper' ) ) {
 			}
 
 			return self::$methods;
+		}
+
+		/**
+		 * The methods every build ships, in the shape get_methods() returns.
+		 *
+		 * Fully-qualified class name mapped to method slug, so a caller can use this
+		 * wherever it would use the discovered list. Nothing here touches the method
+		 * classes themselves — this is what to fall back on when discovery has come
+		 * back empty, which happens when the class map cannot be read, as during a
+		 * plugin update.
+		 *
+		 * @return array
+		 *
+		 * @since 4.2.0
+		 */
+		public static function get_default_methods(): array {
+			/*
+			 * Ask discovery first. It reads the class map, so it answers whenever the
+			 * plugin's files are readable — including the case where the methods are
+			 * present but simply have not registered themselves through the providers
+			 * filter yet. Resolving by slug rather than by name also means a class
+			 * that has been renamed is still found, where a written-out name would
+			 * have gone stale.
+			 */
+			$discovered = array();
+
+			foreach ( self::get_methods() as $class_name ) {
+				if ( ! \defined( $class_name . '::METHOD_NAME' ) ) {
+					continue;
+				}
+
+				$discovered[ \constant( $class_name . '::METHOD_NAME' ) ] = $class_name;
+			}
+
+			/*
+			 * Then fill in from the written-out names. Anything discovery could not
+			 * account for is named literally, because the state this list exists for
+			 * is the one where the class map cannot be read at all and discovery
+			 * therefore returns nothing.
+			 *
+			 * Built in DEFAULT_METHODS order so the result does not depend on however
+			 * the class map happened to be sorted.
+			 */
+			$defaults = array();
+
+			foreach ( self::DEFAULT_METHODS as $class_name => $slug ) {
+				// ltrim because METHODS_NAMESPACE is written with a leading backslash
+				// while the providers filter keys on static::class, which is not. The
+				// two forms are interchangeable to PHP, but matching the real shape
+				// keeps the fallback indistinguishable from the list it stands in for.
+				$resolved = isset( $discovered[ $slug ] )
+					? $discovered[ $slug ]
+					: \ltrim( self::METHODS_NAMESPACE, '\\' ) . '\\' . $class_name;
+
+				$defaults[ $resolved ] = $slug;
+			}
+
+			return $defaults;
 		}
 	}
 }

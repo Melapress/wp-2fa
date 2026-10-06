@@ -415,8 +415,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 			\do_action( WP_2FA_PREFIX . 'change_referer' );
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! \current_user_can( 'manage_options' ) ) {
-				return;
+			if ( ! Settings_Page::can_manage_settings() ) {
+				return Settings_Utils::get_option( WP_2FA_PASSKEYS_SETTINGS_NAME, array() );
 			}
 
 			// When called via options.php (no AJAX action), verify our own nonce.
@@ -649,4 +649,3 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Passkeys' ) ) {
 		}
 	}
 }
-

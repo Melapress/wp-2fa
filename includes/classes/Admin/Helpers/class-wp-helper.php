@@ -17,7 +17,6 @@ namespace WP2FA\Admin\Helpers;
 
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Utils\Abstract_Migration;
-use WP2FA\Admin\Plugin_Updated_Notice;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -85,9 +84,9 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		private static $is_multisite = null;
 
 		/**
-		 * Holds array with all the sites in multisite WP installation.
+		 * The sites of each network asked about so far, by network ID.
 		 *
-		 * @var array
+		 * @var array<int,array>
 		 */
 		private static $sites = array();
 
@@ -99,37 +98,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function init() {
-			// @free:start
-			$today_date = gmdate( 'Y-m-d' );
-			$today_date = gmdate( 'Y-m-d', strtotime( $today_date ) );
-
-			$event_date_begin = gmdate( 'Y-m-d', strtotime( '11/21/2025' ) );
-			$event_date_end   = gmdate( 'Y-m-d', strtotime( '12/01/2025' ) );
-
-			$event_ending_date = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date', false );
-
-			$extra_event_banner_dismissed       = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
-			$extra_event_banner_super_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed', false );
-
-			if ( gmdate( 'Y-m-d', strtotime( '11/28/2025' ) ) === $today_date && $extra_event_banner_dismissed && ! $extra_event_banner_super_dismissed ) {
-				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed' );
-			}
-
-			if ( ( $today_date >= $event_date_begin ) && ( $today_date <= $event_date_end ) && ( false === $event_ending_date || strtotime( $event_ending_date ) < strtotime( $today_date ) ) ) {
-				$extra_event_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
-				if ( ! $extra_event_banner_dismissed ) {
-					\update_site_option( WP_2FA_PREFIX . '_extra_event_banner', true );
-					\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date', strtotime( $event_date_end ) );
-					\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
-				}
-			} else {
-				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner' );
-				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date' );
-				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed' );
-				\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed' );
-			}
-			// @free:end
-
 			// @free:start
 			$install_date = \get_site_option( WP_2FA_PREFIX . '_install_date', false );
 			if ( ! $install_date ) {
@@ -177,13 +145,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function is_role_exists( string $role ): bool {
-			self::set_roles();
-
-			if ( in_array( $role, self::$user_roles, true ) ) {
-				return true;
-			}
-
-			return false;
+			return isset( self::get_roles_wp()[ $role ] );
 		}
 
 		/**
@@ -207,10 +169,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function get_roles_wp() {
-			if ( empty( self::$user_roles_wp ) ) {
-				self::set_roles();
-				self::$user_roles_wp = array_flip( self::$user_roles );
-			}
+			self::set_roles();
 
 			return self::$user_roles_wp;
 		}
@@ -253,8 +212,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				}
 			}
 			if ( in_array( $screen->base, self::PLUGIN_PAGES, true ) && $show_extra_event_banner && ! $extra_event_banner_dismissed ) {
-				\remove_action( 'admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
-				\remove_action( 'network_admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
 				?>
 				<!-- Copy START -->
 				<div class="black-friday wp-2fa-extra-event-banner" style="margin-top: 20px; margin-right: 20px;">
@@ -264,7 +221,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 					<!-- Text Content -->
 					<div class="black-friday-content">
 					<h2 class="black-friday-title"><?php \esc_html_e( 'Upgrade to Premium', 'wp-2fa' ); ?><br>
-						<span class="bf-title-line-2"><span class="bf-underline"><?php \esc_html_e( 'Black Friday', 'wp-2fa' ); ?></span> <?php \esc_html_e( ' Sale Now Live!', 'wp-2fa' ); ?></span>
+						<span class="bf-title-line-2">
+						<?php
+						printf(
+							/* translators: %s: the words "Black Friday", shown underlined. */
+							\esc_html__( '%s Sale Now Live!', 'wp-2fa' ),
+							'<span class="bf-underline">' . \esc_html__( 'Black Friday', 'wp-2fa' ) . '</span>'
+						);
+						?>
+					</span>
 					</h2>
 					<a href="https://melapress.com/black-friday-cyber-monday/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=BFCM2025" target="_blank" class="bf-cta-link"><?php \esc_html_e( 'Get Offer Now', 'wp-2fa' ); ?></a>
 					</div>
@@ -517,8 +482,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 			}
 
 			if ( in_array( $screen->base, self::PLUGIN_PAGES, true ) ) {
-				\remove_action( 'admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
-				\remove_action( 'network_admin_notices', array( Plugin_Updated_Notice::class, 'plugin_update_banner' ), 30 );
 				?>
 				<!-- Survey Banner START -->
 				<div class="survey-banner wp-2fa-survey-banner" style="margin-top: 20px; margin-right: 20px;">
@@ -761,24 +724,37 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Collects all the sites from multisite WP installation.
+		 * Collects the sites of the current network.
+		 *
+		 * Cached per network: a request can switch networks, and a list built for
+		 * one must not be handed out for another.
 		 *
 		 * @since 2.5.0
 		 */
 		public static function get_multi_sites(): array {
 			if ( self::is_multisite() ) {
-				if ( empty( self::$sites ) ) {
-					self::$sites = self::get_sites();
+				$network_id = (int) \get_current_network_id();
+
+				if ( ! \is_array( self::$sites ) || ! isset( self::$sites[ $network_id ] ) ) {
+					if ( ! \is_array( self::$sites ) ) {
+						self::$sites = array();
+					}
+					self::$sites[ $network_id ] = self::get_sites();
 				}
 
-				return self::$sites;
+				return self::$sites[ $network_id ];
 			}
 
 			return array();
 		}
 
 		/**
-		 * Query sites from WPDB.
+		 * Query the current network's sites from WPDB.
+		 *
+		 * Only this network's. The blogs table holds every network of the
+		 * installation, and the list used to come from all of it - so saving the
+		 * "page per site" setting in one network published setup pages on the
+		 * sites of the others.
 		 *
 		 * @since 3.0.0
 		 *
@@ -789,11 +765,12 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		public static function get_sites( $limit = null ) {
 			if ( self::is_multisite() ) {
 				global $wpdb;
+				$network_id = (int) \get_current_network_id();
 				// Build query.
 				if ( ! is_null( $limit ) ) {
-					$sql = $wpdb->prepare( 'SELECT blog_id, domain FROM ' . $wpdb->blogs . ' LIMIT %d', (int) $limit );
+					$sql = $wpdb->prepare( 'SELECT blog_id, domain FROM ' . $wpdb->blogs . ' WHERE site_id = %d LIMIT %d', $network_id, (int) $limit ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted table name.
 				} else {
-					$sql = 'SELECT blog_id, domain FROM ' . $wpdb->blogs;
+					$sql = $wpdb->prepare( 'SELECT blog_id, domain FROM ' . $wpdb->blogs . ' WHERE site_id = %d', $network_id ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted table name.
 				}
 
 				// Execute query.
@@ -874,20 +851,20 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Remove all non-WP Mail SMTP plugin notices from our plugin pages.
+		 * Remove unrelated plugin notices from our plugin pages.
+		 *
+		 * The work moved to Hide_Admin_Notices, which keeps notices from our other
+		 * plugins instead of silencing everything that is not this one. Kept here
+		 * because it is a public static that integrations may already call.
+		 *
+		 * @return void
+		 *
+		 * @deprecated 4.2.0 Use Hide_Admin_Notices::hide_unrelated_notices().
 		 *
 		 * @since 2.4.1
 		 */
 		public static function hide_unrelated_notices() {
-			// Bail if we're not on our screen or page.
-			if ( ! self::is_admin_page() ) {
-				return;
-			}
-
-			self::remove_unrelated_actions( 'user_admin_notices' );
-			self::remove_unrelated_actions( 'admin_notices' );
-			self::remove_unrelated_actions( 'all_admin_notices' );
-			self::remove_unrelated_actions( 'network_admin_notices' );
+			Hide_Admin_Notices::hide_unrelated_notices();
 		}
 
 		/**
@@ -932,42 +909,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Remove all non-WP Mail SMTP notices from the our plugin pages based on the provided action hook.
-		 *
-		 * @since 2.4.1
-		 *
-		 * @param string $action The name of the action.
-		 */
-		private static function remove_unrelated_actions( $action ) {
-			global $wp_filter;
-
-			if ( empty( $wp_filter[ $action ]->callbacks ) || ! is_array( $wp_filter[ $action ]->callbacks ) ) {
-				return;
-			}
-
-			foreach ( $wp_filter[ $action ]->callbacks as $priority => $hooks ) {
-				foreach ( $hooks as $name => $arr ) {
-					if (
-						( // Cover object method callback case.
-							is_array( $arr['function'] ) &&
-							isset( $arr['function'][0] ) &&
-							is_object( $arr['function'][0] ) &&
-							false !== strpos( ( get_class( $arr['function'][0] ) ), 'WP2FA' )
-						) ||
-						( // Cover class static method callback case.
-							! empty( $name ) &&
-							false !== strpos( ( $name ), 'WP2FA' )
-						)
-					) {
-						continue;
-					}
-
-					unset( $wp_filter[ $action ]->callbacks[ $priority ][ $name ] );
-				}
-			}
-		}
-
-		/**
 		 * Sets the internal variable with all the existing WP roles.
 		 *
 		 * @return void
@@ -975,14 +916,28 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		 * @since 2.2.0
 		 */
 		private static function set_roles() {
-			if ( empty( self::$user_roles ) ) {
-				global $wp_roles;
+			if ( empty( self::$user_roles_wp ) ) {
+				/*
+				 * Built from the slugs, which WordPress keeps unique - not by flipping
+				 * the display names, which it does not. Two roles both called
+				 * "Editor" used to collapse into one: the other slug vanished from
+				 * every selector, failed is_role_exists(), and the provider lookups
+				 * for its users threw.
+				 *
+				 * A name two roles share is told apart by its slug, so the
+				 * name-keyed map keeps every role too, and a selector shows two
+				 * entries a person can tell apart.
+				 */
+				$names  = \wp_roles()->get_names();
+				$counts = \array_count_values( \array_map( 'strval', $names ) );
+				$labels = array();
 
-				if ( null === $wp_roles ) {
-					wp_roles();
+				foreach ( $names as $slug => $name ) {
+					$labels[ (string) $slug ] = 1 < $counts[ (string) $name ] ? \sprintf( '%s (%s)', $name, $slug ) : (string) $name;
 				}
 
-				self::$user_roles = array_flip( $wp_roles->get_names() );
+				self::$user_roles_wp = $labels;
+				self::$user_roles    = \array_flip( $labels );
 			}
 		}
 

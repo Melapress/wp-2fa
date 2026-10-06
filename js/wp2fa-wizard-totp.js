@@ -83,7 +83,8 @@
 				step1: wp2faWizardData.i18n.totpStep1 || 'Download and start the application of your choice',
 				step2: wp2faWizardData.i18n.totpStep2 || 'From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:',
 				step3: wp2faWizardData.i18n.totpStep3 || 'Click the "I\'m ready" button below when you complete the application setup process to proceed with the wizard.',
-				copyKeyLabel: wp2faWizardData.i18n.copyKey || 'Copy key'
+				copyKeyLabel: wp2faWizardData.i18n.copyKey || 'Copy key',
+				qrUnavailable: wp2faWizardData.i18n.qrCodeUnavailable || 'The QR code image cannot be generated on this server. Enter the key below into your authenticator app by hand instead.'
 			} );
 
 			/* Copy button event */

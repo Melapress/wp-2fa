@@ -93,13 +93,134 @@ if ( ! class_exists( '\WP2FA\Passkeys\Passkeys_Rate_Limiter' ) ) {
 				$candidate = \sanitize_text_field( \wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) );
 				$ip        = filter_var( $candidate, FILTER_VALIDATE_IP ) ? $candidate : '';
 			}
+
+			/*
+			 * Behind a reverse proxy or CDN, REMOTE_ADDR is the proxy, so every
+			 * visitor shared one bucket and ~30 anonymous requests could shut
+			 * passkey sign-in off for the whole site. X-Forwarded-For carries the
+			 * real client, but it is only as trustworthy as whoever wrote it, so
+			 * it is read only when REMOTE_ADDR is a proxy the site says it trusts.
+			 * Trusting it unconditionally would let anyone pick their own bucket.
+			 */
+			$trusted = self::trusted_proxies();
+
+			if ( '' !== $ip && ! empty( $trusted ) && self::ip_in_list( $ip, $trusted ) && ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+				$xff  = \sanitize_text_field( \wp_unslash( (string) $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
+				$hops = array_reverse( array_map( 'trim', explode( ',', $xff ) ) );
+
+				// Right to left: the first hop that is not one of our own proxies
+				// is the client. Anything further left was supplied by the client.
+				foreach ( $hops as $hop ) {
+					if ( ! filter_var( $hop, FILTER_VALIDATE_IP ) ) {
+						break;
+					}
+					$ip = $hop;
+					if ( ! self::ip_in_list( $hop, $trusted ) ) {
+						break;
+					}
+				}
+			}
+
 			if ( '' === $ip && ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
 				$xff       = \sanitize_text_field( \wp_unslash( (string) $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
 				$parts     = explode( ',', $xff );
 				$candidate = trim( $parts[0] );
 				$ip        = filter_var( $candidate, FILTER_VALIDATE_IP ) ? $candidate : '';
 			}
-			return (string) $ip;
+
+			/**
+			 * Filters the client address the passkey rate limiter keys on.
+			 *
+			 * For setups the trusted-proxy list cannot describe, such as a CDN
+			 * that reports the client in its own header.
+			 *
+			 * @param string $ip The address the limiter would use.
+			 *
+			 * @since 4.2.0
+			 */
+			$filtered = \apply_filters( 'wp_2fa_passkeys_client_ip', (string) $ip );
+
+			return ( \is_string( $filtered ) && filter_var( $filtered, FILTER_VALIDATE_IP ) ) ? $filtered : (string) $ip;
+		}
+
+		/**
+		 * The reverse proxies whose X-Forwarded-For this site trusts.
+		 *
+		 * Empty unless configured, which keeps the limiter on REMOTE_ADDR.
+		 *
+		 * @return string[] Addresses and CIDR ranges.
+		 *
+		 * @since 4.2.0
+		 */
+		private static function trusted_proxies(): array {
+			/**
+			 * Filters the reverse proxies whose X-Forwarded-For header is trusted.
+			 *
+			 * @param string[] $proxies IP addresses or CIDR ranges, IPv4 or IPv6.
+			 *
+			 * @since 4.2.0
+			 */
+			$proxies = \apply_filters( 'wp_2fa_passkeys_trusted_proxies', array() );
+
+			return \is_array( $proxies ) ? array_values( array_filter( $proxies, 'is_string' ) ) : array();
+		}
+
+		/**
+		 * Whether an address matches any entry of a list of addresses and CIDR ranges.
+		 *
+		 * @param string   $ip   The address.
+		 * @param string[] $list Addresses and CIDR ranges.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static function ip_in_list( string $ip, array $list ): bool {
+			$packed = @inet_pton( $ip ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			if ( false === $packed ) {
+				return false;
+			}
+
+			foreach ( $list as $entry ) {
+				$entry = trim( $entry );
+				$bits  = null;
+
+				if ( false !== strpos( $entry, '/' ) ) {
+					list( $entry, $bits ) = explode( '/', $entry, 2 );
+					$bits                 = ctype_digit( $bits ) ? (int) $bits : -1;
+				}
+
+				$range = @inet_pton( $entry ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				if ( false === $range || strlen( $range ) !== strlen( $packed ) ) {
+					continue;
+				}
+
+				$max = strlen( $packed ) * 8;
+				if ( null === $bits ) {
+					$bits = $max;
+				}
+				if ( $bits < 0 || $bits > $max ) {
+					continue;
+				}
+
+				$whole = intdiv( $bits, 8 );
+				$rest  = $bits % 8;
+
+				if ( substr( $packed, 0, $whole ) !== substr( $range, 0, $whole ) ) {
+					continue;
+				}
+
+				if ( 0 === $rest ) {
+					return true;
+				}
+
+				$mask = ( 0xFF << ( 8 - $rest ) ) & 0xFF;
+				if ( ( ord( $packed[ $whole ] ) & $mask ) === ( ord( $range[ $whole ] ) & $mask ) ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/**

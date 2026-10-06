@@ -7,7 +7,8 @@
  *   - wp2fa-totp-setup-footer — Footer buttons for the setup step.
  *
  * tmpl-wp2fa-totp-setup data:
- *   - qrCodeUrl    {string} URL for the QR code image.
+ *   - qrCodeUrl    {string} URL for the QR code image, empty when it could not be built.
+ *   - qrUnavailable {string} Message shown in place of the QR code when it is empty.
  *   - totpKey      {string} Manual entry key.
  *   - step1        {string} Instruction step 1 text.
  *   - step2        {string} Instruction step 2 text (may contain HTML).
@@ -25,10 +26,17 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 <script type="text/html" id="tmpl-wp2fa-totp-setup">
-	<div class="wp2fa-totp-setup-wrapper" id="wp2fa-totp-setup-wrapper">
+	<div class="wp2fa-totp-setup-wrapper<# if ( ! data.qrCodeUrl ) { #> wp2fa-totp-setup-wrapper--no-qr<# } #>" id="wp2fa-totp-setup-wrapper">
+		<# if ( data.qrCodeUrl ) { #>
 		<div class="wp2fa-totp-qr-wrapper" id="wp2fa-totp-qr-wrapper">
 			<img class="wp2fa-totp-qr-code" id="wp2fa-totp-qr-code" src="{{ data.qrCodeUrl }}" alt="TOTP QR Code" />
 		</div>
+		<# } else { #>
+		<div class="wp2fa-totp-qr-unavailable" id="wp2fa-totp-qr-unavailable">
+			<span class="wp2fa-totp-qr-unavailable-icon" aria-hidden="true">&#9888;</span>
+			<p>{{ data.qrUnavailable }}</p>
+		</div>
+		<# } #>
 		<div class="wp2fa-totp-instructions" id="wp2fa-totp-instructions">
 			<ol class="wp2fa-totp-steps-list" id="wp2fa-totp-steps-list">
 				<li class="wp2fa-totp-step-item" id="wp2fa-totp-step-1">{{ data.step1 }}</li>

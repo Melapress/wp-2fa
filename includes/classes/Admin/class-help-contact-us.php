@@ -452,6 +452,25 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 			$sysinfo .= 'Max Input Vars:           ' . ini_get( 'max_input_vars' ) . "\n";
 			$sysinfo .= 'Display Errors:           ' . ( ini_get( 'display_errors' ) ? 'On (' . ini_get( 'display_errors' ) . ')' : 'N/A' ) . "\n";
 
+			/*
+			 * The pieces the QR code is drawn with, reported whether present or not.
+			 *
+			 * A host missing one of these produces a report that looks entirely healthy
+			 * while TOTP enrolment cannot show its QR code, and the encoder's own error
+			 * names the wrong extension — so the answer has been arrived at slowly, by
+			 * correspondence, more than once. Stating it here settles it on sight.
+			 */
+			$sysinfo .= "\n" . '-- QR Code Requirements --' . "\n\n";
+			$sysinfo .= 'xmlwriter (XMLWriter):    ' . ( class_exists( '\XMLWriter' ) ? 'Available' : 'MISSING' ) . "\n";
+			$sysinfo .= 'ctype:                    ' . ( function_exists( 'ctype_digit' ) ? 'Available' : 'MISSING' ) . "\n";
+			$sysinfo .= 'iconv:                    ' . ( function_exists( 'iconv' ) ? 'Available' : 'MISSING' ) . "\n";
+			$sysinfo .= 'mbstring:                 ' . ( function_exists( 'mb_convert_encoding' ) ? 'Available' : 'MISSING' ) . "\n";
+
+			if ( class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
+				$sysinfo .= 'QR code can be drawn:     '
+					. ( \WP2FA\Authenticator\Authentication::can_render_qr_code() ? 'Yes' : 'No' ) . "\n";
+			}
+
 			$sysinfo .= "\n" . '-- WP 2FA Settings  --' . "\n\n";
 
 			global $wpdb;
@@ -460,14 +479,64 @@ if ( ! class_exists( '\WP2FA\Admin\Help_Contact_Us' ) ) {
 
 			if ( ! empty( $wp2fa_options ) ) {
 				foreach ( $wp2fa_options as $option => $value ) {
+					/*
+					 * This text is meant to be pasted into support tickets, so no
+					 * secret may reach it. The encryption key is the worst of them -
+					 * it is kept here whenever wp-config.php could not be written,
+					 * and it decrypts every TOTP seed and every stored provider
+					 * credential, which are also options under this prefix.
+					 */
 					$sysinfo .= 'Option: ' . $value['option_name'] . "\n";
-					$sysinfo .= 'Value: ' . print_r( $value['option_value'], true ) . "\n\n"; // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+					$sysinfo .= 'Value: ' . print_r( self::redact_sysinfo_value( (string) $value['option_name'], \maybe_unserialize( $value['option_value'] ) ), true ) . "\n\n"; // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 				}
 			}
 
 			$sysinfo .= "\n" . '### System Info → End ###' . "\n\n";
 
 			return $sysinfo;
+		}
+
+		/**
+		 * Masks anything secret in a value about to go into the system info.
+		 *
+		 * Matched by name, at any depth, so a provider that adds a credential
+		 * later is covered without anyone remembering to list it here.
+		 *
+		 * @param string $name  The option name, or the array key being looked at.
+		 * @param mixed  $value The value.
+		 *
+		 * @return mixed The value, with secrets replaced by a marker.
+		 *
+		 * @since 4.2.0
+		 */
+		private static function redact_sysinfo_value( string $name, $value ) {
+			if ( self::is_secret_name( $name ) ) {
+				return ( '' === $value || null === $value || false === $value ) ? $value : '[redacted]';
+			}
+
+			if ( \is_array( $value ) ) {
+				foreach ( $value as $key => $item ) {
+					$value[ $key ] = self::redact_sysinfo_value( (string) $key, $item );
+				}
+			}
+
+			return $value;
+		}
+
+		/**
+		 * Whether an option or setting name looks like it holds a secret.
+		 *
+		 * Deliberately broad: masking something harmless in a support dump costs
+		 * nothing, missing a credential is the whole problem.
+		 *
+		 * @param string $name The option name or array key.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static function is_secret_name( string $name ): bool {
+			return (bool) preg_match( '/secret|token|auth(?!y)|passw|api|salt|license|(^|[-_])sid$|(^|[-_])key$/i', $name );
 		}
 	}
 }

@@ -27,6 +27,9 @@ class Source_Repository {
 	 */
 	public const PASSKEYS_META = WP_2FA_PREFIX . 'passkey_';
 
+	/** A short-lived registration challenge, stored outside credential meta. */
+	public const REGISTRATION_CHALLENGE_PREFIX = WP_2FA_PREFIX . 'passkey_registration_challenge_';
+
 	/**
 	 * Find a credential source by its credential ID.
 	 *
@@ -73,19 +76,27 @@ class Source_Repository {
 		global $wpdb;
 
 		// @free:start
-			$limit = ' LIMIT 1';
+			$limit = 1;
 		// @free:end
 
 
-		// Use esc_like to build a safe LIKE pattern for meta_key search.
+		/*
+		 * The registration challenge is stored as wp_2fa_passkey_challenge, which
+		 * the credential prefix matches too. With the free build's LIMIT 1 and no
+		 * ORDER BY, that row could come back instead of the user's key and hide
+		 * it; the challenge has no expiry and is only deleted on success, so it
+		 * could stay that way. It is excluded, and the order made deterministic.
+		 */
 		$like_pattern = $wpdb->esc_like( self::PASSKEYS_META ) . '%';
-		$public_keys  = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT meta_value FROM {$wpdb->usermeta} WHERE meta_key LIKE %s AND user_id = %d ",
-				$like_pattern,
-				$user->ID,
-			) . $limit
-		);
+		$query        = "SELECT meta_value FROM {$wpdb->usermeta} WHERE meta_key LIKE %s AND meta_key <> %s AND user_id = %d ORDER BY umeta_id ASC";
+		$query_args   = array( $like_pattern, WP_2FA_PREFIX . 'passkey_challenge', $user->ID );
+
+		if ( 0 < $limit ) {
+			$query       .= ' LIMIT %d';
+			$query_args[] = $limit;
+		}
+
+		$public_keys = $wpdb->get_results( $wpdb->prepare( $query, ...$query_args ) );
 
 		if ( ! $public_keys ) {
 			return array();

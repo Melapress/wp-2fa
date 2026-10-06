@@ -57,6 +57,14 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 		public const UPGRADE_NOTICE = 'upgrade-notice-show';
 
 		/**
+		 * Set on the first bootstrap of a brand new install, and consumed by the
+		 * setup wizard redirect. Distinguishes a new install from a reactivation.
+		 *
+		 * @var string
+		 */
+		public const FIRST_INSTALL_PENDING_WIZARD = 'first_install_pending_wizard';
+
+		/**
 		 * Extracted version from the DB (WP option)
 		 *
 		 * @var string
@@ -183,7 +191,22 @@ if ( ! class_exists( '\WP2FA\Utils\Abstract_Migration' ) ) {
 
 			if ( '0.0.0' !== (string) static::$stored_version ) {
 				Settings_Utils::update_option( self::UPGRADE_NOTICE, 1 );
+
+				return;
 			}
+
+			/*
+			 * Nothing was stored, so this bootstrap is the first this site has ever
+			 * run — and it is the only moment that is knowable. By the time the
+			 * activation hook fires, this has already written the version, and the
+			 * policy defaults have already been seeded, so neither can be used later
+			 * to tell a new install from an upgrade.
+			 *
+			 * The setup wizard needs that distinction: it should be offered once, to
+			 * a genuinely new install, and never to a site that merely reactivated
+			 * the plugin. WP2FA::setup_redirect() consumes this flag when it fires.
+			 */
+			Settings_Utils::update_option( self::FIRST_INSTALL_PENDING_WIZARD, true );
 		}
 
 		/**

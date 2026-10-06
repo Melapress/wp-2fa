@@ -20,6 +20,7 @@ namespace WP2FA\Admin\Helpers;
 use WP2FA\WP2FA;
 use WP2FA\Utils\User_Utils;
 use WP2FA\Admin\Settings_Page;
+use WP2FA\Admin\User_Profile;
 use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\Email_Templates;
@@ -76,7 +77,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		 *
 		 * @since 3.1.1
 		 */
-		private static function check_rate_limit( string $action_key ): bool {
+		public static function check_rate_limit( string $action_key ): bool {
 			$user_id   = \get_current_user_id();
 			$cache_key = 'wp2fa_rate_limit_' . $action_key . '_' . $user_id;
 			$attempts  = (int) \get_transient( $cache_key );
@@ -187,7 +188,29 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 
 			$user_id = isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null;
 
+			if ( isset( $user_id ) && ! User_Helper::current_user_can_manage_2fa_for( $user_id ) ) {
+				\wp_send_json_error( \esc_html__( 'Access Denied.', 'wp-2fa' ) );
+			}
+
+			$target = isset( $user_id ) ? \get_userdata( $user_id ) : false;
+
+			/*
+			 * Locked out by wrong 2FA codes, not by an expired grace period: clear
+			 * that lock and nothing else. The grace-period reset below has no place
+			 * here - this user has 2FA and is only waiting out the attempt limit.
+			 */
+			if ( $target instanceof \WP_User && ! User_Helper::get_grace_period( $target ) && ! User_Helper::is_user_locked( $target ) ) {
+				\WP2FA\Authenticator\Authentication::clear_second_factor_failures( $target );
+				\add_action( 'admin_notices', array( __CLASS__, 'user_unlocked_notice' ) );
+
+				return;
+			}
+
 			if ( isset( $user_id ) ) {
+				// An expired grace period, and whatever attempt lock came with it.
+				if ( $target instanceof \WP_User ) {
+					\WP2FA\Authenticator\Authentication::clear_second_factor_failures( $target );
+				}
 
 				$grace_period             = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period' );
 				$grace_period_denominator = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user_id ), 'grace-period-denominator' );
@@ -202,7 +225,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				User_Helper::set_user_expiry_date( (string) $grace_expiry, $user_id );
 
 				// Recalculate the 2FA status based on current plugin settings.
-				$user_obj = User_Helper::get_user( $user_id );
+				// get_userdata(): the user asked about, and nothing else. This used
+				// to go through a User_Helper::get_user() that ignored its argument
+				// and recalculated whoever the helper last held.
+				$user_obj = \get_userdata( $user_id );
 				if ( $user_obj instanceof \WP_User ) {
 					User_Helper::set_user_status( $user_obj );
 				}
@@ -216,7 +242,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				*
 				* @since 2.6.0
 				*/
-				\do_action( WP_2FA_PREFIX . 'user_is_unlocked', User_Helper::get_user( $user_id ) );
+				\do_action( WP_2FA_PREFIX . 'user_is_unlocked', $user_obj );
 
 				\add_action( 'admin_notices', array( __CLASS__, 'user_unlocked_notice' ) );
 			}
@@ -247,7 +273,21 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 						} else {
 							$secret_key = Settings_Utils::get_option( 'secret_key' );
 							if ( ! empty( $secret_key ) ) {
-								File_Writer::save_secret_key( $secret_key );
+								/*
+								 * The database copy is the only other copy of the key.
+								 * It goes only once the key is confirmed on disk; this
+								 * used to delete it regardless, and a failed write then
+								 * left every TOTP seed on the site undecryptable.
+								 */
+								if ( true !== File_Writer::save_secret_key( $secret_key ) ) {
+									\wp_send_json_error(
+										new \WP_Error(
+											500,
+											\esc_html__( 'Unable to write to wp-config.php', 'wp-2fa' )
+										),
+										400
+									);
+								}
 								Settings_Utils::delete_option( 'secret_key' );
 								\wp_send_json_success(
 									\esc_html__(
@@ -311,15 +351,32 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				\wp_send_json_error( \esc_html__( 'Rate limit exceeded. Please try again later.', 'wp-2fa' ) );
 			}
 
-			// Allow admins or the user themselves.
 			$current_user_id = (int) \get_current_user_id();
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 			$request_user_id = isset( $_POST['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_POST['user_id'] ) ) ) : ( isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null );
 
-			if ( ! \current_user_can( 'manage_options' ) ) {
-				if ( null === $request_user_id || $request_user_id !== $current_user_id ) {
+			if ( null === $request_user_id || $request_user_id <= 0 ) {
+				\wp_send_json_error( 'Access Denied.' );
+			}
+
+			if ( $request_user_id === $current_user_id ) {
+				/*
+				 * Acting on yourself. can_user_remove_2fa() used to decide only
+				 * whether the Remove button was drawn; the request behind it was
+				 * accepted regardless, so a policy that forbids removal was one
+				 * hand-made POST away from not applying.
+				 *
+				 * The policy binds everyone who could not change it anyway. That is
+				 * not every holder of manage_options: on a network a site admin has
+				 * it and the policy is the network's, and with access limited only
+				 * the settings owner may change it.
+				 */
+				if ( ! Settings_Page::can_manage_settings() && ! User_Profile::can_user_remove_2fa( $current_user_id ) ) {
 					\wp_send_json_error( 'Access Denied.' );
 				}
+			} elseif ( ! User_Helper::current_user_can_manage_2fa_for( $request_user_id ) ) {
+				// Acting on someone else: never past what this admin may manage.
+				\wp_send_json_error( 'Access Denied.' );
 			}
 
 			// Verify nonce.
@@ -330,7 +387,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 			}
 
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
-			$user_id     = isset( $_POST['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_POST['user_id'] ) ) ) : ( isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null );
+			$user_id = isset( $_POST['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_POST['user_id'] ) ) ) : ( isset( $_GET['user_id'] ) ? \intval( \sanitize_text_field( \wp_unslash( $_GET['user_id'] ) ) ) : null );
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 			$admin_reset = isset( $_POST['admin_reset'] ) ? (bool) \intval( \sanitize_text_field( \wp_unslash( $_POST['admin_reset'] ) ) ) : ( isset( $_GET['admin_reset'] ) ? (bool) \intval( \sanitize_text_field( \wp_unslash( $_GET['admin_reset'] ) ) ) : false );
 
@@ -426,10 +483,16 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 					\esc_html__( 'This email was sent by the WP 2FA plugin to test the email delivery.', 'wp-2fa' )
 				);
 				if ( $email_sent ) {
-					\wp_send_json_success( esc_html__( 'Test email was successfully sent to ', 'wp-2fa' ) . '<strong>' . esc_html( $email ) . '</strong>' );
+					\wp_send_json_success(
+						sprintf(
+							/* translators: %s: the recipient email address. */
+							esc_html__( 'Test email was successfully sent to %s', 'wp-2fa' ),
+							'<strong>' . esc_html( $email ) . '</strong>'
+						)
+					);
 				}
 
-				\wp_send_json_error( \wp_sprintf( \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) );
+				\wp_send_json_error( \wp_sprintf( /* translators: %s: the link to the email deliverability guide, already wrapped in an anchor. */ \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) );
 			}
 
 			$email_templates = Settings_Page_Email::get_email_notification_definitions();
@@ -440,10 +503,17 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 
 					$email_sent = Settings_Page::send_email( $email, $subject, $message );
 					if ( $email_sent ) {
-						\wp_send_json_success( esc_html__( 'Test email ', 'wp-2fa' ) . '<strong>' . \esc_html( $email_template->get_title() ) . '</strong>' . esc_html__( ' was successfully sent to ', 'wp-2fa' ) . '<strong>' . \esc_html( $email ) . '</strong>' );
+						\wp_send_json_success(
+							sprintf(
+							/* translators: %1$s: the email template name; %2$s: the recipient email address. */
+								\esc_html__( 'Test email %1$s was successfully sent to %2$s', 'wp-2fa' ),
+								'<strong>' . \esc_html( $email_template->get_title() ) . '</strong>',
+								'<strong>' . \esc_html( $email ) . '</strong>'
+							)
+						);
 					}
 
-					\wp_send_json_error( \wp_sprintf( \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) );
+					\wp_send_json_error( \wp_sprintf( /* translators: %s: the link to the email deliverability guide, already wrapped in an anchor. */ \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) );
 				}
 			}
 		}
@@ -525,7 +595,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 				 */
 				\do_action( 'wp_logout', $user_id );
 
-				\wp_send_json_success( esc_html__( 'User successfully logged out! ', 'wp-2fa' ) );
+				\wp_send_json_success( esc_html__( 'User successfully logged out!', 'wp-2fa' ) );
 			}
 
 			\wp_send_json_error( esc_html__( 'Failed - wrong credentials.', 'wp-2fa' ) );

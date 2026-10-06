@@ -70,7 +70,7 @@ if ( ! class_exists( '\WP2FA\Utils\User_Utils' ) ) {
 
 			$enforcement_policy  = Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'enforcement-policy' );
 			$no_enforced_methods = false;
-			if ( 'do-not-enforce' === $enforcement_policy || ( 'all-users' !== $enforcement_policy && ! User_Helper::is_user_enforced( $user ) && ! $is_user_excluded ) ) {
+			if ( 'do-not-enforce' === $enforcement_policy || ( 'all-users' !== $enforcement_policy && ! User_Helper::policy_requires_2fa_for_user( $user ) && ! $is_user_excluded ) ) {
 				/**
 				 * Filter that gives methods ability to make themselves enforced even the global enforcement is off.
 				 *

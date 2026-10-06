@@ -1,66 +1,17 @@
 {
     "packages": [
         {
-            "name": "arcturial\/clickatell",
-            "version": "3.0.0",
-            "version_normalized": "3.0.0.0",
-            "source": {
-                "type": "git",
-                "url": "https:\/\/github.com\/arcturial\/clickatell.git",
-                "reference": "541ab55c3a807374fe727aad57004c09887080cf"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/arcturial\/clickatell\/zipball\/541ab55c3a807374fe727aad57004c09887080cf",
-                "reference": "541ab55c3a807374fe727aad57004c09887080cf",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3"
-            },
-            "require-dev": {
-                "phpunit\/phpunit": "4.3.*"
-            },
-            "time": "2017-03-10T09:48:13+00:00",
-            "type": "library",
-            "installation-source": "dist",
-            "autoload": {
-                "psr-4": {
-                    "WP2FA_Vendor\\Clickatell\\": [
-                        "src",
-                        "test"
-                    ]
-                }
-            },
-            "notification-url": "https:\/\/packagist.org\/downloads\/",
-            "license": [
-                "GNU General Public License"
-            ],
-            "authors": [
-                {
-                    "name": "Chris Brand"
-                }
-            ],
-            "description": "Standalone PHP library to integrate with the Clickatell SMS gateway",
-            "homepage": "https:\/\/arcturial.github.com",
-            "support": {
-                "issues": "https:\/\/github.com\/arcturial\/clickatell\/issues",
-                "source": "https:\/\/github.com\/arcturial\/clickatell\/tree\/3.0.0"
-            },
-            "install-path": "..\/arcturial\/clickatell"
-        },
-        {
-            "name": "freemius\/wordpress-sdk",
+            "name": "freemius/wordpress-sdk",
             "version": "2.13.4",
             "version_normalized": "2.13.4.0",
             "source": {
                 "type": "git",
-                "url": "https:\/\/github.com\/Freemius\/wordpress-sdk.git",
+                "url": "https://github.com/Freemius/wordpress-sdk.git",
                 "reference": "fa43eb92ae9dffa0d9f5ae11b5a1739bd7222308"
             },
             "dist": {
                 "type": "zip",
-                "url": "https:\/\/api.github.com\/repos\/Freemius\/wordpress-sdk\/zipball\/fa43eb92ae9dffa0d9f5ae11b5a1739bd7222308",
+                "url": "https://api.github.com/repos/Freemius/wordpress-sdk/zipball/fa43eb92ae9dffa0d9f5ae11b5a1739bd7222308",
                 "reference": "fa43eb92ae9dffa0d9f5ae11b5a1739bd7222308",
                 "shasum": ""
             },
@@ -68,13 +19,13 @@
                 "php": ">=5.6"
             },
             "require-dev": {
-                "dealerdirect\/phpcodesniffer-composer-installer": "^1.0",
-                "phpcompatibility\/php-compatibility": "^9.3",
-                "phpcompatibility\/phpcompatibility-wp": "^2.1",
-                "phpstan\/extension-installer": "^1.3",
-                "squizlabs\/php_codesniffer": "^3.7",
-                "szepeviktor\/phpstan-wordpress": "^1.3",
-                "wp-coding-standards\/wpcs": "^2.3"
+                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+                "phpcompatibility/php-compatibility": "^9.3",
+                "phpcompatibility/phpcompatibility-wp": "^2.1",
+                "phpstan/extension-installer": "^1.3",
+                "squizlabs/php_codesniffer": "^3.7",
+                "szepeviktor/phpstan-wordpress": "^1.3",
+                "wp-coding-standards/wpcs": "^2.3"
             },
             "time": "2026-07-09T08:50:52+00:00",
             "type": "library",
@@ -84,12 +35,12 @@
                     "start.php"
                 ]
             },
-            "notification-url": "https:\/\/packagist.org\/downloads\/",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "GPL-3.0-only"
             ],
             "description": "Freemius WordPress SDK",
-            "homepage": "https:\/\/freemius.com",
+            "homepage": "https://freemius.com",
             "keywords": [
                 "freemius",
                 "plugin",
@@ -100,10 +51,10 @@
                 "wordpress-theme"
             ],
             "support": {
-                "issues": "https:\/\/github.com\/Freemius\/wordpress-sdk\/issues",
-                "source": "https:\/\/github.com\/Freemius\/wordpress-sdk\/tree\/2.13.4"
+                "issues": "https://github.com/Freemius/wordpress-sdk/issues",
+                "source": "https://github.com/Freemius/wordpress-sdk/tree/2.13.4"
             },
-            "install-path": "..\/freemius\/wordpress-sdk"
+            "install-path": "../freemius/wordpress-sdk"
         }
     ],
     "dev": false,

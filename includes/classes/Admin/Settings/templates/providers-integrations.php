@@ -52,7 +52,7 @@ use WP2FA\Admin\Settings_Builder;
 			<?php
 			foreach ( $integration_providers as $provider_key => $provider ) {
 				?>
-					<div class="provider-item">
+					<div class="provider-item" data-provider="<?php echo \esc_attr( (string) $provider_key ); ?>">
 						<div class="provider-summary" onclick="toggleProvider(this)">
 							<span class="provider-name"><?php echo esc_html( $provider['provider_name'] ); ?></span>
 							<span class="provider-arrow" aria-hidden="true"></span>

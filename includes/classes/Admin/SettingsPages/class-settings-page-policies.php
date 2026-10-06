@@ -110,7 +110,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 						} else {
 							$action = 'options.php';
 						}
-						if (! isset($_REQUEST['tab']) || isset($_REQUEST['tab']) && 'wp-2fa-settings' === $_REQUEST['tab']) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+						if ( ! isset( $_REQUEST['tab'] ) || isset( $_REQUEST['tab'] ) && 'wp-2fa-settings' === $_REQUEST['tab'] ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 							?>
 						<br/>
 							<?php
@@ -186,7 +186,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					$new_page_modal_content .= '<p>' . \esc_html__( 'You can edit this page using the page editor, like you do with all other pages.', 'wp-2fa' );
 					$new_page_modal_content .= '</p>';
 					$new_page_modal_content .= sprintf(
-					/* translators: %s: tag name. */
+					/* translators: %s: {2fa_settings_page_url}. */
 						\esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ),
 						'<strong>{2fa_settings_page_url}</strong>'
 					);
@@ -205,6 +205,27 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				}
 			}
 		}
+		/**
+		 * A list of user logins, from either shape the setting has been stored in.
+		 *
+		 * @param mixed $value An array of logins, a comma separated string, or empty.
+		 *
+		 * @return string[]
+		 *
+		 * @since 4.2.0
+		 */
+		private static function login_list( $value ): array {
+			if ( \is_string( $value ) ) {
+				$value = explode( ',', $value );
+			}
+
+			if ( ! \is_array( $value ) ) {
+				return array();
+			}
+
+			return array_values( array_filter( array_map( 'trim', array_map( 'strval', $value ) ), 'strlen' ) );
+		}
+
 
 		/**
 		 * Validate options before saving.
@@ -226,8 +247,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			\do_action( WP_2FA_PREFIX . 'change_referer' );
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
+			if ( ! Settings_Page::can_manage_settings() ) {
+				return Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME, array() );
 			}
 
 			// When called via options.php (no AJAX action), verify our own nonce.
@@ -263,7 +284,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			$simple_settings_we_can_loop = array(
 				'grace-policy',
 				'enable_destroy_session',
-				'2fa_settings_last_updated_by',
 				'limit_access',
 				'hide_remove_button',
 				'redirect-user-custom-page',
@@ -306,6 +326,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 				}
 			}
 
+			// Ownership is server controlled. A posted field must never transfer it.
+			$owner = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
+			$output['2fa_settings_last_updated_by'] = $owner ?: \get_current_user_id();
+
 			if ( $no_method_enabled ) {
 				/**
 				 * No methods are enabled - return the previous selection. Gives the ability for external providers to set the default values.
@@ -319,6 +343,19 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			$output['included_sites'] = array();
 			if ( WP_Helper::is_multisite() ) {
+				/*
+				 * A <select multiple> posts an array; the vanilla multi-select posts one
+				 * comma-separated hidden input. Normalise before the checks below, or a string
+				 * falls past the is_array() guard into the elseif and the site list is wiped
+				 * while the screen reports "You must specify at least one sub-site".
+				 */
+				if ( isset( $input['included_sites'] ) && ! is_array( $input['included_sites'] ) ) {
+					$input['included_sites'] = array_filter(
+						array_map( 'trim', explode( ',', (string) $input['included_sites'] ) ),
+						'strlen'
+					);
+				}
+
 				if ( isset( $input['included_sites'] ) && is_array( $input['included_sites'] ) && ! empty( $input['included_sites'] ) ) {
 					foreach ( $input['included_sites'] as &$site ) {
 						if ( ! filter_var( $site, FILTER_VALIDATE_INT ) ) {
@@ -343,11 +380,27 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			}
 
 			foreach ( $settings_to_turn_into_array as $setting ) {
-				if ( isset( $input[ $setting ] ) ) {
-					$output[ $setting ] = $input[ $setting ];
-				} else {
+				if ( ! isset( $input[ $setting ] ) ) {
 					$output[ $setting ] = array();
+					continue;
 				}
+
+				/*
+				 * These arrive as an array while the field is a <select multiple>, and as one
+				 * comma-separated string from the vanilla multi-select, which posts a single
+				 * hidden input. Both have to end up as a list of values: everything
+				 * downstream — is_excluded(), the enforcement queries, the migration in
+				 * class-migration.php — reads these as arrays, and storing the raw string
+				 * instead turns "admin,editor" into a single value that matches nobody,
+				 * silently, with the settings screen still showing the right names.
+				 */
+				$values = is_array( $input[ $setting ] )
+					? $input[ $setting ]
+					: explode( ',', (string) $input[ $setting ] );
+
+				$values = array_map( 'sanitize_text_field', array_map( 'trim', $values ) );
+
+				$output[ $setting ] = array_values( array_filter( $values, 'strlen' ) );
 			}
 
 			if ( isset( $input['grace-period'] ) ) {
@@ -429,7 +482,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					$output['custom-user-page-id']         = '';
 					$output['separate-multisite-page-url'] = '';
 					$output['hide_page_generated_by']      = '';
-					$cp_id = (int) WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
+					$cp_id                                 = (int) WP2FA::get_wp2fa_setting( 'custom-user-page-id' );
 					if ( $cp_id > 0 && ! is_null( get_post( $cp_id ) ) ) {
 						\wp_delete_post( $cp_id, true );
 					}
@@ -477,31 +530,26 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 					$output['enforcement-policy'] = 'do-not-enforce';
 				}
 
-				// If any users are being excluded, delete any wp 2fa data.
-				if ( isset( $output['excluded_users'] ) &&
-				! empty( array_diff( (array) WP2FA::get_wp2fa_setting( 'excluded_users' ), (array) $output['excluded_users'] ) ) ) {
-					// Wipe user 2fa data.
-					$user_array = $output['excluded_users'];
-					foreach ( $user_array as $user ) {
-						if ( ! empty( $user ) ) {
-							$user_to_wipe = get_user_by( 'login', $user );
-							global $wpdb;
-							// @codingStandardsIgnoreStart
-							$wpdb->query(
-								$wpdb->prepare(
-									"
-								DELETE FROM $wpdb->usermeta
-								WHERE user_id = %d
-								AND meta_key LIKE %s
-								",
-									array(
-										$user_to_wipe->ID,
-										'wp_2fa_%',
-									)
-								)
-							);
-							// @codingStandardsIgnoreEnd
-						}
+				/*
+				 * Users newly added to the exclusion list lose their 2FA data.
+				 *
+				 * This used to test array_diff( old, new ) - the users taken OFF the
+				 * list - and then wipe everyone still ON it: removing Bob from
+				 * [alice, bob] wiped Alice, and adding someone wiped nobody. It
+				 * also read ->ID from a failed lookup, and deleted with an
+				 * unescaped LIKE 'wp_2fa_%'. The newly excluded are wiped now,
+				 * through the same routine every other removal uses.
+				 */
+				$newly_excluded = array_diff(
+					self::login_list( $output['excluded_users'] ?? array() ),
+					self::login_list( WP2FA::get_wp2fa_setting( 'excluded_users' ) )
+				);
+
+				foreach ( $newly_excluded as $login ) {
+					$user_to_wipe = \get_user_by( 'login', $login );
+
+					if ( $user_to_wipe instanceof \WP_User ) {
+						User_Helper::remove_2fa_for_user( $user_to_wipe );
 					}
 				}
 			}
@@ -578,7 +626,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 
 			if ( isset( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) {
 				check_admin_referer( 'wp_2fa_policy-options' );
-				$options = self::validate_and_sanitize(wp_unslash($_POST[WP_2FA_POLICY_SETTINGS_NAME])); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$options         = self::validate_and_sanitize( wp_unslash( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$settings_errors = get_settings_errors( WP_2FA_POLICY_SETTINGS_NAME );
 				if ( ! empty( $settings_errors ) ) {
 					Settings_Page::set_network_admin_notice( 'error', $settings_errors[0]['message'] );
@@ -717,7 +765,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 			ob_start();
 			$create_page = WP2FA::get_wp2fa_setting( 'create-custom-user-page' );
 			?>
-			<h3><?php \esc_html_e( 'Can users access the WordPress dashboard or you have custom profile pages? ', 'wp-2fa' ); ?></h3>
+			<h3><?php \esc_html_e( 'Can users access the WordPress dashboard or you have custom profile pages?', 'wp-2fa' ); ?></h3>
 			<p class="description">
 				<?php \esc_html_e( 'If your users do not have access to the WordPress dashboard (because you use custom user profile pages) enable this option. Once enabled, the plugin creates a page which ONLY authenticated users can access to configure their user 2FA settings. A link to this page is sent in the 2FA welcome email.', 'wp-2fa' ); ?></a>
 			</p>
@@ -1002,4 +1050,3 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies' ) ) {
 		}
 	}
 }
-

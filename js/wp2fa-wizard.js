@@ -654,6 +654,48 @@
 	}
 
 	/**
+	 * The label for a method's own action button.
+	 *
+	 * Only the method the user already has set up is being re-done; every other one is being
+	 * set up for the first time, whatever else is on screen.
+	 *
+	 * @param {string} methodId - The method ID.
+	 * @return {string}
+	 */
+	function getMethodActionLabel( methodId ) {
+		var isCurrent = ( wp2faWizardData.currentMethod || '' ) === methodId;
+
+		return isCurrent
+			? ( wp2faWizardData.i18n.reconfigureCapitalized || 'Reconfigure' )
+			: ( wp2faWizardData.i18n.configureCapitalized || 'Configure' );
+	}
+
+	/**
+	 * The method the Continue button acts on.
+	 *
+	 * Continue re-does the method already in use, so it does not follow whichever row was
+	 * pressed last: coming back to this step after opening one method must not leave Continue
+	 * pointing at that one.
+	 *
+	 * @return {string|null}
+	 */
+	function getDefaultMethodId() {
+		var current = wp2faWizardData.currentMethod || '';
+
+		if ( current && ! isMethodUnavailable( current ) && getMethodById( current ) ) {
+			return current;
+		}
+
+		for ( var i = 0; i < state.methods.length; i++ ) {
+			if ( ! isMethodUnavailable( state.methods[ i ].id ) ) {
+				return state.methods[ i ].id;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Check if a method is marked as unavailable.
 	 *
 	 * @param {string} methodId - The method ID.
@@ -680,17 +722,15 @@
 		var list = document.createElement( 'ul' );
 		list.className = 'wp2fa-wizard-methods-list';
 		list.id = 'wp2fa-wizard-methods-list';
-		list.setAttribute( 'role', 'radiogroup' );
+		list.setAttribute( 'role', 'list' );
 
-		state.methods.forEach( function ( method, index ) {
-			var checked = false;
-			if ( index === 0 && ! state.selectedMethod ) {
-				checked = true;
-				state.selectedMethod = method.id;
-			} else if ( state.selectedMethod === method.id ) {
-				checked = true;
-			}
+		/*
+		 * Each row carries its own button now, so there is nothing to pre-select. What is still
+		 * tracked is the method Continue acts on, which is the one already in use.
+		 */
+		state.selectedMethod = getDefaultMethodId();
 
+		state.methods.forEach( function ( method ) {
 			var hints = wp2faWizardData.methodHints || {};
 			var description = method.description || '';
 			var unavailable = false;
@@ -700,11 +740,6 @@
 				if ( isMethodUnavailable( method.id ) ) {
 					unavailable = true;
 					description = getReconfigureIntroUnavailable( method.id ) || description;
-					// Do not pre-select unavailable methods.
-					if ( checked && state.selectedMethod === method.id ) {
-						checked = false;
-						state.selectedMethod = null;
-					}
 				} else {
 					var reconfigureText = getReconfigureIntro( method.id );
 					if ( reconfigureText ) {
@@ -718,32 +753,28 @@
 				name: method.name,
 				description: description,
 				hint: hints[ method.id ] || '',
-				checked: checked,
+				actionLabel: getMethodActionLabel( method.id ),
 				unavailable: unavailable
 			} );
 		} );
 
-		// If no method is selected (e.g. all pre-selected were unavailable), pick first available.
-		if ( ! state.selectedMethod ) {
-			for ( var i = 0; i < state.methods.length; i++ ) {
-				if ( ! isMethodUnavailable( state.methods[ i ].id ) ) {
-					state.selectedMethod = state.methods[ i ].id;
-					var radioToCheck = list.querySelector( '#wp2fa-wizard-method-' + state.methods[ i ].id );
-					if ( radioToCheck ) {
-						radioToCheck.checked = true;
-					}
-					break;
-				}
-			}
-		}
+		// A method's own button takes the user straight into configuring that method.
+		var actions = list.querySelectorAll( '.wp2fa-wizard-method-action' );
+		actions.forEach( function ( button ) {
+			button.addEventListener( 'click', function ( e ) {
+				e.preventDefault();
 
-		// Attach radio change listeners.
-		var radios = list.querySelectorAll( '.wp2fa-wizard-method-radio' );
-		radios.forEach( function ( radio ) {
-			radio.addEventListener( 'change', function () {
-				state.selectedMethod = this.value;
-				hooks.doAction( 'wp2fa_wizard_method_selected', this.value );
-				updateFooterButtons();
+				var methodId = this.getAttribute( 'data-method-id' );
+
+				if ( ! methodId || isMethodUnavailable( methodId ) ) {
+					return;
+				}
+
+				state.selectedMethod = methodId;
+				hooks.doAction( 'wp2fa_wizard_method_selected', methodId );
+				hooks.doAction( 'wp2fa_wizard_before_proceed', 'select-method', 'configure-method' );
+				renderMethodConfigureStep();
+				hooks.doAction( 'wp2fa_wizard_after_proceed', 'configure-method' );
 			} );
 		} );
 
@@ -821,6 +852,18 @@
 		footer.innerHTML = '';
 
 		if ( step === 'select-method' ) {
+			/*
+			 * Nothing belongs in the footer while the selection is the first thing the user
+			 * sees. Every row carries its own button, so Continue only ever repeated the
+			 * method already in use, and Go back had no earlier step to return to — it closed
+			 * the wizard, which the X in the header already does. Left empty, the footer
+			 * collapses: .wp2fa-setup-wizard-footer:empty is display:none, so its top border
+			 * and padding go with it.
+			 */
+			if ( ! hasWelcomeStep() ) {
+				return;
+			}
+
 			var selectFooterTmpl = wp.template( 'wp2fa-wizard-select-footer' );
 			var canProceed = hooks.applyFilters( 'wp2fa_wizard_can_proceed', !! state.selectedMethod, 'select-method' );
 
@@ -841,9 +884,17 @@
 			} );
 
 			footer.querySelector( '#wp2fa-wizard-btn-continue' ).addEventListener( 'click', function () {
-				if ( ! state.selectedMethod ) {
+				var methodId = getDefaultMethodId();
+
+				if ( ! methodId ) {
 					return;
 				}
+
+				if ( methodId !== state.selectedMethod ) {
+					state.selectedMethod = methodId;
+					hooks.doAction( 'wp2fa_wizard_method_selected', methodId );
+				}
+
 				hooks.doAction( 'wp2fa_wizard_before_proceed', 'select-method', 'configure-method' );
 				renderMethodConfigureStep();
 				hooks.doAction( 'wp2fa_wizard_after_proceed', 'configure-method' );

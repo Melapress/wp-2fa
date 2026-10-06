@@ -205,7 +205,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 			 */
 			$close_div = '';
 
-			$qr_code                = '<img class="qr-code" src="' . ( TOTP::get_qr_code() ) . '" id="wp-2fa-totp-qrcode" />';
+			$qr_code                = '<img class="qr-code" src="' . ( TOTP::get_qr_code( TOTP::get_setup_key() ) ) . '" id="wp-2fa-totp-qrcode" />';
 			$open30_wrapper         = '
 				<div class="mb-30 clear-both">
 				';
@@ -245,7 +245,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 							</li>
 							<li><?php echo \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_help_totp_step_2', true ) ); ?>
 								<div class="app-key-wrapper">
-									<input type="text" id="app-key-input" readonly value="<?php echo \esc_html( TOTP::get_totp_decrypted() ); ?>" class="app-key">
+									<input type="text" id="app-key-input" readonly value="<?php echo \esc_html( TOTP::get_setup_key_decrypted() ); ?>" class="app-key">
 									<?php
 									if ( is_ssl() ) {
 										?>
@@ -296,7 +296,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 						</label>
 						<div class="verification-response"></div>
 					</fieldset>
-					<input type="hidden" name="wp-2fa-totp-key" value="<?php echo \esc_attr( TOTP::get_totp_decrypted() ); ?>" />
+					<input type="hidden" name="wp-2fa-totp-key" value="<?php echo \esc_attr( TOTP::get_setup_key_decrypted() ); ?>" />
 					
 					<a href="#" class="modal__btn button button-primary wp-2fa-button-primary" data-validate-authcode-ajax <?php echo WP_Helper::create_data_nonce( 'wp-2fa-validate-authcode' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php \esc_html_e( 'Validate & Save', 'wp-2fa' ); ?></a>
 					<button class="modal__btn wp-2fa-button-secondary button button-secondary wp-2fa-button-secondary" data-close-2fa-modal aria-label="Close this dialog window"><?php \esc_html_e( 'Cancel', 'wp-2fa' ); ?></button>
@@ -342,12 +342,25 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\TOTP_Wizard_Steps' ) ) {
 			}
 
 			\ob_start();
-			if ( ! \class_exists( \XMLWriter::class ) ) {
+			if ( ! Authentication::can_render_qr_code() ) {
 				TOTP::disable_globally();
 				?>
 				<div id="<?php echo \esc_attr( TOTP::METHOD_NAME ); ?>-method-wrapper" class="method-wrapper">
 					<?php
-					\esc_html_e( 'Setting up TOTP (one-time codes via an authenticator app) requires the libxml PHP extension to generate the QR code. Please contact your hosting provider and ask them to enable it on your server.', 'wp-2fa' );
+					$missing_extensions = Authentication::missing_qr_requirements();
+
+					\printf(
+						\esc_html(
+							/* translators: %s: comma separated list of PHP extension names. */
+							\_n(
+								'Setting up TOTP (one-time codes via an authenticator app) needs the following PHP extension to draw the QR code, and this server does not have it: %s. Please ask your hosting provider to enable it.',
+								'Setting up TOTP (one-time codes via an authenticator app) needs the following PHP extensions to draw the QR code, and this server does not have them: %s. Please ask your hosting provider to enable them.',
+								\count( $missing_extensions ),
+								'wp-2fa'
+							)
+						),
+						\esc_html( \implode( ', ', $missing_extensions ) )
+					);
 
 					?>
 				</div>
