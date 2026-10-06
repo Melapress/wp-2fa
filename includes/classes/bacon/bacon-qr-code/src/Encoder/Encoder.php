@@ -246,7 +246,13 @@ final class Encoder
      */
     private static function isOnlyDoubleByteKanji(string $content) : bool
     {
-        $bytes = @\iconv('utf-8', 'SHIFT-JIS', $content);
+        if (\function_exists('iconv')) {
+            $bytes = @\iconv('utf-8', 'SHIFT-JIS', $content);
+        } elseif (\function_exists('mb_convert_encoding')) {
+            $bytes = @\mb_convert_encoding($content, 'SHIFT-JIS', 'UTF-8');
+        } else {
+            return \false;
+        }
         if (\false === $bytes) {
             return \false;
         }
@@ -552,7 +558,13 @@ final class Encoder
      */
     private static function append8BitBytes(string $content, BitArray $bits, string $encoding) : void
     {
-        $bytes = @\iconv('utf-8', $encoding, $content);
+        if (\function_exists('iconv')) {
+            $bytes = @\iconv('utf-8', $encoding, $content);
+        } elseif (\function_exists('mb_convert_encoding')) {
+            $bytes = @\mb_convert_encoding($content, $encoding, 'UTF-8');
+        } else {
+            throw new WriterException('Neither iconv nor mbstring extension is available for encoding conversion');
+        }
         if (\false === $bytes) {
             throw new WriterException('Could not encode content to ' . $encoding);
         }

@@ -14,6 +14,7 @@ use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Re_Login_2FA;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Licensing\Licensing_Factory;
+use WP2FA\Authenticator\Reset_Password;
 
 /**
  * Default setup routine
@@ -25,24 +26,24 @@ function setup() {
 		return __NAMESPACE__ . "\\$function";
 	};
 
-	add_action( 'init', $n( 'i18n' ) );
-	add_action( 'init', $n( 'init' ) );
-	add_action( 'admin_enqueue_scripts', $n( 'register_dialog_assets' ), 5 );
-	add_action( 'wp_enqueue_scripts', $n( 'register_dialog_assets' ), 5 );
-	add_action( 'login_enqueue_scripts', $n( 'register_dialog_assets' ), 5 );
-	add_action( 'admin_enqueue_scripts', $n( 'admin_scripts' ) );
-	add_action( 'admin_enqueue_scripts', $n( 'admin_styles' ) );
-	add_action( 'admin_head', $n( 'admin_menu_icon_css' ) );
+	\add_action( 'init', $n( 'i18n' ) );
+	\add_action( 'init', $n( 'init' ) );
+	\add_action( 'admin_enqueue_scripts', $n( 'register_dialog_assets' ), 5 );
+	\add_action( 'wp_enqueue_scripts', $n( 'register_dialog_assets' ), 5 );
+	\add_action( 'login_enqueue_scripts', $n( 'register_dialog_assets' ), 5 );
+	\add_action( 'admin_enqueue_scripts', $n( 'admin_scripts' ) );
+	\add_action( 'admin_enqueue_scripts', $n( 'admin_styles' ) );
+	\add_action( 'admin_head', $n( 'admin_menu_icon_css' ) );
 
 	// Hook to allow async or defer on asset loading.
-	add_filter( 'script_loader_tag', $n( 'script_loader_tag' ), 10, 2 );
+	\add_filter( 'script_loader_tag', $n( 'script_loader_tag' ), 10, 2 );
 
 	/**
 	 * Fires after the plugin is loaded.
 	 *
 	 * @since 2.0.0
 	 */
-	do_action( WP_2FA_PREFIX . 'loaded' );
+	\do_action( WP_2FA_PREFIX . 'loaded' );
 }
 
 /**
@@ -75,9 +76,9 @@ function register_dialog_assets() {
  * @return void
  */
 function i18n() {
-	$locale = apply_filters( 'plugin_locale', determine_locale(), 'wp-2fa' );
-	load_textdomain( 'wp-2fa', WP_LANG_DIR . '/wp-2fa/wp-2fa-' . $locale . '.mo' );
-	load_plugin_textdomain( 'wp-2fa', false, plugin_basename( WP_2FA_PATH ) . '/languages/' );
+	$locale = \apply_filters( 'plugin_locale', \determine_locale(), 'wp-2fa' );
+	\load_textdomain( 'wp-2fa', WP_LANG_DIR . '/wp-2fa/wp-2fa-' . $locale . '.mo' );
+	\load_plugin_textdomain( 'wp-2fa', false, plugin_basename( WP_2FA_PATH ) . '/languages/' );
 }
 
 /**
@@ -92,7 +93,7 @@ function init() {
 	 *
 	 * @since 2.0.0
 	 */
-	do_action( WP_2FA_PREFIX . 'init' );
+	\do_action( WP_2FA_PREFIX . 'init' );
 }
 
 /**
@@ -123,53 +124,225 @@ function activate() {
  * @return void
  */
 function deactivate() {
+	\wp_clear_scheduled_hook( 'wp_2fa_report_cleanup' );
+	\wp_clear_scheduled_hook( 'wp_2fa_debug_log_cleanup' );
+	\wp_clear_scheduled_hook( Reset_Password::QUOTA_CLEANUP_HOOK );
 }
 
 /**
- * Uninstall the plugin
+ * Determine whether the current request is a genuine plugin uninstall.
+ *
+ * Three different uninstall paths have to be recognised, because the
+ * plugin does not ship an uninstall.php file:
+ *
+ * 1. WordPress fires `uninstall_{basename}` for callbacks registered
+ *    through register_uninstall_hook(). It does NOT define
+ *    WP_UNINSTALL_PLUGIN on that path.
+ * 2. Freemius runs its own `after_uninstall` action from inside that
+ *    same `uninstall_{basename}` action, and defines
+ *    WP_FS__UNINSTALL_MODE before doing so.
+ * 3. WP_UNINSTALL_PLUGIN is kept as a safety net for any host or tool
+ *    that still drives an uninstall.php style flow.
+ *
+ * @return bool $is_uninstalling - True when the plugin is being uninstalled.
+ *
+ * @since 4.2.0
+ */
+function is_uninstalling(): bool {
+	if ( defined( 'WP_UNINSTALL_PLUGIN' ) || defined( 'WP_FS__UNINSTALL_MODE' ) ) {
+		return true;
+	}
+
+	if ( defined( 'WP_2FA_BASE' ) && \doing_action( 'uninstall_' . WP_2FA_BASE ) ) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Uninstall entry point for the plugin.
+ *
+ * Freemius does not allow an uninstall.php file in the plugin folder, so
+ * this function is the single named callback that both the Freemius
+ * `after_uninstall` action and our own register_uninstall_hook() point at.
+ *
+ * License data is ALWAYS cleared regardless of the "Delete data upon
+ * uninstall" setting, because keeping a remote activation slot occupied on
+ * a site where the plugin no longer exists is not useful. The setting only
+ * governs plugin operational data (settings, policies, user meta).
  *
  * @return void
+ *
+ * @since 4.2.0
  */
 function uninstall() {
-	WP2FA::init();
-	if ( ! empty( WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
-		// Delete settings from wp_options.
-		global $wpdb;
-		if ( WP_Helper::is_multisite() ) {
-			$network_id = get_current_network_id();
-			$wpdb->query(
-				$wpdb->prepare(
-					"
-					DELETE FROM $wpdb->sitemeta
-					WHERE meta_key LIKE %s
-					AND site_id = %d
-					",
-					'%wp_2fa_%',
-					$network_id
-				)
-			);
-		} else {
-			$wpdb->query(
-				$wpdb->prepare(
-					"
-					DELETE FROM $wpdb->options
-					WHERE option_name LIKE %s
-					",
-					'%wp_2fa_%'
-				)
-			);
-		}
+	if ( ! is_uninstalling() ) {
+		return;
+	}
 
-		$wpdb->query(
+	/*
+	 * Core already gates the uninstall flow on `delete_plugins`, so this is a
+	 * second line rather than the only one — and it must not make
+	 * `wp plugin uninstall` a no-op, because there is no current user on the
+	 * command line.
+	 */
+	if ( ! ( defined( 'WP_CLI' ) && WP_CLI ) && ! \current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+
+
+	WP2FA::init();
+	\wp_clear_scheduled_hook( Reset_Password::QUOTA_CLEANUP_HOOK );
+	if ( ! empty( WP2FA::get_wp2fa_general_setting( 'delete_data_upon_uninstall' ) ) ) {
+		delete_uninstall_data();
+
+		// Only remove the define written with this plugin's identifying
+		// comment. A custom definition is left for the site owner to manage.
+		\WP2FA\Admin\Helpers\File_Writer::remove_secret_key();
+	}
+}
+
+/**
+ * Delete WP 2FA operational rows during an opted-in uninstall.
+ *
+ * Kept separate from uninstall() so the deletion rules can be exercised
+ * inside a rollback-only database transaction without touching wp-config.php.
+ * Call only after the uninstall permission and setting checks.
+ *
+ * @return void
+ *
+ * @since 4.2.0
+ */
+function delete_uninstall_data(): void {
+	/*
+	 * Our data, and only ours.
+	 *
+	 * The option pattern used to be '%wp_2fa_%': unescaped, so each _ matched
+	 * any character, and with a leading wildcard, so it reached into other
+	 * plugins' options. The user meta pattern was WP_2FA_PREFIX . 'wp_2fa_%',
+	 * i.e. wp_2fa_wp_2fa_%, which matches no key at all - encrypted TOTP seeds
+	 * and backup code hashes survived an uninstall the site owner had asked
+	 * to remove everything.
+	 *
+	 * Core keeps the site's role definitions in {$table_prefix}user_roles and
+	 * each user's roles in {$table_prefix}capabilities / user_level. On a site
+	 * whose table prefix starts wp_2fa_ those share our prefix, and deleting
+	 * them strips every user of their role - so they are excluded by suffix,
+	 * which no key of ours ever ends in.
+	 */
+	global $wpdb;
+
+	$ours       = $wpdb->esc_like( WP_2FA_PREFIX ) . '%';
+	$transients = array(
+		$wpdb->esc_like( '_transient_' . WP_2FA_PREFIX ) . '%',
+		$wpdb->esc_like( '_transient_timeout_' . WP_2FA_PREFIX ) . '%',
+		$wpdb->esc_like( '_site_transient_' . WP_2FA_PREFIX ) . '%',
+		$wpdb->esc_like( '_site_transient_timeout_' . WP_2FA_PREFIX ) . '%',
+	);
+
+	/*
+	 * The EDD licence keeps its own prefix: the key, its status and data, the
+	 * last valid check, the network activations and their progress. Without
+	 * these the stored licence key outlived an uninstall asked to remove
+	 * everything. EDD's shared edd_sl_* request cache is not ours alone - other
+	 * EDD-licensed plugins use it too - and is left to expire.
+	 */
+	$licence = array(
+		'option'                 => $wpdb->esc_like( 'wp2fa_edd_' ) . '%',
+		'transient'              => $wpdb->esc_like( '_transient_wp2fa_edd_' ) . '%',
+		'transient_timeout'      => $wpdb->esc_like( '_transient_timeout_wp2fa_edd_' ) . '%',
+		'site_transient'         => $wpdb->esc_like( '_site_transient_wp2fa_edd_' ) . '%',
+		'site_transient_timeout' => $wpdb->esc_like( '_site_transient_timeout_wp2fa_edd_' ) . '%',
+	);
+
+	if ( WP_Helper::is_multisite() ) {
+		$network_id = get_current_network_id();
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
 				"
-				DELETE FROM $wpdb->usermeta
-				WHERE meta_key LIKE %s
+				DELETE FROM $wpdb->sitemeta
+				WHERE site_id = %d
+				AND ( meta_key LIKE %s OR meta_key LIKE %s OR meta_key LIKE %s
+					OR meta_key LIKE %s OR meta_key LIKE %s OR meta_key LIKE %s )
 				",
-				WP_2FA_PREFIX . 'wp_2fa_%'
+				$network_id,
+				$ours,
+				$transients[2],
+				$transients[3],
+				$licence['option'],
+				$licence['site_transient'],
+				$licence['site_transient_timeout']
+			)
+		);
+
+		/*
+		 * Two things are kept in the main site's options table rather than in
+		 * network meta, because they rely on its unique option_name index to
+		 * count attempts atomically across requests: the second-factor attempt
+		 * limiter (Login_Attempts) and the password-reset quota and
+		 * transactions (Reset_Password). The branch above never reached that
+		 * table, so these rows outlived an uninstall asked to remove everything.
+		 *
+		 * The EDD licence is kept there on a network too.
+		 *
+		 * Their exact prefixes only - the rest of that table is the main site's
+		 * own, core's role definitions included.
+		 */
+		$main_site_options = $wpdb->get_blog_prefix( get_main_site_id() ) . 'options';
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"DELETE FROM $main_site_options WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted table name.
+				$wpdb->esc_like( WP_2FA_PREFIX . 'second_factor_attempts_' ) . '%',
+				$wpdb->esc_like( WP_2FA_PREFIX . 'reset_code_quota_v2_' ) . '%',
+				$licence['option'],
+				$licence['transient'],
+				$licence['transient_timeout']
+			)
+		);
+	} else {
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"
+				DELETE FROM $wpdb->options
+				WHERE ( option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s
+					OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s )
+				AND option_name NOT LIKE %s
+				",
+				$ours,
+				$transients[0],
+				$transients[1],
+				$transients[2],
+				$transients[3],
+				$licence['option'],
+				$licence['transient'],
+				$licence['transient_timeout'],
+				'%' . $wpdb->esc_like( 'user_roles' )
 			)
 		);
 	}
+
+	$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->prepare(
+			"
+			DELETE FROM $wpdb->usermeta
+			WHERE meta_key LIKE %s
+			AND meta_key NOT LIKE %s
+			AND meta_key NOT LIKE %s
+			AND meta_key NOT LIKE %s
+			AND meta_key NOT LIKE %s
+			AND meta_key NOT LIKE %s
+			AND meta_key NOT LIKE %s
+			",
+			$ours,
+			'%' . $wpdb->esc_like( 'capabilities' ),
+			'%' . $wpdb->esc_like( 'user_level' ),
+			'%' . $wpdb->esc_like( 'user-settings' ),
+			'%' . $wpdb->esc_like( 'user-settings-time' ),
+			'%' . $wpdb->esc_like( 'dashboard_quick_press_last_post_id' ),
+			'%' . $wpdb->esc_like( 'persisted_preferences' )
+		)
+	);
 }
 
 /**
@@ -233,7 +406,7 @@ function admin_scripts() {
 	\wp_enqueue_script(
 		'wp_2fa_admin',
 		script_url( 'admin', 'admin' ),
-		array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'wp_2fa_micro_modals', 'select2', 'wp-i18n' ),
+		array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'wp_2fa_micro_modals', 'wp-i18n' ),
 		WP_2FA_VERSION,
 		true
 	);
@@ -246,22 +419,20 @@ function admin_scripts() {
 		true
 	);
 
-	enqueue_select2_scripts();
-
 	// Data array.
 	$data_array = array(
 		'ajaxURL'                        => \admin_url( 'admin-ajax.php' ),
 		'roles'                          => WP_Helper::get_roles_wp(),
-		'nonce'                          => wp_create_nonce( 'wp-2fa-settings-nonce' ),
-		'dismissNonce'                   => wp_create_nonce( 'wp-2fa-dismiss-nag' ),
-		'codeValidatedHeading'           => esc_html__( 'Congratulations', 'wp-2fa' ),
-		'codeValidatedText'              => esc_html__( 'Your account just got more secure', 'wp-2fa' ),
-		'codeValidatedButton'            => __( 'Close Wizard & Refresh', 'wp-2fa' ),
-		'processingText'                 => esc_html__( 'Processing Update', 'wp-2fa' ),
-		'email_sent_success'             => esc_html__( 'Email successfully sent', 'wp-2fa' ),
-		'email_sent_failure'             => esc_html__( 'Email delivery failed', 'wp-2fa' ),
-		'invalidEmail'                   => esc_html__( 'Please use a valid email address', 'wp-2fa' ),
-		'license_validation_in_progress' => esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
+		'nonce'                          => \wp_create_nonce( 'wp-2fa-settings-nonce' ),
+		'dismissNonce'                   => \wp_create_nonce( 'wp-2fa-dismiss-nag' ),
+		'codeValidatedHeading'           => \esc_html__( 'Congratulations', 'wp-2fa' ),
+		'codeValidatedText'              => \esc_html__( 'Your account just got more secure', 'wp-2fa' ),
+		'codeValidatedButton'            => \__( 'Close Wizard & Refresh', 'wp-2fa' ),
+		'processingText'                 => \esc_html__( 'Processing Update', 'wp-2fa' ),
+		'email_sent_success'             => \esc_html__( 'Email successfully sent', 'wp-2fa' ),
+		'email_sent_failure'             => \esc_html__( 'Email delivery failed', 'wp-2fa' ),
+		'invalidEmail'                   => \esc_html__( 'Please use a valid email address', 'wp-2fa' ),
+		'license_validation_in_progress' => \esc_html__( 'Validating your license, please wait...', 'wp-2fa' ),
 	);
 	wp_localize_script( 'wp_2fa_admin', 'wp2faData', $data_array );
 
@@ -269,8 +440,8 @@ function admin_scripts() {
 
 	$role = User_Helper::get_user_role();
 
-	$redirect_page = \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) );
-	$redirect_page_global = \sanitize_text_field( Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) );
+	$redirect_page                = \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) );
+	$redirect_page_global         = \sanitize_text_field( Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) );
 	$redirect_page_global_setting = \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page-global' ) );
 
 	// Priority: role-specific redirect-user-custom-page > global redirect-user-custom-page > redirect-user-custom-page-global > empty.
@@ -286,11 +457,11 @@ function admin_scripts() {
 
 	$data_array = array(
 		'ajaxURL'         => \admin_url( 'admin-ajax.php' ),
-		'nonce'           => wp_create_nonce( 'wp2fa-verify-wizard-page' ),
-		'codesPreamble'   => esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
-		'readyText'       => esc_html__( 'I\'m ready', 'wp-2fa' ),
-		'codeReSentText'  => esc_html__( 'New code sent', 'wp-2fa' ),
-		'backupCodesSent' => esc_html__( 'Backup codes sent', 'wp-2fa' ),
+		'nonce'           => \wp_create_nonce( 'wp2fa-verify-wizard-page' ),
+		'codesPreamble'   => \esc_html__( 'These are the 2FA backup codes for the user', 'wp-2fa' ),
+		'readyText'       => \esc_html__( 'I\'m ready', 'wp-2fa' ),
+		'codeReSentText'  => \esc_html__( 'New code sent', 'wp-2fa' ),
+		'backupCodesSent' => \esc_html__( 'Backup codes sent', 'wp-2fa' ),
 		'reLoginEnabled'  => Re_Login_2FA::ENABLED_SETTING_VALUE,
 		'reLogin'         => $re_login,
 		'loginUrl'        => \wp_login_url(),
@@ -315,7 +486,7 @@ function admin_scripts() {
 		true
 	);
 
-	$tab = ( isset( $_GET['tab'] ) ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$tab    = ( isset( $_GET['tab'] ) ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
 	wp_localize_script(
@@ -326,7 +497,7 @@ function admin_scripts() {
 			'currentPage'   => $page,
 			'currentTab'    => $tab,
 			'currentScreen' => $screen ? $screen->id : '',
-			'dismissLabel'  => esc_html__( 'Close', 'wp-2fa' ),
+			'dismissLabel'  => \esc_html__( 'Close', 'wp-2fa' ),
 			'pages'         => get_premium_badge_dialog_pages(),
 		)
 	);
@@ -347,832 +518,892 @@ function get_premium_badge_dialog_pages() {
 	$hl = '<span class="wp2fa-dialog-title-highlight">';
 
 	$default_page = array(
-		'title'         => esc_html__( 'Unlock', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium Features', 'wp-2fa' ) . '</span>',
-		'intro'         => esc_html__( 'Upgrade to WP 2FA Premium to unlock advanced authentication options and stronger security controls.', 'wp-2fa' ),
-		'description'   => esc_html__( 'Use this dialog content map to define page-specific upsell messaging.', 'wp-2fa' ),
-		'screenshotUrl' => esc_url_raw( WP_2FA_URL . 'includes/assets/images/reports-teaser-preview.png' ),
+		'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+			\esc_html__( 'Unlock %s', 'wp-2fa' ),
+			$hl . \esc_html__( 'Premium Features', 'wp-2fa' ) . '</span>'
+		),
+		'intro'         => \esc_html__( 'Upgrade to WP 2FA Premium to unlock advanced authentication options and stronger security controls.', 'wp-2fa' ),
+		'description'   => \esc_html__( 'Use this dialog content map to define page-specific upsell messaging.', 'wp-2fa' ),
+		'screenshotUrl' => \esc_url_raw( WP_2FA_URL . 'includes/assets/images/reports-teaser-preview.png' ),
 		'bullets'       => array(
 			array(
-				'title'       => esc_html__( 'Upsell point', 'wp-2fa' ),
-				'description' => esc_html__( 'Optional description', 'wp-2fa' ),
+				'title'       => \esc_html__( 'Upsell point', 'wp-2fa' ),
+				'description' => \esc_html__( 'Optional description', 'wp-2fa' ),
 			),
 			array(
-				'title'       => esc_html__( 'Upsell point', 'wp-2fa' ),
-				'description' => esc_html__( 'Optional description', 'wp-2fa' ),
+				'title'       => \esc_html__( 'Upsell point', 'wp-2fa' ),
+				'description' => \esc_html__( 'Optional description', 'wp-2fa' ),
 			),
 		),
 		'cta'           => array(
-			'text' => esc_html__( 'View Premium Plans', 'wp-2fa' ),
-			'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-badge-dialog' ),
+			'text' => \esc_html__( 'View Premium Plans', 'wp-2fa' ),
+			'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-badge-dialog' ),
 		),
 	);
 
 	$pages = array(
-		'default'              => $default_page,
-		'wp-2fa-policies'      => array(
-			'title'         => esc_html__( 'Unlock 2FA policies per user role with the', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium edition', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Apply different 2FA requirements to administrators, editors, customers, members, and other user roles to balance security and user experience.', 'wp-2fa' ),
+		'default'                                          => $default_page,
+		'wp-2fa-policies'                                  => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock 2FA policies per user role with the %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium edition', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Apply different 2FA requirements to administrators, editors, customers, members, and other user roles to balance security and user experience.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(),
 			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-custom-policies-per-role' ),
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-custom-policies-per-role' ),
 			),
 		),
-		'policies-banner'      => array(
-			'title'         => esc_html__( 'Set different 2FA policies for each user role', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Apply different two-factor authentication requirements to each user role on your website.', 'wp-2fa' ),
+		'policies-banner'                                  => array(
+			'title'         => \esc_html__( 'Set different 2FA policies for each user role', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Apply different two-factor authentication requirements to each user role on your website.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Protect high-risk users with stronger authentication', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Protect high-risk users with stronger authentication', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Balance security and usability for every team', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Balance security and usability for every team', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Reduce support requests with a smoother rollout', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Reduce support requests with a smoother rollout', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock role-based policies', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=policies-banner-badge' ),
+				'text' => \esc_html__( 'Unlock role-based policies', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=policies-banner-badge' ),
 			),
 		),
-		'settings-banner'      => array(
-			'title'         => esc_html__( 'Unlock advanced settings', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Customize authentication, integrate with more WordPress plugins, and manage security settings across multiple websites.', 'wp-2fa' ),
+		'settings-banner'                                  => array(
+			'title'         => \esc_html__( 'Unlock advanced settings', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Customize authentication, integrate with more WordPress plugins, and manage security settings across multiple websites.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Offer users more ways to authenticate', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Offer users more ways to authenticate', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Extend 2FA to more login workflows', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Extend 2FA to more login workflows', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Export and import settings between websites', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Export and import settings between websites', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock advanced settings', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=settings-banner-badge' ),
+				'text' => \esc_html__( 'Unlock advanced settings', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=settings-banner-badge' ),
 			),
 		),
-		'wp-2fa-policies-methods' => array(
-			'title'         => esc_html__( 'Unlock more 2FA methods with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Give every user a secure authentication method that works for them, whether they prefer passkeys, SMS, security keys, email verification, or authenticator apps.', 'wp-2fa' ),
+		'wp-2fa-policies-methods'                          => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock more 2FA methods with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Give every user a secure authentication method that works for them, whether they prefer passkeys, SMS, security keys, email verification, or authenticator apps.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Improve user adoption', 'wp-2fa' ),
-					'description' => esc_html__( 'Let users choose the authentication method they prefer', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Improve user adoption', 'wp-2fa' ),
+					'description' => \esc_html__( 'Let users choose the authentication method they prefer', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Reduce account lockouts', 'wp-2fa' ),
-					'description' => esc_html__( 'Allow users to verify their identity with backup authentication methods', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Reduce account lockouts', 'wp-2fa' ),
+					'description' => \esc_html__( 'Allow users to verify their identity with backup authentication methods', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Lower support overhead', 'wp-2fa' ),
-					'description' => esc_html__( 'Help users regain access without administrator intervention', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Lower support overhead', 'wp-2fa' ),
+					'description' => \esc_html__( 'Help users regain access without administrator intervention', 'wp-2fa' ),
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method' ),
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method' ),
 			),
 		),
-		'screen:toplevel_page_wp-2fa-policies' => array(
-			'title'         => esc_html__( 'Unlock 2FA policies per user role with the', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium edition', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Apply different 2FA requirements to administrators, editors, customers, members, and other user roles to balance security and user experience.', 'wp-2fa' ),
-			'description'   => '',
-			'screenshotUrl' => '',
-			'bullets'       => array(),
-			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-custom-policies-per-role' ),
+		'screen:toplevel_page_wp-2fa-policies'             => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock 2FA policies per user role with the %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium edition', 'wp-2fa' ) . '</span>'
 			),
-		),
-		'screen:toplevel_page_wp-2fa-policies-network' => array(
-			'title'         => esc_html__( 'Unlock 2FA policies per user role with the', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium edition', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Apply different 2FA requirements to administrators, editors, customers, members, and other user roles to balance security and user experience.', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Apply different 2FA requirements to administrators, editors, customers, members, and other user roles to balance security and user experience.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(),
 			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-custom-policies-per-role' ),
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-custom-policies-per-role' ),
 			),
 		),
-		'wp-2fa-passkeys'      => array(
-			'title'         => esc_html__( 'Unlock Advanced Passkey Management with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
+		'screen:toplevel_page_wp-2fa-policies-network'     => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock 2FA policies per user role with the %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium edition', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Apply different 2FA requirements to administrators, editors, customers, members, and other user roles to balance security and user experience.', 'wp-2fa' ),
+			'description'   => '',
+			'screenshotUrl' => '',
+			'bullets'       => array(),
+			'cta'           => array(
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-custom-policies-per-role' ),
+			),
+		),
+		'wp-2fa-passkeys'                                  => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock Advanced Passkey Management with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
 			'intro'         => '', //esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
-			'description'   => esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Allow users to register multiple passkeys per account', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Allow users to register multiple passkeys per account', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Enable or restrict passkeys for specific user roles', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Enable or restrict passkeys for specific user roles', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Require an additional 2FA verification step for sensitive accounts', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Require an additional 2FA verification step for sensitive accounts', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Give users a secure, passwordless login experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Give users a secure, passwordless login experience', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
+				'text' => \esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
 			),
 		),
-		'screen:wp-2fa_page_wp-2fa-passkeys' => array(
-			'title'         => esc_html__( 'Unlock Advanced Passkey Management with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
+		'screen:wp-2fa_page_wp-2fa-passkeys'               => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock Advanced Passkey Management with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
 			'intro'         => '', //esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
-			'description'   => esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Allow users to register multiple passkeys per account', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Allow users to register multiple passkeys per account', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Enable or restrict passkeys for specific user roles', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Enable or restrict passkeys for specific user roles', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Require an additional 2FA verification step for sensitive accounts', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Require an additional 2FA verification step for sensitive accounts', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Give users a secure, passwordless login experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Give users a secure, passwordless login experience', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
+				'text' => \esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
 			),
 		),
-		'screen:wp-2fa_page_wp-2fa-passkeys-network' => array(
-			'title'         => esc_html__( 'Unlock Advanced Passkey Management with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
-			'intro'         => '', //esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
-			'description'   => esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
+		'screen:wp-2fa_page_wp-2fa-passkeys-network'       => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock Advanced Passkey Management with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => '', //\esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Give your users a faster, phishing-resistant way to log in and keep full control over how passkeys are used across your website.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Allow users to register multiple passkeys per account', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Allow users to register multiple passkeys per account', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Enable or restrict passkeys for specific user roles', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Enable or restrict passkeys for specific user roles', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Require an additional 2FA verification step for sensitive accounts', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Require an additional 2FA verification step for sensitive accounts', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Give users a secure, passwordless login experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Give users a secure, passwordless login experience', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
+				'text' => \esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
 			),
 		),
-		'wp-2fa-policies:method-oob' => array(
-			'title'         => esc_html__( 'Authenticate with a one-time email login link', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Let users skip the code entirely. Once they enter their username and password, send a secure one-time link straight to their inbox.', 'wp-2fa' ),
+		'wp-2fa-policies:method-oob'                       => array(
+			'title'         => \esc_html__( 'Authenticate with a one-time email login link', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Let users skip the code entirely. Once they enter their username and password, send a secure one-time link straight to their inbox.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Removes the step of typing in a verification code', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Removes the step of typing in a verification code', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Familiar and frictionless, most users already trust email links', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Familiar and frictionless, most users already trust email links', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Works on any device with access to their inbox, no extra app required', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Works on any device with access to their inbox, no extra app required', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Flexible authentication option alongside other methods', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Flexible authentication option alongside other methods', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock with Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=2fa-premium-method-oob' ),
+				'text' => \esc_html__( 'Unlock with Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=2fa-premium-method-oob' ),
 			),
 		),
-		'wp-2fa-policies:method-yubikey' => array(
-			'title'         => esc_html__( 'Add hardware-backed account protection', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Allow users to authenticate using YubiKey security keys for stronger protection against phishing and account compromise.', 'wp-2fa' ),
+		'wp-2fa-policies:method-yubikey'                   => array(
+			'title'         => \esc_html__( 'Add hardware-backed account protection', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Allow users to authenticate using YubiKey security keys for stronger protection against phishing and account compromise.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Hardware-based authentication', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Hardware-based authentication', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Resistant to phishing attacks', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Resistant to phishing attacks', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Trusted by security-conscious organizations', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Trusted by security-conscious organizations', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Ideal for administrators and privileged users', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Ideal for administrators and privileged users', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock with Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-yubikey' ),
+				'text' => \esc_html__( 'Unlock with Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-yubikey' ),
 			),
 		),
-		'wp-2fa-policies:method-0setup' => array(
-			'title'         => esc_html__( 'Enable two-factor authentication instantly, with zero setup', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Users receive one-time verification codes via email, making it easy to roll out 2FA across your website.', 'wp-2fa' ),
+		'wp-2fa-policies:method-0setup'                    => array(
+			'title'         => \esc_html__( 'Enable two-factor authentication instantly, with zero setup', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Users receive one-time verification codes via email, making it easy to roll out 2FA across your website.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'No apps or hardware required', 'wp-2fa' ),
+					'title'       => \esc_html__( 'No apps or hardware required', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Fast and simple user onboarding', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Fast and simple user onboarding', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Works with every email-enabled website', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Works with every email-enabled website', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Helps improve 2FA adoption rates', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Helps improve 2FA adoption rates', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock with Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-0setup' ),
+				'text' => \esc_html__( 'Unlock with Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-0setup' ),
 			),
 		),
-		'wp-2fa-policies:method-sms' => array(
-			'title'         => esc_html__( 'Authenticate with SMS verification codes', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Send one-time authentication codes via SMS to provide users with a familiar login verification method.', 'wp-2fa' ),
+		'wp-2fa-policies:method-sms'                       => array(
+			'title'         => \esc_html__( 'Authenticate with SMS verification codes', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Send one-time authentication codes via SMS to provide users with a familiar login verification method.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Deliver codes directly to users\' phones', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Deliver codes directly to users\' phones', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Easy for users to understand and adopt', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Easy for users to understand and adopt', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Supports a wide range of devices', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Supports a wide range of devices', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Flexible authentication option alongside other methods', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Flexible authentication option alongside other methods', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock with Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-sms' ),
+				'text' => \esc_html__( 'Unlock with Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-sms' ),
 			),
 		),
-		'wp-2fa-policies:backup-email' => array(
-			'title'         => esc_html__( 'Help users recover access safely', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Allow users to fall back to email-based verification if they lose access to their primary authentication method.', 'wp-2fa' ),
+		'wp-2fa-policies:backup-email'                     => array(
+			'title'         => \esc_html__( 'Help users recover access safely', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Allow users to fall back to email-based verification if they lose access to their primary authentication method.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Reduce account lockouts', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Reduce account lockouts', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Provide a secure recovery option', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Provide a secure recovery option', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Improve user experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Improve user experience', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Maintain access without compromising security', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Maintain access without compromising security', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock with Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-backup-email' ),
+				'text' => \esc_html__( 'Unlock with Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa#utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-2fa-method-backup-email' ),
 			),
 		),
-		'wp-2fa-passkeys:bypass-2fa' => array(
-			'title'         => esc_html__( 'Choose whether passkey login requires additional 2FA', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Control how passkeys and two-factor authentication work together. Let users bypass the extra 2FA step after a successful passkey login for a faster experience, or require both for an added layer of protection on accounts that need it.', 'wp-2fa' ),
+		'wp-2fa-passkeys:bypass-2fa'                       => array(
+			'title'         => \esc_html__( 'Choose whether passkey login requires additional 2FA', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Control how passkeys and two-factor authentication work together. Let users bypass the extra 2FA step after a successful passkey login for a faster experience, or require both for an added layer of protection on accounts that need it.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Stack passkey + 2FA for maximum protection', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Stack passkey + 2FA for maximum protection', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Faster login for trusted users', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Faster login for trusted users', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Balance convenience and security', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Balance convenience and security', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock with Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys-bypass-feature' ),
+				'text' => \esc_html__( 'Unlock with Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys-bypass-feature' ),
 			),
 		),
-		'wp-2fa-passkeys:enforce-roles' => array(
-			'title'         => esc_html__( 'Require passkeys for selected user roles', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Control which users can authenticate with passkeys by enabling or requiring them for specific roles on your website.', 'wp-2fa' ),
+		'wp-2fa-passkeys:enforce-roles'                    => array(
+			'title'         => \esc_html__( 'Require passkeys for selected user roles', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Control which users can authenticate with passkeys by enabling or requiring them for specific roles on your website.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Apply passkey policies per user role', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Apply passkey policies per user role', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Secure administrator and privileged accounts', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Secure administrator and privileged accounts', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Roll out passkeys gradually across your site', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Roll out passkeys gradually across your site', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Maintain flexibility for different user groups', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Maintain flexibility for different user groups', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock with Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
+				'text' => \esc_html__( 'Unlock with Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/#utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-passkeys' ),
 			),
 		),
-		'wp-2fa-settings'      => array(
-			'title'         => esc_html__( 'Unlock advanced integrations & management tools with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
+		'wp-2fa-settings'                                  => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock advanced integrations & management tools with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'More authentication options', 'wp-2fa' ),
-					'description' => esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
+					'title'       => \esc_html__( 'More authentication options', 'wp-2fa' ),
+					'description' => \esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'WooCommerce integration', 'wp-2fa' ),
-					'description' => esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
+					'title'       => \esc_html__( 'WooCommerce integration', 'wp-2fa' ),
+					'description' => \esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Save time managing websites', 'wp-2fa' ),
-					'description' => esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Save time managing websites', 'wp-2fa' ),
+					'description' => \esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
 			),
 		),
-		'export-import'        => array(
-			'title'         => esc_html__( 'Move settings between websites', 'wp-2fa' ),
+		'export-import'                                    => array(
+			'title'         => \esc_html__( 'Move settings between websites', 'wp-2fa' ),
 			'intro'         => '',
-			'description'   => esc_html__( 'Export and import WP 2FA configurations to quickly deploy consistent security policies across multiple websites.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Export and import WP 2FA configurations to quickly deploy consistent security policies across multiple websites.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Save time during setup and deployment', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Save time during setup and deployment', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Standardize security settings', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Standardize security settings', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Simplify multi-site management', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Simplify multi-site management', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Ideal for agencies and administrators', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Ideal for agencies and administrators', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock Advanced Management', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page-export-import' ),
+				'text' => \esc_html__( 'Unlock Advanced Management', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page-export-import' ),
 			),
 		),
-		'provider-integrations' => array(
-			'title'         => esc_html__( 'Offer more ways to authenticate', 'wp-2fa' ),
+		'provider-integrations'                            => array(
+			'title'         => \esc_html__( 'Offer more ways to authenticate', 'wp-2fa' ),
 			'intro'         => '',
-			'description'   => esc_html__( 'Give users the flexibility to choose the authentication method that best fits their workflow and security requirements.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Give users the flexibility to choose the authentication method that best fits their workflow and security requirements.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Passkeys for passwordless authentication', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Passkeys for passwordless authentication', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'YubiKey hardware security key support', 'wp-2fa' ),
+					'title'       => \esc_html__( 'YubiKey hardware security key support', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'SMS verification codes via Twilio', 'wp-2fa' ),
+					'title'       => \esc_html__( 'SMS verification codes via Twilio', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Email login links and zero-setup email 2FA', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Email login links and zero-setup email 2FA', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock More Authentication Methods', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page-provider-integrations' ),
+				'text' => \esc_html__( 'Unlock More Authentication Methods', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page-provider-integrations' ),
 			),
 		),
-		'plugin-integrations'  => array(
-			'title'         => esc_html__( 'Seamlessly integrate with WordPress plugins', 'wp-2fa' ),
+		'plugin-integrations'                              => array(
+			'title'         => \esc_html__( 'Seamlessly integrate with WordPress plugins', 'wp-2fa' ),
 			'intro'         => '',
-			'description'   => esc_html__( 'Add two-factor authentication to popular WordPress plugins and custom login workflows with minimal configuration.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Add two-factor authentication to popular WordPress plugins and custom login workflows with minimal configuration.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'One-click WooCommerce integration', 'wp-2fa' ),
+					'title'       => \esc_html__( 'One-click WooCommerce integration', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Support custom login pages and workflows', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Support custom login pages and workflows', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Protect more user journeys across your website', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Protect more user journeys across your website', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Extend 2FA beyond the standard WordPress login', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Extend 2FA beyond the standard WordPress login', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page-plugin-integrations' ),
+				'text' => \esc_html__( 'Upgrade to Premium', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page-plugin-integrations' ),
 			),
 		),
-		'wp-2fa-settings-new'  => array(
-			'title'         => esc_html__( 'Unlock advanced integrations & management tools with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
+		'wp-2fa-settings-new'                              => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock advanced integrations & management tools with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'More authentication options', 'wp-2fa' ),
-					'description' => esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
+					'title'       => \esc_html__( 'More authentication options', 'wp-2fa' ),
+					'description' => \esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'WooCommerce integration', 'wp-2fa' ),
-					'description' => esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
+					'title'       => \esc_html__( 'WooCommerce integration', 'wp-2fa' ),
+					'description' => \esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Save time managing websites', 'wp-2fa' ),
-					'description' => esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Save time managing websites', 'wp-2fa' ),
+					'description' => \esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
 			),
 		),
-		'screen:wp-2fa_page_wp-2fa-settings' => array(
-			'title'         => esc_html__( 'Unlock advanced integrations & management tools with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
+		'screen:wp-2fa_page_wp-2fa-settings'               => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock advanced integrations & management tools with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'More authentication options', 'wp-2fa' ),
-					'description' => esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
+					'title'       => \esc_html__( 'More authentication options', 'wp-2fa' ),
+					'description' => \esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'WooCommerce integration', 'wp-2fa' ),
-					'description' => esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
+					'title'       => \esc_html__( 'WooCommerce integration', 'wp-2fa' ),
+					'description' => \esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Save time managing websites', 'wp-2fa' ),
-					'description' => esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Save time managing websites', 'wp-2fa' ),
+					'description' => \esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
 			),
 		),
-		'screen:wp-2fa_page_wp-2fa-settings-new' => array(
-			'title'         => esc_html__( 'Unlock advanced integrations & management tools with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
+		'screen:wp-2fa_page_wp-2fa-settings-new'           => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock advanced integrations & management tools with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Integrate WP 2FA with more authentication providers, connect it with popular WordPress plugins, and quickly migrate settings between websites.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'More authentication options', 'wp-2fa' ),
-					'description' => esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
+					'title'       => \esc_html__( 'More authentication options', 'wp-2fa' ),
+					'description' => \esc_html__( 'Integrate with additional 2FA providers such as SMS, passkeys and hardware security keys including YubiKey', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'WooCommerce integration', 'wp-2fa' ),
-					'description' => esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
+					'title'       => \esc_html__( 'WooCommerce integration', 'wp-2fa' ),
+					'description' => \esc_html__( 'Add 2FA settings to the WooCommerce customer portal with one click. No custom code required.', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Save time managing websites', 'wp-2fa' ),
-					'description' => esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Save time managing websites', 'wp-2fa' ),
+					'description' => \esc_html__( 'Export and import settings between sites in just a few clicks', 'wp-2fa' ),
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'upgrade now', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
+				'text' => \esc_html__( 'upgrade now', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-settings-page' ),
 			),
 		),
-		'wl-setup-wizard'      => array(
-			'title'         => esc_html__( 'Brand the onboarding experience', 'wp-2fa' ),
+		'wl-setup-wizard'                                  => array(
+			'title'         => \esc_html__( 'Brand the onboarding experience', 'wp-2fa' ),
 			'intro'         => '',
-			'description'   => esc_html__( 'Customize the setup wizard to match your organization\'s branding and provide users with a seamless authentication setup experience.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Customize the setup wizard to match your organization\'s branding and provide users with a seamless authentication setup experience.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Add your own branding and messaging', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Add your own branding and messaging', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Create a more professional user experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Create a more professional user experience', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Improve user trust and adoption', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Improve user trust and adoption', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Deliver a consistent experience across your website', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Deliver a consistent experience across your website', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
 			),
 		),
-		'wl-prompts'           => array(
-			'title'         => esc_html__( 'Personalize authentication messages', 'wp-2fa' ),
+		'wl-prompts'                                       => array(
+			'title'         => \esc_html__( 'Personalize authentication messages', 'wp-2fa' ),
 			'intro'         => '',
-			'description'   => esc_html__( 'Customize user-facing prompts, emails, and notifications to better reflect your brand and communication style.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Customize user-facing prompts, emails, and notifications to better reflect your brand and communication style.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Use your own wording and tone of voice', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Use your own wording and tone of voice', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Create a consistent branded experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Create a consistent branded experience', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Improve clarity for your users', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Improve clarity for your users', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Reinforce trust during authentication', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Reinforce trust during authentication', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
 			),
 		),
-		'wl-profile'           => array(
-			'title'         => esc_html__( 'Tailor the user account experience', 'wp-2fa' ),
+		'wl-profile'                                       => array(
+			'title'         => \esc_html__( 'Tailor the user account experience', 'wp-2fa' ),
 			'intro'         => '',
-			'description'   => esc_html__( 'Customize the 2FA settings area in user profiles to better match your website, brand, and user requirements.', 'wp-2fa' ),
+			'description'   => \esc_html__( 'Customize the 2FA settings area in user profiles to better match your website, brand, and user requirements.', 'wp-2fa' ),
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Create a seamless branded experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Create a seamless branded experience', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Display only the information users need', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Display only the information users need', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Improve usability and clarity', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Improve usability and clarity', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Better align authentication with your website', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Better align authentication with your website', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
 			),
 		),
-		'wp-2fa-white-labeling' => array(
-			'title'         => esc_html__( 'Unlock full white labelling with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Enterprise', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Deliver a seamless branded experience by customizing the look, feel, and messaging of all WP 2FA pages, setup wizards, and emails.', 'wp-2fa' ),
+		'wp-2fa-white-labeling'                            => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock full white labelling with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Enterprise', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Deliver a seamless branded experience by customizing the look, feel, and messaging of all WP 2FA pages, setup wizards, and emails.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Strengthen your brand', 'wp-2fa' ),
-					'description' => esc_html__( 'Replace WP 2FA branding with your own logo, colours, and styling', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Strengthen your brand', 'wp-2fa' ),
+					'description' => \esc_html__( 'Replace WP 2FA branding with your own logo, colours, and styling', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Customize user communications', 'wp-2fa' ),
-					'description' => esc_html__( 'Tailor setup instructions, messaging, and email templates to your audience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Customize user communications', 'wp-2fa' ),
+					'description' => \esc_html__( 'Tailor setup instructions, messaging, and email templates to your audience', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Provide a seamless experience', 'wp-2fa' ),
-					'description' => esc_html__( 'Keep users within your brand throughout the entire 2FA journey', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Provide a seamless experience', 'wp-2fa' ),
+					'description' => \esc_html__( 'Keep users within your brand throughout the entire 2FA journey', 'wp-2fa' ),
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
 			),
 			'ctaPremium'    => array(
-				'text' => esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-white-labeling-tabs' ),
 			),
 		),
-		'screen:wp-2fa_page_wp-2fa-white-labeling' => array(
-			'title'         => esc_html__( 'Unlock full white labelling with', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Enterprise', 'wp-2fa' ) . '</span>',
-			'intro'         => esc_html__( 'Deliver a seamless branded experience by customizing the look, feel, and messaging of all WP 2FA pages, setup wizards, and emails.', 'wp-2fa' ),
+		'screen:wp-2fa_page_wp-2fa-white-labeling'         => array(
+			'title'         => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock full white labelling with %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Enterprise', 'wp-2fa' ) . '</span>'
+			),
+			'intro'         => \esc_html__( 'Deliver a seamless branded experience by customizing the look, feel, and messaging of all WP 2FA pages, setup wizards, and emails.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Strengthen your brand', 'wp-2fa' ),
-					'description' => esc_html__( 'Replace WP 2FA branding with your own logo, colours, and styling', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Strengthen your brand', 'wp-2fa' ),
+					'description' => \esc_html__( 'Replace WP 2FA branding with your own logo, colours, and styling', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Customize user communications', 'wp-2fa' ),
-					'description' => esc_html__( 'Tailor setup instructions, messaging, and email templates to your audience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Customize user communications', 'wp-2fa' ),
+					'description' => \esc_html__( 'Tailor setup instructions, messaging, and email templates to your audience', 'wp-2fa' ),
 				),
 				array(
-					'title'       => esc_html__( 'Provide a seamless experience', 'wp-2fa' ),
-					'description' => esc_html__( 'Keep users within your brand throughout the entire 2FA journey', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Provide a seamless experience', 'wp-2fa' ),
+					'description' => \esc_html__( 'Keep users within your brand throughout the entire 2FA journey', 'wp-2fa' ),
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
 			),
 			'ctaPremium'    => array(
-				'text' => esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-white-labeling-tabs' ),
 			),
 		),
-		'wp-2fa-white-labeling:email-templates' => array(
-			'title'         => esc_html__( 'Customize authentication emails', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Personalize the emails sent by WP 2FA to match your branding, messaging, and user experience requirements.', 'wp-2fa' ),
+		'wp-2fa-white-labeling:email-templates'            => array(
+			'title'         => \esc_html__( 'Customize authentication emails', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Personalize the emails sent by WP 2FA to match your branding, messaging, and user experience requirements.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Customize email content and wording', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Customize email content and wording', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Align communications with your brand', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Align communications with your brand', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Improve clarity for your users', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Improve clarity for your users', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Create a more professional experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Create a more professional experience', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-email-sms-templates-tabs' ),
+				'text' => \esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-email-sms-templates-tabs' ),
 			),
 			'ctaPremium'    => array(
-				'text' => esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-email-sms-templates-tabs' ),
+				'text' => \esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-email-sms-templates-tabs' ),
 			),
 		),
-		'wp-2fa-white-labeling:sms-templates' => array(
-			'title'         => esc_html__( 'Customize authentication SMS messages', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Tailor SMS messages sent during authentication and account recovery workflows to better suit your organization and users.', 'wp-2fa' ),
+		'wp-2fa-white-labeling:sms-templates'              => array(
+			'title'         => \esc_html__( 'Customize authentication SMS messages', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Tailor SMS messages sent during authentication and account recovery workflows to better suit your organization and users.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Customize SMS content and messaging', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Customize SMS content and messaging', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Provide clearer instructions to users', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Provide clearer instructions to users', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Maintain a consistent brand experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Maintain a consistent brand experience', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Improve communication during login and recovery', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Improve communication during login and recovery', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-email-sms-templates-tabs' ),
+				'text' => \esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-email-sms-templates-tabs' ),
 			),
 			'ctaPremium'    => array(
-				'text' => esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-email-sms-templates-tabs' ),
+				'text' => \esc_html__( 'Unlock Full White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-email-sms-templates-tabs' ),
 			),
 		),
 		'wp-2fa-white-labeling:customize-code-page-design' => array(
-			'title'         => esc_html__( 'Customize the 2FA code page design', 'wp-2fa' ),
-			'intro'         => esc_html__( 'Modify the appearance of the 2FA code page to better match your website\'s branding and user experience.', 'wp-2fa' ),
+			'title'         => \esc_html__( 'Customize the 2FA code page design', 'wp-2fa' ),
+			'intro'         => \esc_html__( 'Modify the appearance of the 2FA code page to better match your website\'s branding and user experience.', 'wp-2fa' ),
 			'description'   => '',
 			'screenshotUrl' => '',
 			'bullets'       => array(
 				array(
-					'title'       => esc_html__( 'Align the page with your brand identity', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Align the page with your brand identity', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Create a more professional login experience', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Create a more professional login experience', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Build user trust with consistent styling', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Build user trust with consistent styling', 'wp-2fa' ),
 					'description' => '',
 				),
 				array(
-					'title'       => esc_html__( 'Deliver a seamless authentication journey', 'wp-2fa' ),
+					'title'       => \esc_html__( 'Deliver a seamless authentication journey', 'wp-2fa' ),
 					'description' => '',
 				),
 			),
 			'cta'           => array(
-				'text' => esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=free-white-labeling-tabs' ),
 			),
 			'ctaPremium'    => array(
-				'text' => esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
-				'url'  => esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-white-labeling-tabs' ),
+				'text' => \esc_html__( 'Unlock White Labelling', 'wp-2fa' ),
+				'url'  => \esc_url_raw( 'https://melapress.com/wordpress-2fa/pricing/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=premium-white-labeling-tabs' ),
 			),
 		),
-		'wp-2fa-reports-locked' => array(
-			'title'       => esc_html__( 'Unlock Activity Log Reports with the', 'wp-2fa' ) . ' ' . $hl . esc_html__( 'Premium Edition', 'wp-2fa' ) . '</span>',
-			'description' => esc_html__( 'An upsell message related to this page. Add screenshot and bullet points based on final copy.', 'wp-2fa' ),
+		'wp-2fa-reports-locked'                            => array(
+			'title'       => sprintf(
+				/* translators: %s: the highlighted edition name, already wrapped in its own markup. */
+				\esc_html__( 'Unlock Activity Log Reports with the %s', 'wp-2fa' ),
+				$hl . \esc_html__( 'Premium Edition', 'wp-2fa' ) . '</span>'
+			),
+			'description' => \esc_html__( 'An upsell message related to this page. Add screenshot and bullet points based on final copy.', 'wp-2fa' ),
 		),
 	);
 
-	$pages = apply_filters( WP_2FA_PREFIX . 'premium_badge_dialog_pages', $pages );
+	$pages = \apply_filters( WP_2FA_PREFIX . 'premium_badge_dialog_pages', $pages );
 
 	if ( ! is_array( $pages ) ) {
 		return array( 'default' => $default_page );
@@ -1185,15 +1416,6 @@ function get_premium_badge_dialog_pages() {
 	return $pages;
 }
 
-/**
- * Enqueue Select2 jQuery library
- *
- * @return void
- */
-function enqueue_select2_scripts() {
-	\wp_enqueue_style( 'select2', style_url( 'select2.min', 'admin' ), array(), WP_2FA_VERSION );
-	\wp_enqueue_script( 'select2', script_url( 'select2.min', 'admin' ), array( 'jquery' ), WP_2FA_VERSION, false );
-}
 
 /**
  * Output a tiny global CSS rule to fix the menu icon size on all admin pages.
@@ -1218,7 +1440,7 @@ function admin_styles() {
 
 	// Only load legacy admin styles on WP 2FA settings pages — not profile pages.
 	// Profile pages use the new wizard CSS (wp2fa-wizard.css + wp2fa-profile.css).
-	$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$page = isset( $_GET['page'] ) ? \sanitize_text_field( \wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( ( empty( $page ) || false === strpos( $page, 'wp-2fa' ) ) && 'profile.php' !== $pagenow && 'user-edit.php' !== $pagenow ) {
 		return;
 	}
@@ -1229,7 +1451,7 @@ function admin_styles() {
 		return;
 	}
 
-	wp_enqueue_style(
+	\wp_enqueue_style(
 		'wp_2fa_admin',
 		WP_2FA_URL . 'css/admin/wp2fa-admin-styles.css',
 		array(),
@@ -1246,7 +1468,7 @@ function admin_styles() {
  * @return string
  */
 function script_loader_tag( $tag, $handle ) {
-	$script_execution = wp_scripts()->get_data( $handle, 'script_execution' );
+	$script_execution = \wp_scripts()->get_data( $handle, 'script_execution' );
 
 	if ( ! $script_execution ) {
 		return $tag;
@@ -1257,7 +1479,7 @@ function script_loader_tag( $tag, $handle ) {
 	}
 
 	// Abort adding async/defer for scripts that have this script as a dependency. _doing_it_wrong()?
-	foreach ( wp_scripts()->registered as $script ) {
+	foreach ( \wp_scripts()->registered as $script ) {
 		if ( in_array( $handle, $script->deps, true ) ) {
 			return $tag;
 		}

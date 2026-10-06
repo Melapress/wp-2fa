@@ -3,7 +3,64 @@ import { browserSupportsWebAuthn, browserSupportsWebAuthnAutofill, startAuthenti
 /**
  * Authenticate Passkey.
  */
-async function authenticate( username, redirectTo ) {
+
+/**
+ * Hand the browser over to the 2FA challenge.
+ *
+ * There is deliberately no session at this point: the passkey has been verified
+ * but the second factor has not been given, so the account is carried across by
+ * a one-time login nonce instead — the same way the password flow does it. The
+ * challenge handler reads these from POST, so this has to be a form submission
+ * rather than a redirect.
+ *
+ * @param {Object} data Response payload carrying user_id, login_nonce, provider.
+ */
+function handOverToSecondFactor( data ) {
+	if ( ! data || ! data.user_id || ! data.login_nonce || ! data.provider ) {
+		throw new Error( 'Could not start the second authentication step.' );
+	}
+
+	let loginUrl;
+	try {
+		loginUrl = new URL( data.login_url || 'wp-login.php', window.location.href );
+	} catch ( error ) {
+		throw new Error( 'Could not start the second authentication step.' );
+	}
+
+	// The login nonce is a temporary credential. Never submit it to another
+	// origin, even if a login_url filter supplied that URL on the server.
+	if ( loginUrl.origin !== window.location.origin ) {
+		throw new Error( 'Could not start the second authentication step.' );
+	}
+
+	loginUrl.searchParams.set( 'action', 'validate_2fa' );
+	loginUrl.hash = '';
+
+	const form = document.createElement( 'form' );
+	form.method = 'POST';
+	form.action = loginUrl.href;
+	form.style.display = 'none';
+
+	const fields = {
+		'wp-auth-id': data.user_id,
+		'wp-auth-nonce': data.login_nonce,
+		'provider': data.provider || '',
+		'redirect_to': data.redirect_to || '',
+	};
+
+	Object.keys( fields ).forEach( function ( name ) {
+		const input = document.createElement( 'input' );
+		input.type = 'hidden';
+		input.name = name;
+		input.value = fields[ name ];
+		form.appendChild( input );
+	} );
+
+	document.body.appendChild( form );
+	form.submit();
+}
+
+async function authenticate( username, redirectTo, rememberMe ) {
 	let asseResp;
 	let requestId;
 	try {
@@ -31,11 +88,22 @@ async function authenticate( username, redirectTo ) {
 				asseResp,
 				'user': username,
 				'redirect_to': redirectTo,
+				'rememberme': rememberMe,
 			},
 		});
 
+		// A second factor is owed. No session was issued, so go and collect it.
+		if ( response && 'pending_2fa' === response.status ) {
+			handOverToSecondFactor( response );
+			return;
+		}
+
 		if (response.status !== 'verified') {
-			throw new Error('Passkey authentication failed. Method is not set?');
+			throw new Error(
+				response && response.message
+					? response.message
+					: 'Passkey authentication failed. Method is not set?'
+			);
 		}
 
 		let iframe = !(window === window.parent); // interim login ?
@@ -190,6 +258,13 @@ wp.domReady(async () => {
 				if ($user_password.is(":visible")) {
 					$user_password.hide();
 
+					/*
+					 * Hidden along with the password, but its state is still read when the
+					 * ceremony runs — so a choice made before switching to a passkey is kept.
+					 * It is not left on screen because this form is also rendered into the small
+					 * interim-login frame, where the extra row pushes the passkey control out of
+					 * reach and the re-authentication cannot be completed at all.
+					 */
 					jQuery( 'p.forgetmenot' ).hide();
 					jQuery( 'p.submit' ).hide();
 
@@ -216,8 +291,25 @@ wp.domReady(async () => {
 					redirectTo = '';
 				}
 
+
+				/*
+				 * Core's "Remember Me", as the person left it.
+				 *
+				 * On wp-login.php this is the real checkbox; on the 2FA challenge form and on
+				 * third-party forms it is carried in a hidden field. Both shapes are read here,
+				 * because the session is issued by the endpoint below and whatever is not sent
+				 * to it is decided without reference to what the user chose.
+				 */
+				let rememberMe = false;
+				const rememberInput = document.querySelector('input[name="rememberme"]');
+				if (rememberInput) {
+					rememberMe = 'checkbox' === rememberInput.type
+						? rememberInput.checked
+						: ('' !== rememberInput.value && '0' !== rememberInput.value && 'false' !== rememberInput.value);
+				}
+
 				try {
-					await authenticate( usernameField.value, redirectTo );
+					await authenticate( usernameField.value, redirectTo, rememberMe );
 				} catch (error) {
 					showError(error.message);
 				}

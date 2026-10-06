@@ -18,6 +18,7 @@ use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Methods\Passkeys\Web_Authn;
 use WP2FA\Passkeys\Source_Repository;
 use WP2FA\Passkeys\Pending_2FA_Helper;
+use WP2FA\Authenticator\Login;
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
@@ -60,25 +61,16 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 
 			$user = null;
 
-			// Safer parsing for user: treat emails and logins differently, avoid enumeration.
+			/*
+			 * The same lookup as the AJAX transport: the login exactly as entered,
+			 * then the email. This took anything containing @ for an email, and
+			 * WordPress allows @ in a username - qa@local, with a different email,
+			 * could sign in with a passkey over AJAX and never over REST. The
+			 * strict sanitising of other logins turned some legacy usernames into
+			 * names nobody has, too.
+			 */
 			if ( ! empty( $data['user'] ) ) {
-				$raw_user = \wp_unslash( (string) $data['user'] );
-				if ( strlen( $raw_user ) > Passkeys_Rate_Limiter::MAX_USER_LEN ) {
-					return \rest_ensure_response( new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) ) );
-				}
-				if ( false !== strpos( $raw_user, '@' ) ) {
-					$email = \sanitize_email( $raw_user );
-					if ( ! $email || ! \is_email( $email ) ) {
-						return \rest_ensure_response( new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) ) );
-					}
-					$user = \get_user_by( 'email', $email );
-				} else {
-					$login = \sanitize_user( $raw_user, true );
-					if ( empty( $login ) ) {
-						return \rest_ensure_response( new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) ) );
-					}
-					$user = \get_user_by( 'login', $login );
-				}
+				$user = Ajax_Passkeys::resolve_signin_user( $data['user'], false );
 			}
 
 			if ( ! $user ) {
@@ -124,7 +116,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 				'allowCredentials' => $allow_credentials,
 				'userVerification' => 'preferred',
 				'timeout'          => 5 * 60 * 1000,
-				'uid'              => $user ? (string) $user->ID : '',
+				// No 'uid': the client never needs it, and returning it only when the
+				// account has a passkey told anyone asking which accounts exist.
+				// The user stays bound to the challenge through the stored copy below.
 			);
 
 			// Store the challenge in transient for 60 seconds, bound to the (optional) user id.
@@ -142,6 +136,25 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			);
 
 			return \rest_ensure_response( $response );
+		}
+
+		/**
+		 * Whether this sign-in asked to be remembered.
+		 *
+		 * Put through the same filter every other sign-in path uses, so a site overriding
+		 * the choice gets the same answer whichever way its people sign in.
+		 *
+		 * @param \WP_REST_Request $request - The sign-in request.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static function remember_requested( \WP_REST_Request $request ): bool {
+			return (bool) \apply_filters(
+				WP_2FA_PREFIX . 'rememberme',
+				\rest_sanitize_boolean( $request->get_param( 'rememberme' ) )
+			);
 		}
 
 		/**
@@ -174,22 +187,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 
 			$user = null;
 
-			// Safer parsing for user: treat emails and logins differently, avoid enumeration.
+			// The same lookup as the request step, and as the AJAX transport.
 			if ( ! empty( $data['user'] ) ) {
-				$raw_user = \wp_unslash( (string) $data['user'] );
-				if ( false !== strpos( $raw_user, '@' ) ) {
-					$email = \sanitize_email( $raw_user );
-					if ( ! $email || ! \is_email( $email ) ) {
-						return \rest_ensure_response( new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) ) );
-					}
-					$user = \get_user_by( 'email', $email );
-				} else {
-					$login = \sanitize_user( $raw_user, true );
-					if ( empty( $login ) ) {
-						return \rest_ensure_response( new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) ) );
-					}
-					$user = \get_user_by( 'login', $login );
-				}
+				$user = Ajax_Passkeys::resolve_signin_user( $data['user'], false );
 
 				if ( ! $user ) {
 					// Avoid user enumeration by returning a generic error.
@@ -226,7 +226,10 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			$challenge = (string) $stored['challenge'];
 
 			$asse_rep = $data['asseResp'] ?? array();
-			if ( ! is_array( $asse_rep ) || empty( $asse_rep['rawId'] ) || empty( $asse_rep['response'] ) || ! is_array( $asse_rep['response'] ) ) {
+			// rawId a string, as the AJAX transport requires: a JSON array cast to the
+			// string "Array", passed the format check below, and reached a decoder
+			// that only takes strings - a TypeError, after the challenge was spent.
+			if ( ! is_array( $asse_rep ) || empty( $asse_rep['rawId'] ) || ! is_string( $asse_rep['rawId'] ) || empty( $asse_rep['response'] ) || ! is_array( $asse_rep['response'] ) ) {
 				return new \WP_Error( 'invalid_request', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) );
 			}
 			foreach ( array( 'clientDataJSON', 'authenticatorData', 'signature' ) as $required_key ) {
@@ -237,7 +240,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 
 			// Validate base64url encoding for WebAuthn fields to avoid malformed input reaching decoder.
 			$b64url_re       = '/^[A-Za-z0-9\\-_]+=*$/';
-			$raw_id_b64      = (string) $asse_rep['rawId'];
+			$raw_id_b64      = $asse_rep['rawId'];
 			$client_data_b64 = (string) ( $asse_rep['response']['clientDataJSON'] ?? '' );
 			$auth_data_b64   = (string) ( $asse_rep['response']['authenticatorData'] ?? '' );
 			$signature_b64   = (string) ( $asse_rep['response']['signature'] ?? '' );
@@ -246,15 +249,23 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 				return new \WP_Error( 'invalid_request', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) );
 			}
 
-			// Delete challenge from cache (single use).
-			\delete_transient( Source_Repository::PASSKEYS_META . $request_id );
+			// Decoded before the challenge is claimed: input that cannot even be read
+			// is refused without spending the user's challenge.
+			try {
+				$credential_id = Web_Authn::get_raw_credential_id( $raw_id_b64 );
+			} catch ( \Throwable $e ) {
+				return new \WP_Error( 'invalid_request', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) );
+			}
+
+			// Atomically claim the challenge. A replay racing this request must lose.
+			if ( ! \delete_transient( Source_Repository::PASSKEYS_META . $request_id ) ) {
+				return new \WP_Error( 'invalid_challenge', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 400 ) );
+			}
 
 			$webauthn = new Web_Authn(
 				Web_Authn::get_relying_party_id(),
 				Web_Authn::get_relying_party_id()
 			);
-
-			$credential_id = Web_Authn::get_raw_credential_id( $asse_rep['rawId'] );
 
 			if ( ! class_exists( 'ParagonIE_Sodium_Core_Base64_UrlSafe', false ) ) {
 				require_once ABSPATH . WPINC . '/sodium_compat/src/Core/Base64/UrlSafe.php';
@@ -280,13 +291,14 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			}
 
 			try {
-				$verification_result = $webauthn->process_get(
+				$previous_signature_counter = isset( $user_data['extra']['signature_counter'] ) ? (int) $user_data['extra']['signature_counter'] : null;
+				$verification_result         = $webauthn->process_get(
 					Web_Authn::base64url_decode( $asse_rep['response']['clientDataJSON'] ),
 					Web_Authn::base64url_decode( $asse_rep['response']['authenticatorData'] ),
 					Web_Authn::base64url_decode( $asse_rep['response']['signature'] ),
 					$user_data['extra']['public_key'],
 					Web_Authn::base64url_decode( $challenge ),
-					null,
+					$previous_signature_counter,
 					true
 				);
 			} catch ( \Throwable $e ) {
@@ -308,19 +320,61 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 							)
 						);
 					}
+					if ( ! Pending_2FA_Helper::can_complete_signin( $user ) ) {
+						return new \WP_Error( 'invalid_credentials', __( 'Invalid credentials.', 'wp-2fa' ), array( 'status' => 403 ) );
+					}
 
-					// Mark 2FA as pending using helper so other components can enforce a challenge.
+					/*
+					 * A verified passkey is not always a completed sign-in.
+					 *
+					 * Where an administrator has asked for a second factor as well,
+					 * no session is issued here at all: the caller is handed a login
+					 * nonce and sent to the 2FA challenge, and WordPress only learns
+					 * about the user once that is answered. Issuing the cookie first
+					 * and enforcing afterwards, as this used to, meant a usable
+					 * session existed for a factor that had not been given.
+					 */
+					$outcome = Pending_2FA_Helper::outcome_for( $user );
 
-					Pending_2FA_Helper::mark_pending( (int) $uid, array( 'source' => 'passkey' ) );
+					$new_signature_counter = $webauthn->get_signature_counter();
+					if ( null !== $new_signature_counter ) {
+						$user_data['extra']['signature_counter'] = $new_signature_counter;
+					}
 
-					// If user found and authorized, set the login cookie.
-					\wp_set_current_user( $uid, User_Helper::get_user( $uid )->user_login );
-					\wp_set_auth_cookie( $uid, true, is_ssl() );
-
-					// Update the meta value.
+					// Persist every verified assertion, even when this login outcome is refused.
 					$user_data['extra']['last_used'] = time();
 					$public_key_json                 = addcslashes( \wp_json_encode( $user_data, JSON_UNESCAPED_SLASHES ), '\\' );
 					\update_user_meta( $uid, $meta_key, $public_key_json );
+
+					if ( Pending_2FA_Helper::OUTCOME_REFUSE === $outcome ) {
+						return \rest_ensure_response(
+							array(
+								'status'  => 'second_factor_required',
+								'message' => __( 'This account needs a second authentication factor as well as a passkey. Sign in with your password to set one up.', 'wp-2fa' ),
+							)
+						);
+					}
+
+					if ( Pending_2FA_Helper::OUTCOME_ADMIT === $outcome ) {
+						// Passkey alone completes the sign-in.
+						\wp_set_current_user( $uid, User_Helper::get_user( $uid )->user_login );
+
+						/*
+						 * Honour the user's choice rather than always granting the longer
+						 * session. This used to pass true unconditionally, so a passkey
+						 * sign-in ran for a fortnight even where the person had deliberately
+						 * left "Remember Me" alone on a shared machine — failing quietly, and
+						 * in the direction that costs them rather than inconveniences them.
+						 */
+						\wp_set_auth_cookie( $uid, self::remember_requested( $request ), is_ssl() );
+
+						// After the cookie, not before: the record is bound to the
+						// session token WordPress issues here, and that token does not
+						// exist until wp_set_auth_cookie() has run.
+						Pending_2FA_Helper::mark_pending( (int) $uid, array( 'source' => 'passkey' ) );
+						\do_action( WP_2FA_PREFIX . 'passkey_login', $user );
+					}
+
 				} else {
 					return \rest_ensure_response(
 						array(
@@ -329,7 +383,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 						)
 					);
 				}
-			} catch ( \Exception $error ) {
+			} catch ( \Throwable $error ) {
 				// Log detailed error server-side only when WP_DEBUG is enabled.
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging validation details server-side for diagnostics.
@@ -369,6 +423,28 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 			$redirect_path = ! empty( $redirect_to ) ? \wp_parse_url( $redirect_to, PHP_URL_PATH ) : '/wp-admin/';
 			$redirect_query = \wp_parse_url( $redirect_to, PHP_URL_QUERY );
 			$redirect_to = $redirect_path . ( $redirect_query ? '?' . $redirect_query : '' );
+
+			if ( Pending_2FA_Helper::OUTCOME_CHALLENGE === $outcome ) {
+				// No session exists yet. The nonce is what carries the user across to
+				// the challenge, exactly as the password flow does it.
+				$login_nonce = Login::create_login_nonce( $user->ID );
+
+				if ( ! $login_nonce ) {
+					return new \WP_Error( 'login_nonce_failed', __( 'Could not start the second authentication step.', 'wp-2fa' ), array( 'status' => 500 ) );
+				}
+
+				return \rest_ensure_response(
+					array(
+						'status'      => 'pending_2fa',
+						'message'     => __( 'Passkey verified. A second authentication factor is required.', 'wp-2fa' ),
+						'user_id'     => (int) $user->ID,
+						'login_nonce' => $login_nonce['key'],
+						'provider'    => User_Helper::get_enabled_method_for_user( $user ),
+						'redirect_to' => $redirect_to,
+						'login_url'   => \wp_login_url(),
+					)
+				);
+			}
 
 			return \rest_ensure_response(
 				array(

@@ -69,18 +69,26 @@ if ( ! class_exists( '\WP2FA\Utils\Validator' ) ) {
 						}
 						break;
 					case 'email':
-						$variable    = \sanitize_email( $variable );
+						$variable    = \is_string( $variable ) ? \sanitize_email( $variable ) : '';
 						$valid       = self::validate_email( $variable );
 						$default_val = '';
 						break;
+
+					/*
+					 * A valid integer or boolean comes back as one - 0 and false
+					 * included. Handing back what was posted meant a valid "false"
+					 * was stored as the string "false", which reads as true.
+					 */
 					case 'int':
 					case 'integer':
 						$valid       = self::validate_integer( $variable );
+						$variable    = $valid ? (int) self::filter_validate( $variable, 'int' ) : $variable;
 						$default_val = 0;
 						break;
 					case 'bool':
 					case 'boolean':
 						$valid       = self::validate_boolean( $variable );
+						$variable    = $valid ? (bool) self::filter_validate( $variable, 'bool' ) : $variable;
 						$default_val = false;
 						break;
 					default:
@@ -102,96 +110,95 @@ if ( ! class_exists( '\WP2FA\Utils\Validator' ) ) {
 		/**
 		 * Validates email
 		 *
-		 * @param string $variable - Value which needs to be validated.
+		 * @param mixed $variable - Value which needs to be validated.
 		 *
 		 * @return bool
 		 *
 		 * @since 2.8.0
 		 */
-		public static function validate_email( string $variable ): bool {
-			$valid = true;
-
-			if ( false === ( $valid = self::filter_validate( $variable, 'email' ) ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
+		public static function validate_email( $variable ): bool {
+			if ( null === self::filter_validate( $variable, 'email' ) ) {
 				self::$errors[] = 'Variable is not valid e-mail' . "\n";
-				$valid          = false;
+
+				return false;
 			}
 
-			return $valid;
+			return true;
 		}
 
 		/**
 		 * Validates integer
 		 *
-		 * @param string $variable - Value which needs to be validated.
+		 * @param mixed $variable - Value which needs to be validated: an int or a string of one.
 		 *
 		 * @return bool
 		 *
 		 * @since 2.8.0
 		 */
-		public static function validate_integer( string $variable ): bool {
-			$valid = true;
-
-			if ( false === ( $valid = self::filter_validate( $variable, 'int' ) ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
+		public static function validate_integer( $variable ): bool {
+			if ( null === self::filter_validate( $variable, 'int' ) ) {
 				self::$errors[] = 'Variable is not valid integer' . "\n";
-				$valid          = false;
+
+				return false;
 			}
 
-			return $valid;
+			return true;
 		}
 
 		/**
 		 * Validates boolean
 		 *
-		 * @param string $variable - Value which needs to be validated.
+		 * No union type on the parameter: the plugin still supports PHP 7.4,
+		 * which cannot parse one, and the whole class failed to load there.
+		 *
+		 * @param mixed $variable - Value which needs to be validated: a bool or a string of one.
 		 *
 		 * @return bool
 		 *
 		 * @since 2.8.0
 		 */
-		public static function validate_boolean( string|bool $variable ): bool {
-			$valid = true;
-
-			$variable = (string) $variable;
-
-			if ( false === ( $valid = self::filter_validate( $variable, 'bool' ) ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
+		public static function validate_boolean( $variable ): bool {
+			if ( null === self::filter_validate( $variable, 'bool' ) ) {
 				self::$errors[] = 'Variable is not valid boolean' . "\n";
-				$valid          = false;
+
+				return false;
 			}
 
-			return $valid;
+			return true;
 		}
 
 		/**
 		 * Uses standard PHP filter validation
 		 *
+		 * Answers with the filtered value, or null when the value is not valid.
+		 * Casting the filter's answer to bool made a valid 0 or false
+		 * indistinguishable from a failure.
+		 *
 		 * @param mixed  $variable - The value which needs to be validated.
 		 * @param string $type - The type of the variable - using that info method knows which validation to execute.
 		 *
-		 * @return bool
+		 * @return mixed
 		 *
 		 * @since 2.8.0
 		 */
-		private static function filter_validate( $variable, string $type ): bool {
-			$result = false;
-
+		private static function filter_validate( $variable, string $type ) {
 			switch ( $type ) {
 				case 'email':
-					$result = (bool) filter_var( $variable, \FILTER_VALIDATE_EMAIL );
-					break;
+					return \is_string( $variable ) ? \filter_var( $variable, \FILTER_VALIDATE_EMAIL, \FILTER_NULL_ON_FAILURE ) : null;
 				case 'boolean':
 				case 'bool':
-					$result = (bool) filter_var( $variable, \FILTER_VALIDATE_BOOLEAN );
-					break;
+					if ( \is_bool( $variable ) ) {
+						return $variable;
+					}
+
+					return \is_string( $variable ) || \is_int( $variable ) ? \filter_var( $variable, \FILTER_VALIDATE_BOOLEAN, \FILTER_NULL_ON_FAILURE ) : null;
 				case 'integer':
 				case 'int':
-					$result = (bool) filter_var( $variable, \FILTER_VALIDATE_INT );
-					break;
+					// true would pass the filter as 1: a boolean is not an integer.
+					return \is_string( $variable ) || \is_int( $variable ) ? \filter_var( $variable, \FILTER_VALIDATE_INT, \FILTER_NULL_ON_FAILURE ) : null;
 				default:
-					// code...
-					break;
+					return null;
 			}
-
-			return $result;
 		}
 	}
 }

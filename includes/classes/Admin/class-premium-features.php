@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace WP2FA\Admin;
 
+use WP2FA\WP2FA;
 use WP2FA\Licensing\Licensing_Factory;
 
 /*
@@ -183,6 +184,21 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 		 * @since 2.8.0
 		 */
 		public static function render() {
+			/*
+			 * Same gate as every other page in the plugin. Removing a menu entry
+			 * only hides the link; the page callback stays registered and the
+			 * address still answers, so the check has to live here as well.
+			 */
+			$main_user = ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) )
+				? (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' )
+				: \get_current_user_id();
+
+			if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== \get_current_user_id() ) {
+				echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+
+				return;
+			}
+
 			if ( ! Licensing_Factory::has_active_valid_license() ) {
 				?>
 				<style>
@@ -508,7 +524,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 				</div>
 				<div class="content-block">
 					<p><strong><?php \esc_html_e( 'WP 2FA plugin features', 'wp-2fa' ); ?></strong></p>
-					<p><?php \esc_html_e( 'Take advantage of these benefits and many others, with prices starting from as little as $29 for 5 users per year. ', 'wp-2fa' ); ?></p>
+					<p><?php \esc_html_e( 'Take advantage of these benefits and many others, with prices starting from as little as $29 for 5 users per year.', 'wp-2fa' ); ?></p>
 					<table class="c21 feature-table">
 						<tbody>
 							<tr class="c2">
@@ -569,17 +585,6 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 							<tr class="c2">
 								<td class="c6" colspan="1" rowspan="1">
 									<p class="c10"><span class="c5"><?php \esc_html_e( '2FA login with hardware key (YubiKey)', 'wp-2fa' ); ?></span></p>
-								</td>
-								<td class="c8" colspan="1" rowspan="1">
-									<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>
-								</td>
-								<td class="c12" colspan="1" rowspan="1">
-									<p class="c7"><span class="c5"><span class="dashicons dashicons-no"></span></span></p>
-								</td>
-							</tr>
-							<tr class="c2">
-								<td class="c6" colspan="1" rowspan="1">
-									<p class="c10"><span class="c5"><?php \esc_html_e( '2FA login with push notification (Authy)', 'wp-2fa' ); ?></span></p>
 								</td>
 								<td class="c8" colspan="1" rowspan="1">
 									<p class="c7"><span class="c5"><span class="dashicons dashicons-saved"></span></span></p>

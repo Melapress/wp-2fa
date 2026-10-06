@@ -83,6 +83,21 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 										'type'        => 'boolean',
 										'description' => 'Remember device',
 									),
+									'rememberme'      => array(
+										'required'    => false,
+										'type'        => 'boolean',
+										'description' => "Core's Remember Me, carried over from the login form so the session keeps the longer lifetime the user asked for.",
+									),
+									'redirect_to'     => array(
+										'required'    => false,
+										'type'        => 'string',
+										'description' => 'Where the login form was asked to go afterwards, as the form-based challenge carries it.',
+									),
+									'interim_login'   => array(
+										'required'    => false,
+										'type'        => 'boolean',
+										'description' => 'Whether this is the session-expired login inside the editor, which closes instead of going anywhere.',
+									),
 								),
 								'checkPermissions' => '__return_true',
 								'showInIndex'      => false,
@@ -199,10 +214,14 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 		 */
 		public static function bypass_cookie_nonce_for_login( $errors ) {
 			if ( \is_wp_error( $errors ) && 'rest_cookie_invalid_nonce' === $errors->get_error_code() ) {
-				$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? \sanitize_text_field( \wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
-				// Strip query string to prevent bypass via injected query parameters.
-				$request_path = (string) strtok( $request_uri, '?' );
-				if ( false !== strpos( $request_path, 'wp-2fa-methods/v1/login' ) ) {
+				// Use the authoritative dispatched REST route (rest_route query var), never the
+				// browser-visible REQUEST_URI - the latter can be spoofed via rest_route= while a
+				// different endpoint is actually dispatched (e.g. /wp/v2/users), which would let
+				// this filter clear a real nonce failure for an unrelated, sensitive request.
+				$route = isset( $GLOBALS['wp']->query_vars['rest_route'] ) ? (string) $GLOBALS['wp']->query_vars['rest_route'] : '';
+				$route = '/' . ltrim( $route, '/' );
+				$route = untrailingslashit( $route );
+				if ( '/wp-2fa-methods/v1/login/validate' === $route ) {
 					return null;
 				}
 			}
@@ -226,6 +245,9 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Endpoints' ) ) {
 				WP_2FA_VERSION,
 				array( 'in_footer' => true )
 			);
+
+			// Its messages are wp.i18n's, which knows only what is registered for the handle.
+			\wp_set_script_translations( 'wp_2fa_user_login_scripts', 'wp-2fa', WP_2FA_PATH . 'languages' );
 
 			\wp_localize_script(
 				'wp_2fa_user_login_scripts',

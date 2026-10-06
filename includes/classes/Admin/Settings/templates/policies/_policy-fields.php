@@ -271,8 +271,8 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 			 * methods as static locked items so users know what's available.
 			 */
 			if ( ! $has_premium_license ) :
+				// No Authy: it is no longer offered to sites that do not already use it.
 				$premium_methods_list = array(
-					'authy'         => \esc_html__( 'Push notification via Authy app', 'wp-2fa' ),
 					'oob'           => \esc_html__( 'Link via email', 'wp-2fa' ),
 					'twilio'        => \esc_html__( 'One-time code via SMS (Twilio)', 'wp-2fa' ),
 					'clickatell'    => \esc_html__( 'One-time code via SMS (Clickatell)', 'wp-2fa' ),
@@ -517,7 +517,7 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 			<?php
 			Settings_Builder::build_option(
 				array(
-					'title' => \esc_html__( 'Grace period', 'wp-2fa' ),
+					'title' => \esc_html__( 'How long should users have to configure 2FA?', 'wp-2fa' ),
 					'id'    => 'grace-period-section' . $id_suffix,
 					'type'  => 'section-title',
 				)
@@ -525,7 +525,7 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 
 			Settings_Builder::build_option(
 				array(
-					'text'  => \esc_html__( 'When you enforce 2FA on users they have a grace period to configure 2FA. If they fail to configure it within the configured stipulated time, their account will be locked and have to be unlocked manually. Note that user accounts cannot be unlocked automatically, even if you change the settings. As a security precaution they always have to be unlocked them manually. Maximum grace period is 90 days.', 'wp-2fa' ),
+					'text'  => \esc_html__( 'When 2FA is required, you can require users to configure it immediately or give them a grace period. During the grace period, users can continue to log in without 2FA.', 'wp-2fa' ),
 					'class' => 'description-settings-card',
 					'id'    => 'grace-period-desc' . $id_suffix,
 					'type'  => 'description',
@@ -542,7 +542,7 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 							id="no-grace-period<?php echo \esc_attr( $id_suffix ); ?>"
 							value="no-grace-period"
 							<?php \checked( $grace_policy, 'no-grace-period' ); ?>>
-						<span><?php \esc_html_e( 'Users have to configure 2FA straight away.', 'wp-2fa' ); ?></span>
+						<span><?php \esc_html_e( 'Require users to configure 2FA immediately', 'wp-2fa' ); ?></span>
 					</label>
 					<label class="radio-option">
 						<input type="radio"
@@ -564,7 +564,7 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 					<?php
 					Settings_Builder::build_option(
 						array(
-							'text' => \esc_html__( 'Grace period', 'wp-2fa' ),
+							'text' => \esc_html__( 'When should users configure 2FA?', 'wp-2fa' ),
 							'id'   => 'grace-period-label' . $id_suffix,
 							'type' => 'settings-label',
 						)
@@ -603,7 +603,7 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 					<?php
 					Settings_Builder::build_option(
 						array(
-							'text' => \esc_html__( 'What should the plugin do with users who do not configure 2FA within the grace period?', 'wp-2fa' ),
+							'text' => \esc_html__( 'What should happen when the grace period expires?', 'wp-2fa' ),
 							'id'   => 'grace-expire-label' . $id_suffix,
 							'type' => 'settings-label',
 						)
@@ -615,8 +615,8 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 							'option_name' => $name_prefix . '[grace-policy-after-expire-action]',
 							'default'     => $grace_after_expire_action,
 							'options'     => array(
-								'configure-right-away' => \esc_html__( 'Do not let them access the dashboard / user page once they log in until they configure 2FA', 'wp-2fa' ),
-								'manual-block'         => \esc_html__( 'Lock the user (administrators have to manually unlock them)', 'wp-2fa' ),
+								'configure-right-away' => \esc_html__( 'Require users to configure 2FA before they can access the WordPress dashboard. This means users can still log in, but they must configure 2FA before they can continue to the dashboard.', 'wp-2fa' ),
+								'manual-block'         => \esc_html__( 'Block the user account and an administrator must manually unblock their account.', 'wp-2fa' ),
 							),
 						)
 					);
@@ -628,7 +628,7 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 					<?php
 					Settings_Builder::build_option(
 						array(
-							'text' => \esc_html__( 'How do you want users to be informed they are enforced to setup 2FA?', 'wp-2fa' ),
+							'text' => \esc_html__( 'How should users be advised to configure 2FA?', 'wp-2fa' ),
 							'id'   => 'grace-notification-label' . $id_suffix,
 							'type' => 'settings-label',
 						)
@@ -640,8 +640,8 @@ $managed_checkbox_keys = \apply_filters( WP_2FA_PREFIX . 'managed_checkbox_keys'
 							'option_name' => $name_prefix . '[' . Grace_Period_Notifications::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME . ']',
 							'default'     => $grace_notification,
 							'options'     => array(
-								'dashboard-notification'   => \esc_html__( 'Show an admin notice in the dashboard', 'wp-2fa' ),
-								'after-login-notification' => \esc_html__( 'Show a notification on a page on its own after the user authenticates and before accessing the dashboard', 'wp-2fa' ),
+								'dashboard-notification'   => \esc_html__( 'Show a notice in the WordPress dashboard after the users log in.', 'wp-2fa' ),
+								'after-login-notification' => \esc_html__( 'Show a reminder on a dedicated page after login before they access the WordPress dashboard.', 'wp-2fa' ),
 							),
 						)
 					);

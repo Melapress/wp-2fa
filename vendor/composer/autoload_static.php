@@ -4,28 +4,22 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
+class ComposerStaticInit3f54b96c005eee4b27b409e39d4a62aa
 {
     public static $prefixLengthsPsr4 = array (
-        'W' => 
+        'W' =>
         array (
-            'WP2FA_Vendor\\Clickatell\\' => 24,
             
             'WP2FA\\' => 6,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'WP2FA_Vendor\\Clickatell\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/arcturial/clickatell/src',
-            1 => __DIR__ . '/..' . '/arcturial/clickatell/test',
-        ),
         
         array (
             0 => __DIR__ . '/../..' . '/extensions',
         ),
-        'WP2FA\\' => 
+        'WP2FA\\' =>
         array (
             0 => __DIR__ . '/../..' . '/includes/classes',
         ),
@@ -46,12 +40,14 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
         'WP2FA\\Admin\\Helpers\\Classes_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-classes-helper.php',
         'WP2FA\\Admin\\Helpers\\Email_Templates' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-email-templates.php',
         'WP2FA\\Admin\\Helpers\\File_Writer' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-file-writer.php',
+        'WP2FA\\Admin\\Helpers\\Hide_Admin_Notices' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-hide-admin-notices.php',
+        'WP2FA\\Admin\\Helpers\\MLS_Cross_Sell' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-mls-cross-sell.php',
+        'WP2FA\\Admin\\Helpers\\ManageWP_Guard' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-managewp-guard.php',
         'WP2FA\\Admin\\Helpers\\Methods_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-methods-helper.php',
         'WP2FA\\Admin\\Helpers\\PHP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-php-helper.php',
         'WP2FA\\Admin\\Helpers\\SMS_Templates' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-sms-templates.php',
         'WP2FA\\Admin\\Helpers\\User_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-user-helper.php',
         'WP2FA\\Admin\\Helpers\\WP_Helper' => __DIR__ . '/../..' . '/includes/classes/Admin/Helpers/class-wp-helper.php',
-        'WP2FA\\Admin\\License_Page' => __DIR__ . '/../..' . '/includes/classes/Admin/class-license-page.php',
         'WP2FA\\Admin\\Methods\\Traits\\Login_Attempts' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-login-attempts.php',
         'WP2FA\\Admin\\Methods\\Traits\\Methods_Wizards_Trait' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-methods-wizards-trait.php',
         'WP2FA\\Admin\\Methods\\Traits\\Providers' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-provider-trait.php',
@@ -59,6 +55,8 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
         'WP2FA\\Admin\\Methods\\Traits\\Validation' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-validation-trait.php',
         'WP2FA\\Admin\\Methods\\Traits\\WhiteLabel' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/Traits/class-white-label-trait.php',
         'WP2FA\\Admin\\Methods\\passkeys\\Authenticator_Data' => __DIR__ . '/../..' . '/includes/classes/Admin/Methods/passkeys/class-authenticator-data.php',
+        'WP2FA\\Admin\\Migrations\\Wordfence_Login_Security' => __DIR__ . '/../..' . '/includes/classes/Admin/Migrations/class-wordfence-login-security.php',
+        'WP2FA\\Admin\\Migrations\\Wordfence_Migration_Page' => __DIR__ . '/../..' . '/includes/classes/Admin/Migrations/class-wordfence-migration-page.php',
         'WP2FA\\Admin\\New_Interface_Notice' => __DIR__ . '/../..' . '/includes/classes/Admin/class-new-interface-notice.php',
         'WP2FA\\Admin\\Plugin_Updated_Notice' => __DIR__ . '/../..' . '/includes/classes/Admin/class-plugin-updated-notice.php',
         'WP2FA\\Admin\\Premium_Features' => __DIR__ . '/../..' . '/includes/classes/Admin/class-premium-features.php',
@@ -90,6 +88,7 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
         'WP2FA\\Admin\\Wizard_Integration' => __DIR__ . '/../..' . '/includes/classes/Admin/class-wizard-integration.php',
         'WP2FA\\App\\Grace_Period' => __DIR__ . '/../..' . '/includes/classes/App/grace-period/class-grace-period.php',
         'WP2FA\\Authenticator\\Authentication' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-authentication.php',
+        'WP2FA\\Authenticator\\Code_Guard' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-code-guard.php',
         'WP2FA\\Authenticator\\Login' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-login.php',
         'WP2FA\\Authenticator\\Open_SSL' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-open-ssl.php',
         'WP2FA\\Authenticator\\Reset_Password' => __DIR__ . '/../..' . '/includes/classes/Authenticator/class-reset-password.php',
@@ -145,6 +144,10 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
         
         
         
+        'WP2FA\\Licensing\\EDD_License_Page' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-edd-license-page.php',
+        'WP2FA\\Licensing\\EDD_Network_Licensing' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-edd-network-licensing.php',
+        'WP2FA\\Licensing\\EDD_Plan' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-edd-plan.php',
+        'WP2FA\\Licensing\\EDD_Plugin_Updater' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-edd-plugin-updater.php',
         'WP2FA\\Licensing\\EDD_Provider' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-edd-provider.php',
         'WP2FA\\Licensing\\Freemius_Provider' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-freemius-provider.php',
         'WP2FA\\Licensing\\Licensing_Factory' => __DIR__ . '/../..' . '/includes/classes/Licensing/class-licensing-factory.php',
@@ -267,9 +270,9 @@ class ComposerStaticInit8e4bd40c69c1806ec5256455413aac71
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit8e4bd40c69c1806ec5256455413aac71::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit8e4bd40c69c1806ec5256455413aac71::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit8e4bd40c69c1806ec5256455413aac71::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3f54b96c005eee4b27b409e39d4a62aa::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3f54b96c005eee4b27b409e39d4a62aa::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit3f54b96c005eee4b27b409e39d4a62aa::$classMap;
 
         }, null, ClassLoader::class);
     }

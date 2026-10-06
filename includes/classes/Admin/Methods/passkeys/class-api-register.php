@@ -49,6 +49,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 			if ( ! $current_user || 0 === (int) $current_user->ID ) {
 				return new \WP_Error( 'rest_forbidden', __( 'Authentication required.', 'wp-2fa' ), array( 'status' => 401 ) );
 			}
+			if ( ! Passkeys::is_enabled( User_Helper::get_user_role( $current_user ) ) ) {
+				return new \WP_Error( 'rest_forbidden', __( 'Passkeys are disabled for this account.', 'wp-2fa' ), array( 'status' => 403 ) );
+			}
 
 			// if ( User_Helper::is_excluded( $current_user->ID ) ) {
 			// 	return new \WP_Error( 'rest_forbidden', __( 'Authentication required.', 'wp-2fa' ), array( 'status' => 401 ) );
@@ -62,7 +65,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 
 			try {
 				$public_key_credential_creation_options = Authentication_Server::create_attestation_request( $current_user, null, $is_usb );
-			} catch ( \Exception $error ) {
+			} catch ( \Throwable $error ) {
 				// Log detailed error server-side only when WP_DEBUG is enabled.
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Server-side security logging only.
@@ -98,9 +101,14 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 				if ( ! $user || 0 === (int) $user->ID ) {
 					return new \WP_Error( 'rest_forbidden', __( 'Authentication required.', 'wp-2fa' ), array( 'status' => 401 ) );
 				}
+				if ( ! Passkeys::is_enabled( User_Helper::get_user_role( $user ) ) ) {
+					return new \WP_Error( 'rest_forbidden', __( 'Passkeys are disabled for this account.', 'wp-2fa' ), array( 'status' => 403 ) );
+				}
 
-				// Get expected challenge from user meta.
-				$challenge = \get_user_meta( $user->ID, WP_2FA_PREFIX . 'passkey_challenge', true );
+				$challenge = \get_transient( Source_Repository::REGISTRATION_CHALLENGE_PREFIX . $user->ID );
+				if ( ! is_string( $challenge ) || '' === $challenge ) {
+					return new \WP_Error( 'invalid_request', __( 'Registration challenge expired.', 'wp-2fa' ), array( 'status' => 400 ) );
+				}
 
 				try {
 					// Decode JSON and throw on error to catch malformed payloads.
@@ -122,6 +130,12 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 
 				// Basic base64url validation: allow A-Z a-z 0-9 - _ and optional padding '='.
 				$b64url_re = '/^[A-Za-z0-9\-_]+=*$/';
+
+				// Strings only: JSON lets any of these be an array, which the checks
+				// and decoders below cannot take.
+				if ( ! is_string( $raw_id ) || ! is_string( $client_data_json_b64 ) || ! is_string( $attestation_b64 ) ) {
+					return new \WP_Error( 'invalid_request', __( 'Incomplete attestation payload.', 'wp-2fa' ), array( 'status' => 400 ) );
+				}
 
 				if ( '' === $raw_id || '' === $client_data_json_b64 || '' === $attestation_b64 ) {
 					return new \WP_Error( 'invalid_request', __( 'Incomplete attestation payload.', 'wp-2fa' ), array( 'status' => 400 ) );
@@ -167,7 +181,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 					'passkey_name'  => $data['passkey_name'] ?? null,
 				);
 
-				\delete_user_meta( $user->ID, WP_2FA_PREFIX . 'passkey_challenge' );
+				\delete_transient( Source_Repository::REGISTRATION_CHALLENGE_PREFIX . $user->ID );
 
 				// Get platform from user agent; trim and sanitize to avoid storing excessively long or unsafe strings.
 				$user_agent = (string) $request->get_header( 'User-Agent' );
@@ -201,23 +215,24 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 				}
 
 				$extra_data = array(
-					'name'          => $name,
-					'created'       => time(),
-					'last_used'     => false,
-					'enabled'       => true,
-					'ip_address'    => Authentication_Server::get_ip_address(),
-					'platform'      => $platform,
-					'user_agent'    => $user_agent,
-					'aaguid'        => $data['aaguid'],
-					'public_key'    => $data['public_key'],
-					'credential_id' => $credential_id,
-					'transports'    => ( isset( $params['response']['transports'] ) ) ? \wp_json_encode( $params['response']['transports'] ) : wp_json_encode( array() ),
+					'name'              => $name,
+					'created'           => time(),
+					'last_used'         => false,
+					'enabled'           => true,
+					'ip_address'        => Authentication_Server::get_ip_address(),
+					'platform'          => $platform,
+					'user_agent'        => $user_agent,
+					'aaguid'            => $data['aaguid'],
+					'public_key'        => $data['public_key'],
+					'credential_id'     => $credential_id,
+					'transports'        => ( isset( $params['response']['transports'] ) ) ? \wp_json_encode( $params['response']['transports'] ) : wp_json_encode( array() ),
+					'signature_counter' => $web_authn->get_signature_counter(),
 				);
 
 				// Finally store the credential source to database.
 				Source_Repository::save_credential_source( $user, $extra_data );
 
-			} catch ( \Exception $error ) {
+			} catch ( \Throwable $error ) {
 				// Log detailed error server-side only when WP_DEBUG is enabled.
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Server-side security logging only.
@@ -283,7 +298,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 
 			try {
 				Source_Repository::delete_credential_source( $fingerprint, $current_user );
-			} catch ( \Exception $error ) {
+				User_Helper::update_user_state( $current_user );
+				User_Helper::set_user_status( $current_user );
+			} catch ( \Throwable $error ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Server-side security logging only.
 					\error_log( sprintf( '[WP-2FA] register_revoke_action error: %s', $error->getMessage() ) );
@@ -360,6 +377,10 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 				}
 
 				$user_data = \json_decode( $stored_meta, true, 512, JSON_THROW_ON_ERROR );
+				if ( empty( $user_data['extra']['enabled'] ) && ! Passkeys::is_enabled( User_Helper::get_user_role( $user ) ) ) {
+					return new \WP_Error( 'rest_forbidden', __( 'Passkeys are disabled for this account.', 'wp-2fa' ), array( 'status' => 403 ) );
+				}
+
 
 				// Update the meta value.
 				if ( isset( $user_data['extra']['enabled'] ) ) {
@@ -369,7 +390,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 				}
 				$public_key_json = addcslashes( \wp_json_encode( $user_data, JSON_UNESCAPED_SLASHES ), '\\' );
 				\update_user_meta( $user->ID, $meta_key, $public_key_json );
-			} catch ( \Exception $error ) {
+			} catch ( \Throwable $error ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Server-side security logging only.
 					\error_log( sprintf( '[WP-2FA] register_enable_action error: %s', $error->getMessage() ) );

@@ -91,7 +91,7 @@ $lock_icon_svg = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
 				<?php
 				printf(
 					/* translators: %d: number of additional hidden roles/items */
-					esc_html__( '+ %d more', 'wp-2fa' ),
+					esc_html( _n( '+ %d more', '+ %d more', $hidden_count, 'wp-2fa' ) ),
 					$hidden_count
 				);
 				?>

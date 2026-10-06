@@ -62,15 +62,3 @@ window.wp2fa_fireWizard=function(){jQuery('.verification-response span').remove(
 jQuery('[name="wp_2fa_enabled_methods"]').change();if(1===jQuery('.wizard-step.active .option-pill').length){jQuery('#configure-2fa .wizard-step:first-of-type, #configure-2fa input:radio[name=wp_2fa_enabled_methods]:first').attr("checked",true);setTimeout(()=>{jQuery('.wp-2fa-button-primary.wp-2fa-choose-method').trigger("click");},100)}else{jQuery('#configure-2fa .wizard-step:first-of-type, #configure-2fa input:radio[name=wp_2fa_enabled_methods]:first').prop("checked",true);jQuery('[name="wp_2fa_enabled_methods"]').change();jQuery('#configure-2fa .wizard-step:first-of-type, #configure-2fa input:radio[name=wp_2fa_enabled_methods]:first').trigger("click");}};
 }
 catch(e){console.error("An error has occurred common.js: "+e.stack);}
-
-try{
-jQuery(function(){const select2Autocomplete=function(source,functionName){jQuery(source).select2({width:'resolve',ajax:{url:`${wp2faData.ajaxURL}?wp_2fa_nonce=${wp2faData.nonce}`,dataType:'json',delay:250,data:function(params){return{term:params.term,action:functionName};},processResults:function(data){var exclData=[];if(source==='#excluded-users-multi-select'){exclData=jQuery('#enforced_users-multi-select').val();}else if(source==='#enforced_users-multi-select'){exclData=jQuery('#excluded-users-multi-select').val();}else if(source==='#excluded-roles-multi-select'){exclData=jQuery('#enforced-roles-multi-select').val();}else if(source==='#enforced-roles-multi-select'){exclData=jQuery('#excluded-roles-multi-select').val();}else if(source==='#excluded-sites-multi-select'){exclData=jQuery('#enforced-sites-multi-select').val();}else if(source==='#enforced-sites-multi-select'){exclData=jQuery('#excluded-sites-multi-select').val();}
-const options=[];if(data.data){jQuery.each(data.data,function(index,text){if(exclData.indexOf(text['label'])===-1){options.push({id:text['label'],text:text['value']});}});}
-return{results:options};},cache:true},minimumInputLength:2});};if(jQuery('#excluded-users-multi-select').length){select2Autocomplete('#excluded-users-multi-select','wp_2fa_get_all_users');}
-if(jQuery('#enforced_users-multi-select').length){select2Autocomplete('#enforced_users-multi-select','wp_2fa_get_all_users');}
-if(jQuery('#excluded-roles-multi-select').length){select2Autocomplete('#excluded-roles-multi-select','wp_2fa_get_all_roles');}
-if(jQuery('#enforced-roles-multi-select').length){select2Autocomplete('#enforced-roles-multi-select','wp_2fa_get_all_roles');}
-if(jQuery('#excluded-sites-multi-select').length){select2Autocomplete('#excluded-sites-multi-select','wp_2fa_get_all_network_sites');}
-if(jQuery('#enforced-sites-multi-select').length){select2Autocomplete('#enforced-sites-multi-select','wp_2fa_get_all_network_sites');}});
-}
-catch(e){console.error("An error has occurred select2control.js: "+e.stack);}

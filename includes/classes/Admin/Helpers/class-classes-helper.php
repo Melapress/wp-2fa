@@ -43,7 +43,31 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Classes_Helper' ) ) {
 		 */
 		public static function get_class_map(): array {
 			if ( empty( self::$class_map ) ) {
-				self::$class_map = require WP_2FA_PATH . 'vendor/composer/autoload_classmap.php';
+				$classmap_file = WP_2FA_PATH . 'vendor/composer/autoload_classmap.php';
+
+				/*
+				 * A plugin update replaces this directory with no atomicity at all,
+				 * so a request that lands mid-update can find the class map gone. A
+				 * bare require took the whole request down with it, and the browser
+				 * received an HTML error page — including on endpoints whose callers
+				 * were parsing the reply as JSON.
+				 *
+				 * An empty map lets the request survive; every caller already treats
+				 * "no classes found" as an ordinary, if unhelpful, answer. The empty
+				 * result is deliberately not cached, so the next request picks up the
+				 * real map once the files have settled.
+				 */
+				if ( ! \is_readable( $classmap_file ) ) {
+					return array();
+				}
+
+				$class_map = require $classmap_file;
+
+				if ( ! \is_array( $class_map ) ) {
+					return array();
+				}
+
+				self::$class_map = $class_map;
 			}
 
 			return self::$class_map;

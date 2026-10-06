@@ -49,8 +49,12 @@ if ( ! class_exists( '\WP2FA\Passkeys\Authentication_Server' ) ) {
 
 			$challenge = base64_encode( random_bytes( 32 ) );
 
-			// Store challenge in User meta.
-			\update_user_meta( $user->ID, WP_2FA_PREFIX . 'passkey_challenge', $challenge );
+			// A transient expires abandoned registrations and cannot be mistaken
+			// for a stored credential by the repository's user-meta lookup.
+			if ( ! \set_transient( Source_Repository::REGISTRATION_CHALLENGE_PREFIX . $user->ID, $challenge, 5 * MINUTE_IN_SECONDS ) ) {
+				throw new \RuntimeException( 'Unable to store passkey registration challenge.' );
+			}
+			\delete_user_meta( $user->ID, WP_2FA_PREFIX . 'passkey_challenge' );
 
 			$user_id = (string) \get_current_user_id();
 

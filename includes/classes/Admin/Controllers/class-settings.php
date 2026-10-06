@@ -95,6 +95,15 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		private static $all_providers = array();
 
 		/**
+		 * Whether the fallback providers have been forced in for this request.
+		 *
+		 * @var bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static $forced_fallback = false;
+
+		/**
 		 * All available providers for the plugin with their translated names.
 		 *
 		 * @var array
@@ -181,6 +190,15 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 			if ( null === self::$custom_setup_page_link ) {
 				self::$custom_setup_page_link = self::get_role_or_default_setting( 'custom-user-page-id', $user );
 
+				/*
+				 * With a page per site, a stored ID names one site's page at best -
+				 * and is resolved on the main site below. The slug, looked up on the
+				 * user's own site, is what that mode is for.
+				 */
+				if ( WP_Helper::is_multisite() && '' !== (string) self::get_role_or_default_setting( 'separate-multisite-page-url', $user ) ) {
+					self::$custom_setup_page_link = '';
+				}
+
 				if ( ! empty( self::$custom_setup_page_link ) ) {
 					if ( WP_Helper::is_multisite() ) {
 						\switch_to_blog( get_main_site_id() );
@@ -196,7 +214,21 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				} else {
 					$custom_user_page_id = (int) self::get_custom_settings_page_id( '', $user );
 					if ( ! empty( $custom_user_page_id ) ) {
+						/*
+						 * The ID belongs to the site it was looked up on - the user's own
+						 * site with a page per site - and only means that page there.
+						 */
+						$page_blog = WP_Helper::is_multisite() && ! empty( $user ) && '' !== (string) self::get_role_or_default_setting( 'separate-multisite-page-url', $user )
+							? (int) User_Helper::get_user_default_blog( $user )
+							: (int) \get_current_blog_id();
+						$switched  = WP_Helper::is_multisite() && $page_blog > 0 && $page_blog !== (int) \get_current_blog_id();
+						if ( $switched ) {
+							\switch_to_blog( $page_blog );
+						}
 						self::$custom_setup_page_link = \esc_url( \get_permalink( $custom_user_page_id ) );
+						if ( $switched ) {
+							\restore_current_blog();
+						}
 					}
 				}
 			}
@@ -347,10 +379,15 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 */
 		public static function get_enabled_providers_for_role( string $role ) {
 
-			if ( WP_Helper::is_role_exists( $role ) ) {
-				self::get_all_roles_providers();
+			if ( self::is_using_fallback_providers() ) {
+				// Built-in methods only, and all of them enabled — see get_providers().
+				return array_fill_keys( array_values( Methods_Helper::get_default_methods() ), true );
+			}
 
-				return self::$all_providers_for_roles[ $role ];
+			if ( WP_Helper::is_role_exists( $role ) ) {
+				$roles_providers = self::get_all_roles_providers();
+
+				return isset( $roles_providers[ $role ] ) ? $roles_providers[ $role ] : array();
 			} elseif ( '' === $role ) {
 
 				$providers = self::get_providers();
@@ -386,18 +423,27 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function is_provider_enabled_for_role( string $role, string $provider ): bool {
-			self::get_providers();
+			// The returned list, not the cached property: while the fallback is in
+			// play the property is still empty by design.
+			$providers = self::get_providers();
 
-			if ( in_array( $provider, self::$all_providers, true ) ) {
-				self::get_enabled_providers_for_role( $role );
-				if ( isset( self::$all_providers_for_roles[ $role ][ $provider ] ) ) {
-					return true;
-				}
-
-				return false;
+			if ( ! in_array( $provider, $providers, true ) ) {
+				throw new \Exception( __( 'Requested provider is not registered.', 'wp-2fa' ) );
 			}
 
-			throw new \Exception( __( 'Requested provider is not registered.', 'wp-2fa' ) );
+			/*
+			 * On the fallback, the per-role settings cannot be trusted either — the
+			 * same half-loaded state that lost the providers is what would make them
+			 * read as "nothing enabled". Treat the built-in methods as enabled so a
+			 * user who has one configured is still challenged for it.
+			 */
+			if ( self::is_using_fallback_providers() ) {
+				return true;
+			}
+
+			self::get_enabled_providers_for_role( $role );
+
+			return isset( self::$all_providers_for_roles[ $role ][ $provider ] );
 		}
 
 		/**
@@ -409,6 +455,23 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 		 * @since 2.2.0
 		 */
 		public static function get_all_roles_providers() {
+			if ( self::is_using_fallback_providers() ) {
+				/*
+				 * Same reasoning as get_providers(): report the built-in methods as
+				 * enabled for every role rather than reporting none, and do not cache
+				 * it, so the real per-role settings take over as soon as the plugin
+				 * is whole again.
+				 */
+				$fallback = array_fill_keys( array_values( Methods_Helper::get_default_methods() ), true );
+				$answer   = array();
+
+				foreach ( WP_Helper::get_roles() as $role ) {
+					$answer[ $role ] = $fallback;
+				}
+
+				return $answer;
+			}
+
 			if ( empty( self::$all_providers_for_roles ) ) {
 				$roles     = WP_Helper::get_roles();
 				$providers = self::get_providers();
@@ -493,7 +556,73 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 				self::$all_providers = self::sanitize_slug_list( $providers );
 			}
 
+			/*
+			 * Nothing registered. The method classes each add themselves through the
+			 * filter above, so an empty list means they never loaded — which happens
+			 * when the class map cannot be read, as during a plugin update.
+			 *
+			 * An empty list is the dangerous answer: callers read it as "this site
+			 * has no 2FA methods" and act accordingly, which has meant storing a
+			 * policy with no method in it and, worse, letting an enforced user
+			 * straight past the 2FA challenge. Answer with the two methods every
+			 * build ships instead, so a half-loaded plugin degrades to the defaults
+			 * rather than to nothing.
+			 *
+			 * Deliberately not written back to the cache: the moment the real
+			 * providers register, they must win.
+			 */
+			if ( empty( self::$all_providers ) ) {
+				return Methods_Helper::get_default_methods();
+			}
+
 			return self::$all_providers;
+		}
+
+		/**
+		 * Whether the real provider list is unavailable and the fallback is in play.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		public static function is_using_fallback_providers(): bool {
+			if ( self::$forced_fallback ) {
+				return true;
+			}
+
+			self::get_providers();
+
+			return empty( self::$all_providers );
+		}
+
+		/**
+		 * Install the built-in methods as this request's provider list.
+		 *
+		 * For callers that have already been told the provider list cannot answer
+		 * for them — Login::wp_login() catching is_provider_enabled_for_role() —
+		 * and that have to carry on regardless. Pinning the built-ins means the
+		 * rest of the request has real methods to work with, so the 2FA challenge
+		 * can actually be rendered rather than merely insisted upon.
+		 *
+		 * Does nothing when a real provider list is present: a provider that could
+		 * not be placed against a healthy list is an unknown provider, not a broken
+		 * load, and standing the site's real methods down over one would be a
+		 * downgrade rather than a repair.
+		 *
+		 * @return bool Whether the fallback was installed.
+		 *
+		 * @since 4.2.0
+		 */
+		public static function apply_fallback_providers(): bool {
+			if ( ! empty( self::$all_providers ) ) {
+				return false;
+			}
+
+			self::$forced_fallback         = true;
+			self::$all_providers           = Methods_Helper::get_default_methods();
+			self::$all_providers_for_roles = array();
+
+			return true;
 		}
 
 		/**

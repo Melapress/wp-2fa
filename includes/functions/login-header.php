@@ -1,4 +1,6 @@
 <?php
+use WP2FA\Admin\Helpers\WP_Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -37,7 +39,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	}
 		$login_title = \esc_html( get_bloginfo( 'name', 'display' ) );
 		/* translators: Login screen title. 1: Login screen name, 2: Network or site name */
-		$login_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $login_title );
+		$login_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress', 'default' ), $title, $login_title );
 		/**
 		 * Filters the title tag content for login page.
 		 *
@@ -82,12 +84,12 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		 * @since 2.1.0
 		 */
 		do_action( 'login_head' );
-		if ( \WP2FA\Admin\Helpers\WP_Helper::is_multisite() ) {
+		if ( WP_Helper::is_multisite() ) {
 				$login_header_url   = network_home_url();
 				$login_header_title = get_network()->site_name;
 		} else {
-				$login_header_url   = __( 'https://wordpress.org/' );
-				$login_header_title = __( 'Powered by WordPress' );
+				$login_header_url   = __( 'https://wordpress.org/', 'default' );
+				$login_header_title = __( 'Powered by WordPress', 'default' );
 		}
 		/**
 		 * Filters link URL of the header logo above login form.
@@ -109,7 +111,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 		 * To match the URL/title set above, Multisite sites have the blog name,
 		 * while single sites get the header title.
 		 */
-		if ( \WP2FA\Admin\Helpers\WP_Helper::is_multisite() ) {
+		if ( WP_Helper::is_multisite() ) {
 				$login_header_text = get_bloginfo( 'name', 'display' );
 		} else {
 				$login_header_text = $login_header_title;

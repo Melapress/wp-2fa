@@ -39,6 +39,16 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		private static $column_name = 'wp-2fa-status';
 
 		/**
+		 * The bulk actions this class handles. Every other action reaching
+		 * handle_bulk_actions-users belongs to someone else and is left alone.
+		 *
+		 * @var string[]
+		 *
+		 * @since 4.2.0
+		 */
+		private const OWN_BULK_ACTIONS = array( 'remove-2fa', 'remove-2fa-trusted', 'remove-2fa-temporary' );
+
+		/**
 		 * Inits all the hooks used for showing the extra user data in the users column
 		 *
 		 * @return void
@@ -51,6 +61,7 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 			\add_filter( 'manage_users_custom_column', array( __CLASS__, 'show_column_data' ), 10, 3 );
 			\add_filter( 'bulk_actions-users', array( __CLASS__, 'add_bulk_action' ), 10, 1 );
 			\add_filter( 'handle_bulk_actions-users', array( __CLASS__, 'handle_bulk_actions' ), 10, 3 );
+			\add_action( 'load-users.php', array( __CLASS__, 'handle_own_bulk_action_early' ) );
 			\add_action( 'admin_notices', array( __CLASS__, 'show_admin_notice' ) );
 			\add_filter( 'user_row_actions', array( __CLASS__, 'add_users_hover' ), 10, 2 );
 		}
@@ -135,6 +146,72 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		}
 
 		/**
+		 * Handles this plugin's bulk actions before wp-admin/users.php can drop the nonce.
+		 *
+		 * For a custom bulk action, users.php does not dispatch straight away: when
+		 * the request carries _wp_http_referer - which the list table's bulk form
+		 * always sends - it first redirects to the same URL with _wp_http_referer
+		 * and _wpnonce removed, and only dispatches handle_bulk_actions-users on
+		 * that second request. So the nonce never reaches the filter for a real
+		 * bulk submission, and checking it there would break the action outright;
+		 * not checking it at all is what let a crafted link strip 2FA.
+		 *
+		 * load-users.php runs before users.php gets that far, with the nonce still
+		 * present, so this plugin's own actions are verified and carried out here.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		public static function handle_own_bulk_action_early() {
+			$action = self::requested_bulk_action();
+
+			if ( ! in_array( $action, self::OWN_BULK_ACTIONS, true ) ) {
+				return;
+			}
+
+			// Dies on a missing or bad nonce, which is the whole point.
+			\check_admin_referer( 'bulk-users' );
+
+			$user_ids = isset( $_REQUEST['users'] ) ? array_map( 'intval', (array) \wp_unslash( $_REQUEST['users'] ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cast to int.
+
+			if ( empty( $user_ids ) ) {
+				return;
+			}
+
+			$sendback = \wp_get_referer();
+			if ( ! $sendback ) {
+				$sendback = \admin_url( 'users.php' );
+			}
+
+			\wp_safe_redirect( self::handle_bulk_actions( $sendback, $action, $user_ids ) );
+			exit;
+		}
+
+		/**
+		 * The bulk action a users.php request asks for, as WP_List_Table reads it.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		private static function requested_bulk_action(): string {
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read only to decide whether this request is ours; verified before anything is done.
+			if ( isset( $_REQUEST['filter_action'] ) && ! empty( $_REQUEST['filter_action'] ) ) {
+				return '';
+			}
+
+			foreach ( array( 'action', 'action2' ) as $field ) {
+				if ( isset( $_REQUEST[ $field ] ) && \is_string( $_REQUEST[ $field ] ) && '-1' !== $_REQUEST[ $field ] ) {
+					return \sanitize_key( \wp_unslash( $_REQUEST[ $field ] ) );
+				}
+			}
+			// phpcs:enable
+
+			return '';
+		}
+
+		/**
 		 * Removes the 2fa from the list of the selected users.
 		 *
 		 * @param string $redirect_url - The redirect URL to redirect to when action is performed.
@@ -146,20 +223,46 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 		 * @since 2.2.2
 		 */
 		public static function handle_bulk_actions( $redirect_url, $action, $user_ids ): string {
+			/*
+			 * handle_bulk_actions-users fires for every custom bulk action on the
+			 * screen, other plugins' included, so anything that is not ours goes
+			 * back untouched.
+			 */
+			if ( ! in_array( $action, self::OWN_BULK_ACTIONS, true ) ) {
+				return (string) $redirect_url;
+			}
+
+			/*
+			 * handle_own_bulk_action_early() carries out this plugin's actions
+			 * with the nonce verified, and exits, so a request for one of them only
+			 * gets here if something bypassed that - the nonce-less second request
+			 * users.php makes, or a crafted link. Neither may act.
+			 */
+			\check_admin_referer( 'bulk-users' );
+
 			if ( ! current_user_can( 'manage_options' ) ) {
 				return esc_url_raw( \network_admin_url() );
 			}
 
+			// Only users this admin may manage: on a network that keeps a site
+			// administrator to their own members and off super admins.
+			$user_ids = array_values(
+				array_filter(
+					array_map( 'intval', (array) $user_ids ),
+					array( User_Helper::class, 'current_user_can_manage_2fa_for' )
+				)
+			);
+
 			if ( 'remove-2fa' === $action ) {
 
-				foreach ( (array) $user_ids as $user_id ) {
-					User_Helper::remove_2fa_for_user( (int) $user_id );
+				foreach ( $user_ids as $user_id ) {
+					User_Helper::remove_2fa_for_user( $user_id );
 				}
 				\set_site_transient(
 					'wp_2fa_bulk_notice_' . \get_current_user_id(),
 					array(
 						'type'  => 'removed',
-						'count' => count( (array) $user_ids ),
+						'count' => count( $user_ids ),
 					),
 					30
 				);
@@ -167,12 +270,12 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 
 			if ( class_exists( '\WP2FA\Extensions\TrustedDevices\Core' ) && 'remove-2fa-trusted' === $action ) {
 
-				Core::remove_trusted_devices_for_users( (array) $user_ids );
+				Core::remove_trusted_devices_for_users( $user_ids );
 				\set_site_transient(
 					'wp_2fa_bulk_notice_' . \get_current_user_id(),
 					array(
 						'type'  => 'trusted-removed',
-						'count' => count( (array) $user_ids ),
+						'count' => count( $user_ids ),
 					),
 					30
 				);
@@ -220,16 +323,16 @@ if ( ! class_exists( '\WP2FA\Admin\User_Listing' ) ) {
 			if ( 'removed' === $notice['type'] ) {
 				printf(
 					'<div id="message" class="updated notice is-dismissable"><p>' .
-					// translators: The number of the affected users.
-					\esc_html__( 'Removed 2FA from %d users.', 'wp-2fa' ) .
+					// translators: %d: the number of affected users.
+					\esc_html( \_n( 'Removed 2FA from %d user.', 'Removed 2FA from %d users.', $num_changed, 'wp-2fa' ) ) .
 					'</p></div>',
 					$num_changed
 				);
 			} elseif ( 'trusted-removed' === $notice['type'] ) {
 				printf(
 					'<div id="message" class="updated notice is-dismissable"><p>' .
-					// translators: The number of the affected users.
-					\esc_html__( 'Removed 2FA trusted devices from %d users.', 'wp-2fa' ) .
+					// translators: %d: the number of affected users.
+					\esc_html( \_n( 'Removed 2FA trusted devices from %d user.', 'Removed 2FA trusted devices from %d users.', $num_changed, 'wp-2fa' ) ) .
 					'</p></div>',
 					$num_changed
 				);

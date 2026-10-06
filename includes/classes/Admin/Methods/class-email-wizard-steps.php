@@ -269,7 +269,7 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 					<!-- <span class="wp2fa-sortable-title-hint"><?php echo \esc_html__( 'This method relies on your site being able to send emails reliably. If codes arrive late or not at all,', 'wp-2fa' ) . ' <a href="https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=policies_help_text" target="_blank">' . \esc_html__( 'learn more about email delivery', 'wp-2fa' ) . '</a>.'; ?></span> -->
 					<?php
 					if ( $setup_wizard ) {
-						echo '<p class="description">' . \esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin ', 'wp-2fa' ) . '<a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . \esc_html__( 'Allowing users to configure a secondary 2FA method is highly recommended. You can configure this in the next step of the wizard. This allows users to log in using an alternative method if they lose access to their primary 2FA device, such as their phone.', 'wp-2fa' ) . '</p>';
+						echo '<p class="description">' . \esc_html__( 'When using this method, users will receive the one-time login code over email. Therefore, email deliverability is very important. Users using this method should whitelist the address from which the codes are sent. By default, this is the email address configured in your WordPress. You can run an email test from the plugin\'s settings to confirm email deliverability. If you have had email deliverability / reliability issues, we highly recommend you to install the free plugin', 'wp-2fa' ) . ' <a href="https://wordpress.org/plugins/wp-mail-smtp/" target="_blank" rel="nofollow">WP Mail SMTP</a><br><br>' . \esc_html__( 'Allowing users to configure a secondary 2FA method is highly recommended. You can configure this in the next step of the wizard. This allows users to log in using an alternative method if they lose access to their primary 2FA device, such as their phone.', 'wp-2fa' ) . '</p>';
 					}
 					?>
 					<?php
@@ -365,7 +365,13 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\Email_Wizard_Steps' ) ) {
 						<div class="option-pill">
 							<label for="use_wp_email">
 								<input type="radio" name="wp_2fa_email_address" id="use_wp_email" value="<?php echo \esc_attr( User_Helper::get_user_object()->user_email ); ?>" checked>
-								<span><?php \esc_html_e( 'Use my user email (', 'wp-2fa' ); ?><small><?php echo \esc_attr( User_Helper::get_user_object()->user_email ); ?></small><?php \esc_html_e( ')', 'wp-2fa' ); ?></span>
+								<span><?php
+							printf(
+								/* translators: %s: the user's own email address. */
+								\esc_html__( 'Use my user email (%s)', 'wp-2fa' ),
+								'<small>' . \esc_attr( User_Helper::get_user_object()->user_email ) . '</small>'
+							);
+							?></span>
 							</label>
 						</div>
 						<?php

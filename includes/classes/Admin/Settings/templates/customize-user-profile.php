@@ -35,6 +35,7 @@ use WP2FA\Admin\Settings_Builder;
 				Settings_Builder::build_option(
 					array(
 						'text'  => \wp_sprintf(
+							/* translators: %1$s: the link to the user profile guide, already wrapped in an anchor. */
 							\esc_html__( 'Customize the title and description shown in the 2FA section of each user\'s WordPress profile page. %1$s.', 'wp-2fa' ),
 							\wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/wp-2fa-customize-user-2fa-experience/?#utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_customize_2fa_user_experience', \esc_html__( 'Learn more', 'wp-2fa' ) )
 						),
@@ -48,11 +49,11 @@ use WP2FA\Admin\Settings_Builder;
 		<div class="settings-card">
 			<?php
 			// Settings_Builder::build_option(
-			// 	array(
-			// 		'title' => esc_html__( 'Customize 2FA user profile page area', 'wp-2fa' ),
-			// 		'id'    => 'user-profile-section',
-			// 		'type'  => 'section-title',
-			// 	)
+			//  array(
+			//      'title' => esc_html__( 'Customize 2FA user profile page area', 'wp-2fa' ),
+			//      'id'    => 'user-profile-section',
+			//      'type'  => 'section-title',
+			//  )
 			// );
 			?>
 
@@ -165,6 +166,191 @@ use WP2FA\Admin\Settings_Builder;
 						)
 					);
 					?>
+				</div>
+			</div>
+
+			<div class="form-group settings-row">
+				<div class="settings-label-group">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'text' => \esc_html__( 'Primary method label', 'wp-2fa' ),
+						'id'   => 'user-profile-primary-method-label-label',
+						'type' => 'settings-label',
+					)
+				);
+				Settings_Builder::build_option(
+					array(
+						'text'  => \esc_html__( 'The label shown before the user\'s currently configured primary 2FA method.', 'wp-2fa' ),
+						'class' => 'description-settings-card',
+						'id'    => 'user-profile-primary-method-label-desc',
+						'type'  => 'description',
+					)
+				);
+				?>
+				</div>
+				<div class="settings-control">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'id'          => 'user-profile-primary-method-label',
+						'type'        => 'text',
+						'placeholder' => \esc_html__( 'Enter custom label', 'wp-2fa' ),
+						'class'       => 'form-input',
+						'option_name' => 'wp_2fa_white_label[user-profile-primary-method-label]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'user-profile-primary-method-label', true ),
+						'hint'        => \esc_html__( 'Only plain text is allowed.', 'wp-2fa' ),
+					)
+				);
+				?>
+				</div>
+			</div>
+
+			<div class="form-group settings-row">
+				<div class="settings-label-group">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'text' => \esc_html__( 'Secondary method label', 'wp-2fa' ),
+						'id'   => 'user-profile-secondary-method-label-label',
+						'type' => 'settings-label',
+					)
+				);
+				Settings_Builder::build_option(
+					array(
+						'text'  => \esc_html__( 'The label shown before the user\'s configured backup 2FA methods.', 'wp-2fa' ),
+						'class' => 'description-settings-card',
+						'id'    => 'user-profile-secondary-method-label-desc',
+						'type'  => 'description',
+					)
+				);
+				?>
+				</div>
+				<div class="settings-control">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'id'          => 'user-profile-secondary-method-label',
+						'type'        => 'text',
+						'placeholder' => \esc_html__( 'Enter custom label', 'wp-2fa' ),
+						'class'       => 'form-input',
+						'option_name' => 'wp_2fa_white_label[user-profile-secondary-method-label]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'user-profile-secondary-method-label', true ),
+						'hint'        => \esc_html__( 'Only plain text is allowed.', 'wp-2fa' ),
+					)
+				);
+				?>
+				</div>
+			</div>
+
+			<div class="form-group settings-row">
+				<div class="settings-label-group">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'text' => \esc_html__( '2FA configuration section heading', 'wp-2fa' ),
+						'id'   => 'user-profile-configuration-title-label',
+						'type' => 'settings-label',
+					)
+				);
+				Settings_Builder::build_option(
+					array(
+						'text'  => \esc_html__( 'The heading above the 2FA setup and backup method cards.', 'wp-2fa' ),
+						'class' => 'description-settings-card',
+						'id'    => 'user-profile-configuration-title-desc',
+						'type'  => 'description',
+					)
+				);
+				?>
+				</div>
+				<div class="settings-control">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'id'          => 'user-profile-configuration-title',
+						'type'        => 'text',
+						'placeholder' => \esc_html__( 'Enter custom label', 'wp-2fa' ),
+						'class'       => 'form-input',
+						'option_name' => 'wp_2fa_white_label[user-profile-configuration-title]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'user-profile-configuration-title', true ),
+						'hint'        => \esc_html__( 'Only plain text is allowed.', 'wp-2fa' ),
+					)
+				);
+				?>
+				</div>
+			</div>
+
+			<div class="form-group settings-row">
+				<div class="settings-label-group">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'text' => \esc_html__( '2FA setup card title', 'wp-2fa' ),
+						'id'   => 'user-profile-setup-card-title-label',
+						'type' => 'settings-label',
+					)
+				);
+				Settings_Builder::build_option(
+					array(
+						'text'  => \esc_html__( 'The title of the card holding the change and remove 2FA buttons.', 'wp-2fa' ),
+						'class' => 'description-settings-card',
+						'id'    => 'user-profile-setup-card-title-desc',
+						'type'  => 'description',
+					)
+				);
+				?>
+				</div>
+				<div class="settings-control">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'id'          => 'user-profile-setup-card-title',
+						'type'        => 'text',
+						'placeholder' => \esc_html__( 'Enter custom label', 'wp-2fa' ),
+						'class'       => 'form-input',
+						'option_name' => 'wp_2fa_white_label[user-profile-setup-card-title]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'user-profile-setup-card-title', true ),
+						'hint'        => \esc_html__( 'Only plain text is allowed.', 'wp-2fa' ),
+					)
+				);
+				?>
+				</div>
+			</div>
+
+			<div class="form-group settings-row">
+				<div class="settings-label-group">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'text' => \esc_html__( 'Backup method card title', 'wp-2fa' ),
+						'id'   => 'user-profile-backup-card-title-label',
+						'type' => 'settings-label',
+					)
+				);
+				Settings_Builder::build_option(
+					array(
+						'text'  => \esc_html__( 'The title of the card holding the backup codes and backup email buttons.', 'wp-2fa' ),
+						'class' => 'description-settings-card',
+						'id'    => 'user-profile-backup-card-title-desc',
+						'type'  => 'description',
+					)
+				);
+				?>
+				</div>
+				<div class="settings-control">
+				<?php
+				Settings_Builder::build_option(
+					array(
+						'id'          => 'user-profile-backup-card-title',
+						'type'        => 'text',
+						'placeholder' => \esc_html__( 'Enter custom label', 'wp-2fa' ),
+						'class'       => 'form-input',
+						'option_name' => 'wp_2fa_white_label[user-profile-backup-card-title]',
+						'default'     => WP2FA::get_wp2fa_white_label_setting( 'user-profile-backup-card-title', true ),
+						'hint'        => \esc_html__( 'Only plain text is allowed.', 'wp-2fa' ),
+					)
+				);
+				?>
 				</div>
 			</div>
 		</div>

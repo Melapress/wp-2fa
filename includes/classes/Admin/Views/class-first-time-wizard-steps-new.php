@@ -267,7 +267,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 					<strong><?php \esc_html_e( 'Send backup codes instantly via email', 'wp-2fa' ); ?></strong><br>
 					<?php \esc_html_e( 'Let users receive a one-time backup code by email in seconds — plus more premium 2FA methods with WP 2FA Premium.', 'wp-2fa' ); ?>
 				</span>
-				<a href="https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_now" target="_blank" class="button button-secondary"><?php \esc_html_e( 'Upgrade Now', 'wp-2fa' ); ?></a>
+				<a href="https://melapress.com/wordpress-2fa/pricing/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=upgrade_now" target="_blank" class="button button-secondary"><?php \esc_html_e( 'More backup methods available in Premium', 'wp-2fa' ); ?></a>
 			</div>
 			<?php
 			// @free:end
@@ -657,16 +657,16 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 				$grace_notification = 'after-login-notification';
 			}
 			?>
-			<h3><?php \esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
+			<h3><?php \esc_html_e( 'How long should users have to configure 2FA?', 'wp-2fa' ); ?></h3>
 			<p class="description">
-				<?php \esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login.', 'wp-2fa' ); ?>
+				<?php \esc_html_e( 'When 2FA is required, you can require users to configure it immediately or give them a grace period. During the grace period, users can continue to log in without 2FA.', 'wp-2fa' ); ?>
 			</p>
 
 			<div class="settings-card">
 				<?php
 				Settings_Builder::build_option(
 					array(
-						'title' => \esc_html__( 'Choose which method you\'d like to use:', 'wp-2fa' ),
+						'title' => \esc_html__( 'When should users configure 2FA?', 'wp-2fa' ),
 						'id'    => 'wizard-grace-method-title',
 						'type'  => 'section-sub-title',
 					)
@@ -681,7 +681,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 								id="wizard-no-grace-period"
 								value="no-grace-period"
 								<?php \checked( $grace_policy, 'no-grace-period' ); ?>>
-							<span><?php \esc_html_e( 'Users have to configure 2FA straight away.', 'wp-2fa' ); ?></span>
+							<span><?php \esc_html_e( 'Require users to configure 2FA immediately', 'wp-2fa' ); ?></span>
 						</label>
 						<label class="radio-option">
 							<input type="radio"
@@ -732,7 +732,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 						<?php
 						Settings_Builder::build_option(
 							array(
-								'title' => \esc_html__( 'Users who missed the grace period', 'wp-2fa' ),
+								'title' => \esc_html__( 'What should happen when the grace period expires?', 'wp-2fa' ),
 								'id'    => 'wizard-grace-expire-label',
 								'type'  => 'section-sub-title',
 							)
@@ -747,8 +747,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 								'option_name' => self::NAME_PREFIX . '[grace-policy-after-expire-action]',
 								'default'     => $grace_after_expire_action,
 								'options'     => array(
-									'configure-right-away' => \esc_html__( 'Disable user access to the dashboard / user page once they log in, until they configure 2FA', 'wp-2fa' ),
-									'manual-block'         => \esc_html__( 'Block the user (administrators have to manually unblock them)', 'wp-2fa' ),
+									'configure-right-away' => \esc_html__( 'Require users to configure 2FA before they can access the WordPress dashboard. This means users can still log in, but they must configure 2FA before they can continue to the dashboard.', 'wp-2fa' ),
+									'manual-block'         => \esc_html__( 'Block the user account and an administrator must manually unblock their account.', 'wp-2fa' ),
 								),
 							)
 						);
@@ -761,7 +761,7 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 						<?php
 						Settings_Builder::build_option(
 							array(
-								'title' => \esc_html__( 'Notification settings', 'wp-2fa' ),
+								'title' => \esc_html__( 'How should users be advised to configure 2FA?', 'wp-2fa' ),
 								'id'    => 'wizard-grace-notification-label',
 								'type'  => 'section-sub-title',
 							)
@@ -776,8 +776,8 @@ if ( ! class_exists( '\WP2FA\Admin\Views\First_Time_Wizard_Steps_New' ) ) {
 								'option_name' => self::NAME_PREFIX . '[' . Grace_Period_Notifications::GRACE_PERIOD_NOTIFICATION_SETTINGS_NAME . ']',
 								'default'     => $grace_notification,
 								'options'     => array(
-									'dashboard-notification'   => \esc_html__( 'Show an admin notice in the dashboard', 'wp-2fa' ),
-									'after-login-notification' => \esc_html__( 'Show a notification on a page on its own after the user authenticates and before accessing the dashboard', 'wp-2fa' ),
+									'dashboard-notification'   => \esc_html__( 'Show a notice in the WordPress dashboard after the users log in.', 'wp-2fa' ),
+									'after-login-notification' => \esc_html__( 'Show a reminder on a dedicated page after login before they access the WordPress dashboard.', 'wp-2fa' ),
 								),
 							)
 						);

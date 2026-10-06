@@ -29,49 +29,50 @@ if ( ! class_exists( '\WP2FA\Utils\Request_Utils' ) ) {
 		/**
 		 * Extracts the IP address for the currently browsing user.
 		 *
-		 * Security: forwarded headers (X-Forwarded-For, etc.) are only trusted when
-		 * REMOTE_ADDR is a private/reserved IP, indicating a reverse proxy.
-		 * When reading forwarded headers, the rightmost public IP is used (closest
-		 * to the trusted infrastructure) to prevent client-side spoofing.
-		 *
+		 * Forwarded addresses are trusted only from explicitly configured proxies.
+		 * Private addresses alone do not identify a trusted reverse proxy.
 		 * @return string
 		 *
 		 * @since 2.0.0
 		 */
 		public static function get_ip(): string {
-			$remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) ? trim( (string) \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-
-			// If REMOTE_ADDR is a valid public IP, use it directly — no proxy involved.
-			if ( filter_var( $remote_addr, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
-				return $remote_addr;
+			$remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) && is_string( $_SERVER['REMOTE_ADDR'] ) ? trim( \wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+			if ( false === filter_var( $remote_addr, FILTER_VALIDATE_IP ) ) {
+				return '';
 			}
 
-			// REMOTE_ADDR is private/reserved, meaning we are behind a reverse proxy.
-			// Read forwarded headers and pick the rightmost valid public IP.
-			$forwarded_headers = array(
-				'HTTP_X_FORWARDED_FOR',
-				'HTTP_X_FORWARDED',
-				'HTTP_FORWARDED_FOR',
-				'HTTP_FORWARDED',
-				'HTTP_CLIENT_IP',
-				'HTTP_X_CLUSTER_CLIENT_IP',
-			);
-
-			foreach ( $forwarded_headers as $key ) {
-				if ( array_key_exists( $key, $_SERVER ) ) {
-					$ips = array_map( 'trim', explode( ',', \wp_unslash( $_SERVER[ $key ] ) ) );
-					// Iterate from right to left — rightmost entries are added by trusted proxies.
-					$ips = array_reverse( $ips );
-					foreach ( $ips as $ip ) {
-						if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) !== false ) {
-							return $ip;
-						}
-					}
+			/**
+			 * Exact proxy IP addresses authorized to supply X-Forwarded-For.
+			 *
+			 * Include every trusted hop in a proxy chain. An empty list ignores
+			 * forwarded headers, including on private networks.
+			 *
+			 * @param string[] $proxies Trusted IPv4 or IPv6 addresses (not CIDR ranges).
+			 */
+			$proxies = \apply_filters( 'wp_2fa_trusted_proxies', array() );
+			$trusted = array();
+			foreach ( is_array( $proxies ) ? $proxies : array() as $proxy ) {
+				if ( is_string( $proxy ) && false !== filter_var( $proxy, FILTER_VALIDATE_IP ) ) {
+					$trusted[] = inet_pton( $proxy );
 				}
 			}
+			$ip = $remote_addr;
+			if ( ! in_array( inet_pton( $ip ), $trusted, true ) || empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) || ! is_string( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+				return $ip;
+			}
 
-			// Fallback: return REMOTE_ADDR even if private (e.g. local/dev environments).
-			return filter_var( $remote_addr, FILTER_VALIDATE_IP ) !== false ? $remote_addr : '';
+			$hops = array_reverse( array_map( 'trim', explode( ',', \wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) ) );
+			foreach ( $hops as $hop ) {
+				// Stop at the first untrusted peer, including a private-network client.
+				if ( false === filter_var( $hop, FILTER_VALIDATE_IP ) ) {
+					break;
+				}
+				$ip = $hop;
+				if ( ! in_array( inet_pton( $hop ), $trusted, true ) ) {
+					break;
+				}
+			}
+			return $ip;
 		}
 
 		/**

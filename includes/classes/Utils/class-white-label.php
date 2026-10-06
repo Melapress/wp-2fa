@@ -18,6 +18,7 @@ namespace WP2FA\Utils;
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 
 use WP2FA\WP2FA;
+use WP2FA\Licensing\Licensing_Factory;
 use WP2FA\Admin\Controllers\Methods;
 
 if ( ! class_exists( '\WP2FA\Utils\White_Label' ) ) {
@@ -80,7 +81,7 @@ if ( ! class_exists( '\WP2FA\Utils\White_Label' ) ) {
 				// Change the header title as well.
 				\add_filter(
 					'login_headertext',
-					function() use ( $custom_url ) {
+					function () use ( $custom_url ) {
 						return esc_html( $custom_url );
 					}
 				);
@@ -143,6 +144,86 @@ if ( ! class_exists( '\WP2FA\Utils\White_Label' ) ) {
 		}
 
 		/**
+		 * Settings only the Business and Enterprise plans may change.
+		 *
+		 * The per-method 2FA code page texts and the code page design. The
+		 * settings screens lock them on other plans; saving enforces the same.
+		 *
+		 * @since 4.2.0
+		 */
+		public const BUSINESS_ONLY_SETTINGS = array(
+			'use_custom_2fa_message',
+			'custom-text-app-code-page',
+			'custom-text-email-code-page',
+			'custom-text-zero-email-code-page',
+			'default-text-oob-page',
+			'custom-text-twilio-code-page',
+			'custom-text-authy-code-page-intro',
+			'custom-text-authy-code-page-awaiting',
+			'custom-text-authy-code-page',
+			'custom-text-yubico-code-page',
+			'backup-email-link-login-text',
+			'backup-codes-login-text',
+			'logo-code-page',
+			'logo-code-page-url',
+			'button-color-code-page',
+			'button-text-code-page',
+			'background-color-code-page',
+			'font-code-page',
+			'login_custom_css',
+			'disable_login_css',
+		);
+
+		/**
+		 * Whether this site's plan includes the code page customisation.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		public static function code_page_customization_allowed(): bool {
+			return Licensing_Factory::has_active_valid_license()
+				&& (
+					Licensing_Factory::provider_call( 'is_plan_or_trial__premium_only', 'business', true )
+					|| Licensing_Factory::provider_call( 'is_plan_or_trial__premium_only', 'ent', true )
+					|| Licensing_Factory::provider_call( 'is_plan_or_trial__premium_only', 'enterprise', true )
+				);
+		}
+
+		/**
+		 * Keeps the Business-only settings as they are stored, on a plan without them.
+		 *
+		 * The screens lock these fields below Business, but the save accepted
+		 * them from any plan - the free build included - and the login screens
+		 * then showed them. Values set while the site had the plan are kept,
+		 * and still shown: only changing them needs the plan.
+		 *
+		 * @param array $output - The settings about to be stored.
+		 *
+		 * @return array
+		 *
+		 * @since 4.2.0
+		 */
+		public static function keep_business_only_settings( array $output ): array {
+			if ( self::code_page_customization_allowed() ) {
+				return $output;
+			}
+
+			$stored = Settings_Utils::get_option( WP_2FA_WHITE_LABEL_SETTINGS_NAME, array() );
+			$stored = \is_array( $stored ) ? $stored : array();
+
+			foreach ( self::BUSINESS_ONLY_SETTINGS as $name ) {
+				if ( \array_key_exists( $name, $stored ) ) {
+					$output[ $name ] = $stored[ $name ];
+				} else {
+					unset( $output[ $name ] );
+				}
+			}
+
+			return $output;
+		}
+
+		/**
 		 * Array with all the plugin default settings.
 		 *
 		 * @return array
@@ -155,8 +236,8 @@ if ( ! class_exists( '\WP2FA\Utils\White_Label' ) ) {
 				self::$default_settings = array(
 					'default-text-code-page'              => '<p>' . \esc_html__( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . \esc_html__( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
 					'default-text-pw-reset-code-page'     => '<p>' . \esc_html__( 'You have been sent a one-time code via email. Please enter the code below and then click Get New Password to proceed with the password reset.', 'wp-2fa' ) . '</p><br><p><strong>' . \esc_html__( 'Note: If you have not received the code please click the button Resend Code. If you still do not get the code after pressing the button, please contact the website\'s administrator.', 'wp-2fa' ) . '</strong></p>',
-					'default-2fa-required-notice'         => '<p>' . \esc_html__( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . \esc_html__( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
-					'default-2fa-resetup-required-notice' => '<p>' . \esc_html__( 'This website\'s administrator requires you to enable two-factor authentication (2FA) {grace_period_remaining}.', 'wp-2fa' ) . '</p><br><p>' . \esc_html__( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
+					'default-2fa-required-notice'         => '<p>' . sprintf( /* translators: %s: how much of the grace period is left. */ \esc_html__( 'This website\'s administrator requires you to enable two-factor authentication (2FA) %s.', 'wp-2fa' ), '{grace_period_remaining}' ) . '</p><br><p>' . \esc_html__( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
+					'default-2fa-resetup-required-notice' => '<p>' . sprintf( /* translators: %s: how much of the grace period is left. */ \esc_html__( 'This website\'s administrator requires you to enable two-factor authentication (2FA) %s.', 'wp-2fa' ), '{grace_period_remaining}' ) . '</p><br><p>' . \esc_html__( 'Failing to configure 2FA within this time period will result in a locked account. For more information, please contact your website administrator.', 'wp-2fa' ) . '</p>',
 
 					'custom-text-app-code-page'           => '<p>' . \esc_html__( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . \esc_html__( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
 					'custom-text-email-code-page'         => '<p>' . \esc_html__( 'Please enter the two-factor authentication (2FA) verification code below to login. Depending on your 2FA setup, you can get the code from the 2FA app or it was sent to you by email.', 'wp-2fa' ) . '</p><p><strong>' . \esc_html__( 'Note: if you are supposed to receive an email but did not receive any, please click the Resend Code button to request another code.', 'wp-2fa' ) . '</strong></p>',
@@ -181,10 +262,17 @@ if ( ! class_exists( '\WP2FA\Utils\White_Label' ) ) {
 					'logo-code-page'                      => '',
 					'logo-code-page-url'                  => '',
 					'disable_login_css'                   => '',
-					'login-to-view-area'                  => '<p>' . \esc_html__( 'You must be logged in to view this page. {login_url}', 'wp-2fa' ) . '</p>',
+					'login-to-view-area'                  => '<p>' . sprintf( /* translators: %s: the login URL. */ \esc_html__( 'You must be logged in to view this page. %s', 'wp-2fa' ), '{login_url}' ) . '</p>',
 
 					'user-profile-form-preamble-title'    => \esc_html__( 'Two-factor authentication settings', 'wp-2fa' ),
 					'user-profile-form-preamble-desc'     => \esc_html__( 'Add two-factor authentication to strengthen the security of your user account.', 'wp-2fa' ),
+
+					// Labels on the 2FA section of a user's profile page.
+					'user-profile-primary-method-label'   => \esc_html__( 'Primary Method:', 'wp-2fa' ),
+					'user-profile-secondary-method-label' => \esc_html__( 'Secondary Method(s):', 'wp-2fa' ),
+					'user-profile-configuration-title'    => \esc_html__( '2FA Configuration', 'wp-2fa' ),
+					'user-profile-setup-card-title'       => \esc_html__( '2FA Setup', 'wp-2fa' ),
+					'user-profile-backup-card-title'      => \esc_html__( 'Backup 2FA Method', 'wp-2fa' ),
 					'use_custom_2fa_message'              => 'use-defaults',
 				);
 

@@ -140,9 +140,10 @@
 	padding: 16px 20px;
 	border: 2px solid #dcdcde;
 	border-radius: 6px;
-	cursor: pointer;
+	/* The row itself is no longer the control — each row carries its own button. */
+	cursor: default;
 	transition: border-color 0.15s ease, background-color 0.15s ease;
-	gap: 12px;
+	gap: 16px;
 }
 
 .wp2fa-wizard-method-label:hover {
@@ -150,21 +151,16 @@
 	background-color: #f9f9f9;
 }
 
-.wp2fa-wizard-method-radio {
-	margin-top: 0;
-	flex-shrink: 0;
-	accent-color: #2271b1;
-	width: 18px;
-	height: 18px;
+/* The button sits at the right-hand end of the row, on one line with the method name. */
+.wp2fa-wizard-method-action {
+	flex: 0 0 auto;
+	align-self: center;
+	white-space: nowrap;
 }
 
-.wp2fa-wizard-method-radio:checked + .wp2fa-wizard-method-info {
-	/* Intentionally empty - parent label handles selected state */
-}
-
-.wp2fa-wizard-method-label:has(.wp2fa-wizard-method-radio:checked) {
-	border-color: #2271b1;
-	background-color: #f0f6fc;
+.wp2fa-wizard-method-action[disabled] {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .wp2fa-wizard-method-info {
@@ -274,6 +270,12 @@
 	border-top: 1px solid #e2e4e7;
 }
 
+/* A step with no footer buttons leaves the element empty; collapse it so the border
+   and padding do not draw an empty bar under the content. */
+.wp2fa-setup-wizard-footer:empty {
+	display: none;
+}
+
 .wp2fa-wizard-btn {
 	display: inline-flex;
 	align-items: center;
@@ -363,6 +365,45 @@
 	height: 180px;
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
+}
+
+/*
+ * When the QR image cannot be produced there is no second column for the steps to
+ * sit beside, so the row becomes a stack and the message runs the full width as a
+ * notice instead.
+ *
+ * Left unstyled, the message was laid out as a flex item at its natural width — a
+ * whole sentence on one line — which pushed the row past the dialog and squeezed
+ * the steps column down to one word per line, with the dialog's own heading
+ * clipped off the side.
+ */
+.wp2fa-totp-setup-wrapper--no-qr {
+	flex-direction: column;
+}
+
+.wp2fa-totp-qr-unavailable {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 12px 16px;
+	background: #fcf9e8;
+	border: 1px solid #dba617;
+	border-radius: 4px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #6e4e00;
+}
+
+.wp2fa-totp-qr-unavailable p {
+	margin: 0;
+}
+
+.wp2fa-totp-qr-unavailable-icon {
+	flex-shrink: 0;
+	font-size: 16px;
+	line-height: 1.3;
 }
 
 .wp2fa-totp-instructions {
@@ -982,14 +1023,7 @@
 	background-color: #f6f7f7;
 }
 
-.default_styling .wp2fa-wizard-method-label:has(.wp2fa-wizard-method-radio:checked) {
-	border-color: currentColor;
-	background-color: #f0f6fc;
-}
-
-.default_styling .wp2fa-wizard-method-radio {
-	accent-color: auto;
-}
+/* Selected-state styling dropped with the radios: a row is acted on, not chosen. */
 
 .default_styling .wp2fa-wizard-method-name {
 	color: inherit;
@@ -1064,6 +1098,11 @@
 
 /* --- Email notice --- */
 .default_styling .wp2fa-email-notice {
+	border-radius: 0;
+}
+
+/* --- QR unavailable notice --- */
+.default_styling .wp2fa-totp-qr-unavailable {
 	border-radius: 0;
 }
 

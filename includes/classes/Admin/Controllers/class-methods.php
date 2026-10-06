@@ -130,9 +130,13 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		 * @return string
 		 */
 		public static function get_number_of_methods_text() {
-			return \esc_html__(
-				'There are {available_methods_count} methods available to choose from for 2FA:',
-				'wp-2fa'
+			return sprintf(
+				/* translators: %s: how many 2FA methods are available. */
+				\esc_html__(
+					'There are %s methods available to choose from for 2FA:',
+					'wp-2fa'
+				),
+				'{available_methods_count}'
 			);
 		}
 
@@ -141,11 +145,13 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 		 * If no primary methods remain after a credential-dependent method is removed,
 		 * falls back to enabling TOTP and Email (HOTP) as defaults.
 		 *
+		 * @param string $role - Optional. A role to check as well: if its own policy leaves it no method, it gets the defaults too.
+		 *
 		 * @return void
 		 *
 		 * @since 2.8.0
 		 */
-		public static function ensure_default_methods_available() {
+		public static function ensure_default_methods_available( string $role = '' ) {
 			$settings = Settings_Utils::get_option( WP_2FA_POLICY_SETTINGS_NAME );
 
 			if ( ! is_array( $settings ) ) {
@@ -197,6 +203,17 @@ if ( ! class_exists( '\WP2FA\Admin\Controllers\Methods' ) ) {
 
 			// Reset the cached enabled methods so they are re-evaluated.
 			self::$enabled_methods = null;
+
+			/*
+			 * A role can switch every method off in its own policy, which the
+			 * global check above cannot see. Its enforced users would have nothing
+			 * to set up, so the role gets the defaults too.
+			 */
+			$role_controller = '\\WP2FA\\Extensions\\RoleSettings\\Role_Settings_Controller';
+			if ( '' !== $role && empty( self::get_available_2fa_methods( $role ) ) && \class_exists( $role_controller, false ) ) {
+				$role_controller::enable_default_methods_for_role( $role );
+				self::$enabled_methods = null;
+			}
 		}
 	}
 }

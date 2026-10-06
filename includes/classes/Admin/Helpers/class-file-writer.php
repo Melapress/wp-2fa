@@ -31,6 +31,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		public const WP2FA_UPLOADS_DIR = 'wp-2fa-data';
 
 		/**
+		 * The one-line rule earlier versions wrote, recognised so it can be replaced.
+		 *
+		 * @var string
+		 *
+		 * @since 4.2.0
+		 */
+		public const LEGACY_HTACCESS = 'Deny from all';
+
+		/**
 		 * Saves a secret key in `wp-config.php`.
 		 *
 		 * @param string $secret The secret key to save.
@@ -85,10 +94,20 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 					}
 
 					$contents = implode( $line_ending, array_values( $contents ) );
-					self::write( $file, $contents );
 				}
-				self::write_wp_config( '/** WP 2FA plugin data encryption key. For more information please visit melapress.com */' . "\n" . $definition );
-				return true;
+
+				/*
+				 * This used to return true whatever happened. The callers take
+				 * true to mean the key is safely in wp-config.php and delete the
+				 * only other copy, so a failed write lost the key outright: a new
+				 * one was generated on the next request, every TOTP seed decrypted
+				 * to garbage, and every TOTP user was silently re-seeded.
+				 */
+				if ( true !== self::write_wp_config( '/** WP 2FA plugin data encryption key. For more information please visit melapress.com */' . "\n" . $definition, $contents ) ) {
+					return false;
+				}
+
+				return self::is_definition_on_disk( $file, $definition );
 			}
 
 			if ( $definition_list > 1 ) {
@@ -101,13 +120,75 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return false;
 			}
 
-			$written = self::write( $file, $replaced );
+			$written = self::write_config_file( $file, $replaced );
 
-			if ( false === $written ) {
+			if ( true !== $written ) {
 				return false;
 			}
 
-			return true;
+			return self::is_definition_on_disk( $file, $definition );
+		}
+
+		/**
+		 * Remove the plugin's key definition during an opted-in uninstall.
+		 * Failure leaves the config file intact and can be repaired manually.
+		 *
+		 * @return bool
+		 */
+		public static function remove_secret_key(): bool {
+			$file = self::get_wp_config_file_path();
+			if ( ! self::can_write_to_file( $file ) ) {
+				return false;
+			}
+			$contents = self::read( $file );
+			if ( ! is_string( $contents ) ) {
+				return false;
+			}
+			$pattern = '/^[ \t]*\/\*\* WP 2FA plugin data encryption key\.[^\r\n]*\*\/[\r\n]+[ \t]*' . substr( self::get_secret_definition_pattern(), 1, -3 ) . '[ \t]*(?:\r?\n)?/mi';
+			$updated = preg_replace( $pattern, '', $contents, 1, $count );
+			if ( 1 !== $count || ! is_string( $updated ) ) {
+				return false;
+			}
+			return self::write_config_file( $file, $updated );
+		}
+
+		/**
+		 * Never truncate wp-config.php in place. A failed atomic replacement
+		 * leaves its old contents in place and callers retain the database key.
+		 *
+		 * @param string $file     Config path, possibly a symlink.
+		 * @param string $contents Complete replacement contents.
+		 * @return bool
+		 */
+		private static function write_config_file( string $file, string $contents ): bool {
+			$target = realpath( $file );
+			if ( false === $target || ! self::is_path_allowed( $file ) || ! is_writable( $target ) ) {
+				return false;
+			}
+			return true === self::replace_atomically( $target, $contents );
+		}
+
+		/**
+		 * Whether wp-config.php, as it now stands on disk, carries the definition.
+		 *
+		 * A successful write is not proof: another process, a caching layer or a
+		 * host that rewrites the file can all stand between the write and the
+		 * next request. Only what is actually in the file counts before the
+		 * database copy of the key is thrown away.
+		 *
+		 * @param string $file       The wp-config.php path.
+		 * @param string $definition The exact define() statement expected.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static function is_definition_on_disk( string $file, string $definition ): bool {
+			@clearstatcache( true, $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+
+			$contents = self::read( $file );
+
+			return \is_string( $contents ) && false !== strpos( $contents, $definition );
 		}
 
 		/**
@@ -120,7 +201,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @since 2.4.0
 		 */
 		public static function get_permissions( string $dir ) {
-			if ( ! is_dir( $dir ) ) {
+			// Files as well: write() asks this about the file it is about to
+			// chmod, and answering false for anything but a directory meant the
+			// original mode was never put back after a permissions fallback.
+			if ( ! is_dir( $dir ) && ! is_file( $dir ) ) {
 				return false;
 			}
 
@@ -179,12 +263,27 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			$file_existed = is_file( $file );
 			$success      = false;
 
-			// Different permissions to try in case the starting set of permissions are prohibiting write.
+			/*
+			 * Replace an existing file in one step where the filesystem allows it.
+			 * Opening with 'wb' truncates first, so a write that failed half way -
+			 * a full disk, a quota - left wp-config.php cut short and the site
+			 * down. Not for appends, symlinks (rename() would replace the link
+			 * itself) or files that are not writable, which somebody may have
+			 * made read-only on purpose.
+			 */
+			if ( ! $append && $file_existed && ! is_link( $file ) && is_writable( $file ) ) {
+				if ( true === self::replace_atomically( $file, $contents ) ) {
+					return true;
+				}
+			}
+
+			// Different permissions to try in case the starting set of permissions
+			// are prohibiting write. Never 0666: a world-writable wp-config.php is
+			// worse than a key that could not be saved.
 			$trial_perms = array(
 				false,
 				0644,
 				0664,
-				0666,
 			);
 
 			foreach ( $trial_perms as $perms ) {
@@ -196,7 +295,17 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 					self::chmod( $file, $perms );
 				}
 
-				if ( in_array( 'fopen', $callable, true ) ) {
+				if ( ! $append && $file_existed ) {
+					/*
+					 * Replacing a file that is there, without the atomic path - a
+					 * symlink, a directory PHP cannot create the copy in, a file
+					 * owned by someone else. Opening it 'wb' truncated it first, so a
+					 * write cut short by a full disk or a quota left wp-config.php
+					 * half written. In place, and put back as it was if the write
+					 * does not complete.
+					 */
+					$success = self::overwrite_in_place( $file, $contents );
+				} elseif ( in_array( 'fopen', $callable, true ) ) {
 					if ( $append ) {
 						$mode = 'ab';
 					} else {
@@ -229,7 +338,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 					}
 				}
 
-				if ( ! $success && in_array( 'file_put_contents', $callable, true ) ) {
+				// file_put_contents() truncates as well: only for appends and new files.
+				if ( ! $success && ( $append || ! $file_existed ) && in_array( 'file_put_contents', $callable, true ) ) {
 					if ( $append ) {
 						$flags = FILE_APPEND;
 					} else {
@@ -252,11 +362,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 
 				if ( $success ) {
 					if ( ! $file_existed ) {
-						// Set default file permissions for the new file.
-						self::chmod( $file, self::get_default_permissions() );
-					} elseif ( isset( $original_file_perms ) && ! is_wp_error( $original_file_perms ) ) {
-						// Reset the original file permissions if they were modified.
-						self::chmod( $file, $original_file_perms );
+						// A file's mode, not the ABSPATH directory's (typically 0755).
+						self::chmod( $file, self::get_default_file_permissions() );
+				} elseif ( isset( $original_file_perms ) && is_int( $original_file_perms ) ) {
+					// Reset the original file permissions if they were modified.
+					self::chmod( $file, $original_file_perms );
 					}
 
 					// clearstatcache may be silenced on some hosts; ignore the PHPCS
@@ -272,7 +382,167 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				}
 			}
 
+			if ( $file_existed && isset( $original_file_perms ) && is_int( $original_file_perms ) ) {
+				self::chmod( $file, $original_file_perms );
+			}
+
 			return false;
+		}
+
+		/**
+		 * Replaces a file's contents in place, without ever leaving it cut short.
+		 *
+		 * The file is not truncated before the write, so the blocks it already
+		 * has stay allocated: if the new contents do not go in whole - a full
+		 * disk, a quota - the original is written back over them, which needs
+		 * no space it did not already have, and the file ends up as it was.
+		 * Only a complete write is trimmed to its new length.
+		 *
+		 * @param string $file     - The file to replace the contents of.
+		 * @param string $contents - The new contents.
+		 *
+		 * @return bool True when the new contents are in place.
+		 *
+		 * @since 4.2.0
+		 */
+		private static function overwrite_in_place( string $file, string $contents ): bool {
+			foreach ( array( 'fopen', 'fread', 'fwrite', 'flock', 'ftruncate', 'rewind', 'fflush' ) as $function ) {
+				if ( ! PHP_Helper::is_callable( $function ) ) {
+					return false;
+				}
+			}
+
+			// 'r+': read and write, no truncation, and no creating a file that is not there.
+			$fh = @fopen( $file, 'r+b' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+			if ( false === $fh ) {
+				return false;
+			}
+
+			if ( ! flock( $fh, LOCK_EX ) ) {
+				fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+				return false;
+			}
+
+			$original = stream_get_contents( $fh );
+			$written  = false;
+
+			if ( false !== $original && rewind( $fh ) ) {
+				mbstring_binary_safe_encoding();
+				$written = @fwrite( $fh, $contents ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+				reset_mbstring_encoding();
+			}
+
+			$success = false !== $original
+				&& strlen( $contents ) === $written
+				&& fflush( $fh )
+				&& ftruncate( $fh, strlen( $contents ) );
+
+			if ( ! $success && false !== $original && false !== $written ) {
+				// Whatever went in, take it out again.
+				rewind( $fh );
+				mbstring_binary_safe_encoding();
+				@fwrite( $fh, $original ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+				reset_mbstring_encoding();
+				ftruncate( $fh, strlen( $original ) );
+				fflush( $fh );
+			}
+
+			flock( $fh, LOCK_UN );
+			fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+
+			return $success;
+		}
+
+		/**
+		 * Writes a file by writing a sibling and renaming it over the original.
+		 *
+		 * The rename is atomic on the same filesystem, so a reader sees either
+		 * the old file or the whole new one, never a truncated one.
+		 *
+		 * @param string $file     The existing file to replace.
+		 * @param string $contents The new contents.
+		 *
+		 * @return bool|null True when replaced; null when it could not be tried
+		 *                   here, in which case the caller writes in place.
+		 *
+		 * @since 4.2.0
+		 */
+		private static function replace_atomically( string $file, string $contents ): ?bool {
+			$dir = dirname( $file );
+
+			if ( ! is_writable( $dir ) || ! PHP_Helper::is_callable( 'rename' ) ) {
+				return null;
+			}
+
+			/*
+			 * rename() hands the file to whoever is running PHP, owner and group
+			 * both. On a host where wp-config.php belongs to the account user, or
+			 * where the web server reads .htaccess through its group, that would
+			 * lock the owner out of their own file or turn the directory into a
+			 * 403. So only when PHP already owns the file, with the same group;
+			 * anywhere else - or where that cannot be told - it is written in
+			 * place, as it always was.
+			 */
+			if ( ! function_exists( 'posix_geteuid' ) || ! function_exists( 'posix_getegid' ) ) {
+				return null;
+			}
+
+			if ( @fileowner( $file ) !== posix_geteuid() || @filegroup( $file ) !== posix_getegid() ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				return null;
+			}
+
+			// random_bytes(), not wp_generate_password(): this can run before
+			// pluggable functions are loaded.
+			try {
+				$suffix = bin2hex( random_bytes( 6 ) );
+			} catch ( \Throwable $e ) {
+				return null;
+			}
+
+			/*
+			 * The copy sits beside the original until the rename, and for
+			 * wp-config.php that is the web root with the database credentials
+			 * in it. A .tmp name would be served as plain text to anyone who
+			 * asked for it, and left behind for good if the rename and the clean
+			 * up both failed. So a PHP file's copy ends in .php too - requesting
+			 * it runs it, exactly as requesting wp-config.php does - and the copy
+			 * is private to its owner from the first byte.
+			 */
+			$extension = ( '.php' === strtolower( substr( $file, -4 ) ) ) ? '.php' : '.tmp';
+			$temp      = $dir . \DIRECTORY_SEPARATOR . '.' . basename( $file ) . '.wp2fa-' . $suffix . $extension;
+
+			$handle = @fopen( $temp, 'xb' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+			if ( false === $handle ) {
+				return null;
+			}
+
+			self::chmod( $temp, 0600 );
+
+			mbstring_binary_safe_encoding();
+			$length  = strlen( $contents );
+			$written = @fwrite( $handle, $contents ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+			reset_mbstring_encoding();
+
+			$closed = @fclose( $handle ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+
+			if ( $written !== $length || ! $closed ) {
+				@unlink( $temp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink
+				return null;
+			}
+
+			// The copy was created private; give it the original's mode, or
+			// WordPress's file mode rather than leaving a 0600 file behind.
+			$perms = self::get_permissions( $file );
+			self::chmod( $temp, false !== $perms ? $perms : self::get_default_file_permissions() );
+
+			if ( ! @rename( $temp, $file ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.rename_rename
+				@unlink( $temp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.unlink_unlink
+				return null;
+			}
+
+			@clearstatcache( true, $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+
+			return true;
 		}
 
 		/**
@@ -295,12 +565,70 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return false;
 			}
 
-			if ( self::exists( $dir . \DIRECTORY_SEPARATOR . 'index.php' ) ) {
-				return true;
-			}
+			$htaccess_file = $dir . \DIRECTORY_SEPARATOR . '.htaccess';
+			$index_file    = $dir . \DIRECTORY_SEPARATOR . 'index.php';
+			$webconfig     = $dir . \DIRECTORY_SEPARATOR . 'web.config';
 
-			return self::write( $dir . \DIRECTORY_SEPARATOR . '.htaccess', 'Deny from all' ) &&
-			self::write( $dir . \DIRECTORY_SEPARATOR . 'index.php', "<?php\n// Silence is golden." );
+			/*
+			 * Rewritten when it is the old one-liner, rather than left because a file is there.
+			 * Sites that already have the previous version keep the weaker rule for good
+			 * otherwise, which is the case most in need of the stronger one.
+			 */
+			$htaccess_protected = self::exists( $htaccess_file ) && self::LEGACY_HTACCESS !== \trim( (string) @\file_get_contents( $htaccess_file ) ) // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading our own file to decide whether to replace it.
+				? true
+				: self::write( $htaccess_file, self::htaccess_contents() );
+
+			$index_protected = self::exists( $index_file ) || self::write( $index_file, "<?php\n// Silence is golden." );
+
+			// IIS reads neither .htaccess nor an index file for this.
+			$webconfig_protected = self::exists( $webconfig ) || self::write( $webconfig, self::webconfig_contents() );
+
+			return $htaccess_protected && $index_protected && $webconfig_protected;
+		}
+
+		/**
+		 * The deny rule, written so it applies on both Apache generations.
+		 *
+		 * "Deny from all" on its own is Apache 2.2 syntax. Apache 2.4 only understands it while
+		 * mod_access_compat is loaded, and that module is absent on plenty of modern builds —
+		 * where the directive is not ignored but fatal, taking the whole directory down with a
+		 * 500. Each form is therefore guarded by the module that understands it.
+		 *
+		 * Neither helps on Nginx, which does not read these files at all. What protects the
+		 * contents there is that the filenames carry a per-site random component and the
+		 * directory cannot be listed; the documented Nginx rule in the readme closes the rest.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		public static function htaccess_contents(): string {
+			return "# Generated by WP 2FA. Denies direct access to the files in this directory.\n"
+				. "<IfModule mod_authz_core.c>\n"
+				. "\tRequire all denied\n"
+				. "</IfModule>\n"
+				. "<IfModule !mod_authz_core.c>\n"
+				. "\tOrder allow,deny\n"
+				. "\tDeny from all\n"
+				. "</IfModule>\n";
+		}
+
+		/**
+		 * The same denial for IIS.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		public static function webconfig_contents(): string {
+			return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+				. "<configuration>\n"
+				. "\t<system.webServer>\n"
+				. "\t\t<authorization>\n"
+				. "\t\t\t<deny users=\"*\" />\n"
+				. "\t\t</authorization>\n"
+				. "\t</system.webServer>\n"
+				. "</configuration>\n";
 		}
 
 		/**
@@ -467,6 +795,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return new \WP_Error( 'wp-2fa_uplaods_dir_missing', __( 'The base of WSAL working directory cannot be determined. Custom path is invalid or there is some other issue with your WordPress installation.', 'wp-2fa' ) );
 			}
 
+			$data_root = $result;
+
 			// Append site specific subfolder in multisite context.
 			if ( ! $ignore_site && WP_Helper::is_multisite() ) {
 				$site_id = \get_current_blog_id();
@@ -505,7 +835,21 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 					}
 				}
 
-				self::add_file_listing_protection( $result );
+			}
+
+			$directory = rtrim( $result, \DIRECTORY_SEPARATOR );
+			$data_root = rtrim( $data_root, \DIRECTORY_SEPARATOR );
+
+			while ( self::path_starts_with( $directory, $data_root ) ) {
+				if ( is_dir( $directory ) ) {
+					self::add_file_listing_protection( $directory );
+				}
+
+				if ( $directory === $data_root ) {
+					break;
+				}
+
+				$directory = dirname( $directory );
 			}
 
 			return $result;
@@ -598,10 +942,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 *
 		 * @return bool
 		 */
-		private static function write_wp_config( $modification ) {
+		private static function write_wp_config( $modification, $contents = null ) {
 			$file_path = self::get_wp_config_file_path();
 
-			return self::update( $file_path, $modification );
+			return self::update( $file_path, $modification, $contents );
 		}
 
 		/**
@@ -614,14 +958,14 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 *
 		 * @since 2.4.0
 		 */
-		private static function update( string $file, string $modification ): bool {
+		private static function update( string $file, string $modification, $contents_override = null ): bool {
 			// Check to make sure that the settings give permission to write files.
 			if ( ! self::can_write_to_file( $file ) ) {
 
 				return false;
 			}
 
-			$contents = self::read( $file );
+			$contents = null === $contents_override ? self::read( $file ) : $contents_override;
 
 			if ( is_wp_error( $contents ) ) {
 				return $contents;
@@ -684,7 +1028,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 			}
 
 			// Write the new contents to the file and return the results.
-			return self::write( $file, $contents );
+			return self::write_config_file( $file, $contents );
 		}
 
 		/**
@@ -1030,63 +1374,87 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 				return false;
 			}
 
-			$contents = false;
+			$contents = self::read_once( $file, $callable );
+			if ( false !== $contents ) {
+				return $contents;
+			}
 
-			// Different permissions to try in case the starting set of permissions are prohibiting read.
-			$trial_perms = array(
-				false,
-				0644,
-				0664,
-				0666,
-			);
+			/*
+			 * One retry, with the owner's read bit added - the only bit that can
+			 * help. chmod() works only for the file's owner (or root, who can read
+			 * anyway), and for the owner the group and world bits change nothing.
+			 * This used to try 0644, 0664 and finally 0666, and put the original
+			 * mode back only when a read succeeded: a read that kept failing left
+			 * wp-config.php world-writable.
+			 */
+			$original = self::get_permissions( $file );
+			if ( ! is_int( $original ) || 0400 === ( $original & 0400 ) ) {
+				return false;
+			}
 
-			foreach ( $trial_perms as $perms ) {
-				if ( false !== $perms ) {
-					if ( ! isset( $original_file_perms ) ) {
-						$original_file_perms = self::get_permissions( $file );
+			if ( ! self::chmod( $file, $original | 0400 ) ) {
+				return false;
+			}
+
+			try {
+				$contents = self::read_once( $file, $callable );
+			} finally {
+				// Whatever happened, the file keeps the mode it had.
+				if ( ! self::chmod( $file, $original ) || self::get_permissions( $file ) !== $original ) {
+					/*
+					 * Nothing wider than the owner's read bit is left behind, but it is
+					 * still not what the site set, and the site should know.
+					 */
+					if ( class_exists( '\\WP2FA\\Utils\\Debugging' ) ) {
+						\WP2FA\Utils\Debugging::log( sprintf( 'Could not restore the permissions of %s to %04o.', $file, $original ) );
 					}
-
-					self::chmod( $file, $perms );
-				}
-
-				if ( in_array( 'fopen', $callable, true ) ) {
-						// Assignment in the conditional is intentional to attempt open
-						// and capture the handle in one expression; ignore PHPCS here.
-					if ( false !== ( $fh = @fopen( $file, 'rb' ) ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen, Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
-						flock( $fh, LOCK_SH );
-
-						$contents = '';
-
-						while ( ! feof( $fh ) ) {
-							// fread can trigger warnings on read errors; we deliberately
-							// manage return values and ignore PHPCS for the raw call.
-							$contents .= fread( $fh, 1024 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
-						}
-
-						flock( $fh, LOCK_UN );
-						// Close the handle and ignore potential warnings; errors are
-						// handled by higher-level checks.
-						fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
-					}
-				}
-
-				if ( ( false === $contents ) && in_array( 'file_get_contents', $callable, true ) ) {
-					// file_get_contents used as a fallback for reading files; suppress
-					// PHPCS warnings about remote-get usage in this low-level helper.
-					$contents = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-				}
-
-				if ( false !== $contents ) {
-					if ( isset( $original_file_perms ) && is_int( $original_file_perms ) ) {
-						// Reset the original file permissions if they were modified.
-						self::chmod( $file, $original_file_perms );
-					}
-
-					return $contents;
 				}
 			}
 
-			return false;
+			return $contents;
+		}
+
+		/**
+		 * One attempt at reading a file, with each of the available readers.
+		 *
+		 * @param string   $file     - The file to read.
+		 * @param string[] $readers - The readers that may be used.
+		 *
+		 * @return false|string
+		 *
+		 * @since 4.2.0
+		 */
+		private static function read_once( string $file, array $readers ) {
+			$contents = false;
+
+			if ( in_array( 'fopen', $readers, true ) ) {
+				// Assignment in the conditional is intentional to attempt open
+				// and capture the handle in one expression; ignore PHPCS here.
+				if ( false !== ( $fh = @fopen( $file, 'rb' ) ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fopen, Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
+					flock( $fh, LOCK_SH );
+
+					$contents = '';
+
+					while ( ! feof( $fh ) ) {
+						// fread can trigger warnings on read errors; we deliberately
+						// manage return values and ignore PHPCS for the raw call.
+						$contents .= fread( $fh, 1024 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
+					}
+
+					flock( $fh, LOCK_UN );
+					// Close the handle and ignore potential warnings; errors are
+					// handled by higher-level checks.
+					fclose( $fh ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+				}
+			}
+
+			if ( ( false === $contents ) && in_array( 'file_get_contents', $readers, true ) ) {
+				// file_get_contents used as a fallback for reading files; suppress
+				// PHPCS warnings about remote-get usage in this low-level helper.
+				$contents = @file_get_contents( $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			}
+
+			return $contents;
 		}
 
 		/**
@@ -1100,8 +1468,11 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 		 * @since 2.4.0
 		 */
 		private static function chmod( string $file, $perms ): bool {
+			// This returned \CURLOPT_SSL_FALSESTART, which coerces to true (a
+			// failed chmod reported as success) and is a fatal "undefined
+			// constant" wherever ext-curl is not loaded.
 			if ( ! is_int( $perms ) ) {
-				return \CURLOPT_SSL_FALSESTART;
+				return false;
 			}
 
 			if ( ! PHP_Helper::is_callable( 'chmod' ) ) {
@@ -1124,11 +1495,23 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\File_Writer' ) ) {
 
 			$perms = self::get_permissions( ABSPATH );
 
-			if ( ! is_wp_error( $perms ) ) {
-				return $perms;
-			}
+			// get_permissions() answers false, never a WP_Error, so the old
+			// is_wp_error() test passed false straight through.
+			return is_int( $perms ) ? $perms : 0755;
+		}
 
-			return 0755;
+		/**
+		 * Returns the mode a newly created file should get.
+		 *
+		 * WordPress's own FS_CHMOD_FILE when the site defines it, 0644 otherwise.
+		 * get_default_permissions() is a directory's mode and not meant for files.
+		 *
+		 * @return int
+		 *
+		 * @since 4.2.0
+		 */
+		private static function get_default_file_permissions(): int {
+			return ( defined( 'FS_CHMOD_FILE' ) && is_int( FS_CHMOD_FILE ) ) ? FS_CHMOD_FILE : 0644;
 		}
 	}
 }

@@ -22,9 +22,25 @@ $totp = $data['totp_data'];
 		&#9654; <?php \esc_html_e( 'Show QR code', 'wp-2fa' ); ?>
 	</button>
 	<div class="wp2fa-profile__totp-content" id="wp2fa-totp-qr-content">
-		<img class="wp2fa-profile__totp-qr"
-			src="<?php echo ( $totp['qr_code_url'] ); ?>"
-			alt="<?php \esc_attr_e( 'TOTP QR Code', 'wp-2fa' ); ?>" />
+		<?php
+		/*
+		 * The QR code is a data: URI. esc_url() strips that scheme - it is not
+		 * one WordPress allows in links - and left an empty src: the broken image
+		 * of #3747, back again once the escaping was restored. It is checked to
+		 * be exactly what TOTP::get_qr_code() makes, and escaped as an attribute.
+		 */
+		$wp2fa_qr_src = is_string( $totp['qr_code_url'] ?? null ) && 1 === preg_match( '#^data:image/svg\+xml;base64,[A-Za-z0-9+/]+={0,2}$#', $totp['qr_code_url'] ) ? $totp['qr_code_url'] : '';
+		?>
+		<?php if ( '' !== $wp2fa_qr_src ) : ?>
+			<img class="wp2fa-profile__totp-qr"
+				src="<?php echo \esc_attr( $wp2fa_qr_src ); ?>"
+				alt="<?php \esc_attr_e( 'TOTP QR Code', 'wp-2fa' ); ?>" />
+		<?php else : ?>
+			<div class="wp2fa-profile__totp-qr-unavailable">
+				<span class="wp2fa-profile__totp-qr-unavailable-icon" aria-hidden="true">&#9888;</span>
+				<p><?php \esc_html_e( 'The QR code image cannot be generated on this server. Enter the key below into your authenticator app by hand instead.', 'wp-2fa' ); ?></p>
+			</div>
+		<?php endif; ?>
 		<div class="wp2fa-profile__totp-key-wrap">
 			<input type="text"
 				class="wp2fa-profile__totp-key-input"

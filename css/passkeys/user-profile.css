@@ -425,18 +425,34 @@ input.invalid {
 }
 
 /* ── Button overrides ──────────────────────────────────────── */
-/* 
-.wp2fa-passkey-modal .button-primary {
+
+/*
+ * Applied only when the administrator has enabled the plugin's wizard styling;
+ * the modal carries default_styling otherwise and keeps WordPress's own
+ * primary-button colours, which is what a site that has not opted in expects.
+ *
+ * Scoped tightly enough (0-3-0) to beat core's .wp-core-ui .button-primary
+ * without resorting to !important.
+ */
+.wp2fa-passkey-modal.enable_styling .button-primary {
 	background: #2271b1;
 	border-color: #2271b1;
 	color: #fff;
 }
 
-.wp2fa-passkey-modal .button-primary:hover,
-.wp2fa-passkey-modal .button-primary:focus {
+.wp2fa-passkey-modal.enable_styling .button-primary:hover,
+.wp2fa-passkey-modal.enable_styling .button-primary:focus {
 	background: #135e96;
 	border-color: #135e96;
-} */
+	color: #fff;
+}
+
+/* Core draws its focus ring from the admin theme colour; match the button. */
+.wp2fa-passkey-modal.enable_styling .button-primary:focus {
+	box-shadow:
+		0 0 0 var(--wp-admin-border-width-focus, 1.5px) #2271b1,
+		inset 0 0 0 1px #fff;
+}
 
 /* ── Focus visible for accessibility ───────────────────────── */
 

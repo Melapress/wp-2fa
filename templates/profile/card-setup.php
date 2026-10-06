@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 $setup = $data['setup_card_data'];
 ?>
 <div class="wp2fa-profile__card" id="wp2fa-setup-card">
-	<h4 class="wp2fa-profile__card-title"><?php \esc_html_e( '2FA Setup', 'wp-2fa' ); ?></h4>
+	<h4 class="wp2fa-profile__card-title"><?php echo \esc_html( \WP2FA\WP2FA::get_wp2fa_white_label_setting( 'user-profile-setup-card-title', true ) ); ?></h4>
 	<div class="wp2fa-profile__btn-group">
 		<?php if ( $setup['show_change_btn'] ) : ?>
 			<button type="button"

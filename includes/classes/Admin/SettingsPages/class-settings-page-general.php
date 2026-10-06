@@ -61,8 +61,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 		 */
 		public static function validate_and_sanitize( $input ) {
 			// Bail if user doesn't have permissions to be here.
-			if ( ! current_user_can( 'manage_options' ) ) {
-				return;
+			if ( ! Settings_Page::can_manage_settings() ) {
+				return Settings_Utils::get_option( WP_2FA_SETTINGS_NAME, array() );
 			}
 
 			// When called via options.php (no AJAX action), verify our own nonce.
@@ -79,6 +79,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'disable_rest',
 				'brute_force_disable',
 				'skip_2fa_for_passkeys',
+				'trust_managewp_login',
 				'delete_data_upon_uninstall',
 				'method_invalid_setting',
 				'use_new_interface',
@@ -100,6 +101,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				'disable_rest',
 				'brute_force_disable',
 				'skip_2fa_for_passkeys',
+				'trust_managewp_login',
 				'delete_data_upon_uninstall',
 				'use_new_interface',
 			);
@@ -118,7 +120,32 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 				$output['enable_rest'] = false;
 			}
 
-			if ( isset( $input['2fa_settings_last_updated_by'] ) && ! empty( $input['2fa_settings_last_updated_by'] ) ) {
+			/*
+			 * Record who owns the settings.
+			 *
+			 * This used to fire only when the form posted
+			 * '2fa_settings_last_updated_by'. The old settings screen rendered a
+			 * hidden field carrying it; the new interface
+			 * (wp-2fa-settings-new) does not, so on any site using the new
+			 * screen the owner was never written and stayed ''.
+			 *
+			 * That is what made "limit access to this user only" do nothing:
+			 * hide_settings() reads the owner, finds it empty, and falls back to
+			 * get_current_user_id() - which is by definition whoever is looking,
+			 * so its `$user->ID !== $main_user` test can never be true and the
+			 * menu is hidden from nobody.
+			 *
+			 * The posted value was never trusted anyway - the line below has
+			 * always used get_current_user_id() - so the field was only ever a
+			 * trigger. Claim ownership when nothing is on record instead, and
+			 * only then: an owner that already exists must not be reassigned by
+			 * anyone else who saves.
+			 */
+			$owner_on_record = WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
+
+			$should_record_owner = empty( $owner_on_record );
+
+			if ( $should_record_owner && \get_current_user_id() ) {
 				$policies = WP2FA::get_wp2fa_setting();
 				if ( false === $policies ) {
 					$policies = WP2FA::get_default_settings();
@@ -240,7 +267,6 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_General' ) ) {
 			<?php
 			$last_user_to_update_settings = get_current_user_id();
 			?>
-			<input type="hidden" id="wp-2fa_main_user" name="wp_2fa_settings[2fa_settings_last_updated_by]" value="<?php echo \esc_attr( $last_user_to_update_settings ); ?>">
 			<?php
 		}
 

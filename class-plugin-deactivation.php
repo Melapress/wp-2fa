@@ -4,7 +4,7 @@
  *
  * Adds a form to request the reason for deactivation.
  *
- * @package Progress_Planner
+ * @package WP2FA
  */
 
 namespace WP2FA_Deactivation_Feedback_Server;
@@ -199,26 +199,54 @@ if ( ! class_exists( '\WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation' )
 			?>
 			<script>
 				(function() {
-					// A helper function to make AJAX requests.
-					const deactivatePluginFeedbackAjaxRequest = ( { url, data, action } ) => {
+					/*
+					 * One request, one answer: the parsed JSON of a completed 2xx response, or
+					 * null for anything else - an HTTP error, unreadable JSON, a network error,
+					 * an abort or a timeout. This used to call back on every readyState change,
+					 * so the feedback went out with a nonce that had not arrived yet, more than
+					 * once, and the page navigated away from intermediate states. And it never
+					 * gave up on a server that did not answer.
+					 */
+					const deactivatePluginFeedbackAjaxRequest = ( { url, data, timeout } ) => new Promise( ( resolve ) => {
+						let settled = false;
+						const settle = ( value ) => {
+							if ( ! settled ) {
+								settled = true;
+								resolve( value );
+							}
+						};
 						const http = new XMLHttpRequest();
 						http.open( 'POST', url, true );
-						http.onreadystatechange = () => {
-							let response;
+						http.timeout = timeout || 8000;
+						http.onload = () => {
+							if ( http.status < 200 || http.status >= 300 ) {
+								settle( null );
+								return;
+							}
 							try {
-								response = JSON.parse( http.response );
-							} catch ( e ) {}
-							return action( response );
+								settle( JSON.parse( http.responseText ) );
+							} catch ( e ) {
+								settle( null );
+							}
 						};
+						http.onerror = http.ontimeout = http.onabort = () => settle( null );
 						const dataForm = new FormData();
 						for ( let [ key, value ] of Object.entries( data ) ) {
 							dataForm.append( key, value );
 						}
 						http.send( dataForm );
-					}
+					} );
 
 					// Add an event listener to the deactivate button.
-					const deactivateButton = document.getElementById( 'deactivate-<?php echo \esc_attr( self::plugin_slug() ); ?>' );
+					/*
+					 * Found by the plugin's row, which WordPress marks with the plugin file.
+					 * The link's own id is built from whatever slug WordPress has for the
+					 * plugin - from an update source when there is one - which need not be
+					 * the slug this class works out, and with the premium build it was not:
+					 * the link was never found, so the feedback form never opened at all.
+					 */
+					const deactivateButton = document.querySelector( 'tr[data-plugin="<?php echo \esc_attr( \plugin_basename( __DIR__ . '/wp-2fa.php' ) ); ?>"] span.deactivate a' )
+						|| document.getElementById( 'deactivate-<?php echo \esc_attr( self::plugin_slug() ); ?>' );
 					
 					const deactivationPopover = document.getElementById( '<?php echo \esc_attr( self::plugin_slug() ); ?>-popover' );
 					if ( deactivateButton && deactivationPopover ) {
@@ -245,46 +273,65 @@ if ( ! class_exists( '\WP2FA_Deactivation_Feedback_Server\Plugin_Deactivation' )
 							} );
 						} );
 
+						/*
+						 * Deactivation is what the user asked for; feedback is optional. Whatever
+						 * the feedback server does - answers, fails, never answers - the page goes
+						 * on to deactivate, once.
+						 */
+						let leaving = false;
+						const deactivate = () => {
+							if ( leaving ) {
+								return;
+							}
+							leaving = true;
+							window.location.href = deactivateButton.href;
+						};
+
 						// Handle clicking on the dismiss button.
 						deactivationPopover.querySelector( 'button.dismiss' ).addEventListener( 'click', function( dismissEvent ) {
 							dismissEvent.preventDefault();
-							window.location.href = deactivateButton.href;
+							deactivate();
 						} );
 
 						// Handle clicking on the submit button.
-						deactivationPopover.querySelector( 'button.submit' ).addEventListener( 'click', function( submitEvent ) {
+						let submitted = false;
+						deactivationPopover.querySelector( 'button.submit' ).addEventListener( 'click', async function( submitEvent ) {
 							submitEvent.preventDefault();
+							if ( submitted ) {
+								return;
+							}
+							submitted = true;
+
 							const requestData = {
 								action: 'plugin_deactivation',
 								plugin: '<?php echo \esc_attr( self::plugin_slug() ); ?>',
 								site: '<?php echo \esc_attr( get_site_url() ); ?>',
 							};
-							deactivatePluginFeedbackAjaxRequest( {
-								// Get a nonce from the remote server.
+							const formData = new FormData( deactivationPopover.querySelector( 'form' ) );
+							requestData.reason = formData.get( 'reason' );
+							const feedbackEl = document.getElementById( `deactivate-plugin-reason-${requestData.reason}-feedback` );
+							requestData.feedback = feedbackEl ? feedbackEl.value : '';
+
+							deactivationPopover.hidePopover();
+
+							// A last resort, in case a request outlives its own timeout.
+							setTimeout( deactivate, 20000 );
+
+							// Get a nonce from the remote server; send the feedback only with a real one.
+							const nonceResponse = await deactivatePluginFeedbackAjaxRequest( {
 								url: '<?php echo \esc_url( self::REMOTE_URL ); ?>/?rest_route=/deactivation-feedback-server/v1/get-nonce',
 								data: requestData,
-								action: ( response ) => {
-									response = response || {};
-									// Add the nonce to the request data, and build the data object for the feedback.
-									requestData.nonce = response.nonce;
-									const formData = new FormData( deactivationPopover.querySelector( 'form' ) );
-									requestData.reason = formData.get( 'reason' );
-									const feedbackEl = document.getElementById( `deactivate-plugin-reason-${requestData.reason}-feedback` );
-									requestData.feedback = feedbackEl ? feedbackEl.value : '';
-
-									// Make the request to the remote server to submit the feedback.
-									deactivatePluginFeedbackAjaxRequest( {
-										url: '<?php echo \esc_url( self::REMOTE_URL ); ?>/?rest_route=/deactivation-feedback-server/v1/submit-feedback',
-										data: requestData,
-										action: ( response ) => {
-											window.location.href = deactivateButton.href;
-										},
-									} );
-								},
 							} );
 
-							// Submit the form.
-							deactivationPopover.hidePopover();
+							if ( nonceResponse && 'string' === typeof nonceResponse.nonce && '' !== nonceResponse.nonce ) {
+								requestData.nonce = nonceResponse.nonce;
+								await deactivatePluginFeedbackAjaxRequest( {
+									url: '<?php echo \esc_url( self::REMOTE_URL ); ?>/?rest_route=/deactivation-feedback-server/v1/submit-feedback',
+									data: requestData,
+								} );
+							}
+
+							deactivate();
 						} );
 					}
 				})();

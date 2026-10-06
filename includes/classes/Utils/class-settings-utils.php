@@ -42,7 +42,80 @@ if ( ! class_exists( '\WP2FA\Utils\Settings_Utils' ) ) {
 		 * @since 3.0.0
 		 */
 		public static function create_settings_hash( array $settings ): string {
+			/*
+			 * Sort by key before serialising, so the hash describes the settings rather than the
+			 * order they happen to be stored in.
+			 *
+			 * json_encode() of an associative array is order-sensitive, and this hash is what
+			 * decides whether every user's cached 2FA state is still valid. Any code path that
+			 * rewrote the policy with the same values in a different key order therefore
+			 * invalidated the state of every user on the site and forced a full recompute — a
+			 * change nobody made, appearing and disappearing on its own.
+			 */
+			self::sort_settings_by_key( $settings );
+			self::drop_volatile_keys( $settings );
+
 			return md5( json_encode( $settings ) );
+		}
+
+		/**
+		 * Keys that change on a save without the policy changing.
+		 *
+		 * grace-period-expiry-time is "now + the grace period", recomputed on every
+		 * save of the policies page; nothing reads it back. In the hash it made
+		 * every save - an unchanged one included - look like a new policy, and each
+		 * user's next request re-applied the grace period: a fresh deadline for
+		 * everyone, and locked users unlocked. Who saved last is not policy either.
+		 *
+		 * @since 4.2.0
+		 */
+		private const VOLATILE_KEYS = array( 'grace-period-expiry-time', '2fa_settings_last_updated_by' );
+
+		/**
+		 * Remove the volatile keys at every level - role policies carry their own copies.
+		 *
+		 * @param array $settings - The settings to clean.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function drop_volatile_keys( array &$settings ) {
+			foreach ( self::VOLATILE_KEYS as $key ) {
+				unset( $settings[ $key ] );
+			}
+
+			foreach ( $settings as &$value ) {
+				if ( \is_array( $value ) ) {
+					self::drop_volatile_keys( $value );
+				}
+			}
+
+			unset( $value );
+		}
+
+		/**
+		 * Recursively sorts an array by key, in place.
+		 *
+		 * Only keys are ordered. The order of list values is left alone, because for these
+		 * settings it is content rather than presentation.
+		 *
+		 * @param array $settings - The array to sort.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function sort_settings_by_key( array &$settings ) {
+			ksort( $settings );
+
+			foreach ( $settings as &$value ) {
+				if ( \is_array( $value ) ) {
+					self::sort_settings_by_key( $value );
+				}
+			}
+
+			unset( $value );
 		}
 
 		/**

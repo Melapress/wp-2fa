@@ -80,6 +80,20 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		public const TOTP_META_KEY = WP_2FA_PREFIX . 'totp_key';
 
 		/**
+		 * A key offered for setting TOTP up again, until it is confirmed.
+		 *
+		 * @since 4.2.0
+		 */
+		public const PENDING_KEY_META = WP_2FA_PREFIX . 'totp_pending_key';
+
+		/**
+		 * How long an offered key stays good for.
+		 *
+		 * @since 4.2.0
+		 */
+		private const PENDING_KEY_LIFETIME = HOUR_IN_SECONDS;
+
+		/**
 		 * The name of the method stored in the policy
 		 *
 		 * @var string
@@ -98,11 +112,15 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		private static $enabled = null;
 
 		/**
-		 * Totp key assigned to user
+		 * TOTP keys already read this request, keyed by user ID.
 		 *
-		 * @var string
+		 * This used to be a single slot, so whichever user's key was read first
+		 * was handed back for every user after it - an admin viewing someone
+		 * else's profile could be shown their own seed, or the other way round.
+		 *
+		 * @var array<int, string>
 		 */
-		private static $totp_key = '';
+		private static $totp_keys = array();
 
 		/**
 		 * Inits the class and sets the filters.
@@ -330,9 +348,15 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 					<?php
 					Settings_Builder::build_option(
 						array(
-							'text' => \esc_html__(
+							/*
+							 * The sprintf result is a runtime value, so it cannot be a msgid —
+							 * wrapping it in esc_html__() asked gettext to look up whatever the
+							 * label happened to be, with no text domain. The inner call is the
+							 * one that translates; this only needs escaping.
+							 */
+							'text' => \esc_html(
 								\wp_sprintf(
-								// translators: Method option label.
+									/* translators: %s: the label configured for the authenticator app method. */
 									\esc_html__( '%s setup step 3', 'wp-2fa' ),
 									WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
 								)
@@ -464,7 +488,74 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 * @return bool
 		 */
 		protected static function validate_token( \WP_User $user, string $token ): bool {
-			return Authentication::is_valid_authcode( self::get_totp_key( $user ), $token, $user );
+			return self::check_code( $user, $token );
+		}
+
+		/**
+		 * Checks a code against the user's seed - the one place every TOTP login asks.
+		 *
+		 * The login form (validate_totp_authentication()) and the REST login
+		 * (validate_token()) each checked codes themselves, so the seed upgrade
+		 * that followed a correct code only ever ran on one of them: sites that
+		 * log in through the form kept their seeds in the old format.
+		 *
+		 * @param \WP_User|null $user - The user logging in.
+		 * @param string        $code - The code they entered.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static function check_code( ?\WP_User $user, string $code ): bool {
+			$valid = Authentication::is_valid_authcode( self::get_totp_key( $user ), $code, $user );
+
+			if ( $valid && $user instanceof \WP_User ) {
+				self::upgrade_seed_encryption( $user );
+			}
+
+			return $valid;
+		}
+
+		/**
+		 * Re-encrypts a seed still stored in the old, unauthenticated format.
+		 *
+		 * Only right after a code from it was accepted: that proves the seed
+		 * decrypted correctly, so what is sealed again is the user's real seed
+		 * and never garbage from a changed salt. The new value is checked to
+		 * open back to the same seed before it replaces the old one; anything
+		 * short of that leaves the stored seed as it is. Seeds otherwise stayed
+		 * in the old format for good - nothing else rewrites them.
+		 *
+		 * @param \WP_User $user - The user who has just logged in with the seed.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function upgrade_seed_encryption( \WP_User $user ): void {
+			$prefix = Open_SSL::SECRET_KEY_PREFIX;
+			$stored = (string) self::get_user_totp_key( $user );
+
+			if ( 0 !== \strpos( $stored, $prefix ) || 0 === \strpos( (string) \substr( $stored, \strlen( $prefix ) ), Open_SSL::AUTHENTICATED_PREFIX ) ) {
+				return;
+			}
+
+			try {
+				$seed = Open_SSL::decrypt( (string) \substr( $stored, \strlen( $prefix ) ) );
+				if ( '' === $seed || ! Authentication::validate_base32_string( $seed ) ) {
+					return;
+				}
+
+				$sealed = Open_SSL::encrypt( $seed );
+				if ( Open_SSL::decrypt( $sealed ) !== $seed ) {
+					return;
+				}
+			} catch ( \Throwable $e ) {
+				return;
+			}
+
+			self::set_user_totp_key( $prefix . $sealed, $user );
+			unset( self::$totp_keys[ self::cache_id( $user ) ] );
 		}
 
 		/**
@@ -490,18 +581,214 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 
 			User_Helper::set_enabled_method_for_user( self::METHOD_NAME, $user );
 			self::set_user_totp_key( $totp_key, $user );
+			unset( self::$totp_keys[ self::cache_id( $user ) ] );
+			self::clear_pending_key( $user );
 			User_Profile::delete_expire_and_enforced_keys( $user->ID );
 			User_Helper::set_user_status( $user );
 		}
 
 		/**
+		 * The key to show the user for setting TOTP up, in stored form.
+		 *
+		 * While TOTP is the user's method, that must never be the key in use. It
+		 * was: the active secret went into every profile page's script data, and
+		 * "reconfiguring" presented and saved it again, so an old or compromised
+		 * authenticator went on working after the user thought they had replaced
+		 * it. A user with TOTP gets a new key, held aside until a code from it
+		 * is confirmed.
+		 *
+		 * A user setting TOTP up for the first time gets the key prepared for
+		 * them, as before - nothing is using it yet.
+		 *
+		 * @param int|\WP_User|null $user - The user, the current one if null.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		public static function get_setup_key( $user = null ): string {
+			$user    = self::resolve_user( $user );
+			$pending = self::get_pending_key( $user );
+
+			if ( '' !== $pending ) {
+				return $pending;
+			}
+
+			if ( ! self::is_active_for( $user ) ) {
+				return self::get_totp_key( $user );
+			}
+
+			$pending = Authentication::generate_key();
+			self::set_pending_key( $pending, $user );
+
+			return $pending;
+		}
+
+		/**
+		 * The setup key, readable - for the QR code and the key shown beside it.
+		 *
+		 * @param int|\WP_User|null $user - The user, the current one if null.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		public static function get_setup_key_decrypted( $user = null ): string {
+			$user = self::resolve_user( $user );
+
+			if ( '' === self::get_pending_key( $user ) && ! self::is_active_for( $user ) ) {
+				// The first-time key, through the path that also upgrades legacy formats.
+				return self::get_totp_decrypted( $user );
+			}
+
+			$key = self::get_setup_key( $user );
+			try {
+				Authentication::decrypt_key_if_needed( $key );
+			} catch ( \Throwable $e ) {
+				return '';
+			}
+
+			return $key;
+		}
+
+		/**
+		 * Whether a key sent back from setup is the one this user was given.
+		 *
+		 * The setup form posts the key along with the code. Taking whatever came
+		 * back meant the wizard could simply hand back the active secret - or a
+		 * caller any secret it liked. Only the key issued for setup is accepted.
+		 *
+		 * @param int|\WP_User|null $user - The user.
+		 * @param string            $key  - The key as posted, readable.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		public static function is_issued_setup_key( $user, string $key ): bool {
+			$user    = self::resolve_user( $user );
+			$pending = self::get_pending_key( $user );
+
+			if ( '' !== $pending ) {
+				$issued = $pending;
+			} elseif ( ! self::is_active_for( $user ) ) {
+				$issued = self::get_totp_key( $user );
+			} else {
+				return false;
+			}
+
+			try {
+				Authentication::decrypt_key_if_needed( $issued );
+			} catch ( \Throwable $e ) {
+				return false;
+			}
+
+			return '' !== $issued && \hash_equals( \strtoupper( $issued ), \strtoupper( \trim( $key ) ) );
+		}
+
+		/**
+		 * Holds a key offered for setup aside from the one in use.
+		 *
+		 * @param string            $key  - The key, in stored (encrypted) form.
+		 * @param int|\WP_User|null $user - The user.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		public static function set_pending_key( string $key, $user = null ): void {
+			User_Helper::set_meta(
+				self::PENDING_KEY_META,
+				array(
+					'key'    => $key,
+					'issued' => time(),
+				),
+				self::resolve_user( $user )
+			);
+		}
+
+		/**
+		 * Drops the key offered for setup.
+		 *
+		 * @param int|\WP_User|null $user - The user.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		public static function clear_pending_key( $user = null ): void {
+			User_Helper::remove_meta( self::PENDING_KEY_META, self::resolve_user( $user ) );
+		}
+
+		/**
+		 * The key offered for setup, if there is one and it has not expired.
+		 *
+		 * @param \WP_User $user - The user.
+		 *
+		 * @return string The key in stored form, or ''.
+		 */
+		private static function get_pending_key( \WP_User $user ): string {
+			$pending = User_Helper::get_meta( self::PENDING_KEY_META, $user );
+
+			if ( ! is_array( $pending ) || empty( $pending['key'] ) || ! is_string( $pending['key'] ) ) {
+				return '';
+			}
+
+			if ( (int) ( $pending['issued'] ?? 0 ) + self::PENDING_KEY_LIFETIME < time() ) {
+				self::clear_pending_key( $user );
+
+				return '';
+			}
+
+			return $pending['key'];
+		}
+
+		/**
+		 * Whether TOTP is the method this user signs in with.
+		 *
+		 * @param \WP_User $user - The user.
+		 *
+		 * @return bool
+		 */
+		private static function is_active_for( \WP_User $user ): bool {
+			return self::METHOD_NAME === User_Helper::get_enabled_method_for_user( $user )
+				&& '' !== (string) self::get_user_totp_key( $user );
+		}
+
+		/**
+		 * A user object for any of the forms the public methods accept.
+		 *
+		 * @param int|\WP_User|null $user - The user.
+		 *
+		 * @return \WP_User
+		 */
+		private static function resolve_user( $user ): \WP_User {
+			if ( $user instanceof \WP_User ) {
+				return $user;
+			}
+
+			if ( is_numeric( $user ) && (int) $user > 0 ) {
+				$found = \get_userdata( (int) $user );
+				if ( $found instanceof \WP_User ) {
+					return $found;
+				}
+			}
+
+			$current = User_Helper::get_user();
+
+			return $current instanceof \WP_User ? $current : \wp_get_current_user();
+		}
+
+		/**
 		 * Retrieves the QR code
+		 *
+		 * @param string|null $key - The key to encode, in stored form; the user's own if null.
 		 *
 		 * @since 2.6.0
 		 *
 		 * @return string
 		 */
-		public static function get_qr_code(): string {
+		public static function get_qr_code( ?string $key = null ): string {
 
 			// Setup site information, used when generating our QR code.
 			$site_name = site_url();
@@ -520,7 +807,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 				User_Helper::get_user_object()
 			);
 
-			return Authentication::get_google_qr_code( $totp_title, self::get_totp_key(), $site_name );
+			return Authentication::get_google_qr_code( $totp_title, $key ?? self::get_totp_key(), $site_name );
 		}
 
 		/**
@@ -534,11 +821,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 */
 		public static function validate_totp_authentication( ?\WP_User $user = null ): bool {
 			if ( ! empty( $_REQUEST['authcode'] ) ) {  //phpcs:ignore
-				$valid = Authentication::is_valid_authcode(
-					self::get_totp_key( $user ),
-					\sanitize_text_field( \wp_unslash( $_REQUEST['authcode'] ) ),
-					$user
-				);
+				$valid = self::check_code( $user, \sanitize_text_field( \wp_unslash( $_REQUEST['authcode'] ) ) );
 				if ( $valid ) {
 					Authentication::clear_login_attempts( $user );
 				} else {
@@ -584,7 +867,8 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 				)
 			);
 
-			Login::delete_login_nonce( $user->ID );
+			$current_nonce = isset( $_REQUEST['wp-auth-nonce'] ) ? \sanitize_text_field( \wp_unslash( $_REQUEST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			Login::delete_login_nonce( $user->ID, $current_nonce );
 			$login_nonce = Login::create_login_nonce( $user->ID );
 			if ( ! $login_nonce ) {
 				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
@@ -628,7 +912,15 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 
 			check_ajax_referer( 'wp-2fa-backup-codes-generate-json-' . $user->ID );
 
+			// No key for a method the user's role does not allow.
+			if ( ! User_Profile::method_allowed_for( $user, self::METHOD_NAME ) ) {
+				\wp_send_json_error( array( 'error' => \esc_html__( 'This 2FA method is not available for your account.', 'wp-2fa' ) ), 403 );
+			}
+
 			$key = Authentication::generate_key();
+
+			// The key sent back with the code must be this one.
+			self::set_pending_key( $key, $user );
 
 			$site_name = site_url();
 			$site_name = trim( str_replace( array( 'http://', 'https://' ), '', (string) $site_name ), '/' );
@@ -662,19 +954,66 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function get_totp_key( $user = null ): string {
-			if ( '' === trim( (string) self::$totp_key ) ) {
-				self::$totp_key = self::get_user_totp_key_auth( User_Helper::get_user( $user )->ID );
-				if ( empty( self::$totp_key ) ) {
-					self::$totp_key = Authentication::generate_key();
+			$user_id = self::cache_id( $user );
 
-					self::set_user_totp_key( self::$totp_key, $user );
-				} elseif ( Open_SSL::is_ssl_available() && false === \strpos( self::$totp_key, Open_SSL::SECRET_KEY_PREFIX ) ) {
-						self::$totp_key = Open_SSL::SECRET_KEY_PREFIX . Open_SSL::encrypt( self::$totp_key );
-						self::set_user_totp_key( self::$totp_key, $user );
+			if ( '' === trim( (string) ( self::$totp_keys[ $user_id ] ?? '' ) ) ) {
+				$stored_key = (string) self::get_user_totp_key( $user_id );
+				$key = self::get_user_totp_key_auth( $user_id );
+				// An existing seed that cannot be decrypted is a key-management
+				// failure, not an invitation to replace the user's second factor.
+				if ( '' !== $stored_key && ( '' === $key || ! self::is_usable_totp_key( $key ) ) ) {
+					return '';
 				}
+				if ( empty( $key ) ) {
+					$key = Authentication::generate_key();
+
+					self::set_user_totp_key( $key, $user );
+				} elseif ( Open_SSL::is_ssl_available() && false === \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
+						$key = Open_SSL::SECRET_KEY_PREFIX . Open_SSL::encrypt( $key );
+						self::set_user_totp_key( $key, $user );
+				}
+
+				self::$totp_keys[ $user_id ] = (string) $key;
 			}
 
-			return self::$totp_key;
+			return self::$totp_keys[ $user_id ];
+		}
+
+		/** Whether a stored seed can be decrypted and used without changing it. */
+		private static function is_usable_totp_key( string $key ): bool {
+			try {
+				return Authentication::is_valid_key( $key );
+			} catch ( \Throwable $e ) {
+				return false;
+			}
+		}
+
+		/**
+		 * The user ID a cached TOTP key belongs to.
+		 *
+		 * Resolved without User_Helper::get_user_object(), which would also move
+		 * the helper's ambient "current user" onto the target as a side effect.
+		 * User_Helper::get_user() takes no argument at all, which is how the old
+		 * single-slot cache came to ignore the user it was asked about.
+		 *
+		 * @param int|\WP_User|null $user The user, or null for the helper's current user.
+		 *
+		 * @return int
+		 *
+		 * @since 4.2.0
+		 */
+		private static function cache_id( $user ): int {
+			if ( $user instanceof \WP_User ) {
+				return (int) $user->ID;
+			}
+
+			if ( is_numeric( $user ) && (int) $user > 0 ) {
+				return (int) $user;
+			}
+
+			$current = User_Helper::get_user();
+
+			return ( $current instanceof \WP_User ) ? (int) $current->ID : 0;
 		}
 
 		/**
@@ -697,7 +1036,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 				$key = Open_SSL::decrypt_legacy( substr( $key, 4 ) );
 
 				self::remove_user_totp_key( $user );
-				self::$totp_key = '';
+				unset( self::$totp_keys[ self::cache_id( $user ) ] );
 
 				$key = self::get_totp_key( $user );
 			}
@@ -719,23 +1058,15 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 
 				self::set_user_totp_key( $secret, $user );
 
-				self::$totp_key = $secret;
+				self::$totp_keys[ self::cache_id( $user ) ] = $secret;
 			}
 
 			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, Open_SSL::SECRET_KEY_PREFIX ) ) {
 				$key = Open_SSL::decrypt( substr( $key, 4 ) );
 
-				/**
-				 * If for some reason the key is not valid, that means that we have to clear the stored TOTP for the user, and create new one
-				 * That could happen if the global stored secret (plugin level) is deleted.
-				 *
-				 * Lets check and if that is the case - create new one
-				 */
+				// A wrong global encryption key must never replace an enrolment.
 				if ( ! Authentication::validate_base32_string( $key ) ) {
-					self::$totp_key = '';
-					self::remove_user_totp_key( $user );
-					$key = self::get_totp_key( $user );
-					$key = Open_SSL::decrypt( substr( $key, 4 ) );
+					return '';
 				}
 			}
 
@@ -752,7 +1083,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 		public static function remove_user_totp_key( $user = null ) {
 			User_Helper::remove_meta( self::TOTP_META_KEY, $user );
 
-			self::$totp_key = '';
+			unset( self::$totp_keys[ self::cache_id( $user ) ] );
 		}
 
 		/**
@@ -793,55 +1124,23 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 
 			$key = (string) self::get_user_totp_key( $user_id );
 
-			$test = $key;
-
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'ssl_' ) ) {
-
-				/**
-				 * Old key detected - convert.
-				 */
-				$key = Open_SSL::decrypt_legacy( substr( $key, 4 ) );
-
-				self::remove_user_totp_key();
-
-				$secret = Open_SSL::encrypt( $key );
-
-				if ( Open_SSL::is_ssl_available() ) {
-					$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
-				}
-
-				self::set_user_totp_key( $key, $user_id );
-
-				$test = $key = (string) self::get_user_totp_key( $user_id ); // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found
+			if ( '' === $key || ! Open_SSL::is_ssl_available() ) {
+				return $key;
 			}
 
-			// We've tried tried to use WP core functionality, but that doesn't work - lets update.
-			if ( Open_SSL::is_ssl_available() && false !== \strpos( $key, 'wps_' ) ) {
-
-				/**
-				 * Old key detected - convert.
-				 */
-				$key = Open_SSL::decrypt_wps( substr( $key, 4 ) );
-
-				self::remove_user_totp_key();
-
-				$secret = Open_SSL::encrypt( $key );
-
-				if ( Open_SSL::is_ssl_available() ) {
-					$secret = Open_SSL::SECRET_KEY_PREFIX . $secret;
+			if ( 0 === strpos( $key, 'ssl_' ) || 0 === strpos( $key, 'wps_' ) ) {
+				try {
+					$plain = 0 === strpos( $key, 'ssl_' )
+						? Open_SSL::decrypt_legacy( substr( $key, 4 ) )
+						: Open_SSL::decrypt_wps( substr( $key, 4 ) );
+				} catch ( \Throwable $e ) {
+					return $key;
 				}
-
+				if ( ! is_string( $plain ) || ! Authentication::is_valid_key( $plain ) ) {
+					return $key;
+				}
+				$key = Open_SSL::SECRET_KEY_PREFIX . Open_SSL::encrypt( $plain );
 				self::set_user_totp_key( $key, $user_id );
-
-				$test = $key = (string) self::get_user_totp_key( $user_id );  // phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found
-			}
-
-			Authentication::decrypt_key_if_needed( $test );
-
-			if ( ! Authentication::is_valid_key( $test ) ) {
-				$key = Authentication::generate_key();
-				self::set_user_totp_key( $key, $user_id );
-				Authentication::clear_decrypted_key();
 			}
 
 			return $key;
@@ -878,7 +1177,7 @@ if ( ! class_exists( '\WP2FA\Methods\TOTP' ) ) {
 			$default_settings['method_help_totp_step_2']      = __( 'From within the application scan the QR code provided on the left. Otherwise, enter the following code manually in the application:', 'wp-2fa' );
 			$default_settings['method_help_totp_step_3']      = __( 'Click the "I\'m ready" button below when you complete the application setup process to proceed with the wizard.', 'wp-2fa' );
 			$default_settings['method_verification_totp_pre'] = '<h3>' . __( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . __( 'Please type in the one-time code from your chosen authentication app to finalize the setup.', 'wp-2fa' ) . '</p>';
-			$default_settings['totp_reconfigure_intro']       = '<h3>' . __( '{reconfigure_or_configure_capitalized} the 2FA App', 'wp-2fa' ) . '</h3><p>' . __( 'Click the below button to {reconfigure_or_configure} the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working.', 'wp-2fa' ) . '</p>';
+			$default_settings['totp_reconfigure_intro']       = '<h3>' . sprintf( /* translators: %s: the word "Configure" or "Reconfigure". */ __( '%s the 2FA App', 'wp-2fa' ), '{reconfigure_or_configure_capitalized}' ) . '</h3><p>' . sprintf( /* translators: %s: the word "configure" or "reconfigure". */ __( 'Click the below button to %s the current 2FA method. Note that once reset you will have to re-scan the QR code on all devices you want this to work on because the previous codes will stop working.', 'wp-2fa' ), '{reconfigure_or_configure}' ) . '</p>';
 			$default_settings['totp-option-label']            = __( 'One-time code via 2FA app', 'wp-2fa' );
 			$default_settings['method_help_totp_more_intro']  = $mth;
 			$default_settings['totp-option-label-hint']       = sprintf(

@@ -9,11 +9,12 @@
 namespace WP2FA\Admin\SettingsPages;
 
 use WP2FA\WP2FA;
-use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Settings_Page;
+use WP2FA\Utils\Settings_Utils;
+use WP2FA\Licensing\Licensing_Factory;
+use WP2FA\Admin\Helpers\Email_Templates;
 use WP2FA\Admin\SettingsPages\Settings_Page_General;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
-use WP2FA\Admin\Helpers\Email_Templates;
 
 if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 	/**
@@ -41,7 +42,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 				function ( $hook ) {
 					if ( 'wp-2fa_page_' . constant( __CLASS__ . '::PAGE_SLUG' ) === $hook ) {
 						\wp_enqueue_style(
-						'wp_2fa_settings_new_css',
+							'wp_2fa_settings_new_css',
 							WP_2FA_URL . 'includes/assets/css/' . \sanitize_file_name( 'settings' ) . '.css',
 							array(),
 							WP_2FA_VERSION
@@ -240,7 +241,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 			}
 
 			// 2. Capability check.
-			if ( ! \current_user_can( 'manage_options' ) ) {
+			// Settings are stored network-wide on a multisite install, so a site
+			// administrator's manage_options is not enough to change them.
+			if ( ! Settings_Page::can_manage_settings() ) {
 				\wp_send_json_error(
 					array( 'message' => \esc_html__( 'You do not have permission to perform this action.', 'wp-2fa' ) ),
 					403
@@ -270,6 +273,14 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 
 			if ( isset( $_POST['email_from_setting'] ) ) {
 				$options = Settings_Page_Email::validate_and_sanitize_new( \wp_unslash( $_POST ) );
+				// Missing toggles belong to tabs that were not submitted. The
+				// settings script sends an explicit empty value for a rendered,
+				// unchecked checkbox.
+				foreach ( array( 'send_account_locked_email', 'send_account_unlocked_email', 'send_login_code_email', 'send_not_setup_2fa_email' ) as $toggle ) {
+					if ( ! array_key_exists( $toggle, $_POST ) ) {
+						unset( $options[ $toggle ] );
+					}
+				}
 
 				// Merge with existing email settings to preserve keys not present
 				// in POST (e.g. SMS templates for non-enterprise plans).
@@ -360,8 +371,12 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 				$subject = \esc_html__( 'Test email from WP 2FA', 'wp-2fa' );
 				$message = \esc_html__( 'This email was sent by the WP 2FA plugin to test the email delivery.', 'wp-2fa' );
 			} else {
-				$subject = $raw_subject;
+				// As the real emails build them: tags resolved in the subject too, and no markup there.
+				$subject = \wp_strip_all_tags( Email_Templates::replace_email_strings( $raw_subject, (string) $user->ID ) );
 				$message = \wpautop( Email_Templates::replace_email_strings( $raw_body, (string) $user->ID ) );
+
+				$template = isset( $_POST['template'] ) ? \sanitize_key( \wp_unslash( $_POST['template'] ) ) : '';
+				$message  = self::fill_template_only_tags( $template, $message );
 			}
 
 			// 5. Send.
@@ -370,15 +385,47 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 			if ( $sent ) {
 				\wp_send_json_success(
 					array(
-						/* translators: %s: recipient email address */
+						/* translators: %s: the recipient email address. */
 						'message' => \wp_sprintf( \esc_html__( 'Test email was successfully sent to %s', 'wp-2fa' ), '<strong>' . \esc_html( $email ) . '</strong>' ),
 					)
 				);
 			}
 
 			\wp_send_json_error(
+				/* translators: %s: the link to the email deliverability guide, already wrapped in an anchor. */
 				array( 'message' => \wp_sprintf( \esc_html__( 'Failed to send the test email. This is usually caused by an SMTP issue, a restricted "from" address, or your host blocking outgoing mail. Check your email settings or contact your hosting provider. %s.', 'wp-2fa' ), \wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_error', \esc_html__( 'Read more about email deliverability', 'wp-2fa' ) ) ) )
 			);
+		}
+
+		/**
+		 * Fills the tags only one template's real sender resolves, with sample values.
+		 *
+		 * {backup_codes} is supplied by the backup-code sender itself, so a test
+		 * of that template arrived with the tag still in it and read as a broken
+		 * template. The test gets clearly marked sample codes instead: nothing is
+		 * generated, stored or used up, and the samples cannot log anyone in.
+		 * Other templates do not offer the tag, and keep it as written.
+		 *
+		 * @param string $template - The template being tested, as keyed by get_email_templates().
+		 * @param string $message  - The email body.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		private static function fill_template_only_tags( string $template, string $message ): string {
+			if ( '' === $template || ! \in_array( '{backup_codes}', Email_Templates::get_mail_template_body_tags( $template ), true ) ) {
+				return $message;
+			}
+
+			$samples = array();
+			for ( $i = 1; $i <= 5; $i++ ) {
+				$samples[] = 'SAMPLE-' . \str_repeat( (string) $i, 6 );
+			}
+
+			$codes = \esc_html__( 'Sample codes for this test email only - they cannot be used to log in:', 'wp-2fa' ) . '<br>' . \implode( '<br>', $samples );
+
+			return \str_replace( '{backup_codes}', $codes, $message );
 		}
 
 		/**
@@ -388,6 +435,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 		 * @return array Sanitized output array.
 		 */
 		public static function validate_and_sanitize( $input ) {
+			if ( ! Settings_Page::can_manage_settings() ) {
+				return Settings_Utils::get_option( WP_2FA_NEW_SETTINGS_NAME, array() );
+			}
 			$out = array();
 
 			$out['enabled']      = ( isset( $input['enabled'] ) && (bool) $input['enabled'] ) ? true : false;

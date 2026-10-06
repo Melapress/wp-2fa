@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <div class="wp2fa-profile__summary">
 	<div class="wp2fa-profile__summary-row">
-		<span class="wp2fa-profile__summary-label"><?php \esc_html_e( 'Primary Method:', 'wp-2fa' ); ?></span>
+		<span class="wp2fa-profile__summary-label"><?php echo \esc_html( \WP2FA\WP2FA::get_wp2fa_white_label_setting( 'user-profile-primary-method-label', true ) ); ?></span>
 		<span class="wp2fa-profile__summary-value">
 			<?php echo \esc_html( $data['primary_label'] ); ?>
 			<?php if ( ! $data['has_enabled_methods'] && (int) $data['user_id'] === (int) \get_current_user_id() ) : ?>
@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
 		</span>
 	</div>
 	<div class="wp2fa-profile__summary-row">
-		<span class="wp2fa-profile__summary-label"><?php \esc_html_e( 'Secondary Method(s):', 'wp-2fa' ); ?></span>
+		<span class="wp2fa-profile__summary-label"><?php echo \esc_html( \WP2FA\WP2FA::get_wp2fa_white_label_setting( 'user-profile-secondary-method-label', true ) ); ?></span>
 		<span class="wp2fa-profile__summary-value">
 			<?php if ( $data['has_enabled_methods'] ) : ?>
 				<?php echo \esc_html( $data['backup_methods_label'] ); ?>
