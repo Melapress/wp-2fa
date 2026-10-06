@@ -50,11 +50,37 @@ if ( ! class_exists( '\WP2FA\Admin\User_Registered' ) ) {
 		 *
 		 * @since 3.0.0
 		 */
-		public static function check_user_upon_role_change( $user_id, $role, $old_roles ) {
+		public static function check_user_upon_role_change( $user_id, $role, $old_roles = array() ) {
 			$user_id = intval( $user_id );
-			$role    = sanitize_text_field( $role );
 
 			self::apply_2fa_grace_period( $user_id );
+
+			/*
+			 * Whatever the method check above decided, the user's policy state was
+			 * worked out for the roles they had. Dropping the hash makes the next
+			 * request work it out again for the roles they have now - whether
+			 * they are enforced, excluded, and by when they must set up 2FA.
+			 */
+			User_Helper::remove_global_settings_hash_for_user( $user_id );
+		}
+
+		/**
+		 * A role added to or taken from a user, beside the one they had.
+		 *
+		 * WP_User::add_role() and remove_role() fire add_user_role and
+		 * remove_user_role, not set_user_role. Only set_user_role was handled, so
+		 * an optional user given an enforced role by a plugin or an integration
+		 * kept their optional status - and signed in with a password alone.
+		 *
+		 * @param int    $user_id - The ID of the user.
+		 * @param string $role    - The role added or removed.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		public static function check_user_upon_role_added_or_removed( $user_id, $role = '' ) {
+			self::check_user_upon_role_change( $user_id, (string) $role );
 		}
 	}
 }

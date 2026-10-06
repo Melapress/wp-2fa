@@ -130,7 +130,15 @@
 <!-- Copy START -->
 <div class="wp-2fa-plugin-update wp-2fa-notice" data-dismiss-action="wp2fa_dismiss_upgrade_notice" data-nonce="<?php echo \esc_attr( \wp_create_nonce( 'dismiss_upgrade_notice' ) ); ?>">
 	<div class="wp-2fa-plugin-update-content">
-		<h2 class="wp-2fa-plugin-update-title"><?php echo esc_html__( 'WP 2FA has been updated to version ', 'wp-2fa' ) . \esc_attr( WP_2FA_VERSION ); ?></h2>
+		<h2 class="wp-2fa-plugin-update-title">
+		<?php
+		printf(
+			/* translators: %s: the plugin version number. */
+			esc_html__( 'WP 2FA has been updated to version %s', 'wp-2fa' ),
+			\esc_attr( WP_2FA_VERSION )
+		);
+		?>
+		</h2>
 		<p class="wp-2fa-plugin-update-text">
 			<?php echo \esc_html__( 'You are now running the latest version of WP 2FA. To see what\'s been included in this update, refer to the plugin\'s release notes and change log where we list all new features, updates, and bug fixes.', 'wp-2fa' ); ?>
 		</p>

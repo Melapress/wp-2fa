@@ -195,7 +195,15 @@ if ( ! class_exists( '\WP2FA\Methods\Wizards\PassKeys_Wizard_Steps' ) ) {
 						<?php \checked( Passkeys::POLICY_SETTINGS_NAME, Settings_Utils::get_setting_role( $role, Passkeys::POLICY_SETTINGS_NAME ), true ); ?>
 						
 					>
-					<?php \esc_html_e( 'Passkeys - ', 'wp-2fa' ); ?><a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel=noopener><?php \esc_html_e( 'complete list of supported 2FA apps.', 'wp-2fa' ); ?></a>
+					<?php
+						printf(
+							/* translators: %s: link to the list of supported 2FA apps, already wrapped in an anchor. */
+							\esc_html__( 'Passkeys - %s', 'wp-2fa' ),
+							'<a href="https://melapress.com/support/kb/wp-2fa-configuring-2fa-apps/?&utm_source=plugin&utm_medium=link&utm_campaign=wp2fa" target="_blank" rel="noopener">'
+								. \esc_html__( 'complete list of supported 2FA apps.', 'wp-2fa' )
+								. '</a>'
+						);
+						?>
 				</label>
 				<?php
 				if ( $setup_wizard ) {

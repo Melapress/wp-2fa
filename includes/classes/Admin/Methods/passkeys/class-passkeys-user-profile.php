@@ -73,7 +73,11 @@ if ( ! class_exists( '\WP2FA\Passkeys\Passkeys_User_Profile' ) ) {
 			}
 
 			// Prepare template variables.
-			$section_title = \esc_html( WP2FA::get_wp2fa_white_label_setting( 'passkeys-option-label', true ) ) . __( ' - by WP2FA', 'wp-2fa' );
+			$section_title = sprintf(
+				/* translators: %s: the label configured for the passkeys method. */
+				__( '%s - by WP2FA', 'wp-2fa' ),
+				\esc_html( WP2FA::get_wp2fa_white_label_setting( 'passkeys-option-label', true ) )
+			);
 
 			$section_description_html = sprintf(
 				\wp_kses(

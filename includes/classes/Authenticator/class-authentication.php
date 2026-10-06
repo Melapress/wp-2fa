@@ -25,6 +25,7 @@ defined( 'ABSPATH' ) || exit;
 
 use WP2FA\Authenticator\Open_SSL;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Utils\Debugging;
 use WP2FA_Vendor\BaconQrCode\Writer;
 use WP2FA\Admin\Methods\Traits\Login_Attempts;
 use WP2FA_Vendor\BaconQrCode\Renderer\ImageRenderer;
@@ -95,15 +96,126 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 				$target_url .= ( '&issuer=' . rawurlencode( $title ) );
 			}
 
-			$renderer = new ImageRenderer(
-				new RendererStyle( 400 ),
-				new SvgImageBackEnd()
-			);
-			$writer   = new Writer( $renderer );
+			/*
+			 * An empty string, not a fatal, when the QR image cannot be drawn.
+			 *
+			 * Drawing one needs extensions a host may not have, and this runs from
+			 * admin_enqueue_scripts via Wizard_Integration — so anything escaping here
+			 * does not merely lose the image, it takes down the whole of user-edit.php
+			 * and profile.php and leaves no way in to turn 2FA off again.
+			 *
+			 * Losing the picture costs the user very little: every caller hands the
+			 * secret to the page alongside this, so the key can still be typed into an
+			 * authenticator by hand and enrolment completes normally. The callers treat
+			 * '' as "no image available" and show the key on its own.
+			 */
+			if ( ! self::can_render_qr_code() ) {
+				Debugging::log(
+					'Skipping the TOTP QR code and offering the setup key alone: '
+					. self::describe_missing_qr_requirements()
+				);
 
-			$result = $writer->writeString( $target_url );
+				return '';
+			}
+
+			/*
+			 * Everything the drawing needs is inside the try, the renderer included.
+			 * The back end tests for its own requirements in its constructor and throws
+			 * there, before a single line of the writing below runs — so building it
+			 * outside this block, as it used to be, left the most likely failure of the
+			 * lot as the one nothing was catching.
+			 *
+			 * Throwable, not the library's own exception type: the constructor raises a
+			 * RuntimeException, which is a sibling of the WriterException the writing
+			 * raises rather than a parent or child of it, so naming either one alone
+			 * catches only half of what this call can throw.
+			 */
+			try {
+				$renderer = new ImageRenderer(
+					new RendererStyle( 400 ),
+					new SvgImageBackEnd()
+				);
+
+				$result = ( new Writer( $renderer ) )->writeString( $target_url );
+			} catch ( \Throwable $qr_failure ) {
+				Debugging::log(
+					'Could not render the TOTP QR code, falling back to the setup key alone. Reason: '
+					. $qr_failure->getMessage()
+				);
+
+				return '';
+			}
 
 			return 'data:image/svg+xml;base64,' . base64_encode( $result );
+		}
+
+		/**
+		 * Whether this server can draw a QR code at all.
+		 *
+		 * Asked before trying, so the answer is the same everywhere and a caller that
+		 * cannot show a picture does not have to find that out by catching something.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		public static function can_render_qr_code(): bool {
+			return empty( self::missing_qr_requirements() );
+		}
+
+		/**
+		 * Which of the pieces needed to draw a QR code this server is without.
+		 *
+		 * Named accurately on purpose. The bundled encoder reports a missing XMLWriter as
+		 * "you need to install the libxml extension", which is not the extension at fault:
+		 * libxml, dom, SimpleXML and XMLReader are almost always present and enabled while
+		 * xmlwriter is the one left out of a build. Customers and their hosts have chased
+		 * that wording more than once and come back with libxml confirmed enabled and the
+		 * fault untouched, so nothing here repeats it.
+		 *
+		 * @return string[] Extension names, empty when the server has everything needed.
+		 *
+		 * @since 4.2.0
+		 */
+		public static function missing_qr_requirements(): array {
+			$missing = array();
+
+			// Written by the SVG back end, which throws from its constructor without it.
+			if ( ! \class_exists( '\XMLWriter' ) ) {
+				$missing[] = 'xmlwriter';
+			}
+
+			// Used while encoding the payload.
+			if ( ! \function_exists( 'ctype_digit' ) ) {
+				$missing[] = 'ctype';
+			}
+
+			/*
+			 * The encoder converts the payload with one or the other, so either will do
+			 * and only the absence of both is worth reporting.
+			 */
+			if ( ! \function_exists( 'iconv' ) && ! \function_exists( 'mb_convert_encoding' ) ) {
+				$missing[] = 'iconv';
+			}
+
+			return $missing;
+		}
+
+		/**
+		 * The missing pieces, as something that can be put in a log or shown to a person.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		public static function describe_missing_qr_requirements(): string {
+			$missing = self::missing_qr_requirements();
+
+			if ( empty( $missing ) ) {
+				return '';
+			}
+
+			return 'the following PHP extension(s) are unavailable: ' . \implode( ', ', $missing );
 		}
 
 		/**
@@ -217,6 +329,11 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		public static function is_valid_authcode( $key, $authcode, $user = null ) {
 
 			self::decrypt_key_if_needed( $key );
+
+			// No usable key - none set, or one that could not be decrypted: no code is valid.
+			if ( ! \is_string( $key ) || '' === $key ) {
+				return false;
+			}
 			/**
 			 * That allows to change the amount of thick for decrypting the key.
 			 *
@@ -248,12 +365,49 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 					}
 					// Persist the accepted step to prevent replay.
 					if ( $user instanceof \WP_User && $user->ID > 0 ) {
+						if ( ! self::claim_totp_step( $user->ID, $step, (int) $max_ticks ) ) {
+							return false;
+						}
 						\update_user_meta( $user->ID, WP_2FA_PREFIX . 'last_totp_step', $step );
 					}
 					return true;
 				}
 			}
 			return false;
+		}
+
+		/**
+		 * Claim a verified TOTP step using the unique options-table key.
+		 *
+		 * Store in the main site's database even with an external object cache:
+		 * transient get/set operations alone cannot make a concurrent claim atomic.
+		 * WordPress's expired-transient cleanup removes these short-lived records.
+		 *
+		 * @param int $user_id   Account whose code was verified.
+		 * @param int $step      Verified time step.
+		 * @param int $allowance Accepted time-step tolerance.
+		 * @return bool
+		 */
+		private static function claim_totp_step( int $user_id, int $step, int $allowance ): bool {
+			$switched = \is_multisite() && \get_current_blog_id() !== (int) \get_main_site_id();
+			if ( $switched ) {
+				\switch_to_blog( \get_main_site_id() );
+			}
+			try {
+				global $wpdb;
+				// Also clean expired claims when an object cache disables core's DB cleanup.
+				$prefix = $wpdb->esc_like( '_transient_timeout_wp_2fa_totp_claim_' . $user_id . '_' ) . '%';
+				$wpdb->query( $wpdb->prepare( "DELETE claim, expiry FROM {$wpdb->options} AS expiry INNER JOIN {$wpdb->options} AS claim ON claim.option_name = REPLACE(expiry.option_name, '_transient_timeout_', '_transient_') WHERE expiry.option_name LIKE %s AND CAST(expiry.option_value AS UNSIGNED) < %d", $prefix, time() ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted options table; claims have unique, never-reused time-step keys.
+				$name = 'wp_2fa_totp_claim_' . $user_id . '_' . $step;
+				// Keep the claim beyond the latest instant this time step can validate.
+				$expires = max( time() + MINUTE_IN_SECONDS, ( $step + $allowance + 2 ) * self::DEFAULT_TIME_STEP_SEC );
+				\add_option( '_transient_timeout_' . $name, $expires, '', false );
+				return \add_option( '_transient_' . $name, '1', '', false );
+			} finally {
+				if ( $switched ) {
+					\restore_current_blog();
+				}
+			}
 		}
 
 		/**
@@ -431,8 +585,10 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 			}
 
 
-			// Ensure that the token can't be re-used.
-			self::delete_token( $user_id );
+			// Only the request that deletes this exact token may accept it.
+			if ( ! \delete_user_meta( $user_id, User_Helper::TOKEN_META_KEY, $hashed_token ) ) {
+				return false;
+			}
 			self::clear_login_attempts( $user );
 
 			\delete_transient( 'wp_2fa_code_login_' . $user_id );
@@ -475,6 +631,16 @@ if ( ! class_exists( '\WP2FA\Authenticator\Authentication' ) ) {
 		 */
 		public static function get_user_token( $user_id ) {
 
+			/*
+			 * The code expires with this transient. It used to sit inside the
+			 * premium markers, so the free build never checked it and an emailed
+			 * code stayed valid indefinitely. Both builds set it now.
+			 */
+			$transient = \get_transient( 'wp_2fa_code_login_' . $user_id );
+			if ( false === $transient ) {
+				User_Helper::remove_email_token_for_user( $user_id );
+				return false;
+			}
 
 			$hashed_token = User_Helper::get_email_token_for_user( $user_id );
 

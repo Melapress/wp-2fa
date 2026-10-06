@@ -518,15 +518,14 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 					&& ! empty( $policy['custom-user-page-url'] )
 					&& empty( $policy['custom-user-page-id'] )
 				) {
-					if ( WP_Helper::is_multisite() && ! empty( $policy['separate-multisite-page-url'] ) ) {
-						// Each sub-site has its own page — resolve per site.
-						$sites = WP_Helper::get_multi_sites();
-						foreach ( $sites as $site ) {
-							\switch_to_blog( $site->blog_id );
-							self::backfill_page_id_for_slug( $policy['custom-user-page-url'] );
-							\restore_current_blog();
-						}
-					} else {
+					/*
+					 * Not with a page per site: each site's page is found by its slug on
+					 * that site, so there is no single ID to store - and the policy is
+					 * one network setting. This used to write each site's local ID into
+					 * it in turn, leaving the last site's, which links then resolved on
+					 * the main site: an unrelated page, or none.
+					 */
+					if ( ! WP_Helper::is_multisite() || empty( $policy['separate-multisite-page-url'] ) ) {
 						$page_id = self::resolve_page_id_from_slug( $policy['custom-user-page-url'] );
 						if ( $page_id ) {
 							$policy['custom-user-page-id'] = $page_id;
@@ -552,38 +551,23 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 		 * @since 4.1.0
 		 */
 		private static function resolve_page_id_from_slug( string $slug ): int {
+			/*
+			 * On a network the one shared page lives on the main site, and that is
+			 * where the stored ID is resolved (Settings::get_custom_page_link()). The
+			 * upgrade can run on any site's request, so it looks there too.
+			 */
+			$switched = WP_Helper::is_multisite() && \get_current_blog_id() !== \get_main_site_id();
+			if ( $switched ) {
+				\switch_to_blog( \get_main_site_id() );
+			}
+
 			$page = \get_page_by_path( $slug, OBJECT, 'page' );
 
-			if ( $page ) {
-				return (int) $page->ID;
+			if ( $switched ) {
+				\restore_current_blog();
 			}
 
-			return 0;
-		}
-
-		/**
-		 * Backfills the custom-user-page-id in the global policy for the current
-		 * blog context. Used when iterating over multisite sub-sites.
-		 *
-		 * @param string $slug The page slug to look up.
-		 *
-		 * @return void
-		 *
-		 * @since 4.1.0
-		 */
-		private static function backfill_page_id_for_slug( string $slug ) {
-			$policy = self::get_settings( self::$plugin_policy_name );
-
-			if ( ! \is_array( $policy ) ) {
-				return;
-			}
-
-			$page_id = self::resolve_page_id_from_slug( $slug );
-
-			if ( $page_id ) {
-				$policy['custom-user-page-id'] = $page_id;
-				self::set_settings( self::$plugin_policy_name, $policy );
-			}
+			return $page ? (int) $page->ID : 0;
 		}
 
 		/**
@@ -788,6 +772,247 @@ if ( ! class_exists( '\WP2FA\Utils\Migration' ) ) {
 					\delete_transient( 'wp_2fa_config_file_hash' );
 					\restore_current_blog();
 				}
+			}
+		}
+		/**
+		 * Migration for version 4.2.0 — seed the licensing provider.
+		 *
+		 * The licensing layer was realigned with the shared Melapress
+		 * implementation in this release. Provider selection is now driven purely
+		 * by the wp2fa_licensing_provider option: Licensing_Factory::get_provider()
+		 * returns null when it is unset, and a null provider means every one of the
+		 * plugin's licence checks answers "unlicensed".
+		 *
+		 * Nothing wrote that option before 4.2.0, so on upgrade it is empty on
+		 * every existing site. Licensing_Factory::has_stored_license_data() can
+		 * seed it at runtime, but its Freemius branch keys off the fs_wp2fap
+		 * option, and that option is only a cache written by
+		 * Freemius_Provider::sync_premium_license() — which runs from an admin_init
+		 * hook that is itself registered inside Freemius_Provider::init(), and init()
+		 * only runs once has_stored_license_data() has already returned true.
+		 *
+		 * On a site where that cache was never written, or was left at 'no' by a
+		 * failed sync, those two conditions deadlock and the site would silently
+		 * lose its premium features with no way to recover through the UI.
+		 *
+		 * Seeding the option here, once, from evidence that survives independently
+		 * of that cache breaks the cycle before any of it runs.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		protected static function migrate_up_to_420() {
+			/*
+			 * Roles added or removed through WP_User::add_role() / remove_role() did
+			 * not refresh a user's 2FA policy state, so some users may be carrying a
+			 * status worked out for roles they no longer have alone. On networks,
+			 * roles held on other sites were read from the wrong meta keys, so
+			 * users enforced through them may have been left optional. Every
+			 * user's state is worked out again on their next request.
+			 */
+			self::recompute_user_policy_state();
+
+
+			// Undo what the 4.1 page-ID backfill left on networks with a page per site.
+			self::drop_network_page_ids_for_per_site_pages();
+
+			// Login code emails: send users to the site's admin address, not to the
+			// plugin's sending address. Only untouched default lines change.
+			\WP2FA\Admin\Helpers\Email_Templates::point_default_contact_lines_at_site_admin();
+
+			// The default "account unlocked" email lost the site name and its last line.
+			\WP2FA\Admin\Helpers\Email_Templates::repair_default_unlocked_email();
+
+			$provider_option = '\WP2FA\Licensing\Licensing_Factory';
+
+			if ( ! \class_exists( $provider_option ) ) {
+				return;
+			}
+
+			$option_name = \WP2FA\Licensing\Licensing_Factory::PROVIDER_OPTION;
+
+			// Respect an explicit choice that is already recorded.
+			if ( ! empty( \get_option( $option_name, '' ) ) ) {
+				return;
+			}
+
+			$is_multisite = \is_multisite();
+			$main_site_id = $is_multisite ? \get_main_site_id() : 0;
+
+			// An EDD licence key is the strongest signal, and takes precedence.
+			$edd_key = \get_option( \WP2FA\Licensing\EDD_Provider::LICENSE_KEY_OPTION, '' );
+			if ( empty( $edd_key ) && $is_multisite ) {
+				$edd_key = \get_blog_option( $main_site_id, \WP2FA\Licensing\EDD_Provider::LICENSE_KEY_OPTION, '' );
+			}
+
+			if ( ! empty( $edd_key ) ) {
+				self::record_licensing_provider( $option_name, 'edd', $is_multisite, $main_site_id );
+
+				return;
+			}
+
+			if ( self::has_freemius_activation_evidence( $is_multisite, $main_site_id ) ) {
+				self::record_licensing_provider( $option_name, 'freemius', $is_multisite, $main_site_id );
+			}
+
+			// Neither: leave the option unset so a genuinely fresh install still
+			// lands on the unified licence form, which is the intended entry point.
+		}
+
+
+		/**
+		 * Makes every user's 2FA policy state be worked out again.
+		 *
+		 * Drops each user's record of the policy version their state was computed
+		 * for. Nothing else changes now: the next request a user makes recomputes
+		 * their status from their current roles, as a policy save would.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function recompute_user_policy_state(): void {
+			global $wpdb;
+
+			$wpdb->delete( $wpdb->usermeta, array( 'meta_key' => \WP2FA\Admin\Helpers\User_Helper::USER_SETTINGS_HASH ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			// Cached user meta would still hold the old records.
+			if ( \function_exists( 'wp_cache_supports' ) && \wp_cache_supports( 'flush_group' ) ) {
+				\wp_cache_flush_group( 'user_meta' );
+			} else {
+				\wp_cache_flush();
+			}
+		}
+
+		/**
+		 * Clears the setup-page ID where each site has a page of its own.
+		 *
+		 * With a page per site the page is found by its slug on the site in
+		 * question, and the ID - one number in a network-wide setting - cannot
+		 * name all of them. The 4.1 upgrade nevertheless filled it in, with the
+		 * last site's local ID, and links resolved that number on the main site:
+		 * an unrelated page, or none. Without it, every link falls back to the
+		 * slug on the user's own site, which is what that mode is meant to do.
+		 *
+		 * Only the ID goes, only on a network, only for a policy (global or per
+		 * role) that is in per-site mode. Running it again changes nothing.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function drop_network_page_ids_for_per_site_pages(): void {
+			if ( ! WP_Helper::is_multisite() ) {
+				return;
+			}
+
+			$policy          = self::get_settings( self::$plugin_policy_name );
+			$global_per_site = \is_array( $policy ) && ! empty( $policy['separate-multisite-page-url'] );
+
+			if ( $global_per_site && ! empty( $policy['custom-user-page-id'] ) ) {
+				unset( $policy['custom-user-page-id'] );
+				self::set_settings( self::$plugin_policy_name, $policy );
+			}
+
+		}
+
+		/**
+		 * Was this site ever activated through Freemius?
+		 *
+		 * Deliberately broader than the fs_wp2fap === 'yes' test used at runtime.
+		 * That option is a cache, so it is absent on a licensed site whose sync has
+		 * not run yet and stale on one whose last sync failed. Freemius's own
+		 * account storage is not a cache — if it names this plugin, the SDK was
+		 * registered here at some point, which is exactly the question being asked.
+		 *
+		 * TODO(review): this branch is a deliberate addition over the shared
+		 * implementation, which checks only the cached option. It exists because
+		 * WP 2FA is Freemius-first and gates 58 call sites on the answer, whereas
+		 * the shared version is EDD-first and gates 6. Drop it only if the extra
+		 * tolerance is judged unnecessary.
+		 *
+		 * @param bool $is_multisite - Whether this is a network install.
+		 * @param int  $main_site_id - Main site ID on a network, 0 otherwise.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static function has_freemius_activation_evidence( bool $is_multisite, int $main_site_id ): bool {
+			$premium_option = \WP2FA\Licensing\Licensing_Factory::FREEMIUS_PREMIUM_OPTION;
+
+			// The cached flag, in either of its two truthful forms: 'yes' means
+			// licensed, and any recorded value at all means a sync has run here.
+			foreach ( self::licensing_option_values( $premium_option, $is_multisite, $main_site_id ) as $value ) {
+				if ( '' !== $value && null !== $value && false !== $value ) {
+					return true;
+				}
+			}
+
+			// Freemius's own account storage. Present once the SDK has registered
+			// this product, and never written by our own sync.
+			/*
+			 * Through the provider, which reads the rows directly. Asking for this option the
+			 * ordinary way unserialises it before the SDK has declared its entity classes, and
+			 * WordPress keeps the broken objects in its option cache for the rest of the
+			 * request — the SDK is then handed those and fills the screen with
+			 * "property on an incomplete object" warnings.
+			 */
+			foreach ( \WP2FA\Licensing\Freemius_Provider::account_records() as $accounts ) {
+				if ( ! \is_array( $accounts ) ) {
+					continue;
+				}
+
+				$slug = \WP2FA\Licensing\Licensing_Factory::FREEMIUS_SLUG;
+
+				foreach ( array( 'sites', 'plugins', 'licenses', 'plans' ) as $bucket ) {
+					if ( isset( $accounts[ $bucket ] ) && \is_array( $accounts[ $bucket ] ) && isset( $accounts[ $bucket ][ $slug ] ) ) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Read an option from this site and, on a network, the main site too.
+		 *
+		 * @param string $option_name  - Option to read.
+		 * @param bool   $is_multisite - Whether this is a network install.
+		 * @param int    $main_site_id - Main site ID on a network, 0 otherwise.
+		 *
+		 * @return array
+		 *
+		 * @since 4.2.0
+		 */
+		private static function licensing_option_values( string $option_name, bool $is_multisite, int $main_site_id ): array {
+			$values = array( \get_option( $option_name, '' ) );
+
+			if ( $is_multisite && $main_site_id > 0 ) {
+				$values[] = \get_blog_option( $main_site_id, $option_name, '' );
+			}
+
+			return $values;
+		}
+
+		/**
+		 * Record the resolved provider, on the network main site as well.
+		 *
+		 * @param string $option_name  - Provider option name.
+		 * @param string $provider     - 'edd' or 'freemius'.
+		 * @param bool   $is_multisite - Whether this is a network install.
+		 * @param int    $main_site_id - Main site ID on a network, 0 otherwise.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function record_licensing_provider( string $option_name, string $provider, bool $is_multisite, int $main_site_id ) {
+			\update_option( $option_name, $provider );
+
+			if ( $is_multisite && $main_site_id > 0 && empty( \get_blog_option( $main_site_id, $option_name, '' ) ) ) {
+				\update_blog_option( $main_site_id, $option_name, $provider );
 			}
 		}
 	}

@@ -136,33 +136,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Optional welcome content', 'wp-2fa' ),
-						'id'   => 'welcome-content-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Optional welcome content', 'wp-2fa' ),
+								'id'   => 'welcome-content-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'Use the below editor to enter the text that is to be used in the first slide.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'welcome-content-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'Use the below editor to enter the text that is to be used in the first slide.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'welcome-content-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'welcome',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[welcome]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'welcome', true ),
-						)
+							array(
+								'id'          => 'welcome',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[welcome]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'welcome', true ),
+							)
 						);
 						?>
 					</div>
@@ -184,33 +184,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Prompt when user tries to cancel the wizard', 'wp-2fa' ),
-						'id'   => 'cancel-wizard-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Prompt when user tries to cancel the wizard', 'wp-2fa' ),
+								'id'   => 'cancel-wizard-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'Use the below editor to enter the text that is to be used when user closes/cancels the wizard.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'cancel-wizard-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'Use the below editor to enter the text that is to be used when user closes/cancels the wizard.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'cancel-wizard-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'wp-2fa_wizard_cancel',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[wp-2fa_wizard_cancel]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'wp-2fa_wizard_cancel', true ),
-						)
+							array(
+								'id'          => 'wp-2fa_wizard_cancel',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[wp-2fa_wizard_cancel]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'wp-2fa_wizard_cancel', true ),
+							)
 						);
 						?>
 					</div>
@@ -220,33 +220,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Wizard completion &ndash; Backup codes not available', 'wp-2fa' ),
-						'id'   => 'backup-codes-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Wizard completion &ndash; Backup codes not available', 'wp-2fa' ),
+								'id'   => 'backup-codes-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when setup is complete and backup codes are not available.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-codes-intro-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when setup is complete and backup codes are not available.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-codes-intro-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup_codes_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup_codes_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro', true ),
-						)
+							array(
+								'id'          => 'backup_codes_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup_codes_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro', true ),
+							)
 						);
 						?>
 					</div>
@@ -274,6 +274,7 @@ use WP2FA\Admin\Settings_Builder;
 				Settings_Builder::build_option(
 					array(
 						'text'  => \wp_sprintf(
+							/* translators: %1$s: the link to the setup wizard guide, already wrapped in an anchor. */
 							\esc_html__( 'Customize the labels and messages shown during the 2FA setup flow. %1$s', 'wp-2fa' ),
 							\wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/wp-2fa-customize-user-2fa-experience/?#utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_customize_2fa_user_experience', \esc_html__( 'Learn more', 'wp-2fa' ) )
 						),
@@ -298,32 +299,32 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						// Settings_Builder::build_option(
-						// 	array(
-						// 		'text' => \esc_html__( '2FA required', 'wp-2fa' ),
-						// 		'id'   => 'wp-2fa-required-label',
-						// 		'type' => 'settings-label',
-						// 	)
+						//  array(
+						//      'text' => \esc_html__( '2FA required', 'wp-2fa' ),
+						//      'id'   => 'wp-2fa-required-label',
+						//      'type' => 'settings-label',
+						//  )
 						// );
 
 						// Settings_Builder::build_option(
-						// 	array(
-						// 		'text'  => \esc_html__( 'This message is shown to users when logging in when 2FA is required.', 'wp-2fa' ),
-						// 		'class' => 'description-settings-card',
-						// 		'type'  => 'description',
-						// 	)
+						//  array(
+						//      'text'  => \esc_html__( 'This message is shown to users when logging in when 2FA is required.', 'wp-2fa' ),
+						//      'class' => 'description-settings-card',
+						//      'type'  => 'description',
+						//  )
 						// );
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						// Settings_Builder::build_option(
-						// 	array(
-						// 		'id'          => 'wp-2fa_required_intro',
-						// 		'type'        => 'editor',
-						// 		'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						// 		'option_name' => 'wp_2fa_white_label[wp-2fa_required_intro]',
-						// 		'default'     => WP2FA::get_wp2fa_white_label_setting( 'wp-2fa_required_intro', true ),
-						// 	)
+						//  array(
+						//      'id'          => 'wp-2fa_required_intro',
+						//      'type'        => 'editor',
+						//      'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+						//      'option_name' => 'wp_2fa_white_label[wp-2fa_required_intro]',
+						//      'default'     => WP2FA::get_wp2fa_white_label_setting( 'wp-2fa_required_intro', true ),
+						//  )
 						// );
 						?>
 					</div>
@@ -333,33 +334,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( '2FA method selection', 'wp-2fa' ),
-						'id'   => 'wp-2fa-required-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( '2FA method selection', 'wp-2fa' ),
+								'id'   => 'wp-2fa-required-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when configuring 2FA with no previous configuration.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when configuring 2FA with no previous configuration.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
-						<span class="extra-text"><?php echo '<strong>{available_methods_count}</strong> <i>'. \esc_html__( 'this displays the number of 2FA methods available.', 'wp-2fa' ).'</i>'; ?></span>
+						<span class="extra-text"><?php echo '<strong>{available_methods_count}</strong> <i>' . \esc_html__( 'this displays the number of 2FA methods available.', 'wp-2fa' ) . '</i>'; ?></span>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'method_selection',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[method_selection]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_selection', true ),
-						)
+							array(
+								'id'          => 'method_selection',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[method_selection]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'method_selection', true ),
+							)
 						);
 						?>
 					</div>
@@ -456,33 +457,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Choose backup method', 'wp-2fa' ),
-						'id'   => 'backup-codes-intro-multi-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Choose backup method', 'wp-2fa' ),
+								'id'   => 'backup-codes-intro-multi-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when more than one backup method is available.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-codes-intro-multi-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when more than one backup method is available.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-codes-intro-multi-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup_codes_intro_multi',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup_codes_intro_multi]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_multi', true ),
-						)
+							array(
+								'id'          => 'backup_codes_intro_multi',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup_codes_intro_multi]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_multi', true ),
+							)
 						);
 						?>
 					</div>
@@ -492,33 +493,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Wizard completion &ndash; Backup codes optional', 'wp-2fa' ),
-						'id'   => 'backup-codes-intro-continue-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Wizard completion &ndash; Backup codes optional', 'wp-2fa' ),
+								'id'   => 'backup-codes-intro-continue-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when setup is complete and backup codes are optional.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-codes-intro-continue-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when setup is complete and backup codes are optional.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-codes-intro-continue-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup_codes_intro_continue',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup_codes_intro_continue]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_continue', true ),
-						)
+							array(
+								'id'          => 'backup_codes_intro_continue',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup_codes_intro_continue]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_intro_continue', true ),
+							)
 						);
 						?>
 					</div>
@@ -528,33 +529,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Backup email intro', 'wp-2fa' ),
-						'id'   => 'backup-email-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Backup email intro', 'wp-2fa' ),
+								'id'   => 'backup-email-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when email 2FA backup is available.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-email-intro-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when email 2FA backup is available.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-email-intro-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup_email_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup_email_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_email_intro', true ),
-						)
+							array(
+								'id'          => 'backup_email_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup_email_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_email_intro', true ),
+							)
 						);
 						?>
 					</div>
@@ -577,33 +578,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Backup codes generation intro', 'wp-2fa' ),
-						'id'   => 'backup-codes-generate-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Backup codes generation intro', 'wp-2fa' ),
+								'id'   => 'backup-codes-generate-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users prior to generation of backup codes.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-codes-generate-intro-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users prior to generation of backup codes.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-codes-generate-intro-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup_codes_generate_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup_codes_generate_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_generate_intro', true ),
-						)
+							array(
+								'id'          => 'backup_codes_generate_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup_codes_generate_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_generate_intro', true ),
+							)
 						);
 						?>
 					</div>
@@ -613,33 +614,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Backup codes generated', 'wp-2fa' ),
-						'id'   => 'backup-codes-generated-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Backup codes generated', 'wp-2fa' ),
+								'id'   => 'backup-codes-generated-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when backup codes have been generated.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-codes-generated-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when backup codes have been generated.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-codes-generated-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup_codes_generated',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup_codes_generated]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_generated', true ),
-						)
+							array(
+								'id'          => 'backup_codes_generated',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup_codes_generated]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes_generated', true ),
+							)
 						);
 						?>
 					</div>
@@ -649,33 +650,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Backup email radio select option', 'wp-2fa' ),
-						'id'   => 'backup-email-select-method-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Backup email radio select option', 'wp-2fa' ),
+								'id'   => 'backup-email-select-method-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when backup email method is shown for selection.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-email-select-method-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when backup email method is shown for selection.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-email-select-method-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup-email-select-method',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup-email-select-method]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup-email-select-method', true ),
-						)
+							array(
+								'id'          => 'backup-email-select-method',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup-email-select-method]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup-email-select-method', true ),
+							)
 						);
 						?>
 					</div>
@@ -685,33 +686,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Backup code radio select option', 'wp-2fa' ),
-						'id'   => 'backup-codes-select-method-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Backup code radio select option', 'wp-2fa' ),
+								'id'   => 'backup-codes-select-method-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when backup code method is shown for selection.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'backup-codes-select-method-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when backup code method is shown for selection.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'backup-codes-select-method-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'backup_codes-select-method',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[backup_codes-select-method]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes-select-method', true ),
-						)
+							array(
+								'id'          => 'backup_codes-select-method',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[backup_codes-select-method]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'backup_codes-select-method', true ),
+							)
 						);
 						?>
 					</div>
@@ -735,33 +736,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Wizard completion', 'wp-2fa' ),
-						'id'   => 'no-further-action-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Wizard completion', 'wp-2fa' ),
+								'id'   => 'no-further-action-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when 2FA has been configured and no further actions are available.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'no-further-action-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when 2FA has been configured and no further actions are available.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'no-further-action-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'no_further_action',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[no_further_action]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'no_further_action', true ),
-						)
+							array(
+								'id'          => 'no_further_action',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[no_further_action]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'no_further_action', true ),
+							)
 						);
 						?>
 					</div>
@@ -800,41 +801,41 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'Reconfigure %s intro', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
-						),
-						'id'   => 'totp-reconfigure-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'Reconfigure %s intro', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+								),
+								'id'   => 'totp-reconfigure-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'This message is shown to users when reconfiguring %s.', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
-						),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'This message is shown to users when reconfiguring %s.', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'totp-option-label', true )
+								),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'totp_reconfigure_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[totp_reconfigure_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'totp_reconfigure_intro', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'totp_reconfigure_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[totp_reconfigure_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'totp_reconfigure_intro', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -844,41 +845,86 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'Reconfigure %s intro', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
-						),
-						'id'   => 'hotp-reconfigure-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'Reconfigure %s intro', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
+								),
+								'id'   => 'hotp-reconfigure-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'This message is shown to users when reconfiguring %s.', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
-						),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'This message is shown to users when reconfiguring %s.', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'email-option-label', true )
+								),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'hotp_reconfigure_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[hotp_reconfigure_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'hotp_reconfigure_intro', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'hotp_reconfigure_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[hotp_reconfigure_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'hotp_reconfigure_intro', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
+						);
+						?>
+					</div>
+				</div>
+
+				<?php
+				/*
+				 * Authy is offered only where it is already in use. One test for
+				 * both builds: the free build has no Authy, so nothing to show -
+				 * it used to start from true and only the premium build narrowed it.
+				 */
+				$show_authy_texts = \class_exists( '\WP2FA\Extensions\Authy\Authy' ) && \WP2FA\Extensions\Authy\Authy::is_ui_enabled();
+				if ( $show_authy_texts ) :
+					?>
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'text' => \esc_html__( 'Reconfigure Authy 2FA service intro', 'wp-2fa' ),
+								'id'   => 'authy-reconfigure-intro-label',
+								'type' => 'settings-label',
+							)
+						);
+
+						Settings_Builder::build_option(
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when reconfiguring Authy 2FA service.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'authy_reconfigure_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[authy_reconfigure_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'authy_reconfigure_intro', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -888,33 +934,70 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Reconfigure Authy 2FA service intro', 'wp-2fa' ),
-						'id'   => 'authy-reconfigure-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Authy &ndash; Service unavailable', 'wp-2fa' ),
+								'id'   => 'authy-reconfigure-intro-unavailable-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when reconfiguring Authy 2FA service.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when reconfiguring Authy 2FA service, but the service is unavailable.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'authy_reconfigure_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[authy_reconfigure_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'authy_reconfigure_intro', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'authy_reconfigure_intro_unavailable',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[authy_reconfigure_intro_unavailable]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'authy_reconfigure_intro_unavailable', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
+						);
+						?>
+					</div>
+				</div>
+				<?php endif; ?>
+
+				<div class="form-group settings-row">
+					<div class="settings-label-group">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'text' => \esc_html__( 'Reconfigure Twilio 2FA service intro', 'wp-2fa' ),
+								'id'   => 'twilio-reconfigure-intro-label',
+								'type' => 'settings-label',
+							)
+						);
+
+						Settings_Builder::build_option(
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when reconfiguring Twilio 2FA service.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
+						);
+						?>
+					</div>
+					<div class="settings-control">
+						<?php
+						Settings_Builder::build_option(
+							array(
+								'id'          => 'twilio_reconfigure_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[twilio_reconfigure_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'twilio_reconfigure_intro', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -924,33 +1007,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Authy &ndash; Service unavailable', 'wp-2fa' ),
-						'id'   => 'authy-reconfigure-intro-unavailable-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Twilio &ndash; Service unavailable', 'wp-2fa' ),
+								'id'   => 'twilio-reconfigure-intro-unavailable-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when reconfiguring Authy 2FA service, but the service is unavailable.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when reconfiguring Twilio 2FA service, but the SMS service is unavailable.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'authy_reconfigure_intro_unavailable',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[authy_reconfigure_intro_unavailable]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'authy_reconfigure_intro_unavailable', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'twilio_reconfigure_intro_unavailable',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[twilio_reconfigure_intro_unavailable]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'twilio_reconfigure_intro_unavailable', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -960,33 +1043,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Reconfigure Twilio 2FA service intro', 'wp-2fa' ),
-						'id'   => 'twilio-reconfigure-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Reconfigure Clickatell 2FA service intro', 'wp-2fa' ),
+								'id'   => 'clickatell-reconfigure-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when reconfiguring Twilio 2FA service.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when reconfiguring Clickatell 2FA service.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'twilio_reconfigure_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[twilio_reconfigure_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'twilio_reconfigure_intro', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'clickatell_reconfigure_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[clickatell_reconfigure_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'clickatell_reconfigure_intro', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -996,33 +1079,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Twilio &ndash; Service unavailable', 'wp-2fa' ),
-						'id'   => 'twilio-reconfigure-intro-unavailable-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Clickatell &ndash; Service unavailable', 'wp-2fa' ),
+								'id'   => 'clickatell-reconfigure-intro-unavailable-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when reconfiguring Twilio 2FA service, but the SMS service is unavailable.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when reconfiguring Clickatell 2FA service, but the SMS service is unavailable.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'twilio_reconfigure_intro_unavailable',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[twilio_reconfigure_intro_unavailable]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'twilio_reconfigure_intro_unavailable', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'clickatell_reconfigure_intro_unavailable',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[clickatell_reconfigure_intro_unavailable]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'clickatell_reconfigure_intro_unavailable', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -1032,33 +1115,41 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Reconfigure Clickatell 2FA service intro', 'wp-2fa' ),
-						'id'   => 'clickatell-reconfigure-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'Reconfigure %s intro', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
+								),
+								'id'   => 'oob-reconfigure-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when reconfiguring Clickatell 2FA service.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'This message is shown to users when reconfiguring %s.', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
+								),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'clickatell_reconfigure_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[clickatell_reconfigure_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'clickatell_reconfigure_intro', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'oob_reconfigure_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[oob_reconfigure_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'oob_reconfigure_intro', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -1068,33 +1159,41 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Clickatell &ndash; Service unavailable', 'wp-2fa' ),
-						'id'   => 'clickatell-reconfigure-intro-unavailable-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( '%s &ndash; Service unavailable', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
+								),
+								'id'   => 'oob-reconfigure-intro-unavailable-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when reconfiguring Clickatell 2FA service, but the SMS service is unavailable.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'This message is shown to users when reconfiguring %s, but the service is unavailable.', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
+								),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'clickatell_reconfigure_intro_unavailable',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[clickatell_reconfigure_intro_unavailable]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'clickatell_reconfigure_intro_unavailable', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'oob_reconfigure_intro_unavailable',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[oob_reconfigure_intro_unavailable]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'oob_reconfigure_intro_unavailable', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -1104,41 +1203,41 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'Reconfigure %s intro', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
-						),
-						'id'   => 'oob-reconfigure-intro-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'Reconfigure 2FA with %s intro', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'yubico-option-label', true )
+								),
+								'id'   => 'yubico-reconfigure-intro-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'This message is shown to users when reconfiguring %s.', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
-						),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \wp_sprintf(
+								// translators: Method option label.
+									\esc_html__( 'This message is shown to users when configuring or reconfiguring 2FA with %s.', 'wp-2fa' ),
+									WP2FA::get_wp2fa_white_label_setting( 'yubico-option-label', true )
+								),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'oob_reconfigure_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[oob_reconfigure_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'oob_reconfigure_intro', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'yubico_reconfigure_intro',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[yubico_reconfigure_intro]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'yubico_reconfigure_intro', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -1148,121 +1247,33 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( '%s &ndash; Service unavailable', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
-						),
-						'id'   => 'oob-reconfigure-intro-unavailable-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'YubiKey &ndash; Service unavailable', 'wp-2fa' ),
+								'id'   => 'yubico-reconfigure-intro-unavailable-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'This message is shown to users when reconfiguring %s, but the service is unavailable.', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'oob-option-label', true )
-						),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'This message is shown to users when reconfiguring YubiKey 2FA, but the service is unavailable.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>
 					<div class="settings-control">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'id'          => 'oob_reconfigure_intro_unavailable',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[oob_reconfigure_intro_unavailable]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'oob_reconfigure_intro_unavailable', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
-						);
-						?>
-					</div>
-				</div>
-
-				<div class="form-group settings-row">
-					<div class="settings-label-group">
-						<?php
-						Settings_Builder::build_option(
-						array(
-						'text' => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'Reconfigure 2FA with %s intro', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'yubico-option-label', true )
-						),
-						'id'   => 'yubico-reconfigure-intro-label',
-						'type' => 'settings-label',
-						)
-						);
-
-						Settings_Builder::build_option(
-						array(
-						'text'  => \wp_sprintf(
-						// translators: Method option label.
-						\esc_html__( 'This message is shown to users when configuring or reconfiguring 2FA with %s.', 'wp-2fa' ),
-						WP2FA::get_wp2fa_white_label_setting( 'yubico-option-label', true )
-						),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
-						);
-						?>
-					</div>
-					<div class="settings-control">
-						<?php
-						Settings_Builder::build_option(
-						array(
-						'id'          => 'yubico_reconfigure_intro',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[yubico_reconfigure_intro]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'yubico_reconfigure_intro', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
-						);
-						?>
-					</div>
-				</div>
-
-				<div class="form-group settings-row">
-					<div class="settings-label-group">
-						<?php
-						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'YubiKey &ndash; Service unavailable', 'wp-2fa' ),
-						'id'   => 'yubico-reconfigure-intro-unavailable-label',
-						'type' => 'settings-label',
-						)
-						);
-
-						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'This message is shown to users when reconfiguring YubiKey 2FA, but the service is unavailable.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'type'  => 'description',
-						)
-						);
-						?>
-					</div>
-					<div class="settings-control">
-						<?php
-						Settings_Builder::build_option(
-						array(
-						'id'          => 'yubico_reconfigure_intro_unavailable',
-						'type'        => 'editor',
-						'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
-						'option_name' => 'wp_2fa_white_label[yubico_reconfigure_intro_unavailable]',
-						'default'     => WP2FA::get_wp2fa_white_label_setting( 'yubico_reconfigure_intro_unavailable', true ),
-						'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
-						)
+							array(
+								'id'          => 'yubico_reconfigure_intro_unavailable',
+								'type'        => 'editor',
+								'placeholder' => \esc_html__( 'Enter custom message', 'wp-2fa' ),
+								'option_name' => 'wp_2fa_white_label[yubico_reconfigure_intro_unavailable]',
+								'default'     => WP2FA::get_wp2fa_white_label_setting( 'yubico_reconfigure_intro_unavailable', true ),
+								'legend'      => array( 'reconfigure_or_configure_capitalized', 'reconfigure_or_configure' ),
+							)
 						);
 						?>
 					</div>
@@ -1338,7 +1349,7 @@ use WP2FA\Admin\Settings_Builder;
 				Settings_Builder::build_option(
 					array(
 						'text'  => \wp_sprintf(
-							// translators: Link to logo settings page.
+							// translators: %s: link to the Logo settings page.
 							\esc_html__( 'Enable this setting to display your logo in the user 2FA wizards. To provide a logo, please use the Logo settings on the %s.', 'wp-2fa' ),
 							\wp_sprintf( '<a href="%s" onclick="location.href=this.href;location.reload();return false;">%s</a>', \esc_url( \network_admin_url( 'admin.php?page=wp-2fa-white-labeling#section=customize-code-page&tab=styles' ) ), \esc_html__( '2FA Code page design settings', 'wp-2fa' ) )
 						),
@@ -1450,20 +1461,20 @@ use WP2FA\Admin\Settings_Builder;
 					<div class="settings-label-group">
 						<?php
 						Settings_Builder::build_option(
-						array(
-						'text' => \esc_html__( 'Custom CSS', 'wp-2fa' ),
-						'id'   => 'custom-css-label',
-						'type' => 'settings-label',
-						)
+							array(
+								'text' => \esc_html__( 'Custom CSS', 'wp-2fa' ),
+								'id'   => 'custom-css-label',
+								'type' => 'settings-label',
+							)
 						);
 
 						Settings_Builder::build_option(
-						array(
-						'text'  => \esc_html__( 'Note: Only plain-text CSS is allowed. Avoid using "!important" unless absolutely necessary, as it makes styles harder to override later.', 'wp-2fa' ),
-						'class' => 'description-settings-card',
-						'id'    => 'custom-css-desc',
-						'type'  => 'description',
-						)
+							array(
+								'text'  => \esc_html__( 'Note: Only plain-text CSS is allowed. Avoid using "!important" unless absolutely necessary, as it makes styles harder to override later.', 'wp-2fa' ),
+								'class' => 'description-settings-card',
+								'id'    => 'custom-css-desc',
+								'type'  => 'description',
+							)
 						);
 						?>
 					</div>

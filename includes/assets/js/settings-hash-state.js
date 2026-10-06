@@ -7,7 +7,10 @@
  *
  *  - section  : the settings-page ID without the "-wrap" suffix
  *  - tab      : the radio-button ID without the "tab-" prefix (sub-tabs)
- *  - provider : comma-separated indices of open .provider-item elements
+ *  - provider : comma-separated open .provider-item elements - the
+ *               data-provider key where the item has one, its index otherwise.
+ *               Keys keep a link pointing at the same provider when the list
+ *               changes, e.g. when a provider is not offered on this install.
  *
  * @package wp-2fa
  * @since   2.8.0
@@ -145,7 +148,7 @@
 		var openIndices  = [];
 		allProviders.forEach( function ( item, idx ) {
 			if ( item.classList.contains( 'open' ) ) {
-				openIndices.push( idx );
+				openIndices.push( item.getAttribute( 'data-provider' ) || idx );
 			}
 		} );
 		if ( openIndices.length ) {
@@ -189,11 +192,20 @@
 
 		// 3. Provider accordions.
 		if ( state.provider ) {
-			var indices      = state.provider.split( ',' ).map( Number );
 			var allProviders = document.querySelectorAll( '.provider-item' );
-			indices.forEach( function ( idx ) {
-				if ( allProviders[ idx ] ) {
-					allProviders[ idx ].classList.add( 'open' );
+			state.provider.split( ',' ).forEach( function ( token ) {
+				var item = null;
+				if ( /^\d+$/.test( token ) ) {
+					item = allProviders[ Number( token ) ];
+				} else {
+					allProviders.forEach( function ( candidate ) {
+						if ( candidate.getAttribute( 'data-provider' ) === token ) {
+							item = candidate;
+						}
+					} );
+				}
+				if ( item ) {
+					item.classList.add( 'open' );
 				}
 			} );
 		}

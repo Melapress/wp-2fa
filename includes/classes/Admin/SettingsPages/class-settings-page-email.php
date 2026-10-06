@@ -119,7 +119,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 									<input type="radio" name="email_from_setting" id="use-defaults" value="use-defaults"
 									<?php \checked( Email_Templates::get_wp2fa_email_templates( 'email_from_setting' ), 'use-defaults' ); ?>
 									>
-								<span><?php \esc_html_e( 'Use the email address ', 'wp-2fa' ); ?> <?php echo Settings_Page::get_default_email_address(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+								<span><?php \esc_html_e( 'Use the email address', 'wp-2fa' ); ?> <?php echo Settings_Page::get_default_email_address(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 								</label>
 								<br/>
 								<label for="use-custom-email">
@@ -142,7 +142,15 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 					</tr>
 				</tbody>
 			</table>
-			<div class="description"><i><?php \esc_html_e( 'Tip: The \'From email\' address should match your website domain. If the "from address" does not match your website domain, the emails may be blocked or marked as spam. If you are not sure about this please consult with your website administrator / developer or ', 'wp-2fa' ); ?><a href="<?php echo \esc_url( 'https://melapress.com/contact/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=from_email_address' ); ?>" target="_blank"><?php \esc_html_e( 'contact us', 'wp-2fa' ); ?></a> <?php \esc_html_e( 'for more information.', 'wp-2fa' ); ?></i></div>
+			<div class="description"><i><?php
+				printf(
+					/* translators: %s: link to the contact page, already wrapped in an anchor. */
+					\esc_html__( 'Tip: The \'From email\' address should match your website domain. If the "from address" does not match your website domain, the emails may be blocked or marked as spam. If you are not sure about this please consult with your website administrator / developer or %s for more information.', 'wp-2fa' ),
+					'<a href="' . \esc_url( 'https://melapress.com/contact/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=from_email_address' ) . '" target="_blank">'
+						. \esc_html__( 'contact us', 'wp-2fa' )
+						. '</a>'
+				);
+				?></i></div>
 			<br>
 			<hr>
 
@@ -150,6 +158,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			<p class="description">
 				<?php
 				echo \wp_sprintf(
+					/* translators: %1$s: the link to the email delivery guide, already wrapped in an anchor. */
 					\esc_html__( 'Send a test email to confirm your site can deliver 2FA codes by email. Delivery issues are usually caused by SMTP or hosting configuration. %1$s.', 'wp-2fa' ),
 					\wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_help_text', \esc_html__( 'Learn more about email deliverability', 'wp-2fa' ) )
 				);
@@ -244,8 +253,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		public static function validate_and_sanitize() {
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! \current_user_can( 'manage_options' ) ) {
-				return;
+			if ( ! Settings_Page::can_manage_settings() ) {
+				return Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME, array() );
 			}
 
 			Debugging::log( 'The following settings will be processed (E-mail): ' . "\n" . wp_json_encode( $_POST ) );
@@ -260,58 +269,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				$output['email_from_setting'] = \sanitize_text_field( \wp_unslash( $_POST['email_from_setting'] ) );
 			}
 
-			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) {
-					\add_settings_error(
-						WP_2FA_SETTINGS_NAME,
-						\esc_attr( 'email_from_settings_error' ),
-						\esc_html__( 'Please provide an email address', 'wp-2fa' ),
-						'error'
-					);
-					$output['custom_from_email_address'] = '';
-			}
-
-			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) ) {
-				\add_settings_error(
-					WP_2FA_SETTINGS_NAME,
-					\esc_attr( 'display_name_settings_error' ),
-					\esc_html__( 'Please provide a display name.', 'wp-2fa' ),
-					'error'
-				);
-				$output['custom_from_email_address'] = '';
-			}
-
-			if ( isset( $_POST['custom_from_email_address'] ) && ! empty( $_POST['custom_from_email_address'] ) ) {
-				if ( ! filter_var( \wp_unslash( $_POST['custom_from_email_address'] ), FILTER_VALIDATE_EMAIL ) ) {
-					\add_settings_error(
-						WP_2FA_SETTINGS_NAME,
-						\esc_attr( 'email_invalid_settings_error' ),
-						\esc_html__( 'Please provide a valid email address. Your email address has not been updated.', 'wp-2fa' ),
-						'error'
-					);
-				}
-						$output['custom_from_email_address'] = \sanitize_email( \wp_unslash( $_POST['custom_from_email_address'] ) );
-
-				Settings_Utils::delete_option( 'dismiss_notice_mail_domain' );
-			}
-
-			if ( ! isset( $_POST['email_from_setting'] ) ) {
-				Settings_Utils::delete_option( 'dismiss_notice_mail_domain' );
-			}
-
-			if ( isset( $_POST['custom_from_display_name'] ) && ! empty( $_POST['custom_from_display_name'] ) ) {
-					// Check if the string contains HTML/tags.
-					preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) ), $matches );
-				if ( count( $matches ) > 0 ) {
-					\add_settings_error(
-						WP_2FA_SETTINGS_NAME,
-						\esc_attr( 'display_name_invalid_settings_error' ),
-						\esc_html__( 'Please only use alphanumeric text. Your display name has not been updated.', 'wp-2fa' ),
-						'error'
-					);
-				} else {
-					$output['custom_from_display_name'] = \sanitize_text_field( \wp_unslash( $_POST['custom_from_display_name'] ) );
-				}
-			}
+			$output = self::sanitize_from_fields( $output );
 
 			if ( isset( $_POST['login_code_email_subject'] ) ) {
 				$output['login_code_email_subject'] = \wp_kses_post( \wp_unslash( $_POST['login_code_email_subject'] ) );
@@ -346,19 +304,16 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			}
 
 
-			$output['send_account_locked_email'] = '';
-			if ( isset( $_POST['send_account_locked_email'] ) && 'enable_account_locked_email' === $_POST['send_account_locked_email'] ) {
-				$output['send_account_locked_email'] = \sanitize_text_field( \wp_unslash( $_POST['send_account_locked_email'] ) );
+			if ( isset( $_POST['send_account_locked_email'] ) ) {
+				$output['send_account_locked_email'] = 'enable_account_locked_email' === $_POST['send_account_locked_email'] ? 'enable_account_locked_email' : '';
 			}
 
-			$output['send_account_unlocked_email'] = '';
-			if ( isset( $_POST['send_account_unlocked_email'] ) && 'enable_account_unlocked_email' === $_POST['send_account_unlocked_email'] ) {
-				$output['send_account_unlocked_email'] = \sanitize_text_field( \wp_unslash( $_POST['send_account_unlocked_email'] ) );
+			if ( isset( $_POST['send_account_unlocked_email'] ) ) {
+				$output['send_account_unlocked_email'] = 'enable_account_unlocked_email' === $_POST['send_account_unlocked_email'] ? 'enable_account_unlocked_email' : '';
 			}
 
-			$output['send_login_code_email'] = '';
-			if ( isset( $_POST['send_login_code_email'] ) && 'enable_send_login_code_email' === $_POST['send_login_code_email'] ) {
-				$output['send_login_code_email'] = \sanitize_text_field( \wp_unslash( $_POST['send_login_code_email'] ) );
+			if ( isset( $_POST['send_login_code_email'] ) ) {
+				$output['send_login_code_email'] = 'enable_send_login_code_email' === $_POST['send_login_code_email'] ? 'enable_send_login_code_email' : '';
 			}
 
 			if ( isset( $_POST['user_backup_codes_email_subject'] ) ) {
@@ -376,7 +331,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			 *
 			 * @since 2.0.0
 			 */
-			$output = \apply_filters( WP_2FA_PREFIX . 'filter_output_email_template_content', $output );
+			$existing = Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME, array() );
+			$output   = \array_merge( \is_array( $existing ) ? $existing : array(), $output );
+			$output   = \apply_filters( WP_2FA_PREFIX . 'filter_output_email_template_content', $output );
 
 			Debugging::log( 'The following settings are being saved (E-mail): ' . "\n" . \wp_json_encode( $output ) );
 
@@ -395,6 +352,79 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		}
 
 		/**
+		 * The sender fields, checked - shared by both settings screens.
+		 *
+		 * An invalid address used to be reported as "not updated" and then
+		 * stored anyway, through sanitize_email(), which turns it into an empty
+		 * string. The mode stayed on the custom sender, so every WP 2FA email went
+		 * out as "From: Name <>" - which PHPMailer refuses, and with it the login
+		 * codes of every email 2FA user. An empty display name blanked the
+		 * address as well.
+		 *
+		 * Now a field is only written when its new value is valid; otherwise it
+		 * is left out, and the save keeps what was stored. The custom sender
+		 * cannot be left on without a usable address: it falls back to the
+		 * default sender, and says so.
+		 *
+		 * @param array $output - The settings collected so far.
+		 *
+		 * @return array
+		 *
+		 * @since 4.2.0
+		 */
+		private static function sanitize_from_fields( array $output ): array {
+			$custom = 'use-custom-email' === ( $output['email_from_setting'] ?? '' );
+			$stored = Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME, array() );
+
+			// phpcs:disable WordPress.Security.NonceVerification.Missing -- Verified by the callers.
+			if ( isset( $_POST['custom_from_email_address'] ) ) {
+				$address = \trim( (string) \wp_unslash( $_POST['custom_from_email_address'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+				if ( '' === $address ) {
+					if ( $custom ) {
+						\add_settings_error( WP_2FA_SETTINGS_NAME, 'email_from_settings_error', \esc_html__( 'Please provide an email address', 'wp-2fa' ), 'error' );
+					}
+				} elseif ( ! \is_email( $address ) || ! \filter_var( $address, FILTER_VALIDATE_EMAIL ) ) {
+					\add_settings_error( WP_2FA_SETTINGS_NAME, 'email_invalid_settings_error', \esc_html__( 'Please provide a valid email address. Your email address has not been updated.', 'wp-2fa' ), 'error' );
+				} else {
+					$output['custom_from_email_address'] = \sanitize_email( $address );
+					Settings_Utils::delete_option( 'dismiss_notice_mail_domain' );
+				}
+			}
+
+			if ( ! isset( $_POST['email_from_setting'] ) ) {
+				Settings_Utils::delete_option( 'dismiss_notice_mail_domain' );
+			}
+
+			if ( isset( $_POST['custom_from_display_name'] ) ) {
+				$name = \sanitize_text_field( \wp_unslash( $_POST['custom_from_display_name'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+				if ( '' === $name ) {
+					if ( $custom ) {
+						\add_settings_error( WP_2FA_SETTINGS_NAME, 'display_name_settings_error', \esc_html__( 'Please provide a display name.', 'wp-2fa' ), 'error' );
+					}
+				} elseif ( \preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", $name ) ) {
+					\add_settings_error( WP_2FA_SETTINGS_NAME, 'display_name_invalid_settings_error', \esc_html__( 'Please only use alphanumeric text. Your display name has not been updated.', 'wp-2fa' ), 'error' );
+				} else {
+					$output['custom_from_display_name'] = $name;
+				}
+			}
+			// phpcs:enable
+
+			// The custom sender needs an address: the one saved now, or the one already stored.
+			if ( $custom ) {
+				$address = $output['custom_from_email_address'] ?? ( \is_array( $stored ) ? (string) ( $stored['custom_from_email_address'] ?? '' ) : '' );
+
+				if ( ! \is_email( $address ) ) {
+					$output['email_from_setting'] = 'use-defaults';
+					\add_settings_error( WP_2FA_SETTINGS_NAME, 'email_from_reverted', \esc_html__( 'There is no valid custom sender address, so emails are sent from the default address.', 'wp-2fa' ), 'error' );
+				}
+			}
+
+			return $output;
+		}
+
+		/**
 		 * Validate email templates before saving
 		 *
 		 * @since 3.1.1.2
@@ -402,8 +432,8 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 		public static function validate_and_sanitize_new() {
 
 			// Bail if user doesn't have permissions to be here.
-			if ( ! \current_user_can( 'manage_options' ) ) {
-				return;
+			if ( ! Settings_Page::can_manage_settings() ) {
+				return Settings_Utils::get_option( WP_2FA_EMAIL_SETTINGS_NAME, array() );
 			}
 
 			$output = array();
@@ -412,58 +442,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 				$output['email_from_setting'] = \sanitize_text_field( \wp_unslash( $_POST['email_from_setting'] ) );
 			}
 
-			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_email_address'] ) && empty( $_POST['custom_from_email_address'] ) ) {
-					\add_settings_error(
-						WP_2FA_SETTINGS_NAME,
-						\esc_attr( 'email_from_settings_error' ),
-						\esc_html__( 'Please provide an email address', 'wp-2fa' ),
-						'error'
-					);
-					$output['custom_from_email_address'] = '';
-			}
-
-			if ( isset( $_POST['email_from_setting'] ) && 'use-custom-email' === $_POST['email_from_setting'] && isset( $_POST['custom_from_display_name'] ) && empty( $_POST['custom_from_display_name'] ) ) {
-				\add_settings_error(
-					WP_2FA_SETTINGS_NAME,
-					\esc_attr( 'display_name_settings_error' ),
-					\esc_html__( 'Please provide a display name.', 'wp-2fa' ),
-					'error'
-				);
-				$output['custom_from_email_address'] = '';
-			}
-
-			if ( isset( $_POST['custom_from_email_address'] ) && ! empty( $_POST['custom_from_email_address'] ) ) {
-				if ( ! filter_var( \wp_unslash( $_POST['custom_from_email_address'] ), FILTER_VALIDATE_EMAIL ) ) {
-					\add_settings_error(
-						WP_2FA_SETTINGS_NAME,
-						\esc_attr( 'email_invalid_settings_error' ),
-						\esc_html__( 'Please provide a valid email address. Your email address has not been updated.', 'wp-2fa' ),
-						'error'
-					);
-				}
-				$output['custom_from_email_address'] = \sanitize_email( \wp_unslash( $_POST['custom_from_email_address'] ) );
-
-				Settings_Utils::delete_option( 'dismiss_notice_mail_domain' );
-			}
-
-			if ( ! isset( $_POST['email_from_setting'] ) ) {
-				Settings_Utils::delete_option( 'dismiss_notice_mail_domain' );
-			}
-
-			if ( isset( $_POST['custom_from_display_name'] ) && ! empty( $_POST['custom_from_display_name'] ) ) {
-					// Check if the string contains HTML/tags.
-					preg_match( "/<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>/", sanitize_text_field( wp_unslash( $_POST['custom_from_display_name'] ) ), $matches );
-				if ( count( $matches ) > 0 ) {
-					\add_settings_error(
-						WP_2FA_SETTINGS_NAME,
-						\esc_attr( 'display_name_invalid_settings_error' ),
-						\esc_html__( 'Please only use alphanumeric text. Your display name has not been updated.', 'wp-2fa' ),
-						'error'
-					);
-				} else {
-					$output['custom_from_display_name'] = \sanitize_text_field( \wp_unslash( $_POST['custom_from_display_name'] ) );
-				}
-			}
+			$output = self::sanitize_from_fields( $output );
 
 			if ( isset( $_POST['login_code_email_subject'] ) ) {
 				$output['login_code_email_subject'] = \wp_kses_post( \wp_unslash( $_POST['login_code_email_subject'] ) );
@@ -498,19 +477,16 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 			}
 
 
-			$output['send_account_locked_email'] = '';
-			if ( isset( $_POST['send_account_locked_email'] ) && 'enable_account_locked_email' === $_POST['send_account_locked_email'] ) {
-				$output['send_account_locked_email'] = \sanitize_text_field( \wp_unslash( $_POST['send_account_locked_email'] ) );
+			if ( isset( $_POST['send_account_locked_email'] ) ) {
+				$output['send_account_locked_email'] = 'enable_account_locked_email' === $_POST['send_account_locked_email'] ? 'enable_account_locked_email' : '';
 			}
 
-			$output['send_account_unlocked_email'] = '';
-			if ( isset( $_POST['send_account_unlocked_email'] ) && 'enable_account_unlocked_email' === $_POST['send_account_unlocked_email'] ) {
-				$output['send_account_unlocked_email'] = \sanitize_text_field( \wp_unslash( $_POST['send_account_unlocked_email'] ) );
+			if ( isset( $_POST['send_account_unlocked_email'] ) ) {
+				$output['send_account_unlocked_email'] = 'enable_account_unlocked_email' === $_POST['send_account_unlocked_email'] ? 'enable_account_unlocked_email' : '';
 			}
 
-			$output['send_login_code_email'] = '';
-			if ( isset( $_POST['send_login_code_email'] ) && 'enable_send_login_code_email' === $_POST['send_login_code_email'] ) {
-				$output['send_login_code_email'] = \sanitize_text_field( \wp_unslash( $_POST['send_login_code_email'] ) );
+			if ( isset( $_POST['send_login_code_email'] ) ) {
+				$output['send_login_code_email'] = 'enable_send_login_code_email' === $_POST['send_login_code_email'] ? 'enable_send_login_code_email' : '';
 			}
 
 			if ( isset( $_POST['user_backup_codes_email_subject'] ) ) {
@@ -570,6 +546,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Email' ) ) {
 								<th><label for="send_<?php echo \esc_attr( $template_id ); ?>_email"><?php \esc_html_e( 'Send this email', 'wp-2fa' ); ?></label></th>
 								<td>
 									<fieldset>
+										<input type="hidden" name="send_<?php echo \esc_attr( $template_id ); ?>_email" value="">
 										<input type="checkbox" id="send_<?php echo \esc_attr( $template_id ); ?>_email" name="send_<?php echo \esc_attr( $template_id ); ?>_email" value="enable_<?php echo \esc_attr( $template_id ); ?>_email"
 										<?php \checked( 'enable_' . $template_id . '_email', Email_Templates::get_wp2fa_email_templates( 'send_' . $template_id . '_email' ) ); ?>
 										>

@@ -250,7 +250,7 @@ use WP2FA\Admin\Helpers\Email_Templates;
 				Settings_Builder::build_option(
 					array(
 						'text'  => \wp_sprintf(
-						// translators: 1. Link to documentation.
+						/* translators: %1$s: the link to the email delivery guide, already wrapped in an anchor. */
 							\esc_html__( 'Send a test email to confirm your site can deliver 2FA codes by email. Delivery issues are usually caused by SMTP or hosting configuration. %1$s.', 'wp-2fa' ),
 							\wp_sprintf( '<a href="%s" target="_blank">%s</a>', 'https://melapress.com/support/kb/troubleshoot-2fa-email-delivery/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=guide_troubleshoot_2fa_email_delivery&utm_content=test_email_help_text', \esc_html__( 'Learn more about email deliverability', 'wp-2fa' ) )
 						),

@@ -110,7 +110,9 @@ if ( ! class_exists( '\WP2FA\Passkeys\PassKeys_Endpoints' ) ) {
 									'method'   => \WP_REST_Server::CREATABLE,
 									'callback' => 'signin_request_action',
 								),
-								'parameters'      => array(
+								// "args", which is what Endpoints::init_endpoints() hands to register_rest_route(). This
+								// used to be "parameters", which nothing read, so the schema below was never applied.
+								'args'             => array(
 									'user' => array(
 										'description' => 'Username or email of the user trying to sign in.',
 										'type'        => 'string',
@@ -126,6 +128,16 @@ if ( ! class_exists( '\WP2FA\Passkeys\PassKeys_Endpoints' ) ) {
 								'methods'          => array(
 									'method'   => \WP_REST_Server::CREATABLE,
 									'callback' => 'signin_response_action',
+								),
+								'args'             => array(
+									'rememberme' => array(
+										'description' => "Core's Remember Me, carried from the login form so the session keeps the lifetime the user asked for.",
+										'type'        => 'boolean',
+										'required'    => false,
+										// Normalised the way the handler always read it, rather than refused: a
+										// sign-in must not fail because a form spelled "no" as an empty string.
+										'sanitize_callback' => 'rest_sanitize_boolean',
+									),
 								),
 								'checkPermissions' => '__return_true',
 								'showInIndex'      => false,

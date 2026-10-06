@@ -403,8 +403,30 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 						$textarea_value = \implode( "\n", $textarea_value );
 					}
 					?>
+					<?php
+					/*
+					 * A textarea that declares tags gets the same picker an editor and a text
+					 * input already have. The wrapper only appears when there is something to
+					 * offer, so every other textarea keeps the markup it had.
+					 */
+					$textarea_tags = ! empty( self::$settings['legend'] ) ? (array) self::$settings['legend'] : array();
+
+					if ( ! empty( $textarea_tags ) ) {
+						?>
+						<span class="wp2fa-taginput wp2fa-taginput--textarea">
+						<?php
+					}
+					?>
 					<textarea style="width: 100%;" <?php echo self::$item_id_attr; ?> <?php echo self::$name_attr; ?>
 					rows="5"><?php echo \esc_textarea( (string) $textarea_value ); ?></textarea>
+					<?php
+					if ( ! empty( $textarea_tags ) ) {
+						self::input_tag_picker( $textarea_tags );
+						?>
+						</span>
+						<?php
+					}
+					?>
 				</div><!-- /.editor-area -->
 			<?php
 			if ( ! empty( self::$settings['legend'] ) ) {
@@ -509,6 +531,14 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 				<!-- Editor (Visual / Code) -->
 				<div class="editor-area">
 					<?php
+					/*
+					 * Hand this editor's own tag list to TinyMCE before it is built.
+					 *
+					 * The filters below fire from inside wp_editor(), and each one is told which
+					 * editor it is being asked about, so several editors on the same page each get
+					 * their own set of tags rather than a shared one.
+					 */
+					self::register_editor_tags( (string) self::$item_id, self::$settings['legend'] ?? array() );
 
 					\wp_editor(
 						self::$current_value,
@@ -536,6 +566,210 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 			?>
 			</div>
 			<?php
+		}
+
+		/**
+		 * Tags offered by each editor on the page, keyed by editor id.
+		 *
+		 * @var array<string,string[]>
+		 *
+		 * @since 4.2.0
+		 */
+		private static $editor_tags = array();
+
+		/**
+		 * Whether the TinyMCE filters have been attached yet.
+		 *
+		 * @var bool
+		 *
+		 * @since 4.2.0
+		 */
+		private static $tag_hooks_added = false;
+
+		/**
+		 * Records the tags one editor should offer, and attaches the filters that deliver them.
+		 *
+		 * @param string $editor_id - The id wp_editor() is about to be given.
+		 * @param array  $legend    - The tag names configured for this field.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function register_editor_tags( string $editor_id, array $legend ) {
+			if ( '' === $editor_id || empty( $legend ) ) {
+				return;
+			}
+
+			$tags = self::normalise_tags( $legend );
+
+			if ( empty( $tags ) ) {
+				return;
+			}
+
+			self::$editor_tags[ $editor_id ] = $tags;
+
+			if ( self::$tag_hooks_added ) {
+				return;
+			}
+
+			self::$tag_hooks_added = true;
+
+			\add_filter( 'mce_external_plugins', array( __CLASS__, 'add_tag_picker_plugin' ) );
+			\add_filter( 'mce_buttons', array( __CLASS__, 'add_tag_picker_button' ), 10, 2 );
+			\add_filter( 'tiny_mce_before_init', array( __CLASS__, 'add_tag_picker_settings' ), 10, 2 );
+		}
+
+		/**
+		 * Turns a field's configured tag names into the exact strings to insert.
+		 *
+		 * Shared by the editor and the input picker so a field offers the same tags in both
+		 * places; the subject line and the body of one email are configured from a single
+		 * legend, and they would otherwise be free to drift apart.
+		 *
+		 * @param array $legend - The tag names configured for this field.
+		 *
+		 * @return string[]
+		 *
+		 * @since 4.2.0
+		 */
+		private static function normalise_tags( array $legend ): array {
+			$tags = array();
+
+			foreach ( $legend as $item ) {
+				$item = trim( (string) $item );
+
+				if ( '' === $item ) {
+					continue;
+				}
+
+				/*
+				 * Some fields declare their tags with braces and some without. Both forms mean
+				 * the same thing, and what gets inserted has to carry them either way.
+				 */
+				if ( '{' !== $item[0] ) {
+					$item = '{' . trim( $item, '{}' ) . '}';
+				}
+
+				$tags[] = $item;
+			}
+
+			return array_values( array_unique( $tags ) );
+		}
+
+		/**
+		 * Renders the tag picker button that sits inside a text input.
+		 *
+		 * The tags travel on the button rather than through a localised script, because the
+		 * page can carry several of these fields and each offers its own set. The picker
+		 * script reads them from here when the button is clicked.
+		 *
+		 * @param array $legend - The tag names configured for this field.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.0
+		 */
+		private static function input_tag_picker( array $legend ) {
+			$tags = self::normalise_tags( $legend );
+
+			if ( empty( $tags ) ) {
+				return;
+			}
+
+			/*
+			 * TinyMCE loads this script itself for editors, but an input can appear on a page
+			 * with no editor on it, so it is enqueued here as well. The script guards against
+			 * running its input handling twice when both routes fire.
+			 */
+			\wp_enqueue_script(
+				'wp2fa-tags',
+				WP_2FA_URL . 'includes/assets/js/mce-tags.js',
+				array(),
+				WP_2FA_VERSION,
+				true
+			);
+
+			?>
+			<button type="button"
+				class="wp2fa-taginput__button"
+				data-wp2fa-tags="<?php echo \esc_attr( (string) \wp_json_encode( $tags ) ); ?>"
+				data-wp2fa-i18n-search="<?php echo \esc_attr__( 'Search for a tag', 'wp-2fa' ); ?>"
+				data-wp2fa-i18n-empty="<?php echo \esc_attr__( 'No tags found', 'wp-2fa' ); ?>"
+				aria-label="<?php echo \esc_attr__( 'Insert a tag', 'wp-2fa' ); ?>"
+				title="<?php echo \esc_attr__( 'Insert a tag', 'wp-2fa' ); ?>"
+				aria-expanded="false"></button>
+			<?php
+		}
+
+		/**
+		 * Registers the tag picker with TinyMCE.
+		 *
+		 * Loaded for every editor on the page rather than per editor, because TinyMCE keeps one
+		 * list of plugin files. The button is what varies, and that is decided below.
+		 *
+		 * @param array $plugins - External TinyMCE plugins, keyed by name.
+		 *
+		 * @return array
+		 *
+		 * @since 4.2.0
+		 */
+		public static function add_tag_picker_plugin( $plugins ) {
+			if ( ! \is_array( $plugins ) ) {
+				$plugins = array();
+			}
+
+			$plugins['wp2fa_tags'] = WP_2FA_URL . 'includes/assets/js/mce-tags.js?ver=' . WP_2FA_VERSION;
+
+			return $plugins;
+		}
+
+		/**
+		 * Adds the toolbar button, but only to editors that actually have tags.
+		 *
+		 * @param array  $buttons   - The first toolbar row.
+		 * @param string $editor_id - The editor being built.
+		 *
+		 * @return array
+		 *
+		 * @since 4.2.0
+		 */
+		public static function add_tag_picker_button( $buttons, $editor_id = '' ) {
+			if ( ! \is_array( $buttons ) || ! isset( self::$editor_tags[ (string) $editor_id ] ) ) {
+				return $buttons;
+			}
+
+			$buttons[] = 'wp2fa_tags';
+
+			return $buttons;
+		}
+
+		/**
+		 * Gives each editor its own tag list.
+		 *
+		 * WordPress writes these values straight into the TinyMCE init object, and emits a value
+		 * that opens with "[" as a real array rather than a quoted string — so the picker reads an
+		 * array without having to parse anything. The encoding escapes angle brackets and
+		 * ampersands so a tag can never close the surrounding script element.
+		 *
+		 * @param array  $init      - The TinyMCE init object for this editor.
+		 * @param string $editor_id - The editor being built.
+		 *
+		 * @return array
+		 *
+		 * @since 4.2.0
+		 */
+		public static function add_tag_picker_settings( $init, $editor_id = '' ) {
+			if ( ! \is_array( $init ) || ! isset( self::$editor_tags[ (string) $editor_id ] ) ) {
+				return $init;
+			}
+
+			$init['wp2fa_tags']             = (string) \wp_json_encode( self::$editor_tags[ (string) $editor_id ], JSON_HEX_TAG | JSON_HEX_AMP );
+			$init['wp2fa_tags_i18n_search'] = \esc_html__( 'Search for a tag', 'wp-2fa' );
+			$init['wp2fa_tags_i18n_button'] = \esc_html__( 'Insert a tag', 'wp-2fa' );
+			$init['wp2fa_tags_i18n_empty']  = \esc_html__( 'No tags found', 'wp-2fa' );
+
+			return $init;
 		}
 
 		/**
@@ -819,9 +1053,27 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 					$type_attr .= ' data-' . $data_attr_key . '="' . \esc_attr( $data_attr_value ) . '"';
 				}
 			}
+			/*
+			 * A field that declares tags gets the same picker its editor has. The wrapper is
+			 * only introduced when there is something to show, so every other text field keeps
+			 * the markup it had.
+			 */
+			$tags = ! empty( self::$settings['legend'] ) ? (array) self::$settings['legend'] : array();
+
+			if ( ! empty( $tags ) ) {
+				?>
+				<span class="wp2fa-taginput">
+				<?php
+			}
 			?>
 			<input <?php echo self::$item_id_attr; ?> class="<?php echo self::$custom_class; ?>" <?php echo $title_attr; ?> <?php echo self::$name_attr; ?> <?php echo $type_attr; ?> value="<?php echo \esc_attr( self::$current_value ); ?>" <?php echo self::$placeholder_attr; ?><?php echo $pattern; ?><?php echo $max_chars; ?><?php echo ( ( self::$required ) ? ' required' : '' ); ?><?php echo $step; ?>>
 			<?php
+			if ( ! empty( $tags ) ) {
+				self::input_tag_picker( $tags );
+				?>
+				</span>
+				<?php
+			}
 		}
 
 		/**
@@ -1114,7 +1366,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 		}
 
 		/**
-		 * Multi-select with AJAX autocomplete search (select2-like, vanilla JS).
+		 * Multi-select with AJAX autocomplete search (vanilla JS, no library).
 		 *
 		 * Expected settings keys:
 		 *   'items'       (array)  - Array of [ 'id' => ..., 'text' => ... ] for pre-selected items.
@@ -1177,6 +1429,19 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 		 */
 		private static function multi_select_ajax_assets() {
 			?>
+			<script>
+				/*
+				 * Everything the multi-select needs to search, independent of which settings
+				 * screen rendered it. The nonce is the same one ajax_search_items() verifies,
+				 * and that endpoint also requires manage_options, so printing it here grants
+				 * nothing an administrator could not already do.
+				 */
+				window.wp2faMsaCfg = window.wp2faMsaCfg || {
+					ajaxUrl: <?php echo \wp_json_encode( \admin_url( 'admin-ajax.php' ) ); ?>,
+					searchAction: 'wp2fa_search_policy_items',
+					nonce: <?php echo \wp_json_encode( \wp_create_nonce( 'wp2fa_save_policies_new_nonce' ) ); ?>
+				};
+			</script>
 			<style>
 				.wp2fa-msa-wrap{position:relative;max-width:500px}
 				.wp2fa-msa-tags-input{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:4px 8px;border:1px solid #8c8f94;border-radius:4px;background:#fff;cursor:text;min-height:36px}
@@ -1434,7 +1699,14 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 				}
 
 				function boot(){
-					var cfg=window.wp2faSavePoliciesNew;
+					/*
+					 * The component is rendered on both interfaces. The new pages already
+					 * localise wp2faSavePoliciesNew for their save logic; the old settings
+					 * page has no such script, so the assets block below prints wp2faMsaCfg
+					 * for it. Prefer the dedicated config and fall back, rather than making
+					 * the old page pretend to be the new one.
+					 */
+					var cfg=window.wp2faMsaCfg||window.wp2faSavePoliciesNew;
 					if(!cfg||!cfg.searchAction)return;
 					var wraps=document.querySelectorAll('.wp2fa-msa-wrap');
 					for(var i=0;i<wraps.length;i++){initMSA(wraps[i],cfg)}

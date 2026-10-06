@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 use WP2FA\WP2FA;
 use WP2FA\Admin\Settings_Builder;
 use WP2FA\Utils\Settings_Utils;
+use WP2FA\Admin\Helpers\ManageWP_Guard;
 
 ?>
 <input type="hidden" id="use_new_interface" name="wp_2fa_settings[use_new_interface]" value="use_new_interface" <?php echo Settings_Utils::string_to_bool( WP2FA::get_wp2fa_general_setting( 'use_new_interface' ) ) ? 'checked' : ''; ?>>
@@ -186,6 +187,55 @@ use WP2FA\Utils\Settings_Utils;
 			?>
 		</div>
 	</div>
+
+	<?php
+	/*
+	 * Only where a remote manager is actually installed. The setting has nothing to say
+	 * on a site without one, and offering it everywhere would invite people to weaken
+	 * their own 2FA against a threat they do not have.
+	 */
+	// DISABLED-MANAGEWP-GUARD: the guard is not initialised, so this setting would control nothing.
+	// Drop the `false &&` to bring it back together with ManageWP_Guard::init().
+	if ( false && ManageWP_Guard::should_offer_setting() ) : // phpcs:ignore Generic.CodeAnalysis.UnconditionalIfStatement.Found
+		?>
+	<div class="settings-card">
+		<?php
+
+		Settings_Builder::build_option(
+			array(
+				'title' => \esc_html__( 'ManageWP one-click login', 'wp-2fa' ),
+				'id'    => 'general-settings-tab',
+				'type'  => 'section-title',
+			)
+		);
+
+		Settings_Builder::build_option(
+			array(
+				'text'  => \esc_html__( 'The ManageWP worker signs its own one-click login and then starts the session directly, so it never passes through 2FA. By default WP 2FA asks such a sign-in for the second factor when it arrives. Turning this on accepts the ManageWP dashboard in place of that second factor, which means anyone who can sign in to your ManageWP account can reach this site as an administrator without it.', 'wp-2fa' ),
+				'class' => 'description-settings-card',
+				'id'    => 'general-settings-tab',
+				'type'  => 'description',
+			)
+		);
+
+		?>
+		<div class="form-group settings-row">
+			<?php
+
+			Settings_Builder::build_option(
+				array(
+					'text'        => \esc_html__( 'Trust ManageWP one-click login and skip 2FA', 'wp-2fa' ),
+					'id'          => 'wp_2fa_settings[trust_managewp_login]',
+					'option_name' => 'wp_2fa_settings[trust_managewp_login]',
+					'type'        => 'checkbox',
+					'default'     => WP2FA::get_wp2fa_general_setting( 'trust_managewp_login', true ),
+				)
+			);
+
+			?>
+		</div>
+	</div>
+	<?php endif; ?>
 
 	<div class="settings-card">
 		<?php

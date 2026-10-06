@@ -12,6 +12,7 @@
 namespace WP2FA\Admin;
 
 use WP2FA\WP2FA;
+use WP2FA\Admin\Migrations\Wordfence_Migration_Page;
 use WP2FA\Admin\SettingsPages\{
 	Settings_Page_Policies,
 	Settings_Page_Policies_New,
@@ -38,6 +39,20 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 	class Settings_Page {
 
 		const TOP_MENU_SLUG = 'wp-2fa-policies';
+
+		/** Check authorization at the save boundary, including the settings owner. */
+		public static function can_manage_settings(): bool {
+			if ( ! \current_user_can( \is_multisite() ? 'manage_network_options' : 'manage_options' ) ) {
+				return false;
+			}
+
+			if ( empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) ) {
+				return true;
+			}
+
+			$owner = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
+			return 0 === $owner || $owner === \get_current_user_id();
+		}
 
 		/**
 		 * Checks if the new interface is enabled.
@@ -122,9 +137,14 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			$use_new_interface = self::is_new_interface_enabled();
 
 			// Create admin menu item.
+			/*
+			 * The migrator's bubble rides on the top level entry too. Its prompt shows up on
+			 * screens all over the admin, and a marker only on the submenu cannot be seen
+			 * until the menu has already been opened.
+			 */
 			\add_menu_page(
 				\esc_html__( 'WP 2FA', 'wp-2fa' ),
-				\esc_html__( 'WP 2FA', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA', 'wp-2fa' ) . Wordfence_Migration_Page::menu_bubble(),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				null,
@@ -298,7 +318,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			// Create admin menu item.
 			\add_menu_page(
 				\esc_html__( 'WP 2FA Settings', 'wp-2fa' ),
-				\esc_html__( 'WP 2FA', 'wp-2fa' ),
+				\esc_html__( 'WP 2FA', 'wp-2fa' ) . Wordfence_Migration_Page::menu_bubble(),
 				'manage_options',
 				self::TOP_MENU_SLUG,
 				null,
@@ -457,25 +477,58 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 
 			// Check we have a user before doing anything else.
 			if ( is_a( $user, '\WP_User' ) ) {
-				if ( ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) ) ) {
-					$main_user = (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
-				} else {
-					$main_user = get_current_user_id();
+				if ( empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) ) {
+					return;
 				}
-				if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $user->ID !== $main_user ) {
-					// Remove legacy admin menu item.
+
+				$main_user = WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' );
+
+				/*
+				 * No owner on record means there is nobody to restrict the
+				 * settings to, so there is nothing to enforce.
+				 *
+				 * This used to read `$main_user = get_current_user_id()` here,
+				 * which looks like a harmless default and is not: it makes the
+				 * owner whoever happens to be looking, so the comparison below
+				 * can never be true and the setting silently does nothing at
+				 * all. Saying so outright is the point - a restriction that
+				 * cannot be applied should not look like one that passed.
+				 */
+				if ( empty( $main_user ) ) {
+					return;
+				}
+
+				if ( $user->ID !== (int) $main_user ) {
+					/*
+					 * Remove whatever is actually registered, rather than a list
+					 * of slugs written by hand.
+					 *
+					 * The hardcoded list fell behind the plugin twice over. Pages
+					 * added since - Reports, Premium Features, the new-interface
+					 * policies page - were never added to it, so they survived and
+					 * stayed reachable at /wp-admin/admin.php?page=<slug> for an
+					 * administrator this setting exists to shut out. Freemius adds
+					 * its Account page too, and it is not ours to name.
+					 *
+					 * Walking $submenu covers every page under this menu, whoever
+					 * registered it and whenever it appears.
+					 */
+					global $submenu;
+
+					if ( isset( $submenu[ self::TOP_MENU_SLUG ] ) && is_array( $submenu[ self::TOP_MENU_SLUG ] ) ) {
+						// Copy first: remove_submenu_page() mutates the array being read.
+						$registered = $submenu[ self::TOP_MENU_SLUG ];
+
+						foreach ( $registered as $item ) {
+							if ( isset( $item[2] ) ) {
+								remove_submenu_page( self::TOP_MENU_SLUG, $item[2] );
+							}
+						}
+					}
+
+					// The legacy location, which is not a child of the top menu.
 					remove_submenu_page( 'options-general.php', self::TOP_MENU_SLUG );
 
-					// Remove all plugin submenu pages.
-					remove_submenu_page( self::TOP_MENU_SLUG, self::TOP_MENU_SLUG );
-					remove_submenu_page( self::TOP_MENU_SLUG, Settings_Page_Passkeys::TOP_MENU_SLUG );
-					remove_submenu_page( self::TOP_MENU_SLUG, 'wp-2fa-settings' );
-					remove_submenu_page( self::TOP_MENU_SLUG, 'wp-2fa-settings-new' );
-					remove_submenu_page( self::TOP_MENU_SLUG, Settings_Page_White_Labeling_New::PAGE_SLUG );
-					remove_submenu_page( self::TOP_MENU_SLUG, Docs_And_Support::TOP_MENU_SLUG );
-					remove_submenu_page( self::TOP_MENU_SLUG, License_Page::PAGE_SLUG );
-
-					// Remove the top-level menu item itself.
 					remove_menu_page( self::TOP_MENU_SLUG );
 				}
 			}
@@ -521,6 +574,9 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 * @since 2.0.0
 		 */
 		public static function update_wp2fa_network_options() {
+			if ( ! self::can_manage_settings() ) {
+				\wp_die( \esc_html__( 'You do not have sufficient permissions to change these settings.', 'wp-2fa' ), '', array( 'response' => 403 ) );
+			}
 
 			Settings_Page_Policies::update_wp2fa_network_options();
 
@@ -692,11 +748,19 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			// Specify our desired headers.
 			$headers = 'Content-type: text/html;charset=utf-8' . "\r\n";
 
-			if ( 'use-custom-email' === Email_Templates::get_wp2fa_email_templates( 'email_from_setting' ) ) {
-				$from_name  = sanitize_text_field( Email_Templates::get_wp2fa_email_templates( 'custom_from_display_name' ) );
-				$from_email = sanitize_email( Email_Templates::get_wp2fa_email_templates( 'custom_from_email_address' ) );
-				$headers   .= 'From: ' . $from_name . ' <' . $from_email . '>' . "\r\n";
-			} else {
+			$from_email = sanitize_email( (string) Email_Templates::get_wp2fa_email_templates( 'custom_from_email_address' ) );
+
+			/*
+			 * Never "From: Name <>": mailers refuse it, and with it every login
+			 * code. A custom sender without a usable address falls back to the
+			 * default one; where that is not usable either (a site on localhost or
+			 * an IP address has no domain to build it from), no From header is set
+			 * and WordPress uses its own.
+			 */
+			if ( 'use-custom-email' === Email_Templates::get_wp2fa_email_templates( 'email_from_setting' ) && is_email( $from_email ) ) {
+				$from_name = sanitize_text_field( Email_Templates::get_wp2fa_email_templates( 'custom_from_display_name' ) );
+				$headers  .= 'From: ' . $from_name . ' <' . $from_email . '>' . "\r\n";
+			} elseif ( is_email( self::get_default_email_address() ) ) {
 				$headers .= 'From: WP 2FA from Melapress <' . self::get_default_email_address() . '>' . "\r\n";
 			}
 
@@ -776,7 +840,21 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 					);
 					?>
 					<div class="notice notice-error wp-2fa-admin-notice">
-						<p class="description"><?php esc_html_e( 'By default, the plugin uses ', 'wp-2fa' ); ?> <b><?php echo sanitize_email( self::get_default_email_address() ); ?></b> <?php esc_html_e( 'as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' );  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+						<p class="description">
+							<?php
+							/*
+							 * One sentence, one string. Split into two fragments around the
+							 * address, a translator sees neither half in context and cannot
+							 * reorder them — and languages that put the address elsewhere in
+							 * the sentence have no way to express it.
+							 */
+							printf(
+								/* translators: %s: the email address the plugin sends from, already wrapped in <b>. */
+								esc_html__( 'By default, the plugin uses %s as the "from address" when sending emails with the 2FA code for users to log in. Do you want to keep using this or change it?', 'wp-2fa' ),
+								'<b>' . esc_html( sanitize_email( self::get_default_email_address() ) ) . '</b>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the address is escaped, the <b> is ours.
+							);
+							?>
+						</p>
 						<p>
 							<a class="button button-primary" href="<?php echo esc_url( $email_settings_url ); ?>"><?php esc_html_e( 'Change it', 'wp-2fa' ); ?></a>
 							<a class="button button-secondary wp-2fa-email-notice" style="margin-left:20px" href="#">
@@ -1036,6 +1114,22 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 		 */
 		public static function render_locked_reports_page() {
 			if ( ! \current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			/*
+			 * Every other page in the plugin refuses to render for anyone but the
+			 * administrator who owns the settings. This one did not, so with
+			 * "limit access" switched on it was the one page another administrator
+			 * could still open and read in full.
+			 */
+			$main_user = ! empty( WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' ) )
+				? (int) WP2FA::get_wp2fa_setting( '2fa_settings_last_updated_by' )
+				: \get_current_user_id();
+
+			if ( ! empty( WP2FA::get_wp2fa_general_setting( 'limit_access' ) ) && $main_user !== \get_current_user_id() ) {
+				echo \esc_html__( 'These settings have been disabled by your site administrator, please contact them for further assistance.', 'wp-2fa' );
+
 				return;
 			}
 

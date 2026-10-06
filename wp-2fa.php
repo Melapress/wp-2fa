@@ -7,7 +7,7 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP 2FA - Two-factor authentication for WordPress 
- * Version:     4.1.0
+ * Version:     4.2.0
  * Plugin URI:  https://melapress.com/
  * Description: Easily add an additional layer of security to your WordPress login pages. Enable Two-Factor Authentication for you and all your website users with this easy to use plugin.
  * Author:      Melapress
@@ -15,7 +15,7 @@
  * Text Domain: wp-2fa
  * Domain Path: /languages/
  * License:     GPL v3
- * Requires at least: 5.5
+ * Requires at least: 5.7
  * Requires PHP: 7.4
  * Network: true
  *
@@ -44,18 +44,28 @@ use WP2FA\Admin\Setup_Wizard;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Helpers\File_Writer;
 use WP2FA\Licensing\Licensing_Factory;
+use WP2FA\Extensions_Loader;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( defined( '\DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN ) {
-	return;
-}
+/*
+ * The emergency switch turns WP 2FA's login enforcement off - it does not
+ * unload the plugin.
+ *
+ * This used to return here, before the constants, the autoloader and the
+ * uninstall callback existed. WordPress uninstalls a plugin by including this
+ * file and then calling the callback it stored, so with the switch on, the
+ * callback was missing and deleting the plugin hung on "Deleting...", which is
+ * exactly when a locked-out site owner reaches for it. The file now loads
+ * everything uninstall needs, and stops just before the parts that enforce 2FA.
+ */
+$wp_2fa_login_disabled = defined( 'DISABLE_2FA_LOGIN' ) && \DISABLE_2FA_LOGIN;
 
 // Useful global constants.
 if ( ! defined( 'WP_2FA_VERSION' ) ) {
-	define( 'WP_2FA_VERSION', '4.1.0' );
+	define( 'WP_2FA_VERSION', '4.2.0' );
 	define( 'WP_2FA_BASE', plugin_basename( __FILE__ ) );
 	define( 'WP_2FA_URL', plugin_dir_url( __FILE__ ) );
 	define( 'WP_2FA_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( WP_2FA_BASE ) . DIRECTORY_SEPARATOR );
@@ -196,16 +206,59 @@ if ( file_exists( WP_2FA_PATH . 'vendor/autoload.php' ) ) {
 	\wp_die( \esc_html__( 'The required libraries for WP 2FA are missing. Please reinstall the plugin.', 'wp-2fa' ) );
 }
 
-if ( ! class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
-	return;
+require_once WP_2FA_INC . 'functions/core.php';
+
+// Activation/Deactivation. Activating with the emergency switch on sets nothing up, as before.
+if ( ! $wp_2fa_login_disabled ) {
+	\register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
+}
+\register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
+// Register our uninstallation hook.
+\add_action( 'plugins_loaded', 'wp_2fa_register_uninstall_hook' );
+
+if ( ! function_exists( 'wp_2fa_register_uninstall_hook' ) ) {
+	/**
+	 * Register the uninstall callback for every install Freemius does not cover.
+	 *
+	 * The plugin cannot ship an uninstall.php file because Freemius rejects it,
+	 * so cleanup runs through a named callback instead. Freemius registers its
+	 * own uninstall callback when its SDK is loaded, and WordPress stores only
+	 * one callback per plugin, so registering ours unconditionally would wipe
+	 * theirs and their uninstall event would never fire.
+	 *
+	 * Ours is therefore registered only when Freemius is not the active
+	 * licensing provider, which covers EDD licensed installs, installs that were
+	 * never licensed, and the free build, where the Freemius SDK is not shipped
+	 * at all. On Freemius installs cleanup runs through the provider's
+	 * `after_uninstall` action instead.
+	 *
+	 * Runs on plugins_loaded rather than admin_init because admin_init never
+	 * fires under WP-CLI.
+	 *
+	 * @return void
+	 *
+	 * @since 4.2.0
+	 */
+	function wp_2fa_register_uninstall_hook() {
+		$provider_type = 'none';
+
+		if ( class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
+			$provider_type = Licensing_Factory::get_provider_type();
+		}
+
+		if ( 'freemius' === $provider_type ) {
+			return;
+		}
+
+		\register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
+	}
 }
 
-Licensing_Factory::init();
-Licensing_Factory::provider_call( 'set_basename', true, __FILE__ );
-if ( null !== Licensing_Factory::get_provider() ) {
-	Licensing_Factory::get_provider()::add_action( 'after_uninstall', '\WP2FA\Core\uninstall' );
+// Emergency switch: everything above stays available - lifecycle, uninstall and
+// licensing - and nothing below, which is what puts 2FA in front of the login.
+if ( $wp_2fa_login_disabled ) {
+	return;
 }
-require_once WP_2FA_INC . 'functions/core.php';
 
 // run any required update routines.
 Migration::migrate();
@@ -217,12 +270,6 @@ if ( WP_Helper::is_multisite() ) {
 } else {
 	\add_action( 'admin_menu', array( Setup_Wizard::class, 'admin_menus' ), 10 );
 }
-
-// Activation/Deactivation.
-\register_activation_hook( WP_2FA_FILE, '\WP2FA\Core\activate' );
-\register_deactivation_hook( WP_2FA_FILE, '\WP2FA\Core\deactivate' );
-// Register our uninstallation hook.
-\register_uninstall_hook( WP_2FA_FILE, '\WP2FA\Core\uninstall' );
 
 \add_filter( 'plugins_loaded', array( WP2FA::class, 'init' ) );
 \add_action( 'plugins_loaded', array( WP2FA::class, 'add_wizard_actions' ), 10 );
@@ -363,5 +410,21 @@ if ( ! function_exists( 'str_starts_with' ) ) {
 		}
 
 		return 0 === strpos( $haystack, $needle );
+	}
+}
+
+if ( ! function_exists( 'str_contains' ) ) {
+	/**
+	 * PHP 7.4 fallback for str_contains().
+	 *
+	 * @param string $haystack The string to search in.
+	 * @param string $needle The string to search for.
+	 *
+	 * @return bool
+	 *
+	 * @since 4.2.0
+	 */
+	function str_contains( string $haystack, string $needle ): bool {
+		return '' === $needle || false !== strpos( $haystack, $needle );
 	}
 }

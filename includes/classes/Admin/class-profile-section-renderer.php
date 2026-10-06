@@ -310,9 +310,18 @@ if ( ! class_exists( '\WP2FA\Admin\Profile_Section_Renderer' ) ) {
 			$show_setup_card  = $setup_card_data['show_change_btn'] || $setup_card_data['show_configure_btn'] || $setup_card_data['show_remove_btn'];
 			$show_backup_card = $viewing_own && $has_enabled_method && ( $backup_card_data['show_generate_codes'] || ! empty( $backup_card_data['extra_buttons'] ) );
 
-			// Premium enforcement check.
-			if ( ! $has_enabled_method && class_exists( '\WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email' ) && Zero_Setup_Email::is_enforced() ) {
-				User_Helper::run_user_enforcement_check( $user );
+			/*
+			 * Premium enforcement check.
+			 *
+			 * The user being rendered has to be passed to both calls. Without it the enforcement
+			 * question was answered for whoever was viewing the screen, which on the users list
+			 * is the administrator, not the account in the row.
+			 *
+			 * user_must_configure_2fa() checks exclusion itself, so an excluded user is not
+			 * assigned a method here; $is_excluded above is only what the screen reports.
+			 */
+			if ( ! $has_enabled_method && class_exists( '\WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email' ) && Zero_Setup_Email::is_enforced( $user ) ) {
+				User_Helper::user_must_configure_2fa( $user );
 			}
 
 			return array(
@@ -489,8 +498,16 @@ if ( ! class_exists( '\WP2FA\Admin\Profile_Section_Renderer' ) ) {
 				}
 			}
 
-			// Admin viewing user whose grace period has expired.
+			// Admin viewing a user locked out: an expired grace period, or too many
+			// wrong 2FA codes.
+			$attempt_locked = ! $viewing_own && \WP2FA\Authenticator\Authentication::second_factor_locked( $user );
+			$unlock_label   = '';
 			if ( User_Utils::in_array_all( array( 'can_manage_options', 'grace_has_expired' ), $user_type ) ) {
+				$unlock_label = \esc_html__( 'Unlock user and reset the grace period', 'wp-2fa' );
+			} elseif ( $is_admin && $attempt_locked ) {
+				$unlock_label = \esc_html__( 'Unlock user (too many wrong 2FA codes)', 'wp-2fa' );
+			}
+			if ( '' !== $unlock_label ) {
 				$unlock_url = \add_query_arg(
 					array(
 						'action'       => 'unlock_account',
@@ -506,6 +523,7 @@ if ( ! class_exists( '\WP2FA\Admin\Profile_Section_Renderer' ) ) {
 				'reset_url'       => $reset_url,
 				'temp_remove_url' => $temp_remove_url,
 				'unlock_url'      => $unlock_url,
+				'unlock_label'    => $unlock_label,
 			);
 		}
 
@@ -520,13 +538,24 @@ if ( ! class_exists( '\WP2FA\Admin\Profile_Section_Renderer' ) ) {
 		 */
 		private static function build_totp_data( \WP_User $user, array $user_type, string $enabled_method ): array {
 			$viewing_own = in_array( 'viewing_own_profile', $user_type, true );
-			$is_admin    = in_array( 'can_manage_options', $user_type, true );
 			$has_enabled = in_array( 'has_enabled_methods', $user_type, true );
 
-			if ( ( $viewing_own || $is_admin ) && $has_enabled && class_exists( '\WP2FA\Methods\TOTP' ) && TOTP::METHOD_NAME === $enabled_method ) {
-				// Ensure TOTP methods resolve against the target user (important when admin views another user).
+			/*
+			 * Only ever for the owner. This used to include any admin, which put
+			 * another user's decrypted seed and QR code on screen - enough to
+			 * pass that user's second factor, silently and indefinitely. An admin
+			 * who needs to recover an account resets the method; they never need
+			 * to read it.
+			 */
+			if ( $viewing_own && $has_enabled && class_exists( '\WP2FA\Methods\TOTP' ) && TOTP::METHOD_NAME === $enabled_method ) {
 				User_Helper::set_user( $user );
 
+				/*
+				 * The key in use, not a setup key: this panel is how the owner adds
+				 * the same account to another authenticator, so it has to show what
+				 * that authenticator must hold. A setup key here produced codes that
+				 * nothing accepted.
+				 */
 				return array(
 					'show_qr'     => true,
 					'qr_code_url' => TOTP::get_qr_code(),

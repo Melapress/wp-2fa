@@ -286,8 +286,11 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			}
 
 
-			// Admin viewing users profile AND users grace period has expired.
-			if ( User_Utils::in_array_all( array( 'can_manage_options', 'grace_has_expired' ), $user_type ) ) {
+			// Admin viewing a user locked out: an expired grace period, or too many
+			// wrong 2FA codes.
+			$grace_locked   = User_Utils::in_array_all( array( 'can_manage_options', 'grace_has_expired' ), $user_type );
+			$attempt_locked = ! $grace_locked && in_array( 'can_manage_options', $user_type, true ) && ! in_array( 'viewing_own_profile', $user_type, true ) && Authentication::second_factor_locked( $user );
+			if ( $grace_locked || $attempt_locked ) {
 				$unlock_user_url = \add_query_arg(
 					array(
 						'action'       => 'unlock_account',
@@ -296,7 +299,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					),
 					\admin_url( 'user-edit.php' )
 				);
-				$form_content   .= '<a href="' . \esc_url( $unlock_user_url ) . '" class="button button-primary">' . \esc_html__( 'Unlock user and reset the grace period', 'wp-2fa' ) . '</a>';
+				$unlock_label    = $grace_locked ? \esc_html__( 'Unlock user and reset the grace period', 'wp-2fa' ) : \esc_html__( 'Unlock user (too many wrong 2FA codes)', 'wp-2fa' );
+				$form_content   .= '<a href="' . \esc_url( $unlock_user_url ) . '" class="button button-primary">' . $unlock_label . '</a>';
 			}
 
 			if ( $show_preamble ) {
@@ -377,9 +381,9 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 								<td>
 								<details>
 									<summary class="qr-btn">' . \esc_html__( 'Show QR code', 'wp-2fa' ) . '</summary>
-									<p><img class="qr-code" src="' . ( TOTP::get_qr_code() ) . '" /></p>
+									<p><img class="qr-code" src="' . ( TOTP::get_qr_code( TOTP::get_setup_key() ) ) . '" /></p>
 									<div class="app-key-wrapper">
-										<input type="text" id="app-key-input" readonly value="' . \esc_html( TOTP::get_totp_decrypted() ) . '" class="app-key">
+										<input type="text" id="app-key-input" readonly value="' . \esc_html( TOTP::get_setup_key_decrypted() ) . '" class="app-key">
 										' .
 										( ( is_ssl() ) ?
 											'<span class="click-to-copy">' . \esc_html__( 'COPY', 'wp-2fa' ) . '</span>' : '' ) . '
@@ -697,7 +701,8 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				admin_url( 'users.php' )
 			);
 
-			if ( $grace_period_expired ) {
+			// An expired grace period, or a lock from too many wrong 2FA codes.
+			if ( $grace_period_expired || ( $user_object instanceof \WP_User && Authentication::second_factor_locked( $user_object ) ) ) {
 				$actions['edit_badges'] = '<a href="' . \esc_url( $url ) . '">' . \esc_html__( 'Unlock user', 'wp-2fa' ) . '</a>';
 			}
 
@@ -724,25 +729,19 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 			// Grab current user.
 			$user = wp_get_current_user();
 
-			// Grab authcode and ensure its a number.
+			// The code is only checked for presence here; as a string, so 000000 counts.
 			if ( isset( $input['wp-2fa-totp-authcode'] ) ) {
-				$input['wp-2fa-totp-authcode'] = (int) $input['wp-2fa-totp-authcode'];
+				$input['wp-2fa-totp-authcode'] = trim( (string) $input['wp-2fa-totp-authcode'] );
 			}
-			if ( ( ! isset( $input['custom-email-address'] ) || isset( $input['custom-email-address'] ) && empty( $input['custom-email-address'] ) ) &&
-			( ! isset( $input['custom-oob-email-address'] ) || isset( $input['custom-oob-email-address'] ) && empty( $input['custom-oob-email-address'] ) ) ) {
+			// OOB recipients are committed only by the OOB code-validation handler.
+			if ( empty( $input['custom-email-address'] ) ) {
 				if ( isset( $input['email'] ) ) {
-					User_Helper::set_nominated_email_for_user( sanitize_email( $input['email'] ), $user );
+					self::nominate_verified_email_for_user( $input['email'], $user );
 				} elseif ( isset( $input['wp_2fa_email_address'] ) && isset( $input['wp-2fa-totp-authcode'] ) && ! empty( $input['wp-2fa-totp-authcode'] ) ) {
-					User_Helper::set_nominated_email_for_user( sanitize_email( $input['wp_2fa_email_address'] ), $user );
-				} elseif ( isset( $input['wp_2fa_email_oob_address'] ) && isset( $input['wp-2fa-oob-authcode'] ) && ! empty( $input['wp-2fa-oob-authcode'] ) ) {
-					if ( 'use_custom_email' !== $input['wp_2fa_email_oob_address'] ) {
-						User_Helper::set_nominated_email_for_user( sanitize_email( $input['wp_2fa_email_oob_address'] ), $user );
-					}
+					self::nominate_verified_email_for_user( $input['wp_2fa_email_address'], $user );
 				}
 			} elseif ( isset( $input['custom-email-address'] ) && ! empty( $input['custom-email-address'] ) ) {
-				User_Helper::set_nominated_email_for_user( sanitize_email( $input['custom-email-address'] ), $user );
-			} elseif ( isset( $input['custom-oob-email-address'] ) && ! empty( $input['custom-oob-email-address'] ) ) {
-				User_Helper::set_nominated_email_for_user( sanitize_email( $input['custom-oob-email-address'] ), $user );
+				self::nominate_verified_email_for_user( $input['custom-email-address'], $user );
 			}
 
 			// Check its one of our options.
@@ -770,6 +769,51 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					TOTP::set_user_method( $user, $totp_key );
 				}
 			}
+		}
+
+		/**
+		 * Nominate a plain-email recipient, but only when it is genuinely verified.
+		 *
+		 * The account's own address is always safe to "nominate" (set_nominated_email_for_user()
+		 * treats that as a no-op anyway). Anything else must be the exact address a just-sent,
+		 * just-validated setup code was bound to at send time, and the role's effective policy
+		 * must still allow a custom recipient at all - both are rechecked here, at the point the
+		 * address is actually persisted, rather than trusted from whatever this same request
+		 * happens to carry alongside a valid code for a user (DATA-02 bound the code to the user;
+		 * nothing previously bound the posted recipient to the code that was sent).
+		 *
+		 * @param mixed    $raw_email Posted address, unsanitised.
+		 * @param \WP_User $user      The user this submission belongs to.
+		 *
+		 * @return void
+		 *
+		 * @since 4.2.1
+		 */
+		private static function nominate_verified_email_for_user( $raw_email, $user ): void {
+			$email = \sanitize_email( $raw_email );
+
+			if ( empty( $email ) ) {
+				return;
+			}
+
+			if ( $user->user_email === $email ) {
+				User_Helper::set_nominated_email_for_user( $email, $user );
+				return;
+			}
+
+			if ( ! Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'specify-email_hotp' ) ) {
+				return;
+			}
+
+			$pending_key = 'wp_2fa_pending_email_recipient_' . $user->ID;
+			$pending     = \get_transient( $pending_key );
+
+			if ( false === $pending || $pending !== $email ) {
+				return;
+			}
+
+			\delete_transient( $pending_key );
+			User_Helper::set_nominated_email_for_user( $email, $user );
 		}
 
 		/**
@@ -825,12 +869,19 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 						)
 					);
 				}
-				$input['wp-2fa-totp-authcode'] = (int) $input['wp-2fa-totp-authcode'];
+				// Six digits, kept as they are: cast to an int, a code starting with 0
+				// lost it and never matched - one setup attempt in ten refused.
+				$input['wp-2fa-totp-authcode'] = $raw_authcode;
 			}
 
 			// Check if we are dealing with totp or email, if totp validate and store a new secret key.
 			if ( ! empty( $input['wp-2fa-totp-authcode'] ) && ! empty( $current_key ) ) {
-				if ( Authentication::is_valid_key( $current_key ) || ! is_numeric( $input['wp-2fa-totp-authcode'] ) ) {
+				if ( ! self::method_allowed_for( $user, TOTP::METHOD_NAME ) ) {
+					$our_errors = self::method_not_allowed_message();
+				} elseif ( ! TOTP::is_issued_setup_key( $user, $current_key ) ) {
+					// Only the key this setup was given - not the active one, not any other.
+					$our_errors = \esc_html__( 'This setup key has expired or was replaced. Please reload the page and scan the new QR code.', 'wp-2fa' );
+				} elseif ( Authentication::is_valid_key( $current_key ) || ! is_numeric( $input['wp-2fa-totp-authcode'] ) ) {
 					if ( ! Authentication::is_valid_authcode( $current_key, \sanitize_text_field( \wp_unslash( $input['wp-2fa-totp-authcode'] ) ) ) ) {
 						$our_errors = \esc_html__( 'Invalid or expired OTP code. Please try again.', 'wp-2fa' );
 					}
@@ -840,11 +891,19 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 
 				// If its not totp, is it email.
 			} elseif ( ! empty( $input['wp-2fa-email-authcode'] ) ) {
-				if ( ! Authentication::validate_token( $user, sanitize_text_field( wp_unslash( $input['wp-2fa-email-authcode'] ) ) ) ) {
+				if ( ! self::method_allowed_for( $user, Email::METHOD_NAME ) ) {
+					$our_errors = self::method_not_allowed_message();
+				} elseif ( ! Authentication::validate_token( $user, sanitize_text_field( wp_unslash( $input['wp-2fa-email-authcode'] ) ) ) ) {
 					$our_errors = \esc_html__( 'Invalid Email Authentication code.', 'wp-2fa' );
 				}
 			} else {
 				$our_errors = \esc_html__( 'Please enter the code to finalize the 2FA setup.', 'wp-2fa' );
+			}
+
+			// The method named alongside the code is saved too, so it is held to the same rule.
+			$named_method = isset( $input['wp_2fa_enabled_methods'] ) ? \sanitize_text_field( (string) $input['wp_2fa_enabled_methods'] ) : '';
+			if ( empty( $our_errors ) && '' !== $named_method && ! self::method_allowed_for( $user, $named_method ) ) {
+				$our_errors = self::method_not_allowed_message();
 			}
 
 			if ( ! empty( $our_errors ) ) {
@@ -865,6 +924,41 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 					'error' => \esc_html__( 'Error processing form', 'wp-2fa' ),
 				)
 			);
+		}
+
+		/**
+		 * Whether the user's role allows them to set up this method.
+		 *
+		 * The setup screen only offers the methods a role allows, but the save
+		 * trusted that: a TOTP or email setup posted for a role without that
+		 * method was stored, and the very next login - which does check - sent
+		 * the user back to set 2FA up again. This is the same question login asks.
+		 *
+		 * @param \WP_User $user   - The user setting a method up.
+		 * @param string   $method - The method's name.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.0
+		 */
+		public static function method_allowed_for( \WP_User $user, string $method ): bool {
+			try {
+				return Settings::is_provider_enabled_for_role( (string) User_Helper::get_user_role( $user ), $method );
+			} catch ( \Throwable $e ) {
+				// Not a registered method at all.
+				return false;
+			}
+		}
+
+		/**
+		 * The refusal for a method the user's role does not allow.
+		 *
+		 * @return string
+		 *
+		 * @since 4.2.0
+		 */
+		private static function method_not_allowed_message(): string {
+			return \esc_html__( 'This 2FA method is not available for your account.', 'wp-2fa' );
 		}
 
 		/**
@@ -905,8 +999,15 @@ if ( ! class_exists( '\WP2FA\Admin\User_Profile' ) ) {
 				}
 
 				if ( 'do-not-enforce' !== $enforcement_policy ) {
-					// one of possible enforcement options is set, check the target user.
-					return User_Helper::is_enforced( $user_id );
+					/*
+					 * One of the other enforcement options is set, so it comes down
+					 * to whether the policy covers this user. Enforced, with no grace
+					 * period, means they may not remove it - the same answer the
+					 * certain-roles-only branches above give. This used to return
+					 * is_enforced() itself, the other way round: enforced users could
+					 * remove their 2FA and everyone else could not.
+					 */
+					return ! User_Helper::is_enforced( $user_id );
 				}
 			}
 

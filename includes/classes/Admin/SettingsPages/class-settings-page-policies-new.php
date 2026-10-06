@@ -61,8 +61,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies_New' ) )
 						return;
 					}
 
-					// Enqueue the new-design settings CSS with its own handle
-					// so it does not override the old admin-style.css.
+					// Enqueue the new-design settings CSS with its own handle so it
+					// does not override the legacy admin stylesheet
+					// (css/admin/wp2fa-admin-styles.css, handle wp_2fa_admin).
 					\wp_enqueue_style(
 						'wp_2fa_settings_new_css',
 						WP_2FA_URL . 'includes/assets/css/settings.css',
@@ -152,9 +153,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies_New' ) )
 							array(
 								'currentUserLogin' => \esc_js( $current_user->user_login ),
 								'modalTitle'       => \esc_html__( 'Exclude yourself?', 'wp-2fa' ),
-								'modalBody'        => \esc_html__( 'You are about to enforce 2FA on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' )
-									/*. '<br><br>'
-									. \esc_html__( "If you don't want to risk being locked out, you can exclude yourself from the 2FA policies.", 'wp-2fa' )*/,
+								'modalBody'        => \esc_html__( 'You are about to enforce 2FA on all users, including yourself, however you have not yet configured your own 2FA method. What would you like to do?', 'wp-2fa' ),
 								'excludeBtnText'   => \esc_html__( 'Exclude myself from 2FA policies', 'wp-2fa' ),
 								'continueBtnText'  => \esc_html__( 'Continue anyway', 'wp-2fa' ),
 								//'noteText'         => \esc_html__( "Note: Don't forget to save your settings for any changes to take effect.", 'wp-2fa' ),
@@ -235,7 +234,9 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies_New' ) )
 			}
 
 			// 2. Capability check.
-			if ( ! \current_user_can( 'manage_options' ) ) {
+			// Settings are stored network-wide on a multisite install, so a site
+			// administrator's manage_options is not enough to change them.
+			if ( ! Settings_Page::can_manage_settings() ) {
 				\wp_send_json_error(
 					array( 'message' => \esc_html__( 'You do not have permission to perform this action.', 'wp-2fa' ) ),
 					403
@@ -399,7 +400,7 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_Policies_New' ) )
 							\esc_html__( 'The plugin created the 2FA settings page with the URL:', 'wp-2fa' ),
 							\esc_url( $page_url ),
 							\esc_html__( 'You can edit this page using the page editor, like you do with all other pages.', 'wp-2fa' ),
-							\esc_html__( 'Use the {2fa_settings_page_url} html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' )
+							sprintf( /* translators: %s: {2fa_settings_page_url}. */ \esc_html__( 'Use the %s html tag in the email templates to include the URL of the 2FA configuration page when notifying the users to configure two-factor authentication.', 'wp-2fa' ), '{2fa_settings_page_url}' )
 						);
 					}
 				}

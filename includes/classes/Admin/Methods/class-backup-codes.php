@@ -354,15 +354,124 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 			$backup_codes = \get_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, true );
 			if ( is_array( $backup_codes ) && ! empty( $backup_codes ) ) {
 				foreach ( $backup_codes as $code_hashed ) {
-					if ( \wp_check_password( $code, $code_hashed, $user->ID ) ) {
-						self::delete_code( $user, $code_hashed );
-						self::clear_login_attempts( $user );
+					foreach ( self::code_candidates( (string) $code ) as $candidate ) {
+						if ( \wp_check_password( $candidate, $code_hashed, $user->ID ) ) {
+							// A match is only a success once this request has claimed the code.
+							if ( self::claim_code( $user, (string) $code_hashed ) ) {
+								self::clear_login_attempts( $user );
 
-						return true;
+								return true;
+							}
+
+							// Another request used it first: as good as a wrong code.
+							break 2;
+						}
 					}
 				}
 			}
 			self::increase_login_attempts( $user );
+
+			return false;
+		}
+
+		/**
+		 * The forms of a submitted code that should be accepted.
+		 *
+		 * Codes generated here are plain digits, so what the user types either matches or does
+		 * not. Codes carried over from another plugin may have been printed in groups separated
+		 * by spaces, and in a different case, and people copy them exactly as printed.
+		 *
+		 * The submitted value is always tried unchanged first, so this can only ever accept an
+		 * input that would otherwise have been rejected — never change the verdict on one that
+		 * already matched.
+		 *
+		 * @param string $code - The code as submitted.
+		 *
+		 * @return string[] The candidates to check, most likely first.
+		 *
+		 * @since 4.2.0
+		 */
+		private static function code_candidates( string $code ): array {
+			$candidates = array( $code );
+
+			$normalised = \strtolower( (string) \preg_replace( '/\s+/', '', $code ) );
+
+			if ( '' !== $normalised && ! \in_array( $normalised, $candidates, true ) ) {
+				$candidates[] = $normalised;
+			}
+
+			return $candidates;
+		}
+
+		/**
+		 * Remove one code from the user's list, if it is still there - atomically.
+		 *
+		 * Matching a code and removing it used to be two separate steps: read the
+		 * list, find the code, then read the list again and write it back without
+		 * it. Two sign-ins submitting the same code at the same moment could both
+		 * match it before either removed it, and both were let in on one
+		 * single-use code.
+		 *
+		 * The removal is now a compare-and-swap on the stored value: the list is
+		 * rewritten only if it is still exactly the list this request read, which
+		 * the database settles with a row lock. Exactly one of two racing
+		 * requests changes the row; the other changes nothing and, on reading
+		 * again, finds the code gone. A swap that loses to a different code being
+		 * used at the same time simply reads the new list and tries again.
+		 *
+		 * Reads go to the database rather than the object cache, which may hold
+		 * a list another request has already changed.
+		 *
+		 * @param \WP_User|object $user        - The user.
+		 * @param string          $code_hashed - The stored hash of the code to claim.
+		 *
+		 * @return bool True when this request removed the code; false when it was
+		 *              already gone.
+		 *
+		 * @since 4.2.0
+		 */
+		private static function claim_code( $user, string $code_hashed ): bool {
+			global $wpdb;
+
+			for ( $attempt = 0; $attempt < 5; $attempt++ ) {
+				$stored = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+					$wpdb->prepare(
+						"SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s ORDER BY umeta_id ASC LIMIT 1",
+						$user->ID,
+						self::BACKUP_CODES_META_KEY
+					)
+				);
+
+				$codes = \is_string( $stored ) ? \maybe_unserialize( $stored ) : null;
+				if ( ! \is_array( $codes ) || ! \in_array( $code_hashed, $codes, true ) ) {
+					return false;
+				}
+
+				$remaining = \array_values(
+					\array_filter(
+						$codes,
+						static function ( $hash ) use ( $code_hashed ) {
+							return $hash !== $code_hashed;
+						}
+					)
+				);
+
+				$swapped = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+					$wpdb->prepare(
+						"UPDATE {$wpdb->usermeta} SET meta_value = %s WHERE user_id = %d AND meta_key = %s AND meta_value = %s",
+						\maybe_serialize( $remaining ),
+						$user->ID,
+						self::BACKUP_CODES_META_KEY,
+						$stored
+					)
+				);
+
+				\wp_cache_delete( $user->ID, 'user_meta' );
+
+				if ( 1 === (int) $swapped ) {
+					return true;
+				}
+			}
 
 			return false;
 		}
@@ -376,15 +485,7 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 		 * @since 2.6.0
 		 */
 		public static function delete_code( $user, $code_hashed ) {
-			$backup_codes = get_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, true );
-
-			// Delete the current code from the list since it's been used.
-			$backup_codes = array_flip( $backup_codes );
-			unset( $backup_codes[ $code_hashed ] );
-			$backup_codes = array_values( array_flip( $backup_codes ) );
-
-			// Update the backup code master list.
-			\update_user_meta( $user->ID, self::BACKUP_CODES_META_KEY, $backup_codes );
+			self::claim_code( $user, (string) $code_hashed );
 		}
 
 		/**
@@ -765,7 +866,8 @@ if ( ! class_exists( '\WP2FA\Methods\Backup_Codes' ) ) {
 				)
 			);
 
-			Login::delete_login_nonce( $user->ID );
+			$current_nonce = isset( $_REQUEST['wp-auth-nonce'] ) ? \sanitize_text_field( \wp_unslash( $_REQUEST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			Login::delete_login_nonce( $user->ID, $current_nonce );
 			$login_nonce = Login::create_login_nonce( $user->ID );
 			if ( ! $login_nonce ) {
 				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );

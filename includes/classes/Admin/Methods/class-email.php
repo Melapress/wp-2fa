@@ -24,6 +24,7 @@ use WP2FA\Admin\Settings_Builder;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Login;
+use WP2FA\Authenticator\Code_Guard;
 use WP2FA\Authenticator\Authentication;
 use WP2FA\Admin\Methods\Traits\Providers;
 use WP2FA\Admin\Controllers\API\API_Login;
@@ -428,15 +429,24 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 
 			if ( ! $is_valid ) {
 				$valid[ self::METHOD_NAME ]['error'] = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
-				if ( API_Login::check_number_of_attempts( User_Helper::get_user( $user_id ) ) ) {
+				// Only if another attempt follows: after the last one the user is sent
+				// back to log in, and that sends a code of its own.
+				$attempting = \get_userdata( $user_id );
+				if ( $attempting instanceof \WP_User && API_Login::get_login_attempts( $attempting ) + 1 < API_Login::get_allowed_login_attempts() ) {
 
-					if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
-						Setup_Wizard::send_authentication_setup_email( $user_id, 'nominated_email_address' );
-						if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
-							User_Helper::remove_meta( WP_2FA_PREFIX . 'code_sent' );
-						}
+					// A rejected code is always replaced, so a guesser never gets
+					// to keep shooting at the same target.
+					if ( Code_Guard::is_rotation_enabled() ) {
+						$resent = Code_Guard::dispatch(
+							static function () use ( $user_id ) {
+								return Setup_Wizard::send_authentication_setup_email( $user_id, 'nominated_email_address' );
+							},
+							$user_id
+						);
 
-						$valid[ self::METHOD_NAME ]['error'] .= \esc_html__( ' For security reasons you have been sent a new code via email. Please use this new code to log in.', 'wp-2fa' );
+						$valid[ self::METHOD_NAME ]['error'] .= ' ' . ( Code_Guard::succeeded( $resent )
+							? \esc_html__( 'For security reasons you have been sent a new code via email. Please use this new code to log in.', 'wp-2fa' )
+							: Login::dispatch_failure_message() );
 					}
 				}
 			}
@@ -505,11 +515,11 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 		public static function add_whitelabel_settings( array $default_settings ): array {
 			$default_settings['email-option-label']           = \__( 'One-time code via email', 'wp-2fa' );
 			$default_settings['email-option-label-hint']      = '';
-			$default_settings['method_help_hotp_intro']       = '<h3>' . \__( 'Setting up HOTP ({email-option-label})', 'wp-2fa' ) . '</h3><p>' . \__( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
+			$default_settings['method_help_hotp_intro']       = '<h3>' . sprintf( /* translators: %s: the label configured for the email method. */ \__( 'Setting up HOTP (%s)', 'wp-2fa' ), '{email-option-label}' ) . '</h3><p>' . \__( 'Please select the email address where the one-time code should be sent:', 'wp-2fa' ) . '</p>';
 			$default_settings['method_help_hotp_help']        = \__( 'To complete the 2FA configuration you will be sent a one-time code over email, therefore you should have access to the mailbox of this email address. If you do not receive the email with the one-time code please check your spam folder and contact your administrator', 'wp-2fa' );
-			$default_settings['method_help_hotp_help_email']  = '<b>' . \__( 'IMPORTANT', 'wp-2fa' ) . '</b><p>' . \__( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is {from_email}', 'wp-2fa' ) . '</p>';
+			$default_settings['method_help_hotp_help_email']  = '<b>' . \__( 'IMPORTANT', 'wp-2fa' ) . '</b><p>' . sprintf( /* translators: %s: the address the plugin sends email from. */ \__( 'To ensure you always receive the one-time code whitelist the email address from which the codes are sent. This is %s', 'wp-2fa' ), '{from_email}' ) . '</p>';
 			$default_settings['method_verification_hotp_pre'] = '<h3>' . \__( 'Almost there…', 'wp-2fa' ) . '</h3><p>' . \__( 'Please type in the one-time code sent to your email address to finalize the setup', 'wp-2fa' ) . '</p>';
-			$default_settings['hotp_reconfigure_intro']       = '<h3>' . \__( '{reconfigure_or_configure_capitalized} one-time code over email method', 'wp-2fa' ) . '</h3><p>' . \__( 'Click the below button to {reconfigure_or_configure} the email address where the one-time code should be sent.', 'wp-2fa' ) . '</p>';
+			$default_settings['hotp_reconfigure_intro']       = '<h3>' . sprintf( /* translators: %s: the word "Configure" or "Reconfigure". */ \__( '%s one-time code over email method', 'wp-2fa' ), '{reconfigure_or_configure_capitalized}' ) . '</h3><p>' . sprintf( /* translators: %s: the word "configure" or "reconfigure". */ \__( 'Click the below button to %s the email address where the one-time code should be sent.', 'wp-2fa' ), '{reconfigure_or_configure}' ) . '</p>';
 
 			return $default_settings;
 		}
@@ -572,6 +582,59 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 				return true;
 			}
 
+			$redirect_to = isset( $_REQUEST['redirect_to'] ) ? \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+			/*
+			 * Nothing has been answered yet.
+			 *
+			 * A request carrying no authcode field at all is the first sight of this
+			 * challenge, not a failed attempt at it. That is what a passkey hand-over
+			 * looks like — the passkey has been verified and the browser is posted
+			 * straight here to collect the second factor — and it is what any other
+			 * caller that routes a user to the challenge will look like too.
+			 *
+			 * Treating it as a failure told the user their code was invalid before
+			 * they had typed one, and announced wp_login_failed, which the security
+			 * plugins listening on that hook count against a visitor who has in fact
+			 * just authenticated successfully.
+			 *
+			 * A submitted-but-blank code is a different thing: the field is present
+			 * and empty, the user did answer, and they still get told it was wrong.
+			 * So this turns on isset(), not on emptiness.
+			 */
+			if ( ! isset( $_REQUEST['authcode'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				if ( empty( $login_nonce ) ) {
+					$login_nonce = Login::create_login_nonce( $user->ID );
+
+					if ( ! $login_nonce ) {
+						\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+					}
+				}
+
+				// Rendering the challenge is also what dispatches the first code.
+				Login::login_html( $user, $login_nonce['key'], $redirect_to, '', $provider );
+
+				exit;
+			}
+
+			/*
+			 * A resend with no code typed is a request for a code, not a wrong
+			 * one: no failure is announced, nothing is counted, the code the user
+			 * may still be reading is not retired.
+			 */
+			if ( isset( $_REQUEST[ Login::INPUT_NAME_RESEND_CODE ] ) && ! Login::is_answering_challenge() ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$current_nonce = isset( $_REQUEST['wp-auth-nonce'] ) ? \sanitize_text_field( \wp_unslash( $_REQUEST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				Login::delete_login_nonce( $user->ID, $current_nonce );
+				$login_nonce = Login::create_login_nonce( $user->ID );
+				if ( ! $login_nonce ) {
+					\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
+				}
+				$redirect_to = isset( $_REQUEST['redirect_to'] ) ? \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				Login::login_html( $user, $login_nonce['key'], $redirect_to, Login::resend_notice(), $provider );
+
+				exit;
+			}
+
 			// Validation failed.
 			\do_action(
 				'wp_login_failed',
@@ -582,23 +645,33 @@ if ( ! class_exists( '\WP2FA\Methods\Email' ) ) {
 				)
 			);
 
-			Login::delete_login_nonce( $user->ID );
+			// Only a code that was actually submitted and rejected retires the
+			// current one, so that a blank submission does not spend the code the
+			// user is still waiting to read.
+			$submitted_code = trim( (string) \wp_unslash( $_REQUEST['authcode'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+			if ( '' !== $submitted_code ) {
+				Code_Guard::rotate( $user );
+			}
+
+			$current_nonce = isset( $_REQUEST['wp-auth-nonce'] ) ? \sanitize_text_field( \wp_unslash( $_REQUEST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			Login::delete_login_nonce( $user->ID, $current_nonce );
 			$login_nonce = Login::create_login_nonce( $user->ID );
 			if ( ! $login_nonce ) {
 				\wp_die( \esc_html__( 'Failed to create a login nonce.', 'wp-2fa' ) );
 			}
 
 			if ( isset( $_REQUEST['wp-2fa-email-code-resend'] ) ) { // phpcs:ignore
-				Login::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), \esc_html__( 'A new code has been sent.', 'wp-2fa' ), $provider ); // phpcs:ignore
+				Login::login_html( $user, $login_nonce['key'], $redirect_to, Login::resend_notice(), $provider );
 			} elseif ( Authentication::check_number_of_attempts( $user ) ) {
 				$msg = \esc_html__( 'ERROR: Invalid verification code.', 'wp-2fa' );
 				if ( empty( WP2FA::get_wp2fa_general_setting( 'brute_force_disable' ) ) ) {
-					$msg .= \esc_html__( ' For security reasons you have been sent a new code via email. Please use this new code to log in.', 'wp-2fa' );
+					$msg .= ' ' . \esc_html__( 'For security reasons you have been sent a new code via email. Please use this new code to log in.', 'wp-2fa' );
 				}
-				Login::login_html( $user, $login_nonce['key'], \esc_url_raw( \wp_unslash( $_REQUEST['redirect_to'] ) ), $msg, $provider ); // phpcs:ignore
+				Login::login_html( $user, $login_nonce['key'], $redirect_to, $msg, $provider );
 			} else {
 				Authentication::clear_login_attempts( $user );
-				User_Helper::remove_meta( WP_2FA_PREFIX . 'code_sent', $user );
+				Code_Guard::clear( $user );
 				\wp_safe_redirect( \wp_login_url() );
 			}
 

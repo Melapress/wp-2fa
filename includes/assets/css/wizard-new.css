@@ -343,15 +343,76 @@
 
 .wp2fa-wizard-footer-inner {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 16px;
 }
 
+/* Continue is the action being offered, so it is the wider of the two. The skip link
+   below is shared with the welcome screen, where it is deliberately the same size as the
+   button beside it — so these overrides are scoped to the step footer.
+
+   Both buttons are sized from one set of values so they end up the same height: core's
+   .button sets its own line-height and padding, which is what left the two at different
+   heights with near-square corners. */
+.wp2fa-wizard-footer-inner .button-primary,
+.wp2fa-wizard-footer .wp2fa-wizard-skip-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: auto;
+    min-height: 52px;
+    padding: 0 32px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 16px;
+    line-height: 1.2;
+    text-decoration: none;
+    box-shadow: none;
+}
+
 .wp2fa-wizard-footer-inner .button-primary {
-    min-width: 140px;
-    font-size: 14px;
-    padding: 7px;
+    min-width: 280px;
+    font-weight: 700;
+    /* The plugin's brand blue, not core's admin blue. */
+    background: #3e6bff;
+    border-color: #3e6bff;
+    color: #fff;
+}
+
+.wp2fa-wizard-footer-inner .button-primary:hover,
+.wp2fa-wizard-footer-inner .button-primary:focus {
+    background: #2f55d4;
+    border-color: #2f55d4;
+    color: #fff;
+    box-shadow: none;
+}
+
+.wp2fa-wizard-footer-inner .button-primary:focus-visible {
+    outline: 2px solid #3e6bff;
+    outline-offset: 2px;
+}
+
+.wp2fa-wizard-footer-inner .button-primary::after {
+    content: '\2192';
+    margin-left: 18px;
+    font-weight: 400;
+}
+
+.wp2fa-wizard-footer .wp2fa-wizard-skip-link {
+    min-width: 0;
     font-weight: 600;
+    color: #1d2327;
+    background: #fff;
+    border-color: #dcdcde;
+}
+
+.wp2fa-wizard-footer .wp2fa-wizard-skip-link:hover,
+.wp2fa-wizard-footer .wp2fa-wizard-skip-link:focus {
+    color: #1d2327;
+    background: #f6f7f7;
+    border-color: #c3c4c7;
 }
 
 /* ── Error notice ─────────────────────────────────────── */
@@ -448,5 +509,160 @@
 @media (max-width: 480px) {
     .wp2fa-wizard-nav .step-label {
         display: none;
+    }
+}
+
+/* ── Companion-plugin slide ───────────────────────────── */
+
+.wp2fa-wizard-crosssell {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.wp2fa-wizard-crosssell h2 {
+    margin: 0 0 12px;
+    font-size: 28px;
+    line-height: 1.25;
+    color: #1d2327;
+}
+
+.wp2fa-wizard-crosssell-intro {
+    margin: 0 auto 28px;
+    max-width: 620px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #50575e;
+}
+
+.wp2fa-wizard-crosssell-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    text-align: left;
+    background: #f0f6fc;
+    border-radius: 8px;
+}
+
+/* The companion plugin's logo is a wide lockup, not a square icon, so it is given a
+   landscape box — constraining it to a square squeezed it down to an illegible smudge. */
+.wp2fa-wizard-crosssell-logo {
+    flex: 0 0 auto;
+    width: 104px;
+    height: auto;
+    max-height: 64px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.wp2fa-wizard-crosssell-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.wp2fa-wizard-crosssell-body h3 {
+    margin: 8px 0 6px;
+    font-size: 17px;
+    color: #1d2327;
+}
+
+.wp2fa-wizard-crosssell-body p {
+    margin: 0 0 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #50575e;
+}
+
+.wp2fa-wizard-crosssell-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #00611c;
+    background: #d5f5dd;
+    border-radius: 12px;
+}
+
+/* Separated from the description so the control reads as its own column. */
+.wp2fa-wizard-crosssell-choice {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-left: 20px;
+    border-left: 1px solid #c5d9ed;
+}
+
+.wp2fa-wizard-crosssell-choice-label {
+    font-size: 13px;
+    color: #50575e;
+}
+
+/* ── Toggle ───────────────────────────────────────────── */
+
+.wp2fa-wizard-toggle {
+    display: inline-flex;
+    cursor: pointer;
+}
+
+/* Kept in the accessibility tree and focusable; the track below is what is seen. */
+.wp2fa-wizard-toggle input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.wp2fa-wizard-toggle-track {
+    position: relative;
+    display: block;
+    width: 52px;
+    height: 28px;
+    background: #8c8f94;
+    border-radius: 14px;
+    transition: background-color 0.15s ease;
+}
+
+.wp2fa-wizard-toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+}
+
+.wp2fa-wizard-toggle input:checked + .wp2fa-wizard-toggle-track {
+    background: #2271b1;
+}
+
+.wp2fa-wizard-toggle input:checked + .wp2fa-wizard-toggle-track::after {
+    transform: translateX(24px);
+}
+
+.wp2fa-wizard-toggle input:focus-visible + .wp2fa-wizard-toggle-track {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
+}
+
+@media screen and (max-width: 640px) {
+    .wp2fa-wizard-crosssell-card {
+        flex-wrap: wrap;
+    }
+
+    .wp2fa-wizard-crosssell-choice {
+        padding-left: 0;
+        border-left: 0;
+        flex-direction: row;
     }
 }

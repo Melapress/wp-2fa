@@ -70,7 +70,7 @@ defined( 'ABSPATH' ) || exit;
 	?>
 
 	<?php if ( $data['show_setup_card'] || $data['show_backup_card'] ) : ?>
-		<h3 class="wp2fa-profile__section-title"><?php \esc_html_e( '2FA Configuration', 'wp-2fa' ); ?></h3>
+		<h3 class="wp2fa-profile__section-title"><?php echo \esc_html( \WP2FA\WP2FA::get_wp2fa_white_label_setting( 'user-profile-configuration-title', true ) ); ?></h3>
 		<div class="wp2fa-profile__cards">
 			<?php
 			if ( $data['show_setup_card'] ) :

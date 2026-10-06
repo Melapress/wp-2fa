@@ -23,6 +23,7 @@ use WP2FA\Utils\Settings_Utils;
 use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Admin\Views\Re_Login_2FA;
 use WP2FA\Admin\Views\Wizard_Steps;
+use WP2FA\Admin\Helpers\Ajax_Helper;
 use WP2FA\Admin\Helpers\User_Helper;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Authenticator\Authentication;
@@ -239,7 +240,7 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			\wp_enqueue_style(
 				'wp_2fa_setup_wizard',
 				Core\style_url( 'setup-wizard', 'admin' ),
-				array( 'select2' ),
+				array(),
 				WP_2FA_VERSION
 			);
 
@@ -250,19 +251,17 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				WP_2FA_VERSION
 			);
 
-			\WP2FA\Core\enqueue_select2_scripts();
-
 			\wp_enqueue_script(
 				'wp_2fa_admin',
 				Core\script_url( 'admin', 'admin' ),
-				array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete', 'select2' ),
+				array( 'jquery-ui-widget', 'jquery-ui-core', 'jquery-ui-autocomplete' ),
 				WP_2FA_VERSION,
 				true
 			);
 
 			\wp_enqueue_script(
 				'wp_2fa_micromodal',
-				Core\script_url( 'micromodal', 'admin', 'select2' ),
+				Core\script_url( 'micromodal', 'admin' ),
 				array(),
 				WP_2FA_VERSION,
 				true
@@ -282,8 +281,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 			$role = User_Helper::get_user_role();
 
-			$redirect_page = \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) );
-			$redirect_page_global = \sanitize_text_field( Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) );
+			$redirect_page                = \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page' ) );
+			$redirect_page_global         = \sanitize_text_field( Settings_Utils::get_setting_role( null, 'redirect-user-custom-page' ) );
 			$redirect_page_global_setting = \sanitize_text_field( Settings_Utils::get_setting_role( $role, 'redirect-user-custom-page-global' ) );
 
 			// Priority: role-specific redirect-user-custom-page > global redirect-user-custom-page > redirect-user-custom-page-global > empty.
@@ -408,7 +407,11 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				echo Generate_Modal::generate_modal(
 					'notify-admin-settings-page',
 					'',
-					\esc_html__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the ', 'wp-2fa' ) . ' <b>' . \esc_html__( 'WP 2FA', 'wp-2fa' ) . '</b>' . \esc_html__( ' entry in your WordPress dashboard menu.', 'wp-2fa' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					sprintf(
+						/* translators: %s: the plugin name, shown in bold. */
+						\esc_html__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the %s entry in your WordPress dashboard menu.', 'wp-2fa' ),
+						'<b>' . \esc_html__( 'WP 2FA', 'wp-2fa' ) . '</b>'
+					), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					array(
 						'<a href="#" id="close-settings" class="button button-primary wp-2fa-button-primary" data-redirect-url="' . \esc_url( $redirect ) . '">' . \esc_html__( 'OK, close wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						'<a href="#" class="button button-secondary wp-2fa-button-secondary wp-2fa-button-secondary" data-close-2fa-modal>' . \esc_html__( 'Continue with wizard', 'wp-2fa' ) . '</a>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -532,7 +535,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				<form method="post" class="wp2fa-setup-form wp2fa-form-styles wp2fa-first-time-wizard" autocomplete="off">
 					<?php wp_nonce_field( 'wp2fa-step-choose-method' ); ?>
 					<div class="step-setting-wrapper active" data-step-title="<?php \esc_html_e( '2FA methods', 'wp-2fa' ); ?>">
-						<?php First_Time_Wizard_Steps::select_method( true ); 
+						<?php
+						First_Time_Wizard_Steps::select_method( true );
 						?>
 						<div class="wp2fa-setup-actions">
 							<button type="button" class="button button-primary" name="next_step_setting" value="<?php \esc_attr_e( 'Continue Setup', 'wp-2fa' ); ?>"><?php \esc_html_e( 'Continue Setup', 'wp-2fa' ); ?></button>
@@ -568,8 +572,8 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 					<?php } ?>
 
 					<div class="step-setting-wrapper hidden" data-step-title="<?php \esc_html_e( 'Grace period', 'wp-2fa' ); ?>">
-						<h3><?php \esc_html_e( 'How long should the grace period for your users be?', 'wp-2fa' ); ?></h3>
-						<p class="description"><?php \esc_html_e( 'When you configure the 2FA policies and require users to configure 2FA, they can either have a grace period to configure 2FA, or can be required to configure 2FA before the next time they login. Choose which method you\'d like to use:', 'wp-2fa' ); ?></p>
+						<h3><?php \esc_html_e( 'How long should users have to configure 2FA?', 'wp-2fa' ); ?></h3>
+						<p class="description"><?php \esc_html_e( 'When 2FA is required, you can require users to configure it immediately or give them a grace period. During the grace period, users can continue to log in without 2FA.', 'wp-2fa' ); ?></p>
 						<?php First_Time_Wizard_Steps::grace_period( true ); ?>
 						<div class="wp2fa-setup-actions">
 							<button class="button button-primary save-wizard" type="submit" name="save_step" value="<?php \esc_attr_e( 'All done', 'wp-2fa' ); ?>"><?php \esc_html_e( 'All done', 'wp-2fa' ); ?></button>
@@ -588,6 +592,9 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		private static function wp_2fa_step_global_2fa_methods_save() {
 			// Check nonce.
 			\check_admin_referer( 'wp2fa-step-choose-method' );
+			if ( ! Settings_Page::can_manage_settings() ) {
+				\wp_die( \esc_html__( 'You do not have sufficient permissions to change these settings.', 'wp-2fa' ), '', array( 'response' => 403 ) );
+			}
 
 			$input = ( isset( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) && ! empty( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) && \is_array( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) ) ? \wp_unslash( $_POST[ WP_2FA_POLICY_SETTINGS_NAME ] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
@@ -613,18 +620,23 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		 * @param int    $user_id - User id we want to send the message to.
 		 * @param string $nominated_email_address - The user custom address to use (name of the meta key to check for).
 		 * @param bool   $is_reset_protection - That call is for reset code.
+		 * @param string $reset_challenge_url - Unused; retained for backward compatibility.
 		 *
 		 * @return bool
 		 *
 		 * @since 2.8.0
 		 */
-		public static function send_authentication_setup_email( $user_id, $nominated_email_address = 'nominated_email_address', $is_reset_protection = false ) {
+		public static function send_authentication_setup_email( $user_id, $nominated_email_address = 'nominated_email_address', $is_reset_protection = false, $reset_challenge_url = '' ) {
 
-			// If we have a nonce posted, check it.
-			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
-				$nonce_check = \wp_verify_nonce( \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ), 'wp-2fa-send-setup-email' );
-				if ( ! $nonce_check ) {
+			if ( \wp_doing_ajax() ) {
+				$nonce = isset( $_POST['nonce'] ) ? \sanitize_text_field( \wp_unslash( $_POST['nonce'] ) ) : '';
+				if ( ! \wp_verify_nonce( $nonce, 'wp-2fa-send-setup-email' ) ) {
 					\wp_send_json_error( new \WP_Error( 400, \esc_html__( 'Nonce checking failed', 'wp-2fa' ) ), 400 );
+					return false;
+				}
+
+				if ( ! Ajax_Helper::check_rate_limit( 'send_authentication_setup_email' ) ) {
+					\wp_send_json_error( new \WP_Error( 429, \esc_html__( 'Rate limit exceeded. Please try again later.', 'wp-2fa' ) ), 429 );
 					return false;
 				}
 
@@ -665,9 +677,13 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 
 			$email_address = '';
 
-			if ( \wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
-				$email_address = $email;	
-				// User_Helper::set_nominated_email_for_user( $email, $user );
+			// Only this authenticated AJAX request can name an arbitrary recipient; bind
+			// the code about to be sent to that exact address so a later commit cannot
+			// nominate a different, unverified one for it.
+			$is_authenticated_setup_request = \wp_doing_ajax() && isset( $_POST['nonce'] );
+
+			if ( $is_authenticated_setup_request ) {
+				$email_address = $email;
 			} elseif ( ! empty( $nominated_email_address ) ) {
 				if ( 'nominated_email_address' === $nominated_email_address ) {
 					$email_address = User_Helper::get_nominated_email_for_user( $user );
@@ -681,18 +697,57 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 			// Generate a token and setup email.
 			$token = Authentication::generate_token( $user->ID );
 
+			// @free:start
+			/*
+			 * The code's lifetime. Premium records it in the per-provider
+			 * transient below; free had nothing, so an emailed code stayed valid
+			 * until used, however old. Free sets the same transient, carrying the
+			 * issue time rather than the code itself, and get_user_token() refuses
+			 * a code once it is gone.
+			 *
+			 * This has to come before the premium block: unbuilt source runs both,
+			 * and premium's value is the one it compares codes against.
+			 */
+			$free_period = (int) Settings_Utils::get_setting_role( User_Helper::get_user_role( $user ), 'email-code-period', true ) * MINUTE_IN_SECONDS;
+			$free_period = (int) \apply_filters( WP_2FA_PREFIX . 'email_code_period', $free_period );
+			if ( $free_period <= 0 ) {
+				$free_period = 5 * MINUTE_IN_SECONDS;
+			}
+			\set_transient( 'wp_2fa_code_login_' . $user->ID, time(), $free_period );
+			if ( $is_authenticated_setup_request ) {
+				\set_transient( 'wp_2fa_pending_email_recipient_' . $user->ID, $email_address, $free_period );
+			}
+			// @free:end
 
+
+			/*
+			 * The token goes to the subject as well as the body.
+			 *
+			 * {login_code} is offered in the settings UI for every one of these
+			 * templates — the tag list comes from
+			 * Email_Templates::get_mail_template_tags() and is not filtered per
+			 * field — so an administrator can put it in a subject line and the
+			 * screen gives no hint that it will not work there. Without the token
+			 * the tag resolves to an empty string, silently, and the subject reads
+			 * "Your code is  for Example" with a hole where the code should be.
+			 *
+			 * The setup-code branch below already passed it, which is why the
+			 * feature appeared to work when tested against that email and not
+			 * against the login one.
+			 */
 			if ( $is_reset_protection ) {
+				$subject = wp_strip_all_tags( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'reset_password_code_email_subject' ), $user->ID, $token ) );
+				$message = wpautop( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'reset_password_code_email_body' ), $user->ID, $token ) );
 			} elseif ( wp_doing_ajax() && isset( $_POST['nonce'] ) ) {
 				$subject = wp_strip_all_tags( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'login_code_setup_email_subject' ), $user->ID, $token ) );
 				$message = wpautop( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'login_code_setup_email_body' ), $user->ID, $token ) );
 			} else {
-				$subject = wp_strip_all_tags( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID ) );
+				$subject = wp_strip_all_tags( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'login_code_email_subject' ), $user->ID, $token ) );
 				$message = wpautop( Email_Templates::replace_email_strings( Email_Templates::get_wp2fa_email_templates( 'login_code_email_body' ), $user->ID, $token ) );
 			}
 
 			// @free:start
-			$message         .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
+			$message .= '<p>' . \esc_html__( 'Email sent by', 'wp-2fa' );
 			$message .= ' <a href="https://melapress.com/wordpress-2fa/?&utm_source=plugin&utm_medium=wp2fa&utm_campaign=melapress_wp_2fa_plugin_link" target="_blank">' . \esc_html__( 'WP 2FA plugin.', 'wp-2fa' ) . '</a>';
 			$message .= '</p>';
 			// @free:end

@@ -1568,6 +1568,57 @@
 }
 
 /* ============================================================
+   Wordfence Login Security Migrator
+   ============================================================ */
+.wp2fa-wfls-wrap {
+    /* Room for the sticky save bar. */
+    padding-bottom: 68px;
+}
+
+.wp2fa-wfls-wrap .main-left {
+    padding: 20px;
+}
+
+.wp2fa-wfls-wrap .main-settings-new h2 {
+    padding: 0;
+}
+
+.wp2fa-wfls-wrap .settings-card {
+    margin: 0;
+    padding: 20px 0 24px;
+}
+
+.wp2fa-wfls-wrap .settings-card .section-title {
+    margin-top: 0;
+}
+
+.wp2fa-wfls-wrap .wp2fa-wfls-help {
+    margin-top: 0;
+}
+
+.wp2fa-wfls-wrap .notice-tip-body {
+    margin: 0;
+}
+
+.wp2fa-wfls-wrap .stat-cards-row {
+    padding-bottom: 0;
+}
+
+.wp2fa-wfls-wrap .stat-card {
+    box-sizing: border-box;
+}
+
+.wp2fa-wfls-wrap .stat-label {
+    white-space: normal;
+}
+
+.wp2fa-wfls-wrap .wp2fa-save-notice {
+    margin-left: 12px;
+    font-weight: 500;
+    color: #00a32a;
+}
+
+/* ============================================================
    Passkeys Settings Page Layout
    ============================================================ */
 .wp-2fa-passkeys-settings .main-settings-new.passkeys-main {
@@ -2588,4 +2639,343 @@
     flex-shrink: 0;
       margin-left: -3px;
 
+}
+/* ── Editor tag picker ───────────────────────────────────────
+   The panel behind the tag button in the classic editor toolbar. It is our own
+   markup rather than a TinyMCE menu, so it is styled here and not by the skin.
+   It is attached to <body>, which is why the selectors are not nested under the
+   settings wrapper. */
+.wp2fa-tagpanel {
+    position: absolute;
+    z-index: 100100;
+    box-sizing: border-box;
+    width: 340px;
+    max-width: calc(100vw - 16px);
+    padding: 10px;
+    background: var(--bg-white, #fff);
+    border: 1px solid var(--border-light, #e2e2e4);
+    border-radius: var(--radius-lg, 8px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .14);
+}
+
+.wp2fa-tagpanel[hidden] {
+    display: none;
+}
+
+.wp2fa-tagpanel__search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--bg-subtle, #f6f7f7);
+    border: 1px solid var(--border-light, #e2e2e4);
+    border-radius: var(--radius-md, 6px);
+}
+
+/* No focus ring on the search box. The field is one control drawn once: a ring here
+   sits outside the input's own focus styling below, so focusing it used to paint two
+   nested blue rectangles. */
+
+.wp2fa-tagpanel__search-icon {
+    display: flex;
+    flex: 0 0 auto;
+    color: var(--text-muted, #646970);
+}
+
+/* WordPress paints input[type=text]:focus with a blue border and a 1px blue shadow, at a
+   specificity this has to clear rather than match — hence the wrapper class and the element
+   in the selector. Losing that race is what drew the inner blue rectangle. */
+.wp2fa-tagpanel input.wp2fa-tagpanel__input,
+.wp2fa-tagpanel input.wp2fa-tagpanel__input:focus {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    outline: none;
+    font-size: var(--font-size-base, 14px);
+    color: var(--text-primary, #3c434a);
+}
+
+.wp2fa-tagpanel__input::placeholder {
+    color: var(--text-placeholder, #999);
+}
+
+.wp2fa-tagpanel__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    /* The rule under the search box. */
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light, #e2e2e4);
+    overflow-y: auto;
+}
+
+.wp2fa-tagpanel__tag {
+    display: block;
+    width: 100%;
+    /* The list is a flex column with a max height. Flex items shrink by default, so a full
+       list was squeezed until the text was clipped, while a short filtered list looked fine
+       — which is why it only showed up before searching. */
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 10px 14px;
+    background: var(--bg-subtle, #f6f7f7);
+    border: 0;
+    border-radius: var(--radius-md, 6px);
+    box-shadow: none;
+    font-family: Menlo, Consolas, monaco, monospace;
+    font-size: var(--font-size-base, 14px);
+    line-height: 1.4;
+    color: var(--text-title, #2b2e31);
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+/* An author `display` declaration outranks the browser's own [hidden] rule, so the
+   filtered-out rows have to be hidden explicitly or searching appears to do nothing. */
+.wp2fa-tagpanel__tag[hidden],
+.wp2fa-tagpanel__empty[hidden] {
+    display: none;
+}
+
+.wp2fa-tagpanel__tag:hover,
+.wp2fa-tagpanel__tag:focus {
+    /* Deepen the same gray, since there is no border left to darken. */
+    background: var(--bg-hover-strong, #ebebec);
+    outline: none;
+}
+
+.wp2fa-tagpanel__tag:focus-visible {
+    box-shadow: 0 0 0 2px var(--focus-shadow-color, rgba(0, 115, 170, .2));
+}
+
+.wp2fa-tagpanel__empty {
+    margin: 12px 4px 4px;
+    color: var(--text-muted, #646970);
+    font-size: var(--font-size-sm, 13px);
+}
+
+/* The toolbar button. TinyMCE 4 paints an icon font into .mce-i-*, so the glyph is
+   replaced with the same SVG that TinyMCE 5 and 6 register directly.
+
+   The blue tile is the icon element and the glyph is painted onto ::before, because a
+   mask shows the element's own background through it: one element cannot be both the
+   blue tile and the white glyph. */
+i.mce-ico.mce-i-wp2fa_tags {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background-color: var(--blue-color, #2271B1);
+    background-image: none;
+    border-radius: var(--radius-md, 6px);
+    -webkit-mask: none;
+    mask: none;
+    font-size: 0;
+}
+
+i.mce-ico.mce-i-wp2fa_tags::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: var(--bg-white, #fff);
+    -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'/%3E%3C/svg%3E") no-repeat center / 20px 20px;
+    mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'/%3E%3C/svg%3E") no-repeat center / 20px 20px;
+}
+
+/* The tile is the same in every state, so the pressed look the skin would otherwise
+   paint behind it is taken back off.
+
+   Two other stylesheets claim this button: the TinyMCE skin paints .mce-btn.mce-active,
+   and WordPress repaints it through .mce-toolbar .mce-btn-group .mce-btn.mce-active,
+   which is the one that actually wins. These selectors sit one class above that, so the
+   button keeps its resting look without !important. The open class is only present while
+   the panel is showing, which is exactly when .mce-active applies. */
+.mce-toolbar .mce-btn-group .mce-btn.mce-active.wp2fa-tagpanel-open,
+.mce-toolbar .mce-btn-group .mce-btn.wp2fa-tagpanel-open,
+.mce-btn.mce-active.wp2fa-tagpanel-open,
+.tox .tox-tbtn.wp2fa-tagpanel-open {
+    background: transparent;
+    background-image: none;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* The button is pushed to the far right of the toolbar so it lines up with the one on the
+   input above it.
+
+   Matched through :has() rather than a class put on the button by the picker. TinyMCE 4 keeps
+   its own list of a control's classes and rewrites className from that list whenever the
+   control's state changes, so a class added from outside survives only until the button is
+   first pressed — after which it jumped back to the left and stayed there.
+
+   Laid out with flex rather than a float. A float leaves the button out of flow, so the
+   toolbar row never grew to contain the taller tile and it hung below the bar. */
+/* The group is an inline-block that shrinks to its buttons, so it has to be widened to the
+   row first — without a right edge to push against there is no free space for the margin
+   below to take up, and the button stays exactly where it started. */
+.mce-toolbar .mce-btn-group:has(.mce-i-wp2fa_tags) {
+    display: block;
+    float: none;
+    width: auto;
+}
+
+.mce-toolbar .mce-btn-group > div:has(> .mce-btn .mce-i-wp2fa_tags) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.mce-toolbar .mce-btn-group > div > .mce-btn:has(.mce-i-wp2fa_tags) {
+    margin-left: auto;
+}
+
+/* The tile looks the same whether the panel is open or shut, so the chrome the skin paints
+   around a pressed, hovered or focused button is taken back off. Every state is listed because
+   the skin draws the dark border from :focus, which a rule covering only .mce-active loses to
+   the moment the button is clicked. .mce-widget is in the selector purely for weight: without
+   it this ties with WordPress's own .mce-toolbar .mce-btn-group .mce-btn.mce-active, and a tie
+   is decided by source order — which that rule wins, since its stylesheet loads later. */
+.mce-toolbar .mce-btn-group .mce-widget.mce-btn:has(.mce-i-wp2fa_tags),
+.mce-toolbar .mce-btn-group .mce-widget.mce-btn:has(.mce-i-wp2fa_tags):hover,
+.mce-toolbar .mce-btn-group .mce-widget.mce-btn:has(.mce-i-wp2fa_tags):focus,
+.mce-toolbar .mce-btn-group .mce-widget.mce-btn:has(.mce-i-wp2fa_tags):active,
+.mce-toolbar .mce-btn-group .mce-widget.mce-btn.mce-active:has(.mce-i-wp2fa_tags),
+.mce-toolbar .mce-btn-group .mce-widget.mce-btn.mce-active:has(.mce-i-wp2fa_tags):focus,
+.mce-btn.mce-active:has(.mce-i-wp2fa_tags) {
+    background: transparent;
+    background-image: none;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* Keyboard focus still has to be visible, so it is drawn outside the tile. */
+.mce-btn:has(.mce-i-wp2fa_tags) button:focus-visible {
+    outline: 2px solid var(--blue-color, #2271B1);
+    outline-offset: 2px;
+}
+
+/* TinyMCE 5 and 6 render an inline <svg>, so the tile is drawn on the button around it. */
+.tox .tox-toolbar__group > .tox-tbtn:has(svg [data-wp2fa-tag]),
+.tox .tox-tbtn.wp2fa-tagbtn {
+    background: var(--blue-color, #2271B1);
+    border-radius: var(--radius-md, 6px);
+    margin-left: auto;
+}
+
+.tox .tox-tbtn.wp2fa-tagbtn svg,
+.tox .tox-tbtn:has(svg [data-wp2fa-tag]) svg {
+    fill: var(--bg-white, #fff);
+}
+
+/* ── The same picker on a text input ──────────────────────────────────────
+   The button sits inside the field, right aligned, level with the editor's. */
+.wp2fa-taginput {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.wp2fa-taginput > input {
+    width: 100%;
+    /* Room for the button, so typed text never runs underneath it. */
+    padding-right: 48px;
+}
+
+.wp2fa-taginput > textarea {
+    width: 100%;
+    /* Room for the button, so typed text never runs underneath it. */
+    padding-right: 48px;
+}
+
+/* On a textarea the field is tall, so the button sits at the top rather than halfway
+   down it — level with the first line, where the caret starts. */
+.wp2fa-taginput--textarea .wp2fa-taginput__button {
+    top: 5px;
+    transform: none;
+}
+
+.wp2fa-taginput__button {
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    background-color: var(--blue-color, #2271B1);
+    border: 0;
+    border-radius: var(--radius-md, 6px);
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.wp2fa-taginput__button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: var(--bg-white, #fff);
+    -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'/%3E%3C/svg%3E") no-repeat center / 20px 20px;
+    mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'/%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'/%3E%3C/svg%3E") no-repeat center / 20px 20px;
+}
+
+/* The tile is the same in every state, so the focus ring a button would otherwise take
+   from WordPress is replaced with one drawn outside it. */
+.wp2fa-taginput__button:hover,
+.wp2fa-taginput__button:active,
+.wp2fa-taginput__button:focus {
+    background-color: var(--blue-color, #2271B1);
+    border: 0;
+    box-shadow: none;
+    outline: none;
+}
+
+.wp2fa-taginput__button:focus-visible {
+    outline: 2px solid var(--blue-color, #2271B1);
+    outline-offset: 2px;
+}
+
+/* ── Companion-plugin offer on the white labeling page ────────────────────
+   Shown where the 2FA page URL would be changed, which WP 2FA does not do
+   itself. */
+.wp2fa-mls-crosssell {
+    max-width: 640px;
+    padding: 20px;
+    background: var(--bg-subtle, #f6f7f7);
+    border: 1px solid var(--border-light, #e2e2e4);
+    border-radius: var(--radius-md, 6px);
+}
+
+.wp2fa-mls-crosssell-title {
+    margin: 0 0 6px;
+    font-size: var(--font-size-base, 14px);
+    font-weight: 600;
+    color: var(--text-title, #2b2e31);
+}
+
+.wp2fa-mls-crosssell-text {
+    margin: 0 0 14px;
+    font-size: var(--font-size-sm, 13px);
+    line-height: 1.6;
+    color: var(--text-muted, #646970);
+}
+
+.wp2fa-mls-crosssell-note {
+    margin: 10px 0 0;
+    font-size: var(--font-size-sm, 13px);
+    color: var(--text-muted, #646970);
 }

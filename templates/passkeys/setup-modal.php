@@ -20,9 +20,23 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+use WP2FA\WP2FA;
+
+/*
+ * The plugin only recolours these buttons when the administrator has asked for
+ * it, via "Enable our CSS within user wizards". Left off, they keep WordPress's
+ * own primary-button styling.
+ *
+ * Without this the two buttons in the footer were the odd ones out: WordPress
+ * changed its primary blue in 7.0, and every other passkey button on the page
+ * already honours this setting, so the modal sat at core blue while the page
+ * behind it sat at the plugin's.
+ */
+$wp2fa_passkey_styling_class = empty( WP2FA::get_wp2fa_white_label_setting( 'enable_wizard_styling' ) ) ? 'default_styling' : 'enable_styling';
 ?>
 <script type="text/html" id="tmpl-wp2fa-passkey-setup-modal">
-	<div class="wp2fa-passkey-modal" role="dialog" aria-modal="true" aria-labelledby="wp2fa-passkey-setup-title" tabindex="-1" id="wp2fa-passkey-setup-dialog">
+	<div class="wp2fa-passkey-modal <?php echo \esc_attr( $wp2fa_passkey_styling_class ); ?>" role="dialog" aria-modal="true" aria-labelledby="wp2fa-passkey-setup-title" tabindex="-1" id="wp2fa-passkey-setup-dialog">
 		<div class="wp2fa-passkey-modal__header">
 			<h2 class="wp2fa-passkey-modal__title" id="wp2fa-passkey-setup-title">{{ data.title }}</h2>
 			<button class="wp2fa-passkey-modal__close" type="button" aria-label="<?php esc_attr_e( 'Close modal', 'wp-2fa' ); ?>" data-wp2fa-passkey-close>&times;</button>

@@ -18,6 +18,7 @@ use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Freemius\User_Licensing;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Helpers\User_Helper;
+use WP2FA\Authenticator\Login;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Admin\Views\Grace_Period_Notifications;
 use WP2FA\Admin\SettingsPages\Settings_Page_White_Label;
@@ -166,27 +167,41 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 					self::inline_nag_scripts( $nag_id );
 				}
 			} else {
-				self::user_reconfigure_2fa_nag();
+				self::user_reconfigure_2fa_nag( isset( $is_shortcode ) && 'output_shortcode' === $is_shortcode );
 			}
 		}
 
 		/**
 		 * The nag content
 		 *
+		 * @param bool $is_frontend - True when rendered by a shortcode. The admin
+		 *                            script that handles the dismiss button is not
+		 *                            loaded there, so the nag brings its own.
+		 *
 		 * @since 3.0.0
 		 */
-		public static function user_reconfigure_2fa_nag() {
+		public static function user_reconfigure_2fa_nag( $is_frontend = false ) {
 
 			// If the nag has not already been dismissed, and of course if the user is eligible, lets show them something.
 			if ( User_Helper::needs_to_reconfigure_method() ) {
-				$class = 'notice notice-info wp-2fa-nag wp-2fa-admin-notice';
+				$class       = 'notice notice-info wp-2fa-nag wp-2fa-admin-notice';
+				$is_frontend = true === $is_frontend;
+				$nag_id      = 'wp-2fa-nag-' . \wp_unique_id();
 
 				$message = \esc_html__( 'The 2FA method you were using is no longer allowed on this website. Please reconfigure 2FA using one of the supported methods.', 'wp-2fa' );
 
-				echo '<div class="' . \esc_attr( $class ) . '"><p>' . \esc_html( $message );
+				echo '<div id="' . \esc_attr( $nag_id ) . '" class="' . \esc_attr( $class ) . '"><p>' . \esc_html( $message );
 				echo ' <a href="' . \esc_url( Settings::get_setup_page_link() ) . '" class="button button-primary">' . \esc_html__( 'Configure 2FA now', 'wp-2fa' ) . '</a>';
-				echo '  <a href="#" class="button button-secondary wp-2fa-button-secondary dismiss-user-reconfigure-nag">' . \esc_html__( 'I\'ll do it later', 'wp-2fa' ) . '</a></p>';
+				if ( $is_frontend ) {
+					echo '  <a href="#" class="button button-secondary wp-2fa-button-secondary" data-wp-2fa-nag-dismiss="' . \esc_attr( $nag_id ) . '">' . \esc_html__( 'I\'ll do it later', 'wp-2fa' ) . '</a></p>';
+				} else {
+					echo '  <a href="#" class="button button-secondary wp-2fa-button-secondary dismiss-user-reconfigure-nag">' . \esc_html__( 'I\'ll do it later', 'wp-2fa' ) . '</a></p>';
+				}
 				echo '</div>';
+
+				if ( $is_frontend ) {
+					self::inline_nag_scripts( $nag_id );
+				}
 			}
 		}
 
@@ -261,6 +276,25 @@ if ( ! class_exists( '\WP2FA\Admin\User_Notices' ) ) {
 		 * @since 3.0.0
 		 */
 		public static function dismiss_nag() {
+			/*
+			 * From the grace period interstitial. That page is rendered during the
+			 * login request itself, where a WordPress nonce is minted for user 0
+			 * and no session, so check_ajax_referer() refused every dismissal.
+			 * It sends the login transaction's nonce instead: scoped to this one
+			 * action, issued to this user, and good once.
+			 */
+			if ( isset( $_POST['wp-auth-nonce'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified below.
+				$user_id = \get_current_user_id();
+				$nonce   = \sanitize_text_field( \wp_unslash( $_POST['wp-auth-nonce'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+				if ( 0 === $user_id || ! Login::consume_login_nonce( $user_id, $nonce, Login::GRACE_NAG_NONCE_ACTION ) ) {
+					\wp_send_json_error( null, 403 );
+				}
+
+				User_Helper::set_nag_status( true, $user_id );
+				\wp_send_json_success();
+			}
+
 			check_ajax_referer( 'wp-2fa-dismiss-nag', 'nonce' );
 			User_Helper::set_nag_status( true );
 		}

@@ -137,6 +137,8 @@
 		formData.append( 'nonce', wp2faTestEmail.nonce );
 		formData.append( 'subject', subject );
 		formData.append( 'body', body );
+		// Which template this is, so the server can fill tags only that template's sender resolves.
+		formData.append( 'template', button.getAttribute( 'data-email-template' ) || '' );
 
 		fetch( wp2faTestEmail.ajaxUrl, {
 			method: 'POST',

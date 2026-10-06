@@ -168,9 +168,13 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 		/**
 		 * Build the localization payload for the wizard scripts.
 		 *
+		 * @param string $redirect_after Where to send the user after setup, ahead of
+		 *                               the policy settings - the setup shortcode's
+		 *                               redirect_after attribute. Must be on this site.
+		 *
 		 * @return array<string,mixed>
 		 */
-		private static function get_localized_data(): array {
+		private static function get_localized_data( string $redirect_after = '' ): array {
 			// $user = self::get_target_user();
 			User_Helper::set_user( \wp_get_current_user() );
 			$role = User_Helper::get_user_role();
@@ -283,11 +287,15 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 			// TOTP-specific data.
 			// -------------------------------------------------------
 			$totp_data = array();
-			if ( ! empty( $enabled_methods['totp'] ) && class_exists( '\WP2FA\Methods\TOTP' ) ) {
+			// The wizard is the viewer's own. On someone else's profile there is
+			// nothing for it to set up, and no key of the viewer's belongs there.
+			$own_profile = ! ( \defined( 'IS_PROFILE_PAGE' ) && ! IS_PROFILE_PAGE );
+			if ( $own_profile && ! empty( $enabled_methods['totp'] ) && class_exists( '\WP2FA\Methods\TOTP' ) ) {
 				User_Helper::set_user( \wp_get_current_user() );
+				// A key for setting up - never the one in use. See TOTP::get_setup_key().
 				$totp_data = array(
-					'qrCodeUrl' => TOTP::get_qr_code(),
-					'totpKey'   => TOTP::get_totp_decrypted(),
+					'qrCodeUrl' => TOTP::get_qr_code( TOTP::get_setup_key() ),
+					'totpKey'   => TOTP::get_setup_key_decrypted(),
 				);
 			}
 
@@ -398,6 +406,12 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 				if ( '' !== trim( $global_page_redirect ) ) {
 					$redirect_url = \trailingslashit( \get_site_url() ) . $global_page_redirect;
 				}
+			}
+
+			// The setup shortcode's own destination wins over the policy.
+			$redirect_after = self::validated_redirect( $redirect_after );
+			if ( '' !== $redirect_after ) {
+				$redirect_url = $redirect_after;
 			}
 
 			// -------------------------------------------------------
@@ -513,6 +527,26 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 		}
 
 		/**
+		 * A post-setup destination, if it is on this site.
+		 *
+		 * @param string $url Candidate URL.
+		 *
+		 * @return string The URL, or '' if it is empty or leads elsewhere.
+		 *
+		 * @since 4.2.0
+		 */
+		private static function validated_redirect( string $url ): string {
+			$url = \trim( $url );
+			if ( '' === $url ) {
+				return '';
+			}
+
+			$url = \esc_url_raw( $url, array( 'http', 'https' ) );
+
+			return '' === $url ? '' : (string) \wp_validate_redirect( $url, '' );
+		}
+
+		/**
 		 * Translatable strings for the JS wizard.
 		 *
 		 * @return array<string,string>
@@ -542,6 +576,7 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 				'totpVerifyIntro'          => \wp_kses_post( WP2FA::get_wp2fa_white_label_setting( 'method_verification_totp_pre', true ) ) ?: \__( 'Please type in the one-time code from your authenticator app to finalize setup.', 'wp-2fa' ),
 				'totpSuccess'              => \__( 'TOTP configured successfully!', 'wp-2fa' ),
 				'copyKey'                  => \__( 'Copy key', 'wp-2fa' ),
+				'qrCodeUnavailable'        => \__( 'The QR code image cannot be generated on this server. Enter the key below into your authenticator app by hand instead.', 'wp-2fa' ),
 
 				// Email.
 				'settingUpEmail'           => \__( 'Setting up HOTP (one-time code via email)', 'wp-2fa' ),
@@ -773,7 +808,7 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 			Profile_Section_Renderer::enqueue_assets( true );
 
 			// Enqueue the wizard assets for the frontend context.
-			self::enqueue_frontend_wizard_assets();
+			self::enqueue_frontend_wizard_assets( (string) ( $additional_args['redirect_after'] ?? '' ) );
 
 			Profile_Section_Renderer::render( $user, $additional_args );
 		}
@@ -784,13 +819,26 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 		 * This mirrors what enqueue_assets() does for the admin profile page,
 		 * adapted for frontend shortcode / WooCommerce pages.
 		 *
+		 * @param string $redirect_after Where to send the user after setup, ahead of
+		 *                               the policy settings. Empty for the policy.
+		 *
 		 * @return void
 		 *
 		 * @since 4.0.0
 		 */
-		public static function enqueue_frontend_wizard_assets(): void {
+		public static function enqueue_frontend_wizard_assets( string $redirect_after = '' ): void {
 			static $enqueued = false;
 			if ( $enqueued ) {
+				// The data is already localized - a second setup form on the page.
+				// Its destination still has to reach the wizard.
+				$redirect_after = self::validated_redirect( $redirect_after );
+				if ( '' !== $redirect_after ) {
+					\wp_add_inline_script(
+						self::SCRIPT_HANDLE,
+						'window.wp2faWizardData && ( window.wp2faWizardData.redirectToUrl = ' . \wp_json_encode( $redirect_after ) . ' );',
+						'before'
+					);
+				}
 				return;
 			}
 			$enqueued = true;
@@ -855,7 +903,7 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 			\do_action( WP_2FA_PREFIX . 'wizard_enqueue_assets', $plugin_url, $version, self::SCRIPT_HANDLE );
 
 			// Localized data – attached to the core handle.
-			\wp_localize_script( self::SCRIPT_HANDLE, 'wp2faWizardData', self::get_localized_data() );
+			\wp_localize_script( self::SCRIPT_HANDLE, 'wp2faWizardData', self::get_localized_data( $redirect_after ) );
 
 			// Print wizard templates in the footer.
 			\add_action( 'wp_footer', array( __CLASS__, 'print_wizard_templates_frontend' ) );

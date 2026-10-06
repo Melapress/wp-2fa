@@ -159,6 +159,63 @@
 		}
 	}
 
+	/* ── Companion plugin, offered on the last slide ─── */
+
+	var mlsRequested = false;
+
+	/**
+	 * Install the companion plugin, if the slide offering it was left with its toggle on.
+	 *
+	 * Fired and left to run: the user has already been moved on, and an install that takes
+	 * a few seconds must not hold up the wizard or block finishing it. Failures are
+	 * deliberately silent — this is an optional extra, and the wizard's own outcome does
+	 * not depend on it.
+	 *
+	 * @return void
+	 */
+	function maybeInstallCompanion() {
+		if ( mlsRequested ) {
+			return;
+		}
+
+		var toggle = stepsScreen.querySelector( '[data-mls-toggle]' );
+
+		if ( ! toggle || ! toggle.checked ) {
+			return;
+		}
+
+		if ( ! window.wp2faWizardNew || ! wp2faWizardNew.mlsAction || ! wp2faWizardNew.mlsNonce ) {
+			return;
+		}
+
+		// Once only, however many times the user steps past the slide.
+		mlsRequested = true;
+
+		var body = new URLSearchParams( {
+			action: wp2faWizardNew.mlsAction,
+			nonce: wp2faWizardNew.mlsNonce
+		} );
+
+		window.fetch( wp2faWizardNew.ajaxUrl, {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+			body: body,
+			keepalive: true
+		} ).catch( function () {} );
+	}
+
+	/**
+	 * Whether the slide offering the companion plugin is the one on screen.
+	 *
+	 * @return {boolean}
+	 */
+	function onCompanionPanel() {
+		var panel = panels[ currentStep ];
+
+		return !! ( panel && panel.querySelector( '[data-mls-step]' ) );
+	}
+
 	/* ── Collect form fields ──────────────────── */
 
 	function collectFields() {
@@ -356,10 +413,21 @@
 			if ( continueBtn && continueBtn.disabled ) {
 				return;
 			}
+			if ( onCompanionPanel() ) {
+				maybeInstallCompanion();
+			}
 			nextPanel();
 			return;
 		}
 		if ( e.target.closest( '.js-wizard-finish' ) ) {
+			/*
+			 * Also checked here: the offer sits on the final slide, where the wizard shows
+			 * Finish rather than Continue. Hooking only Continue would mean the toggle did
+			 * nothing in exactly the place it is shown.
+			 */
+			if ( onCompanionPanel() ) {
+				maybeInstallCompanion();
+			}
 			saveWizard( e.target.closest( '.js-wizard-finish' ) );
 		}
 	} );

@@ -44,7 +44,23 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 
 		use Providers;
 
-		public const PASSKEY_DIR = 'includes' . \DIRECTORY_SEPARATOR . 'classes' . \DIRECTORY_SEPARATOR . 'Admin' . \DIRECTORY_SEPARATOR . 'Methods' . \DIRECTORY_SEPARATOR . 'passkeys';
+		/**
+		 * Location of the passkeys assets, relative to the plugin root.
+		 *
+		 * Forward slashes, not DIRECTORY_SEPARATOR: every use of this constant
+		 * concatenates it onto WP_2FA_URL to build a script URL, and a URL takes
+		 * "/" on every platform. Built with DIRECTORY_SEPARATOR it came out with
+		 * backslashes on Windows, and esc_url() strips those rather than converting
+		 * them, because backslash is not in the character set it allows. The four
+		 * passkey scripts were then requested from
+		 * ".../includesclassesAdminMethodspasskeys/assets/js/..." and 404'd, leaving
+		 * passkeys inert on Windows for both the profile and the login screens.
+		 *
+		 * WP_2FA_URL is plugin_dir_url(), which core already normalises to forward
+		 * slashes via wp_normalize_path(), so this simply makes the other half of
+		 * the concatenation agree with it.
+		 */
+		public const PASSKEY_DIR = 'includes/classes/Admin/Methods/passkeys';
 
 		public const METHOD_NAME          = 'passkeys';
 		public const POLICY_SETTINGS_NAME = 'enable_passkeys';
@@ -145,6 +161,11 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 			if ( ! \is_admin() && \function_exists( 'is_user_logged_in' ) && ! \is_user_logged_in() ) {
 				return;
 			}
+
+			if ( ! self::is_enabled( User_Helper::get_user_role( \wp_get_current_user() ) ) ) {
+				return;
+			}
+
 			global $current_screen;
 
 			$woo = '';
@@ -198,6 +219,18 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 						WP_2FA_VERSION,
 						array( 'in_footer' => true )
 					);
+				}
+
+				/*
+				 * Either script asks wp.i18n for its prompts and errors, and wp.i18n only
+				 * has what was registered for the handle - without this, nothing, so
+				 * they stayed in English whatever the site's language. The build makes a
+				 * catalog for each of the two scripts; WordPress picks the one matching
+				 * the file this handle loads.
+				 */
+				\wp_set_script_translations( self::USER_PROFILE_JS_MODULE, 'wp-2fa', WP_2FA_PATH . 'languages' );
+
+				if ( Settings_Utils::string_to_bool( WP2FA::get_wp2fa_general_setting( 'disable_rest' ) ) ) {
 
 					\wp_localize_script(
 						self::USER_PROFILE_JS_MODULE,
@@ -268,7 +301,12 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 				\wp_enqueue_script(
 					self::USER_LOGIN_JS_MODULE,
 					\trailingslashit( WP_2FA_URL ) . \trailingslashit( self::PASSKEY_DIR ) . 'assets/js/user-login.js',
-					array( 'wp-api-fetch', 'wp-dom-ready' ),
+					// jquery is a real dependency of this script, not an optional
+					// extra: it reaches for jQuery in the sign-in handler. wp-login.php
+					// loads jQuery for its own reasons, which hid the omission — but on
+					// a third-party login form that does not, jQuery is undefined, the
+					// handler throws, and the passkey button silently does nothing.
+					array( 'jquery', 'wp-api-fetch', 'wp-dom-ready' ),
 					WP_2FA_VERSION,
 					array( 'in_footer' => true )
 				);
@@ -661,8 +699,9 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys' ) ) {
 				$user = \wp_get_current_user();
 			}
 
-			// User_Helper::set_enabled_method_for_user( self::METHOD_NAME, $user ); .
-			User_Profile::delete_expire_and_enforced_keys( $user->ID );
+			// A passkey does not automatically satisfy the configured 2FA policy.
+			// Preserve grace and lock metadata; reconcile only the current state.
+			User_Helper::update_user_state( $user );
 			User_Helper::set_user_status( $user );
 		}
 

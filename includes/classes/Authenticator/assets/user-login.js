@@ -10,7 +10,7 @@ async function authenticate( nonce) {
 
 	let user_id = document.getElementById('wp-auth-id');
 	if (!user_id) {
-		showError(wp.i18n.__('User ID not found.'));
+		showError(wp.i18n.__('User ID not found.', 'wp-2fa'));
 	} else {
 		user_id = user_id.value;
 	}
@@ -20,12 +20,12 @@ async function authenticate( nonce) {
 	} else if (document.getElementById('authcode')) {
 		token = document.getElementById('authcode').value;
 	} else {
-		showError(wp.i18n.__('Authentication code not found.'));
+		showError(wp.i18n.__('Authentication code not found.', 'wp-2fa'));
 		throw new Error('Authentication code not found.');
 	}
 
 	if ( '' === token.trim() ) {
-		showError(wp.i18n.__('Authentication code can not be empty.'));
+		showError(wp.i18n.__('Authentication code can not be empty.', 'wp-2fa'));
 		throw new Error('Authentication code can not be empty.');
 	}
 
@@ -34,7 +34,7 @@ async function authenticate( nonce) {
 	} else if (document.getElementById('provider')) {
 		provider = document.getElementById('provider').value;
 	} else {
-		showError(wp.i18n.__('Provider is not provided.'));
+		showError(wp.i18n.__('Provider is not provided.', 'wp-2fa'));
 		throw new Error('Provider is not provided.');
 	}
 
@@ -42,12 +42,28 @@ async function authenticate( nonce) {
 		remember_device = true;
 	}
 
+	/*
+	 * Carried from the login form, where core's "Remember Me" was already ticked.
+	 *
+	 * The challenge form keeps the answer in a hidden field because the sign-in finishes
+	 * here, not at wp-login.php — so whatever is not passed on from this point is simply
+	 * lost, and the session is issued with the short lifetime however the box was left.
+	 *
+	 * Not to be confused with remember_device above, which decides whether the challenge
+	 * is asked for again on this device. This one only decides how long the session runs.
+	 */
+	const rememberField = document.getElementById('rememberme');
+	const rememberme = !!rememberField
+		&& '' !== rememberField.value
+		&& '0' !== rememberField.value
+		&& 'false' !== rememberField.value;
+
 	// POST the 2FA token to the validation endpoint.
 	try {
 
 		let login_nonce = document.getElementById('wp-auth-nonce');
 		if (!login_nonce) {
-			showError(wp.i18n.__('Login nonce not found.'));
+			showError(wp.i18n.__('Login nonce not found.', 'wp-2fa'));
 			throw new Error('Login nonce not found.');
 		}
 		login_nonce = login_nonce.value;
@@ -63,6 +79,25 @@ async function authenticate( nonce) {
 			body.remember_device = true;
 		}
 
+		if (rememberme) {
+			body.rememberme = true;
+		}
+
+		/*
+		 * Where the login was asked to go, and whether it is the session-expired
+		 * login inside the editor. The server decides the destination from these,
+		 * as the form-based challenge does; without them it could only guess.
+		 */
+		const redirectField = document.getElementsByName('redirect_to');
+		if (redirectField.length && '' !== redirectField[0].value) {
+			body.redirect_to = redirectField[0].value;
+		}
+
+		const interim = !!document.getElementsByName('interim-login').length || window !== window.parent;
+		if (interim) {
+			body.interim_login = true;
+		}
+
 		const res = await window.fetch(wp2faLogin.restRoot + 'wp-2fa-methods/v1/login/validate', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -70,8 +105,19 @@ async function authenticate( nonce) {
 		});
 		const response = await res.json();
 
+		/*
+		 * A failed attempt spends the transaction, so the server hands back its
+		 * replacement. Without taking it, the next attempt - the right code
+		 * included - goes out with the spent nonce and is refused.
+		 */
+		const freshNonce = response.login_nonce || ( response.data && response.data.login_nonce );
+		const nonceField = document.getElementById('wp-auth-nonce');
+		if ( freshNonce && nonceField ) {
+			nonceField.value = freshNonce;
+		}
+
 		if (!res.ok) {
-			showError(response.message || wp.i18n.__('Authentication failed.'));
+			showError(response.message || wp.i18n.__('Authentication failed.', 'wp-2fa'));
 			loginForm.classList.add('shake');
 			wp_2fa_submit.removeAttribute("disabled");
 			throw new Error(response.message || 'Authentication failed.');
@@ -88,7 +134,13 @@ async function authenticate( nonce) {
 			}
 		}
  
-		if ('' !== response.redirect_to) {
+		if (response.interim_login) {
+			// Signed in again inside the editor: close the login, stay where we were.
+			var someIframe = window.parent.document.getElementById('wp-auth-check-wrap');
+			if (someIframe) {
+				someIframe.parentNode.removeChild(someIframe);
+			}
+		} else if (response.redirect_to && '' !== response.redirect_to) {
 			window.location.href = response.redirect_to;
 		} else {
 
