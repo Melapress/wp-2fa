@@ -2172,7 +2172,12 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 			<script>
 			document.addEventListener('DOMContentLoaded', function() {
 				/* Prevent enabling unconfigured integration methods – keep unchecked and show/hide integration settings */
-				document.querySelectorAll('.wp2fa-sortable-item[data-needs-setup="1"] input[type="checkbox"]').forEach(function(cb) {
+				/*
+				 * Only the method's own on/off switch. A plain "input[type=checkbox]" also matched
+				 * the toggles inside the method settings (e.g. "Allow users to specify their email
+				 * address"), so turning one of those off collapsed the settings it sits in.
+				 */
+				document.querySelectorAll('.wp2fa-sortable-item[data-needs-setup="1"] > .wp2fa-sortable-checkbox input[type="checkbox"]').forEach(function(cb) {
 					cb.addEventListener('change', function(e) {
 						var li = this.closest('.wp2fa-sortable-item');
 						/* Only block if still needs setup (attribute may be removed after verification) */
@@ -2233,7 +2238,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 				});
 
 				/* Also handle integration toggle visibility on checkbox change (methods without extra_settings) */
-				document.querySelectorAll('.wp2fa-sortable-item:not([data-needs-setup]) input[type="checkbox"]').forEach(function(cb) {
+				document.querySelectorAll('.wp2fa-sortable-item:not([data-needs-setup]) > .wp2fa-sortable-checkbox input[type="checkbox"]').forEach(function(cb) {
 					if (cb.dataset.hasExtra) return; /* Already handled above */
 					cb.addEventListener('change', function() {
 						var li = this.closest('.wp2fa-sortable-item');

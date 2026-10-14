@@ -341,7 +341,7 @@ if ( ! class_exists( '\WP2FA\Licensing\Freemius_Provider' ) ) {
 		 *
 		 * @return bool True if it's a trial, false otherwise.
 		 *
-		 * @since 4.2.0
+		 * @since 4.2.1
 		 */
 		public static function is_free(): bool {
 			if ( ! self::is_available() ) {

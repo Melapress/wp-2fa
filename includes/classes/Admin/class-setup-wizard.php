@@ -62,23 +62,35 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 		private static $current_step;
 
 		/**
-		 * Add setup admin page. This is empty on purpose.
+		 * Registers the setup page, without a menu entry.
+		 *
+		 * WordPress refuses admin.php?page=wp-2fa-setup unless the page is
+		 * registered, but the wizard is never reached from the menu - it is
+		 * printed and the request ends on admin_init. It used to be registered
+		 * under the Dashboard with an empty title, which left an invisible item
+		 * between Home and Updates; with no callback, that item linked to
+		 * wp-admin/wp-2fa-setup, which is a 404. A page with no parent is
+		 * registered and reachable, but listed nowhere.
+		 *
+		 * @return void
 		 *
 		 * @since 2.8.0
+		 * @since 4.3.0 - Registered without a parent, so no menu item is shown.
 		 */
 		public static function admin_menus() {
-			\add_dashboard_page( '', '', 'read', 'wp-2fa-setup', '' );
+			\add_submenu_page( '', \esc_html__( 'WP 2FA setup wizard', 'wp-2fa' ), '', 'read', 'wp-2fa-setup', '__return_null' );
 		}
 
 		/**
-		 * Adding menus for multisite install
+		 * Registers the setup page in the network admin, without a menu entry.
 		 *
 		 * @return void
 		 *
 		 * @since 2.2.0
+		 * @since 4.3.0 - Registered without a parent, so no menu item is shown.
 		 */
 		public static function network_admin_menus() {
-			\add_dashboard_page( 'index.php', '', 'read', 'wp-2fa-setup', '' );
+			self::admin_menus();
 		}
 
 		/**
