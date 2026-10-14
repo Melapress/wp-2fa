@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'wp-white-security/wp-2fa',
-        'pretty_version' => '4.2.0',
-        'version' => '4.2.0.0',
+        'pretty_version' => '4.2.1',
+        'version' => '4.2.1.0',
         'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'freemius/wordpress-sdk' => array(
-            'pretty_version' => '2.13.4',
-            'version' => '2.13.4.0',
-            'reference' => 'fa43eb92ae9dffa0d9f5ae11b5a1739bd7222308',
+            'pretty_version' => '2.13.5',
+            'version' => '2.13.5.0',
+            'reference' => null,
             'type' => 'library',
             'install_path' => __DIR__ . '/../freemius/wordpress-sdk',
             'aliases' => array(),
@@ -38,8 +38,8 @@
             ),
         ),
         'wp-white-security/wp-2fa' => array(
-            'pretty_version' => '4.2.0',
-            'version' => '4.2.0.0',
+            'pretty_version' => '4.2.1',
+            'version' => '4.2.1.0',
             'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',

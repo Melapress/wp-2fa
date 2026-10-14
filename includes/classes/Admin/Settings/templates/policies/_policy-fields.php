@@ -174,6 +174,7 @@ foreach ( $all_methods as $method ) {
 $managed_checkbox_keys[] = Backup_Codes::get_settings_name();
 $managed_checkbox_keys[] = 'enable-email-backup';
 $managed_checkbox_keys[] = 'specify-backup-email';
+$managed_checkbox_keys[] = 'specify-email_hotp';
 $managed_checkbox_keys[] = Password_Reset_2FA::PASSWORD_RESET_SETTINGS_NAME;
 $managed_checkbox_keys[] = Re_Login_2FA::RE_LOGIN_SETTINGS_NAME;
 $managed_checkbox_keys[] = 'hide_remove_button';

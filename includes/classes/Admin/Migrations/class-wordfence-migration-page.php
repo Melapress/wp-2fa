@@ -46,7 +46,9 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 		public const PROMPT_ANSWERED = 'wordfence_migration_prompt_answered';
 
 		/**
-		 * Set once they have acknowledged that every user has moved across.
+		 * Legacy completion acknowledgement used to hide the migrator menu.
+		 *
+		 * Retained for administrators who acknowledged completion in an earlier version.
 		 *
 		 * @var string
 		 */
@@ -119,8 +121,8 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 		/**
 		 * Whether the menu entry should still be there at all.
 		 *
-		 * Once the administrator has confirmed that everyone has moved, the screen has served
-		 * its purpose and the entry goes away rather than sitting there for good.
+		 * Existing completion acknowledgements remain respected. Otherwise, the entry stays
+		 * available while Wordfence Login Security is active; init() checks its availability.
 		 *
 		 * @return bool
 		 *
@@ -218,6 +220,22 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 		}
 
 		/**
+		 * Returns the migration guide text with a link that opens in a new tab.
+		 *
+		 * @return string Escaped text containing the migration guide link.
+		 *
+		 * @since 4.2.0.1
+		 */
+		private static function get_guide_copy(): string {
+			return \sprintf(
+				/* translators: 1: opening link tag, 2: closing link tag. */
+				\esc_html__( 'Want to learn more? Read our guide on %1$smigrating from Wordfence Login Security to WP 2FA%2$s.', 'wp-2fa' ),
+				'<a href="' . \esc_url( 'https://melapress.com/support/kb/migrate-2fa-from-wordfence-login-security-to-wp-2fa/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=wordfence_migrator' ) . '" target="_blank" rel="noopener noreferrer">',
+				'</a>'
+			);
+		}
+
+		/**
 		 * The setup wizard's Wordfence slide.
 		 *
 		 * Rendered as radios rather than buttons so the wizard's existing Finish handler picks
@@ -234,6 +252,8 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 			<?php foreach ( self::get_offer_copy() as $paragraph ) { ?>
 				<p><?php echo \esc_html( $paragraph ); ?></p>
 			<?php } ?>
+
+			<p><?php echo \wp_kses_post( self::get_guide_copy() ); ?></p>
 
 			<p><strong><?php \esc_html_e( 'Would you like to enable automatic migration?', 'wp-2fa' ); ?></strong></p>
 
@@ -416,12 +436,6 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 				return '';
 			}
 
-			if ( isset( $_POST['wp2fa_wfls_acknowledge'] ) ) {
-				Settings_Utils::update_option( self::COMPLETION_ACKNOWLEDGED, true );
-
-				return \esc_html__( 'Thanks — the migrator has been put away.', 'wp-2fa' );
-			}
-
 			Wordfence_Login_Security::set_enabled( isset( $_POST['wp2fa_wfls_enabled'] ) );
 			Settings_Utils::update_option( self::PROMPT_ANSWERED, true );
 
@@ -456,18 +470,16 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 
 							<?php if ( $complete ) { ?>
 								<div class="settings-card wp2fa-wfls-complete">
-									<p><strong><?php \esc_html_e( 'All users have been migrated from Wordfence Login Security to WP 2FA.', 'wp-2fa' ); ?></strong></p>
-									<p>
-										<button type="submit" name="wp2fa_wfls_acknowledge" value="1" class="button button-primary">
-											<?php \esc_html_e( 'OK', 'wp-2fa' ); ?>
-										</button>
-									</p>
+									<div class="notice-tip" role="note">
+										<span class="notice-tip-icon" aria-hidden="true">i</span>
+										<p class="notice-tip-body"><?php \esc_html_e( 'All users\' 2FA configuration and backup codes have migrated to WP 2FA. You can now deactivate and uninstall the Wordfence Login Security plugin.', 'wp-2fa' ); ?></p>
+									</div>
 								</div>
 							<?php } else { ?>
 								<div class="settings-card wp2fa-wfls-help-card">
 									<div class="notice-tip wp2fa-wfls-help" role="note">
 										<span class="notice-tip-icon" aria-hidden="true">i</span>
-										<p class="notice-tip-body"><?php echo \esc_html( \implode( ' ', self::get_offer_copy() ) ); ?></p>
+										<p class="notice-tip-body"><?php echo \esc_html( \implode( ' ', self::get_offer_copy() ) ) . ' ' . \wp_kses_post( self::get_guide_copy() ); ?></p>
 									</div>
 								</div>
 							<?php } ?>
