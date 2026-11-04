@@ -130,6 +130,12 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 			exit;
 		}
 
+		/** Keep submenu screen IDs independent of translations and notification badges. */
+		private static function stabilize_menu_hook(): void {
+			global $admin_page_hooks;
+			$admin_page_hooks[ self::TOP_MENU_SLUG ] = 'wp-2fa';
+		}
+
 		/**
 		 * Create admin menu entry and settings page
 		 */
@@ -151,6 +157,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				' data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
 				81
 			);
+			self::stabilize_menu_hook();
 
 			if ( $use_new_interface ) {
 				// New interface: "Policies New" takes the place of the default policies page.
@@ -325,6 +332,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Page' ) ) {
 				'data:image/svg+xml;base64,' . base64_encode( file_get_contents( WP_2FA_PATH . 'dist/images/wp-2fa-white-icon20x28.svg' ) ),
 				81
 			);
+			self::stabilize_menu_hook();
 
 			if ( $use_new_interface ) {
 				// New interface: "Policies New" takes the place of the default policies page.

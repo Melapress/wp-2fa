@@ -53,6 +53,30 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 		private const NONCE_ACTION = 'wp2fa_wizard_new_nonce';
 
 		/**
+		 * Query argument that opens the wizard on a site that is already configured.
+		 *
+		 * @since 4.3.0
+		 */
+		public const RELAUNCH_ARG = 'relaunch';
+
+		/**
+		 * Where the wizard is launched from on purpose - the settings and the wizard-skipped notice.
+		 *
+		 * @return string
+		 *
+		 * @since 4.3.0
+		 */
+		public static function launch_url(): string {
+			return \add_query_arg(
+				array(
+					'page'             => 'wp-2fa-setup',
+					self::RELAUNCH_ARG => '1',
+				),
+				\network_admin_url( 'admin.php' )
+			);
+		}
+
+		/**
 		 * Whether this class should handle the wizard request.
 		 *
 		 * @return bool
@@ -169,7 +193,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Setup_Wizard_New' ) ) {
 					'methodsRequiredText' => \esc_html__( 'Please select at least one 2FA method', 'wp-2fa' ),
 					'configure2fa'        => \esc_url( Settings::get_setup_page_link() ),
 					'settingsUrl'         => \esc_url( Settings::get_settings_page_link() ),
-					'skipConfirmMessage'  => \__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the <b>WP 2FA</b> entry in your WordPress dashboard menu.', 'wp-2fa' ),
+					// Launched on purpose, closing it applies nothing: the settings stay as they are.
+					'skipConfirmMessage'  => isset( $_GET[ self::RELAUNCH_ARG ] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						? \__( 'If you close this wizard now, nothing you changed in it is saved and your current settings stay as they are.', 'wp-2fa' )
+						: \__( 'If you cancel this wizard, the default plugin settings will be applied. You can always configure the plugin settings and two-factor authentication policies at a later stage from the <b>WP 2FA</b> entry in your WordPress dashboard menu.', 'wp-2fa' ),
 					'skipConfirmOk'       => \esc_html__( 'OK, close the wizard', 'wp-2fa' ),
 					'skipConfirmCancel'   => \esc_html__( 'Continue with the wizard', 'wp-2fa' ),
 					// The companion-plugin install, fired in the background from the last slide.

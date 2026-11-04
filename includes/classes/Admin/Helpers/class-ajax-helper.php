@@ -173,7 +173,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 		}
 
 		/**
-		 * Unlock users accounts if they have overrun grace period it is also used in AJAX calls
+		 * Unlock users and reset expired grace periods and their setup reminders. Also used in AJAX calls.
 		 *
 		 * @param  int $user_id User ID.
 		 *
@@ -220,6 +220,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\Ajax_Helper' ) ) {
 
 				User_Helper::remove_meta( WP_2FA_PREFIX . 'locked_account_notification', $user_id );
 				User_Helper::remove_grace_period( $user_id );
+				User_Helper::remove_nag_status( $user_id );
 				User_Helper::remove_meta( User_Helper::USER_LOCKED_STATUS, $user_id );
 
 				User_Helper::set_user_expiry_date( (string) $grace_expiry, $user_id );

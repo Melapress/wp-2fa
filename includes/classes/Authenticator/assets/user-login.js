@@ -116,23 +116,16 @@ async function authenticate( nonce) {
 			nonceField.value = freshNonce;
 		}
 
-		if (!res.ok) {
-			showError(response.message || wp.i18n.__('Authentication failed.', 'wp-2fa'));
-			loginForm.classList.add('shake');
-			wp_2fa_submit.removeAttribute("disabled");
-			throw new Error(response.message || 'Authentication failed.');
+		if (!res.ok || true !== response.status) {
+			const redirecting = typeof response.redirect_to === 'string' && '' !== response.redirect_to;
+			showError(response.message || wp.i18n.__('Authentication failed.', 'wp-2fa'), !redirecting);
+			if (redirecting) {
+				window.location.href = response.redirect_to;
+				return;
+			}
+			throw new Error('2FA authentication failed.');
 		}
 
-		if (true !== response.status) {
-			showError(response.message);
-			if ('' !== response.redirect_to) {
-				window.location.href = response.redirect_to;
-			} else {
-				loginForm.classList.add('shake');
-				wp_2fa_submit.removeAttribute("disabled");
-				throw new Error('2FA authentication failed.');
-			}
-		}
  
 		if (response.interim_login) {
 			// Signed in again inside the editor: close the login, stay where we were.
@@ -171,13 +164,16 @@ async function authenticate( nonce) {
  * Show error message.
  *
  * @param {string} message Error message.
+ * @param {boolean} recoverable Whether the user can retry on this form.
  */
-function showError(message) {
+function showError(message, recoverable = true) {
 	const loginForm = document.getElementById('loginform');
 	loginForm.classList.remove('shake');
 
 	let wp_2fa_submit = document.getElementById('wp-submit');
-	wp_2fa_submit.removeAttribute("disabled");
+	if (recoverable) {
+		wp_2fa_submit.removeAttribute("disabled");
+	}
 
 
 	if ( document.getElementById('login_error') ) {
@@ -196,6 +192,14 @@ function showError(message) {
 	}
 
 	loginForm.classList.add('shake');
+	if (recoverable) {
+		const codeInput = Array.from(loginForm.querySelectorAll(
+			'input[name="authcode"], input[name="wp-2fa-backup-code"], #authcode'
+		)).find(input => !input.disabled && !input.readOnly && input.getClientRects().length > 0);
+		if (codeInput) {
+			codeInput.focus();
+		}
+	}
 }
 
 function onClick() {
@@ -207,11 +211,17 @@ function onClick() {
 		// Handle the form data
 		event.preventDefault();
 		event.target.setAttribute("disabled", true);
-		authenticate( nonce );
+		authenticate( nonce ).catch(() => {
+			// Validation errors have already restored the form. Network/JSON failures also allow a retry.
+			if (wp_2fa_submit.disabled) {
+				showError(wp.i18n.__('Authentication failed. Please try again.', 'wp-2fa'));
+			}
+		});
 	});
 }
 
 window.wp.domReady(async () => {
+	// The code field gets focus from code-focus.js, which also loads without REST.
 	let wp_2fa_submit = document.getElementById('wp-submit');
 	if (wp_2fa_submit) {
 		onClick();

@@ -6,7 +6,7 @@ License URI: https://www.gnu.org/licenses/gpl.html
 Tags: 2FA, two-factor authentication, 2-factor authentication, WordPress authentication, Google Authenticator
 Requires at least: 5.7
 Tested up to: 7.1
-Stable tag: 4.2.1
+Stable tag: 4.3.0
 Requires PHP: 7.4.0
 
 Get better WordPress login security; add two-factor authentication (2FA) for all your users with this easy-to-use plugin.
@@ -146,6 +146,23 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 11. In the user profile, users only have a few 2FA options, so it is not confusing for them, and everything is self-explanatory.
 
 == Changelog ==
+
+= 4.3.0 (2026-11-04) =
+
+**Functionality & plugin improvements**
+
+* Added a dismissible notice to remind users of their setup status if they skip the initial configuration wizard.
+* The one-time code field now receives focus automatically during login, so users can enter their code without clicking the field.
+* Made the backup code messages "Send via email" and "Codes sent to your email." available for translation.
+* Updated the setup wizard so users who install MelaPress Login Security through it are redirected to the WP 2FA plugin page.
+* Added a new option under Settings -> Advanced settings that allows users to restart the setup wizard.
+
+**Bug fixes**
+
+* Fixed the fatal error "Role provided does not exist." during login when checking 2FA settings for a role that does not exist.
+* Fixed missing 2FA setup reminders on the first login after an administrator unlocks a user and resets their grace period. The configured reminder page or dashboard notice now appears immediately.
+* Fixed a redirect loop that prevented new WooCommerce customers on multisite subsites from accessing the required 2FA setup page.
+* Fixed silent failures in the email 2FA setup wizard when sending or resending a setup email returns an unexpected server response. An error message is now shown.
 
 = 4.2.1 (2026-10-14) =
 

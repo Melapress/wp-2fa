@@ -1285,6 +1285,21 @@
 	}
 
 	/**
+	 * Parse a WP AJAX response, retaining JSON errors but rejecting invalid or HTTP-failed successes.
+	 *
+	 * @param {Response} response The fetch response.
+	 * @return {Promise<Object>} The validated WP AJAX response.
+	 */
+	function parseAjaxResponse( response ) {
+		return response.json().then( function ( data ) {
+			if ( ! data || typeof data.success !== 'boolean' || ( ! response.ok && data.success ) ) {
+				throw new Error( 'Invalid AJAX response.' );
+			}
+			return data;
+		} );
+	}
+
+	/**
 	 * Extract an error message from a WP AJAX JSON response.
 	 *
 	 * @param {Object} data            The parsed JSON response.
@@ -1292,9 +1307,12 @@
 	 * @return {string} The error message.
 	 */
 	function extractAjaxError( data, fallbackMessage ) {
-		return ( data.data && ( data.data.error || data.data.message ) )
-			? ( data.data.error || data.data.message )
-			: ( fallbackMessage || 'An error occurred.' );
+		var details = data && data.data;
+		if ( Array.isArray( details ) ) {
+			details = details[ 0 ];
+		}
+		var message = typeof details === 'string' ? details : details && ( details.error || details.message );
+		return typeof message === 'string' && message ? message : ( fallbackMessage || 'An error occurred.' );
 	}
 
 	/**
@@ -1368,6 +1386,7 @@
 			isValidEmail: isValidEmail,
 			addSpinner: addSpinner,
 			removeSpinner: removeSpinner,
+			parseAjaxResponse: parseAjaxResponse,
 			extractAjaxError: extractAjaxError,
 			showInlineError: showInlineError
 		}

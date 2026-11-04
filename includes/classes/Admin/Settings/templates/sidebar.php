@@ -75,7 +75,7 @@ if ( class_exists( '\WP2FA\Licensing\Licensing_Factory' ) ) {
 <?php } else { ?>
 
 	<!-- Free: Upgrade banner -->
-	<div class="mp-sidebar-card mp-sidebar-upgrade">
+	<div class="mp-sidebar-card mp-sidebar-upgrade" style="<?php echo \esc_attr( \WP2FA\Admin\Helpers\WP_Helper::get_black_friday_ribbon_style() ); ?>">
 		<div class="mp-sidebar-upgrade-header">
 			<img src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>" alt="WP 2FA" class="mp-sidebar-upgrade-logo">
 			<span class="mp-sidebar-upgrade-title"><?php \esc_html_e( 'WP2FA Premium', 'wp-2fa' ); ?></span>

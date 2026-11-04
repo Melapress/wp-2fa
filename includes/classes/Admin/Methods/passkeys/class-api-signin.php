@@ -114,7 +114,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Signin' ) ) {
 				'challenge'        => $challenge,
 				'rpId'             => Web_Authn::get_relying_party_id(),
 				'allowCredentials' => $allow_credentials,
-				'userVerification' => 'preferred',
+				'userVerification' => 'required',
 				'timeout'          => 5 * 60 * 1000,
 				// No 'uid': the client never needs it, and returning it only when the
 				// account has a passkey told anyone asking which accounts exist.
