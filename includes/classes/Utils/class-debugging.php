@@ -52,6 +52,25 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		private static $pending = array();
 
 		/**
+		 * Whether setting up the WordPress filesystem failed this request: not tried again.
+		 *
+		 * @var bool
+		 *
+		 * @since 4.3.0
+		 */
+		private static $filesystem_failed = false;
+
+		/**
+		 * Whether this request's logs may be written: the directory's protection files are in
+		 * place. Null until checked (write_to_log()).
+		 *
+		 * @var bool|null
+		 *
+		 * @since 4.3.0
+		 */
+		private static $protected = null;
+
+		/**
 		 * Registers debug log maintenance.
 		 *
 		 * @return void
@@ -135,7 +154,6 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * @since 1.4.2
 		 */
 		private static function write_to_log( $data, $override = false ) {
-			static $maintained = false;
 
 			/*
 			 * Once per request, not once per line. Both used to run for every line
@@ -148,10 +166,14 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 			 * to a botched restore, a sync, a tidy-up - would otherwise stay
 			 * unprotected for as long as the site keeps logging into it.
 			 */
-			if ( ! $maintained ) {
-				$maintained = true;
+			if ( null === self::$protected ) {
 				self::cleanup_logs();
-				self::ensure_directory_protection();
+				self::$protected = self::ensure_directory_protection();
+			}
+
+			// Without its protection a log could be read from the web: nothing is written then.
+			if ( ! self::$protected ) {
+				return false;
 			}
 
 			/*
@@ -217,14 +239,16 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * @since 4.2.0
 		 */
 		private static function ensure_directory_protection(): bool {
-			global $wp_filesystem;
-
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			WP_Filesystem();
-
 			$dir = self::get_logging_dir_path();
 
 			if ( ! is_dir( $dir ) && false === wp_mkdir_p( $dir ) ) {
+				return false;
+			}
+
+			// The WordPress filesystem when it can be set up; otherwise PHP itself, as the log is
+			// written, if it may write here. Neither: not protected.
+			$filesystem = self::filesystem();
+			if ( null === $filesystem && ! \wp_is_writable( $dir ) ) {
 				return false;
 			}
 
@@ -239,8 +263,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 			foreach ( $expected as $name => $contents ) {
 				$path = $dir . $name;
 
-				if ( ! $wp_filesystem->exists( $path ) ) {
-					$ok = $wp_filesystem->put_contents( $path, $contents, FS_CHMOD_FILE ) && $ok;
+				if ( ! ( null !== $filesystem ? $filesystem->exists( $path ) : \file_exists( $path ) ) ) {
+					$ok = self::put_file( $filesystem, $path, $contents ) && $ok;
 					continue;
 				}
 
@@ -251,12 +275,92 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 				 * close it.
 				 */
 				if ( '.htaccess' === $name
-					&& File_Writer::LEGACY_HTACCESS === trim( (string) $wp_filesystem->get_contents( $path ) ) ) {
-					$ok = $wp_filesystem->put_contents( $path, $contents, FS_CHMOD_FILE ) && $ok;
+					&& File_Writer::LEGACY_HTACCESS === trim( (string) ( null !== $filesystem ? $filesystem->get_contents( $path ) : @\file_get_contents( $path ) ) ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+					$ok = self::put_file( $filesystem, $path, $contents ) && $ok;
 				}
 			}
 
 			return $ok;
+		}
+
+		/**
+		 * The WordPress filesystem, if it can be set up; null if not. A failed setup is not tried
+		 * again in the same request.
+		 *
+		 * WP_Filesystem() can fail (an FTP or SSH method without working credentials, a missing
+		 * extension): it then returns false or null, and may still leave an object behind that
+		 * is not connected. Nothing asks for credentials here: a log line must never stop a page.
+		 *
+		 * @return \WP_Filesystem_Base|null
+		 *
+		 * @since 4.3.0
+		 */
+		private static function filesystem() {
+			global $wp_filesystem;
+
+			if ( self::usable( $wp_filesystem ) ) {
+				return $wp_filesystem;
+			}
+			if ( self::$filesystem_failed ) {
+				return null;
+			}
+
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			if ( WP_Filesystem() && self::usable( $wp_filesystem ) ) {
+				return $wp_filesystem;
+			}
+
+			self::$filesystem_failed = true;
+
+			return null;
+		}
+
+		/**
+		 * Whether a filesystem object can be used: one, and connected without errors.
+		 *
+		 * @param mixed $filesystem - What $wp_filesystem holds.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.3.0
+		 */
+		private static function usable( $filesystem ): bool {
+			return $filesystem instanceof \WP_Filesystem_Base && ! ( \is_wp_error( $filesystem->errors ) && $filesystem->errors->has_errors() );
+		}
+
+		/**
+		 * Writes a whole file: through the WordPress filesystem, or with PHP itself when there is none.
+		 *
+		 * @param \WP_Filesystem_Base|null $filesystem - The filesystem, or null.
+		 * @param string                   $path       - The file.
+		 * @param string                   $contents   - What it holds.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.3.0
+		 */
+		private static function put_file( $filesystem, string $path, string $contents ): bool {
+			if ( null !== $filesystem ) {
+				return (bool) $filesystem->put_contents( $path, $contents, self::file_mode() );
+			}
+
+			$written = false !== @\file_put_contents( $path, $contents ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			if ( $written ) {
+				@\chmod( $path, self::file_mode() ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_chmod
+			}
+
+			return $written;
+		}
+
+		/**
+		 * The mode for files written: FS_CHMOD_FILE, which only a WP_Filesystem() that worked defines.
+		 *
+		 * @return int
+		 *
+		 * @since 4.3.0
+		 */
+		private static function file_mode(): int {
+			return \defined( 'FS_CHMOD_FILE' ) ? (int) FS_CHMOD_FILE : ( \fileperms( ABSPATH . 'index.php' ) & 0777 | 0644 );
 		}
 
 		/**
@@ -271,12 +375,7 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * @since 1.4.2
 		 */
 		private static function write_to_file( $filename, $content, $override = false ) {
-			global $wp_filesystem;
-
-			if ( ! $wp_filesystem instanceof \WP_Filesystem_Base ) {
-				require_once ABSPATH . 'wp-admin/includes/file.php';
-				WP_Filesystem();
-			}
+			$filesystem = self::filesystem();
 
 			$logging_dir = self::get_logging_dir_path();
 
@@ -290,8 +389,8 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 
 			$filepath = $logging_dir . $filename;
 			if ( $override ) {
-				$result = $wp_filesystem->put_contents( $filepath, $content, FS_CHMOD_FILE );
-			} elseif ( $wp_filesystem instanceof \WP_Filesystem_Direct || \wp_is_writable( $logging_dir ) ) {
+				$result = ( null !== $filesystem || \wp_is_writable( $logging_dir ) ) && self::put_file( $filesystem, $filepath, $content );
+			} elseif ( $filesystem instanceof \WP_Filesystem_Direct || \wp_is_writable( $logging_dir ) ) {
 				/*
 				 * A real append, for a new log as much as for an existing one.
 				 * Checking for the file and then writing it let two requests both
@@ -306,11 +405,12 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 				$is_new = ! \file_exists( $filepath );
 				$result = false !== @file_put_contents( $filepath, $content, FILE_APPEND | LOCK_EX ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 				if ( $result && $is_new ) {
-					@chmod( $filepath, FS_CHMOD_FILE ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_chmod
+					@chmod( $filepath, self::file_mode() ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_chmod
 				}
 			}
 
-			if ( ! $result && ! $override && ! $wp_filesystem instanceof \WP_Filesystem_Direct ) {
+			// No filesystem either: the line is dropped, never the page.
+			if ( ! $result && ! $override && null !== $filesystem && ! $filesystem instanceof \WP_Filesystem_Direct ) {
 				/*
 				 * PHP cannot write here itself, which leaves the FTP or SSH
 				 * filesystem - no append and no lock. Reading the log and writing it back lost a
@@ -339,19 +439,18 @@ if ( ! class_exists( '\WP2FA\Utils\Debugging' ) ) {
 		 * @since 4.2.0
 		 */
 		public static function flush_pending() {
-			global $wp_filesystem;
-
 			$pending        = self::$pending;
 			self::$pending  = array();
 			$request_suffix = '-' . \strtolower( \wp_generate_password( 12, false, false ) );
+			$filesystem     = self::filesystem();
 
-			if ( empty( $pending ) || ! $wp_filesystem instanceof \WP_Filesystem_Base ) {
+			if ( empty( $pending ) || null === $filesystem ) {
 				return;
 			}
 
 			foreach ( $pending as $filename => $content ) {
 				$filepath = self::get_logging_dir_path() . \preg_replace( '/\.log$/', $request_suffix . '.log', $filename );
-				$wp_filesystem->put_contents( $filepath, $content, FS_CHMOD_FILE );
+				$filesystem->put_contents( $filepath, $content, self::file_mode() );
 			}
 		}
 

@@ -139,7 +139,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\MLS_Cross_Sell' ) ) {
 		}
 
 		/**
-		 * Installs the plugin when it is missing, then activates it.
+		 * Installs the plugin when it is missing, then activates it without leaving WP 2FA.
 		 *
 		 * @return true|\WP_Error True once the plugin is active.
 		 *
@@ -182,6 +182,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\MLS_Cross_Sell' ) ) {
 
 			if ( \is_wp_error( $activated ) ) {
 				return $activated;
+			}
+
+			// A companion activation must not take the user away from WP 2FA.
+			if ( defined( 'MLS_PREFIX' ) ) {
+				$redirect_option = MLS_PREFIX . '_redirect_to_settings';
+				\delete_site_option( $redirect_option );
+				if ( \get_site_option( $redirect_option, false ) ) {
+					return new \WP_Error( 'wp2fa_mls_redirect_failed', \__( 'An error occurred. Please try again.', 'wp-2fa' ) );
+				}
 			}
 
 			return true;

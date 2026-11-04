@@ -27,6 +27,27 @@ if ( ! class_exists( '\WP2FA\Utils\Request_Utils' ) ) {
 	class Request_Utils {
 
 		/**
+		 * Require a POST body with string fields before processing sensitive AJAX input.
+		 *
+		 * Missing fields remain the caller's responsibility. Query parameters and
+		 * cookies must never supply credentials or nonces for these requests.
+		 *
+		 * @param string[] $fields Fields the handler reads from the POST body.
+		 * @return void
+		 */
+		public static function require_post_fields( array $fields ): void {
+			if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
+				\wp_send_json_error( new \WP_Error( 405, \esc_html__( 'This action requires POST.', 'wp-2fa' ) ), 405 );
+			}
+
+			foreach ( $fields as $field ) {
+				if ( isset( $_POST[ $field ] ) && ! is_string( $_POST[ $field ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Validated by the caller after transport validation.
+					\wp_send_json_error( new \WP_Error( 400, \esc_html__( 'Invalid request field.', 'wp-2fa' ) ), 400 );
+				}
+			}
+		}
+
+		/**
 		 * Extracts the IP address for the currently browsing user.
 		 *
 		 * Forwarded addresses are trusted only from explicitly configured proxies.

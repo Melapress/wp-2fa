@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace WP2FA\Admin;
 
 use WP2FA\WP2FA;
+use WP2FA\Admin\Helpers\WP_Helper;
 use WP2FA\Licensing\Licensing_Factory;
 
 /*
@@ -150,7 +151,7 @@ if ( ! class_exists( '\WP2FA\Admin\Premium_Features' ) ) {
 					color: #646970;
 				}
 			</style>
-			<div id="wp-2fa-side-banner" class="mp-sidebar-card mp-sidebar-upgrade">
+			<div id="wp-2fa-side-banner" class="mp-sidebar-card mp-sidebar-upgrade" style="<?php echo \esc_attr( WP_Helper::get_black_friday_ribbon_style() ); ?>">
 				<div class="mp-sidebar-upgrade-header">
 					<img src="<?php echo \esc_url( WP_2FA_URL . 'dist/images/wp-2fa-color_opt.png' ); ?>" alt="WP 2FA" class="mp-sidebar-upgrade-logo">
 					<span class="mp-sidebar-upgrade-title"><?php \esc_html_e( 'WP2FA Premium', 'wp-2fa' ); ?></span>

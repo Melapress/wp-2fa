@@ -604,6 +604,9 @@ if ( ! class_exists( '\WP2FA\Admin\Wizard_Integration' ) ) {
 				'copied'                   => \__( 'Copied!', 'wp-2fa' ),
 				'downloadBackupCodes'      => \__( 'Download', 'wp-2fa' ),
 				'printBackupCodes'         => \__( 'Print', 'wp-2fa' ),
+				'sendBackupCodesEmail'     => \__( 'Send via email', 'wp-2fa' ),
+				'backupCodesEmailSent'     => \__( 'Codes sent to your email.', 'wp-2fa' ),
+				'backupCodesEmailError'    => \__( 'Failed to send email.', 'wp-2fa' ),
 				'imReadyClose'             => \__( 'I\'m ready, close the wizard', 'wp-2fa' ),
 				'skipBackupMethod'         => \__( 'I\'ll set this up later', 'wp-2fa' ),
 

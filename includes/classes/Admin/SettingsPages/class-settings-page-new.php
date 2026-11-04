@@ -554,6 +554,10 @@ if ( ! class_exists( '\WP2FA\Admin\SettingsPages\Settings_Page_New' ) ) {
 					'id'    => 'generic-settings',
 					'title' => \esc_html__( 'General settings', 'wp-2fa' ),
 				),
+				'advanced-settings'      => array(
+					'id'    => 'advanced-settings',
+					'title' => \esc_html__( 'Advanced settings', 'wp-2fa' ),
+				),
 			);
 
 

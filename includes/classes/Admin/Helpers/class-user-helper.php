@@ -30,6 +30,7 @@ use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Controllers\Settings;
 use WP2FA\Licensing\Licensing_Factory;
 use WP2FA\Authenticator\Authentication;
+use WP2FA\Authenticator\Login;
 use WP2FA\Admin\Helpers\Email_Templates;
 use WP2FA\Extensions\Zero_Setup_Email\Zero_Setup_Email;
 
@@ -321,7 +322,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			self::set_proper_user( $user );
 
 			// Sanitize the method to ensure it's a valid string.
-			$method = \sanitize_text_field( $method );
+			$method          = \sanitize_text_field( $method );
+			$previous_method = self::get_enabled_method_for_user( self::get_user() );
 
 			/*
 			 * Fires before the user method is set.
@@ -334,6 +336,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			\do_action( WP_2FA_PREFIX . 'before_method_been_set', self::get_enabled_method_for_user( self::get_user() ), self::get_user() );
 
 			$set_method = self::set_meta( self::ENABLED_METHODS_META_KEY, $method );
+			if ( false !== $set_method && ! empty( $previous_method ) && $previous_method !== $method ) {
+				// A login started with the replaced factor must start again.
+				Login::delete_login_nonce( self::$user->ID );
+			}
 
 			/*
 			 * Fires when the user method is set.
@@ -371,6 +377,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 			\do_action( WP_2FA_PREFIX . 'before_method_is_removed', self::get_enabled_method_for_user( self::get_user() ), self::get_user() );
 
 			self::remove_meta( self::ENABLED_METHODS_META_KEY, self::$user );
+			Login::delete_login_nonce( self::$user->ID );
 
 			/*
 			 * Fires after the user method is removed.
@@ -385,18 +392,25 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\User_Helper' ) ) {
 				if ( Extensions_Loader::use_proxytron() ) {
 					$user_blog_id = 1;
 					if ( WP_Helper::is_multisite() ) {
-						$user_blog_id = \get_active_blog_for_user( self::$user->ID )->blog_id;
+						$user_blog = \get_active_blog_for_user( self::$user->ID );
+						if ( ! $user_blog ) {
+							// A network user without a site has no site licence to update.
+							return;
+						}
+						$user_blog_id = $user_blog->blog_id;
 					}
-					// Assignment inside condition is intentional to capture the
-					// current blog id and compare in one step; ignore the PHPCS
-					// assignment-in-condition sniff here.
-					if ( ( $current_blog = \get_current_blog_id() ) !== $user_blog_id ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found, Squiz.PHP.DisallowMultipleAssignments.FoundInControlStructure
-						if ( WP_Helper::is_multisite() ) {
+					$current_blog = \get_current_blog_id();
+					if ( $current_blog !== $user_blog_id ) {
+						$switched = WP_Helper::is_multisite() && $current_blog !== (int) $user_blog_id;
+						if ( $switched ) {
 							\switch_to_blog( $user_blog_id );
 						}
-						User_Licensing::method_has_been_set();
-						if ( WP_Helper::is_multisite() ) {
-							\switch_to_blog( $current_blog );
+						try {
+							User_Licensing::method_has_been_set();
+						} finally {
+							if ( $switched ) {
+								\restore_current_blog();
+							}
 						}
 					}
 				}

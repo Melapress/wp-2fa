@@ -169,7 +169,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\API_Register' ) ) {
 					$client_data_json,
 					new Byte_Buffer( $attestation_object ),
 					$challenge,
-					false, // $this->is_user_verification_required(),
+					true, // Match the user verification required by the registration options.
 				);
 
 				$data = array(

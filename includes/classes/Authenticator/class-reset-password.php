@@ -52,6 +52,13 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 		private static $logging_attempts_meta_key = WP_2FA_PREFIX . 'api-reset-password-attempts';
 
 		/**
+		 * One-use approval for the verified account in this PHP request only.
+		 *
+		 * @var int
+		 */
+		private static $verified_reset_user_id = 0;
+
+		/**
 		 * How many reset codes an account may be sent in one window.
 		 */
 		private const RESET_CODE_QUOTA = 5;
@@ -161,7 +168,8 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				return $errors;
 			}
 
-			if ( User_Helper::get_reset_password_valid_for_user( $user_data ) ) {
+			if ( (int) $user_data->ID === self::$verified_reset_user_id ) {
+				self::$verified_reset_user_id = 0;
 				return $errors;
 			}
 
@@ -745,17 +753,21 @@ if ( ! class_exists( '\WP2FA\Authenticator\Reset_Password' ) ) {
 				exit;
 			}
 
-			User_Helper::set_reset_password_valid_for_user( true, $user );
 			// The emailed code has been consumed. Retire its reset transaction too,
 			// so two concurrent submits cannot trigger duplicate password emails.
 			if ( ! self::consume_reset_transaction( (int) $user->ID, $transaction_nonce ) ) {
-				User_Helper::remove_reset_password_valid_for_user( $user );
 				\wp_safe_redirect( \wp_login_url() );
 				exit;
 			}
 
-			$errors = \retrieve_password( $user->user_email );
+			// Old account-wide approvals must never authorize another request.
 			User_Helper::remove_reset_password_valid_for_user( $user );
+			self::$verified_reset_user_id = (int) $user->ID;
+			try {
+				$errors = \retrieve_password( $user->user_email );
+			} finally {
+				self::$verified_reset_user_id = 0;
+			}
 
 			if ( ! \is_wp_error( $errors ) ) {
 				$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? \sanitize_text_field( \wp_unslash( $_REQUEST['redirect_to'] ) ) : 'wp-login.php?checkemail=confirm';

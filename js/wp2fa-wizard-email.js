@@ -155,7 +155,7 @@
 					credentials: 'same-origin',
 					body: formData
 				} )
-					.then( function ( res ) { return res.json(); } )
+					.then( window.wp2faWizard.utils.parseAjaxResponse )
 					.then( function ( data ) {
 						readyBtn.disabled = false;
 						window.wp2faWizard.utils.removeSpinner( spinner );
@@ -168,6 +168,7 @@
 					.catch( function () {
 						readyBtn.disabled = false;
 						window.wp2faWizard.utils.removeSpinner( spinner );
+						window.wp2faWizard.utils.showInlineError( container, wp2faWizardData.i18n.emailSendError || 'Failed to send setup email.' );
 					} );
 			} );
 		}
@@ -216,20 +217,18 @@
 					credentials: 'same-origin',
 					body: formData
 				} )
-					.then( function ( res ) { return res.json(); } )
+					.then( window.wp2faWizard.utils.parseAjaxResponse )
 					.then( function ( data ) {
 						resendBtn.disabled = false;
 						if ( data.success ) {
-							response.className = 'wp2fa-wizard-verification-response wp2fa-response-success';
-							response.textContent = wp2faWizardData.i18n.codeSent || 'A new code has been sent.';
-							setTimeout( function () {
-								response.textContent = '';
-								response.className = 'wp2fa-wizard-verification-response';
-							}, 3000 );
+							window.wp2faWizard.utils.showResponse( response, 'success', wp2faWizardData.i18n.codeSent || 'A new code has been sent.' );
+						} else {
+							window.wp2faWizard.utils.showResponse( response, 'error', window.wp2faWizard.utils.extractAjaxError( data, wp2faWizardData.i18n.emailSendError || 'Failed to send setup email.' ) );
 						}
 					} )
 					.catch( function () {
 						resendBtn.disabled = false;
+						window.wp2faWizard.utils.showResponse( response, 'error', wp2faWizardData.i18n.emailSendError || 'Failed to send setup email.' );
 					} );
 			} );
 
@@ -271,7 +270,7 @@
 					credentials: 'same-origin',
 					body: formData
 				} )
-					.then( function ( res ) { return res.json(); } )
+					.then( window.wp2faWizard.utils.parseAjaxResponse )
 					.then( function ( data ) {
 						validateBtn.disabled = false;
 						window.wp2faWizard.utils.removeSpinner( spinner );

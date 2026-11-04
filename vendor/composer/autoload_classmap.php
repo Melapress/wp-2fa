@@ -66,6 +66,7 @@ return array(
     'WP2FA\\Admin\\Views\\Re_Login_2FA' => $baseDir . '/includes/classes/Admin/Views/class-re-login-2fa.php',
     'WP2FA\\Admin\\Views\\Wizard_Steps' => $baseDir . '/includes/classes/Admin/Views/class-wizard-steps.php',
     'WP2FA\\Admin\\Wizard_Integration' => $baseDir . '/includes/classes/Admin/class-wizard-integration.php',
+    'WP2FA\\Admin\\Wizard_Skipped_Notice' => $baseDir . '/includes/classes/Admin/class-wizard-skipped-notice.php',
     'WP2FA\\App\\Grace_Period' => $baseDir . '/includes/classes/App/grace-period/class-grace-period.php',
     'WP2FA\\Authenticator\\Authentication' => $baseDir . '/includes/classes/Authenticator/class-authentication.php',
     'WP2FA\\Authenticator\\Code_Guard' => $baseDir . '/includes/classes/Authenticator/class-code-guard.php',

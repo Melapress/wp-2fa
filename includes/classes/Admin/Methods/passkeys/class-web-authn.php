@@ -558,36 +558,59 @@ if ( ! class_exists( '\WP2FA\Methods\Passkeys\Web_Authn' ) ) {
 		}
 
 		/**
-		 * Check origin
+		 * Check the complete origin against the configured WordPress site and home URLs.
 		 *
-		 * @param string $origin Origin.
+		 * RP-ID eligibility alone does not make a descendant origin trustworthy.
+		 * HTTPS remains required except for a configured localhost origin.
+		 *
+		 * @param mixed $origin Untrusted client-data origin.
 		 *
 		 * @return bool True if origin is valid, false otherwise.
 		 */
 		private function _check_origin( $origin ) {
-			if ( str_starts_with( $origin, 'android:apk-key-hash:' ) ) {
-				return $this->_check_android_key_hashes( $origin );
-			}
-
-			// https://www.w3.org/TR/Web_Authn/#rp-id .
-
-			// The origin's scheme must be https.
-			if ( 'localhost' !== $this->rp_id && 'https' !== \wp_parse_url( $origin, PHP_URL_SCHEME ) ) {
+			if ( ! \is_string( $origin ) ) {
 				return false;
 			}
 
-			// extract host from origin.
-			$host = \wp_parse_url( $origin, PHP_URL_HOST );
-			$host = \trim( $host, '.' );
-
-			// The RP ID must be equal to the origin's effective domain, or a registrable
-			// domain suffix of the origin's effective domain.
-			// Enforce label boundary: host must equal rp_id or be a subdomain (preceded by a dot).
-			if ( strcasecmp( $host, $this->rp_id ) === 0 ) {
-				return true;
+			if ( str_starts_with( $origin, 'android:apk-key-hash:' ) ) {
+				return \is_array( $this->android_key_hashes ) && $this->_check_android_key_hashes( $origin );
 			}
 
-			return \preg_match( '/\.' . \preg_quote( $this->rp_id, '/' ) . '$/i', $host ) === 1;
+			$parts = \wp_parse_url( $origin );
+			if ( ! \is_array( $parts ) || ! isset( $parts['scheme'], $parts['host'] ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || isset( $parts['path'] ) || isset( $parts['query'] ) || isset( $parts['fragment'] ) ) {
+				return false;
+			}
+
+			$scheme = \strtolower( $parts['scheme'] );
+			$host   = \strtolower( $parts['host'] );
+			$rp_id  = \strtolower( $this->rp_id );
+			if ( 'https' !== $scheme && ! ( 'localhost' === $rp_id && 'http' === $scheme ) ) {
+				return false;
+			}
+
+			if ( $host !== $rp_id && 1 !== \preg_match( '/\.' . \preg_quote( $rp_id, '/' ) . '$/', $host ) ) {
+				return false;
+			}
+
+			$port = $parts['port'] ?? ( 'https' === $scheme ? 443 : 80 );
+			foreach ( array( \get_option( 'siteurl' ), \get_option( 'home' ) ) as $url ) {
+				if ( ! \is_string( $url ) ) {
+					continue;
+				}
+				$trusted = \wp_parse_url( $url );
+				if ( ! \is_array( $trusted ) || ! isset( $trusted['scheme'], $trusted['host'] ) ) {
+					continue;
+				}
+
+				// Login may be forced to HTTPS while the stored WordPress URLs still use HTTP.
+				$trusted_scheme = 'localhost' === $rp_id ? \strtolower( $trusted['scheme'] ) : 'https';
+				$trusted_port   = $trusted['port'] ?? ( 'https' === $trusted_scheme ? 443 : 80 );
+				if ( $host === \strtolower( $trusted['host'] ) && $scheme === $trusted_scheme && $port === $trusted_port ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/**

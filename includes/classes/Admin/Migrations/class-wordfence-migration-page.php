@@ -470,7 +470,7 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 
 							<?php if ( $complete ) { ?>
 								<div class="settings-card wp2fa-wfls-complete">
-									<div class="notice-tip" role="note">
+									<div class="notice-tip wp2fa-wfls-help" role="note">
 										<span class="notice-tip-icon" aria-hidden="true">i</span>
 										<p class="notice-tip-body"><?php \esc_html_e( 'All users\' 2FA configuration and backup codes have migrated to WP 2FA. You can now deactivate and uninstall the Wordfence Login Security plugin.', 'wp-2fa' ); ?></p>
 									</div>
@@ -479,7 +479,11 @@ if ( ! class_exists( '\WP2FA\Admin\Migrations\Wordfence_Migration_Page' ) ) {
 								<div class="settings-card wp2fa-wfls-help-card">
 									<div class="notice-tip wp2fa-wfls-help" role="note">
 										<span class="notice-tip-icon" aria-hidden="true">i</span>
-										<p class="notice-tip-body"><?php echo \esc_html( \implode( ' ', self::get_offer_copy() ) ) . ' ' . \wp_kses_post( self::get_guide_copy() ); ?></p>
+										<p class="notice-tip-body">
+											<?php echo \esc_html( \implode( ' ', self::get_offer_copy() ) ); ?>
+											<br />
+											<?php echo \wp_kses_post( self::get_guide_copy() ); ?>
+										</p>
 									</div>
 								</div>
 							<?php } ?>

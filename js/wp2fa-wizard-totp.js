@@ -204,7 +204,7 @@
 					credentials: 'same-origin',
 					body: formData
 				} )
-					.then( function ( res ) { return res.json(); } )
+					.then( window.wp2faWizard.utils.parseAjaxResponse )
 					.then( function ( data ) {
 						validateBtn.disabled = false;
 						window.wp2faWizard.utils.removeSpinner( spinner );

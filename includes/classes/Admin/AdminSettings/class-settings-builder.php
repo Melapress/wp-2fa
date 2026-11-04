@@ -2215,7 +2215,7 @@ if ( ! class_exists( '\WP2FA\Admin\Settings_Builder' ) ) {
 				});
 
 				/* Toggle extra/integration settings visibility on checkbox change */
-				document.querySelectorAll('.wp2fa-sortable-item input[type="checkbox"][data-has-extra]').forEach(function(cb) {
+				document.querySelectorAll('.wp2fa-sortable-item > .wp2fa-sortable-checkbox input[type="checkbox"][data-has-extra]').forEach(function(cb) {
 					cb.addEventListener('change', function() {
 						var li = this.closest('.wp2fa-sortable-item');
 						var toggleWrap = li.querySelector('.wp2fa-method-settings-toggle-wrap');

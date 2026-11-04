@@ -75,6 +75,13 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		private static $user_roles_wp = array();
 
 		/**
+		 * Site or network owning the cached role catalog.
+		 *
+		 * @var string
+		 */
+		private static $roles_context = '';
+
+		/**
 		 * Keeps the value of the multisite install of the WP.
 		 *
 		 * @var bool
@@ -191,27 +198,20 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Shows critical notices to the admin.
+		 * Shows the free-edition Black Friday banner on plugin pages.
 		 *
 		 * @return void
 		 *
 		 * @since 2.2.0
 		 */
 		public static function show_2025_security_survey_admin_notice() {
-			$screen                       = \get_current_screen();
-			$show_extra_event_banner      = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner', false );
-			$extra_event_banner_dismissed = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false );
-
-			if ( $show_extra_event_banner ) {
-				$event_ending_date = \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date', false );
-				if ( $event_ending_date && ( \time() > (int) ( $event_ending_date ) ) ) {
-					$show_extra_event_banner = false;
-					\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner' );
-					\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_end_date' );
-					\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed' );
-				}
+			$screen = \get_current_screen();
+			if ( ! $screen || ! \current_user_can( 'manage_options' ) || ! \in_array( $screen->base, self::PLUGIN_PAGES, true ) ) {
+				return;
 			}
-			if ( in_array( $screen->base, self::PLUGIN_PAGES, true ) && $show_extra_event_banner && ! $extra_event_banner_dismissed ) {
+
+			$phase = self::get_extra_event_banner_phase();
+			if ( '' !== $phase && $phase !== \get_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', false ) ) {
 				?>
 				<!-- Copy START -->
 				<div class="black-friday wp-2fa-extra-event-banner" style="margin-top: 20px; margin-right: 20px;">
@@ -231,7 +231,8 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 						?>
 					</span>
 					</h2>
-					<a href="https://melapress.com/black-friday-cyber-monday/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=BFCM2025" target="_blank" class="bf-cta-link"><?php \esc_html_e( 'Get Offer Now', 'wp-2fa' ); ?></a>
+					<a href="https://melapress.com/black-friday-cyber-monday/?utm_source=plugin&utm_medium=wp2fa&utm_campaign=BFCM2026" target="_blank" rel="noopener noreferrer" class="bf-cta-link"><?php \esc_html_e( 'Get Offer Now', 'wp-2fa' ); ?></a>
+					<p class="wp-2fa-extra-event-banner-error" role="alert" style="display:none;"><?php \esc_html_e( 'An error occurred. Please try again.', 'wp-2fa' ); ?></p>
 					</div>
 					
 					<!-- Close Button -->
@@ -242,7 +243,10 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				<script type="text/javascript">
 				jQuery(document).ready(function( $ ) {
 					jQuery( 'body' ).on( 'click', '.wp-2fa-extra-event-banner-close', function ( e ) {
-						var nonce  = jQuery( '.wp-2fa-extra-event-banner [data-dismiss-nonce]' ).attr( 'data-dismiss-nonce' );
+						var banner = jQuery( this ).closest( '.wp-2fa-extra-event-banner' );
+						var nonce  = jQuery( this ).attr( 'data-dismiss-nonce' );
+						var error  = banner.find( '.wp-2fa-extra-event-banner-error' );
+						error.hide();
 						
 						jQuery.ajax({
 							type: 'POST',
@@ -252,8 +256,15 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 								action: 'wp_2fa_dismiss_extra_event_banner',
 								nonce : nonce,
 							},
-							success: function ( result ) {		
-								jQuery( '.wp-2fa-extra-event-banner' ).slideUp( 300 );
+							success: function ( result ) {
+								if ( result && result.success ) {
+									banner.slideUp( 300 );
+								} else {
+									error.show();
+								}
+							},
+							error: function () {
+								error.show();
 							}
 						});
 					});
@@ -421,7 +432,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Handle event banner dismissal.
+		 * Dismiss the current campaign phase for the installation or network.
 		 *
 		 * @return void
 		 *
@@ -436,17 +447,45 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				\wp_send_json_error( \esc_html__( 'Nonce Verification Failed.', 'wp-2fa' ) );
 			}
 
-			\delete_site_option( WP_2FA_PREFIX . '_extra_event_banner' );
-			\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_dismissed', 'yes' );
-
-			$today_date = gmdate( 'Y-m-d' );
-			$today_date = gmdate( 'Y-m-d', strtotime( $today_date ) );
-
-			if ( gmdate( 'Y-m-d', strtotime( '11/28/2025' ) ) === $today_date ) {
-				\update_site_option( WP_2FA_PREFIX . '_extra_event_banner_super_dismissed', 'yes' );
+			$phase = self::get_extra_event_banner_phase();
+			if ( '' !== $phase ) {
+				$option = WP_2FA_PREFIX . '_extra_event_banner_dismissed';
+				if ( ! \update_site_option( $option, $phase ) && $phase !== \get_site_option( $option, false ) ) {
+					\wp_send_json_error( \esc_html__( 'An error occurred. Please try again.', 'wp-2fa' ) );
+				}
 			}
 
 			\wp_send_json_success( \esc_html__( 'Complete.', 'wp-2fa' ) );
+		}
+
+		/**
+		 * Corner artwork for both upgrade cards, independent of banner dismissal.
+		 *
+		 * @return string Inline CSS, or an empty string outside the campaign.
+		 */
+		public static function get_black_friday_ribbon_style(): string {
+			if ( '' === self::get_extra_event_banner_phase() ) {
+				return '';
+			}
+
+			return 'background-image: url("' . \esc_url( WP_2FA_URL . 'dist/images/bf-corner-notice.svg' ) . '"); background-position: top right; background-repeat: no-repeat;';
+		}
+
+		/**
+		 * Campaign phase in UTC, matching the previous promotion's timezone.
+		 *
+		 * Each phase can be dismissed once. The second starts on 26 November even
+		 * if an administrator first returns later, and 1 December is included in full.
+		 *
+		 * @return string Phase start date, or an empty string outside the campaign.
+		 */
+		private static function get_extra_event_banner_phase(): string {
+			$today = \wp_date( 'Y-m-d', null, new \DateTimeZone( 'UTC' ) );
+			if ( $today < '2026-11-17' || $today >= '2026-12-02' ) {
+				return '';
+			}
+
+			return $today < '2026-11-26' ? '2026-11-17' : '2026-11-26';
 		}
 
 		/**
@@ -909,14 +948,32 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 		}
 
 		/**
-		 * Sets the internal variable with all the existing WP roles.
+		 * Sets the role catalog for the current site, or current network on multisite.
 		 *
 		 * @return void
 		 *
 		 * @since 2.2.0
 		 */
 		private static function set_roles() {
-			if ( empty( self::$user_roles_wp ) ) {
+			$context = self::is_multisite() ? 'network:' . \get_current_network_id() : 'site:' . \get_current_blog_id();
+			if ( empty( self::$user_roles_wp ) || self::$roles_context !== $context ) {
+				$names = \wp_roles()->get_names();
+				if ( self::is_multisite() ) {
+					// Network policies also apply to roles registered only on a subsite.
+					$names    = array();
+					$site_ids = \get_sites(
+						array(
+							'network_id' => \get_current_network_id(),
+							'fields'     => 'ids',
+							'number'     => 0,
+						)
+					);
+					foreach ( $site_ids as $site_id ) {
+						$roles  = (int) $site_id === \get_current_blog_id() ? \wp_roles() : new \WP_Roles( (int) $site_id );
+						$names += $roles->get_names();
+					}
+				}
+
 				/*
 				 * Built from the slugs, which WordPress keeps unique - not by flipping
 				 * the display names, which it does not. Two roles both called
@@ -928,7 +985,6 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 				 * name-keyed map keeps every role too, and a selector shows two
 				 * entries a person can tell apart.
 				 */
-				$names  = \wp_roles()->get_names();
 				$counts = \array_count_values( \array_map( 'strval', $names ) );
 				$labels = array();
 
@@ -938,6 +994,7 @@ if ( ! class_exists( '\WP2FA\Admin\Helpers\WP_Helper' ) ) {
 
 				self::$user_roles_wp = $labels;
 				self::$user_roles    = \array_flip( $labels );
+				self::$roles_context = $context;
 			}
 		}
 
