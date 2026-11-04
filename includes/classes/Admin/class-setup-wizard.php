@@ -115,7 +115,10 @@ if ( ! class_exists( '\WP2FA\Admin\Setup_Wizard' ) ) {
 				$wizard_pending = Settings_Utils::get_option( 'wizard_not_finished' );
 				$defaults_only  = Settings_Utils::get_option( 'default_settings_applied', false );
 
-				if ( ! $has_settings || $wizard_pending || $defaults_only ) {
+				// Launched on purpose (Settings > Advanced settings): shown however the site is configured.
+				$relaunch = isset( $_GET[ Setup_Wizard_New::RELAUNCH_ARG ] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only chooses which page to show; saving is nonce-checked.
+
+				if ( ! $has_settings || $wizard_pending || $defaults_only || $relaunch ) {
 					// First-time setup: show the new wizard.
 					Setup_Wizard_New::render();
 					// render() calls exit().

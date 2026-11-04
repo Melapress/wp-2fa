@@ -40,6 +40,7 @@ use WP2FA\Admin\Wizard_Integration;
 use WP2FA\Authenticator\Code_Guard;
 use WP2FA\Admin\Controllers\Methods;
 use WP2FA\Admin\Free_Support_Notice;
+use WP2FA\Admin\Wizard_Skipped_Notice;
 use WP2FA\Admin\Helpers\Ajax_Helper;
 use WP2FA\Admin\Helpers\File_Writer;
 use WP2FA\Admin\Helpers\User_Helper;
@@ -229,6 +230,9 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 				// Set a flag so we know we have default values present, not custom.
 				Settings_Utils::update_option( 'default_settings_applied', true );
 				Settings_Utils::delete_option( 'wizard_not_finished' );
+
+				// The first-install wizard was offered and left without finishing: say so on the plugin pages.
+				Wizard_Skipped_Notice::flag();
 			}
 
 
@@ -258,7 +262,9 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 			// \add_action( 'after_setup_theme', array( FlyOut::class, 'init' ), 10 );
 			Plugin_Updated_Notice::init();
 			New_Interface_Notice::init();
-			Free_Support_Notice::init();
+			// Temporarily hide the support notice to leave room for the Black Friday banner.
+			// Free_Support_Notice::init();
+			Wizard_Skipped_Notice::init();
 			Top_Bar_Banner::init();
 
 			self::add_actions();
@@ -448,6 +454,7 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 
 			// Run only after the core wp_authenticate_username_password() check.
 			\add_filter( 'authenticate', array( Login::class, 'filter_authenticate' ), 50 );
+			\add_action( 'wp_authenticate_application_password_errors', array( Login::class, 'check_application_password_errors' ), 10, 2 );
 			\add_filter( 'wp_authenticate_user', array( Login::class, 'run_authentication_check' ), 10, 2 );
 
 			// Re-create Wordfence Login Security enrolments as their owners log in.
@@ -1323,6 +1330,32 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 							if ( isset( $items[ $woo_endpoint ] ) ) {
 								$url = \wc_get_endpoint_url( $woo_endpoint, '', \wc_get_page_permalink( 'myaccount' ) );
 
+								/*
+								 * Already on that address: the endpoint is not in this site's rewrite rules
+								 * (the page is a 404), so the check above cannot see the user is on it, and
+								 * redirecting again would send them to the same address forever ("too many
+								 * redirects"). Have the rules rebuilt and try once more; if that cannot be
+								 * done, stop redirecting.
+								 */
+								if ( self::is_current_url( $url ) ) {
+									/**
+									 * The WooCommerce 2FA endpoint is missing on this site. Return true once the
+									 * rewrite rules have been rebuilt, so the redirect may be tried once more.
+									 *
+									 * @param bool   $repaired - Whether it was repaired.
+									 * @param string $url      - The endpoint's address.
+									 *
+									 * @since 4.2.1
+									 */
+									$repaired = (bool) \apply_filters( WP_2FA_PREFIX . 'woocommerce_endpoint_missing', false, $url );
+
+									if ( ! $repaired ) {
+										Debugging::log( 'Not redirecting user ' . $user->ID . ' to the WooCommerce 2FA endpoint again: it is missing on site ' . \get_current_blog_id() . '.' );
+
+										return;
+									}
+								}
+
 								\wp_safe_redirect( $url );
 
 								exit;
@@ -1430,6 +1463,30 @@ if ( ! class_exists( '\WP2FA\WP2FA' ) ) {
 					exit;
 				}
 			}
+		}
+
+		/**
+		 * Whether an address is the page being served (scheme, query and a trailing slash aside).
+		 *
+		 * @param string $url - The address.
+		 *
+		 * @return bool
+		 *
+		 * @since 4.2.1
+		 */
+		private static function is_current_url( string $url ): bool {
+			$target  = \wp_parse_url( $url );
+			$request = isset( $_SERVER['REQUEST_URI'] ) ? \wp_parse_url( \esc_url_raw( \wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$host    = isset( $_SERVER['HTTP_HOST'] ) ? \strtolower( \sanitize_text_field( \wp_unslash( $_SERVER['HTTP_HOST'] ) ) ) : '';
+
+			if ( ! \is_array( $target ) || ! \is_string( $request ) ) {
+				return false;
+			}
+
+			$target_host = \strtolower( (string) ( $target['host'] ?? '' ) . ( isset( $target['port'] ) ? ':' . $target['port'] : '' ) );
+
+			return ( '' === $target_host || '' === $host || $target_host === $host )
+				&& \untrailingslashit( (string) ( $target['path'] ?? '' ) ) === \untrailingslashit( $request );
 		}
 
 		/**

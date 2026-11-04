@@ -804,7 +804,44 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 * @return \WP_User|\WP_Error
 		 */
 		public static function filter_authenticate( $user ) {
-			if ( $user instanceof \WP_User && self::is_api_request() && User_Helper::is_user_using_two_factor( $user->ID ) && ! self::is_user_api_login_enabled( $user->ID ) ) {
+			if ( $user instanceof \WP_User && self::is_api_request() ) {
+				return self::check_api_login( $user );
+			}
+
+			return $user;
+		}
+
+		/**
+		 * Enforce the same policy when core authenticates Basic Auth directly.
+		 *
+		 * @param \WP_Error $errors Authentication errors, modified by reference.
+		 * @param \WP_User  $user   Account whose application password was verified.
+		 * @return void
+		 */
+		public static function check_application_password_errors( $errors, $user ) {
+			if ( $errors->has_errors() ) {
+				return;
+			}
+
+			$result = self::check_api_login( $user );
+			if ( \is_wp_error( $result ) ) {
+				$errors->merge_from( $result );
+			}
+		}
+
+		/**
+		 * Apply account locks and the enrolled user's API-login preference.
+		 *
+		 * @param \WP_User $user Verified account.
+		 * @return \WP_User|\WP_Error
+		 */
+		private static function check_api_login( $user ) {
+			$checked = self::run_authentication_check( $user, '' );
+			if ( \is_wp_error( $checked ) ) {
+				return $checked;
+			}
+
+			if ( User_Helper::is_user_using_two_factor( $user->ID ) && ! self::is_user_api_login_enabled( $user->ID ) ) {
 				return new \WP_Error(
 					'invalid_application_credentials',
 					\esc_html__( 'Error: API login for user disabled.', 'wp-2fa' )
@@ -1076,7 +1113,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 				include_once WP_2FA_PATH . 'includes/functions/login-header.php';
 			}
 
-			\wp_enqueue_script( 'wp_2fa_user_login_scripts' );
+			self::enqueue_challenge_scripts();
 
 			\login_header();
 
@@ -2219,6 +2256,28 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		}
 
 		/**
+		 * The challenge form's scripts.
+		 *
+		 * - code-focus.js, always: the cursor goes to the code field.
+		 * - user-login.js, which checks the code over REST: only registered when REST is on
+		 *   (Endpoints), so without REST the native form post is left alone.
+		 *
+		 * @return void
+		 *
+		 * @since 4.3.0
+		 */
+		private static function enqueue_challenge_scripts(): void {
+			\wp_enqueue_script(
+				'wp_2fa_code_focus',
+				WP_2FA_URL . 'includes/classes/Authenticator/assets/code-focus.js',
+				array(),
+				WP_2FA_VERSION,
+				array( 'in_footer' => true )
+			);
+			\wp_enqueue_script( 'wp_2fa_user_login_scripts' );
+		}
+
+		/**
 		 * Prints the form that prompts the user to authenticate.
 		 *
 		 * @since 0.1-dev
@@ -2227,7 +2286,7 @@ if ( ! class_exists( '\WP2FA\Authenticator\Login' ) ) {
 		 */
 		public static function backup_codes_authentication_page( $user ) {
 			require_once ABSPATH . '/wp-admin/includes/template.php';
-			\wp_enqueue_script( 'wp_2fa_user_login_scripts' );
+			self::enqueue_challenge_scripts();
 			?>
 			<p><?php echo WP2FA::get_wp2fa_white_label_setting( 'default-backup-code-page', true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p><br/>
 			<p>

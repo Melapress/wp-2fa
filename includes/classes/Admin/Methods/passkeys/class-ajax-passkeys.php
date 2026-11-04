@@ -582,7 +582,7 @@ if ( ! class_exists( '\WP2FA\Passkeys\Ajax_Passkeys' ) ) {
 					$client_data_json,
 					new Byte_Buffer( $attestation_object ),
 					$challenge,
-					false, // User verification not required for current flow.
+					true, // Match the user verification required by the registration options.
 				);
 
 				$data = array(

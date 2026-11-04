@@ -97,26 +97,20 @@
 					credentials: 'same-origin',
 					body: formData
 				} )
-					.then( function ( res ) { return res.json(); } )
+					.then( window.wp2faWizard.utils.parseAjaxResponse )
 					.then( function ( data ) {
 						generateBtn.disabled = false;
 						window.wp2faWizard.utils.removeSpinner( spinner );
-						if ( data.success && data.data && data.data.codes ) {
+						if ( data.success && data.data && Array.isArray( data.data.codes ) && data.data.codes.length > 0 && data.data.codes.every( function ( code ) { return typeof code === 'string' && code.length > 0; } ) ) {
 							renderCodesDisplay( data.data.codes );
 						} else {
-							var errEl = document.createElement( 'div' );
-							errEl.className = 'wp2fa-wizard-verification-response wp2fa-response-error';
-							errEl.textContent = wp2faWizardData.i18n.backupCodesError || 'Failed to generate backup codes.';
-							container.appendChild( errEl );
-							setTimeout( function () {
-								errEl.textContent = '';
-								errEl.className = 'wp2fa-wizard-verification-response';
-							}, 3000 );
+							window.wp2faWizard.utils.showInlineError( container, window.wp2faWizard.utils.extractAjaxError( data, wp2faWizardData.i18n.backupCodesError || 'Failed to generate backup codes.' ) );
 						}
 					} )
 					.catch( function () {
 						generateBtn.disabled = false;
 						window.wp2faWizard.utils.removeSpinner( spinner );
+						window.wp2faWizard.utils.showInlineError( container, wp2faWizardData.i18n.backupCodesError || 'Failed to generate backup codes.' );
 					} );
 			} );
 		}
@@ -249,13 +243,13 @@
 				credentials: 'same-origin',
 				body: formData
 			} )
-				.then( function ( res ) { return res.json(); } )
+				.then( window.wp2faWizard.utils.parseAjaxResponse )
 				.then( function ( data ) {
 					emailBtn.disabled = false;
 					if ( data.success ) {
 						showStatus( wp2faWizardData.i18n.backupCodesEmailSent || 'Codes sent to your email.', false );
 					} else {
-						showStatus( wp2faWizardData.i18n.backupCodesEmailError || 'Failed to send email.', true );
+						showStatus( window.wp2faWizard.utils.extractAjaxError( data, wp2faWizardData.i18n.backupCodesEmailError || 'Failed to send email.' ), true );
 					}
 				} )
 				.catch( function () {
